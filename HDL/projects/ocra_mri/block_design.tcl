@@ -180,7 +180,7 @@ cell xilinx.com:ip:blk_mem_gen:8.3 sequence_memory {
 }
 
 # Load some initial data to the memory
-set_property -dict [list CONFIG.Load_Init_File {true} CONFIG.Coe_File {/home/red-pitaya/red-pitaya-notes.old/test.coe}] [get_bd_cells sequence_memory]
+#set_property -dict [list CONFIG.Load_Init_File {true} CONFIG.Coe_File {/home/red-pitaya/red-pitaya-notes.old/test.coe}] [get_bd_cells sequence_memory]
 
 # Create axi_bram_writer for pulse sequence
 cell pavel-demin:user:axi_bram_writer:1.0 sequence_writer {
