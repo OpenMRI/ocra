@@ -8,23 +8,15 @@
 # solution taken from http://www.googoolia.com/wp/2015/04/21/awk-symbol-lookup-error-awk-undefined-symbol-mpfr_z_sub/
 LD_LIBRARY_PATH =
 
-NAME = led_blinker
+NAME = ocra_mri
 PART = xc7z010clg400-1
 PROC = ps7_cortexa9_0
 
 CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
-  axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_accumulator_v1_0 \
-  axis_alex_v1_0 axis_averager_v1_0 axis_bram_reader_v1_0 \
-  axis_bram_writer_v1_0 axis_constant_v1_0 axis_counter_v1_0 \
-  axis_decimator_v1_0 axis_fifo_v1_0 axis_gpio_reader_v1_0 axis_histogram_v1_0 \
-  axis_i2s_v1_0 axis_interpolator_v1_0 axis_keyer_v1_0 axis_lfsr_v1_0 \
-  axis_negator_v1_0 axis_oscilloscope_v1_0 axis_packetizer_v1_0 \
-  axis_phase_generator_v1_0 axis_pulse_height_analyzer_v1_0 \
-  axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
-  axis_stepper_v1_0 axis_tagger_v1_0 axis_timer_v1_0 axis_trigger_v1_0 \
-  axi_sts_register_v1_0 axis_validator_v1_0 axis_variable_v1_0 \
-  axis_variant_v1_0 axis_zeroer_v1_0 dna_reader_v1_0 gpio_debouncer_v1_0 \
-  pulse_generator_v1_0 shift_register_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0
+	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
+        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
+        axis_zeroer_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
+        axi_sts_register_v1_0
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = hsi -nolog -nojournal -mode batch
