@@ -1,0 +1,5 @@
+boot.bin
+uImage
+devicetree.dtb
+*~
+tmp/

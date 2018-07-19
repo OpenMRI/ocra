@@ -1,0 +1,1 @@
+Hardware designs for setting up your own ocra based MRI system.
