@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1600</width>
-    <height>900</height>
+    <width>1440</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,8 +24,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>801</width>
-     <height>861</height>
+     <width>531</width>
+     <height>841</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -48,7 +48,7 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>1230</x>
+     <x>1000</x>
      <y>10</y>
      <width>361</width>
      <height>861</height>
@@ -697,10 +697,10 @@ color: rgb(0, 0, 0);
   <widget class="QWidget" name="imageWidget" native="true">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>570</x>
      <y>10</y>
      <width>400</width>
-     <height>861</height>
+     <height>841</height>
     </rect>
    </property>
    <property name="maximumSize">

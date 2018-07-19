@@ -1,0 +1,55 @@
+name: ocra_env
+channels:
+  - defaults
+dependencies:
+  - blas=1.0=mkl
+  - ca-certificates=2018.03.07=0
+  - certifi=2018.4.16=py37_0
+  - cycler=0.10.0=py37_0
+  - dbus=1.13.2=h760590f_1
+  - expat=2.2.5=hb8e80ba_0
+  - freetype=2.9.1=hb4e5f40_0
+  - gettext=0.19.8.1=h15daf44_3
+  - glib=2.56.1=h35bc53a_0
+  - icu=58.2=h4b95b61_1
+  - intel-openmp=2018.0.3=0
+  - jpeg=9b=he5867d9_2
+  - kiwisolver=1.0.1=py37h0a44026_0
+  - libcxx=4.0.1=h579ed51_0
+  - libcxxabi=4.0.1=hebd6815_0
+  - libedit=3.1.20170329=hb402a30_2
+  - libffi=3.2.1=h475c297_4
+  - libgfortran=3.0.1=h93005f0_2
+  - libiconv=1.15=hdd342a3_7
+  - libpng=1.6.34=he12f830_0
+  - matplotlib=2.2.2=py37hbf02d85_2
+  - mkl=2018.0.3=1
+  - mkl_fft=1.0.2=py37h6b9c3cc_0
+  - mkl_random=1.0.1=py37h5d10147_1
+  - ncurses=6.1=h0a44026_0
+  - numpy=1.14.5=py37h648b28d_4
+  - numpy-base=1.14.5=py37ha9ae307_4
+  - openssl=1.0.2o=h26aff7b_0
+  - pcre=8.42=h378b8a2_0
+  - pip=10.0.1=py37_0
+  - pyparsing=2.2.0=py37_1
+  - pyqt=5.9.2=py37h655552a_0
+  - python=3.7.0=hc167b69_0
+  - python-dateutil=2.7.3=py37_0
+  - pytz=2018.5=py37_0
+  - qt=5.9.6=h74ce4d9_0
+  - readline=7.0=hc1231fa_4
+  - scipy=1.1.0=py37hf1f7d93_0
+  - setuptools=39.2.0=py37_0
+  - sip=4.19.8=py37h0a44026_0
+  - six=1.11.0=py37_1
+  - sqlite=3.24.0=ha441bb4_0
+  - tk=8.6.7=h35a86e2_3
+  - tornado=5.0.2=py37h1de35cc_0
+  - wheel=0.31.1=py37_0
+  - xz=5.2.4=h1de35cc_4
+  - zlib=1.2.11=hf3cbc9b_2
+  - pip:
+    - pyqt5-sip==4.19.12
+prefix: /Users/Suma/miniconda3/envs/ocra_env
+
