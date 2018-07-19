@@ -1,0 +1,121 @@
+body {
+    background-color: hsl(0, 0%, 95%);
+    min-height: 5em;
+}
+
+.navContainer {
+    height: 100%;
+    position: fixed;
+    width: 275px;//12em;
+    background-color: hsl(0, 0%, 80%);
+    display: flex;
+    flex-direction:column;
+    font-size: 22px;
+}
+
+.navContainer>.spacer {
+    flex-grow: 1;
+}
+
+.navContainer>header {
+    padding: 1em 0 3em 0;
+}
+
+.navContainer>nav {
+//   flex-grow: 1;
+    overflow-y: auto;
+}
+
+.navContainer>nav>a {
+    display:block;
+    width: 100%;
+    color: #000;
+    padding: 0 1em;
+    height: 1.5em;
+}
+
+.navContainer>nav>a:hover {
+    background: rgba(0,0,0, .1);
+    box-shadow: inset 0 0 .2em 0 rgba(0, 0, 0, .2);
+    text-decoration: none;
+    font-weight: 900;
+}
+
+.navContainer>footer {
+    padding: 0 1em;
+    color: hsl(0,0%,40%);
+}
+
+.navContainer>.sponsor {
+    margin: 1em 0 0 0;
+    text-align:center;
+    font-size: 10px;
+}
+
+.navContainer>.sponsor a {
+    margin: 1ex 0ex;
+    display: inline-block;
+}
+
+.navContainer>footer a:hover {
+  text-decoration: none;
+}
+
+main {
+    margin-left: 275px;
+    padding: 1em;
+    max-width: 55em;
+}
+
+ul.publications {
+  list-style:none;
+  padding: 0 2em;
+}
+
+ul.publications>li>footer {
+  font-style: italic;
+  font-size: 75%;
+}
+
+.icon > svg {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+}
+
+.code, code {
+  border: 2px solid hsl(0,  0%, 45%);
+  background-color: rgba(255, 255, 255, .8);
+  white-space: pre-wrap;
+  font-family: monospace;
+  color: rgb(199, 37, 78);
+}
+
+div.code {
+  margin: .5em 3em;
+  padding: .4em 1em;
+  white-space: pre !important;
+  overflow-y: auto;
+}
+
+.post-meta {
+  font-size: 80%;
+}
+
+ul.post-list {
+  list-style: none;
+  padding: 0;
+}
+
+.post-list li {
+  margin: 1em .5em;
+}
+
+.post-list h1 {
+  margin: 0;
+}
+
+.post-list article {
+  margin: 1em 0;
+}
