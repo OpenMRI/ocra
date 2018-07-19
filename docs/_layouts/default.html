@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  {% include head.html %}
+  <body>
+    <div class="navContainer">
+      <header>
+<!--        <img src="img/jetStream_logo_header.png"> -->
+        <a href="{{ site.github.url }}/"><img class="center-block" src="{{ site.github.url }}/img/jetStream_logo_92.png"></a>
+      </header>
+      <nav>
+      <a href="{{ site.github.url }}/"><img src="{{ site.github.url }}/img/jetStream_logo_64.png" style="width:32px; margin-right:3px">JetStream</a>
+      <a href="{{ site.github.url }}/news"><i class="flaticon-newsround"></i>News</a>
+      <a href="{{ site.github.url }}/gettingstarted"><i class="flaticon-start"></i>Getting Started</a>
+      <a href="{{ site.github.url }}/documentation"><i class="flaticon-documentation"></i>Documentation</a>
+      <a href="{{ site.github.url }}/downloads"><i class="flaticon-github"></i>Downloads</a>
+      <a href="{{ site.github.url }}/publications"><i class="flaticon-publication"></i>Publications</a>
+      </nav>      
+      <div class="sponsor">
+	sponsors<br />
+        <a href="https://www.manchester.ac.uk"><img src="{{ site.github.url }}/img/uniManchester.png"></a><br />
+        <a href="https://www.gov.uk/dstl"><img src="{{ site.github.url }}/img/dstl_height.png"></a>
+     </div>
+     <div class="spacer">
+     </div>
+     <footer>
+        <a href="{{ site.github.url }}/contact"><i class="flaticon-send"></i>Contact</a>
+      </footer>
+    </div>
+    <main>
+      {{ content }}
+    </main>
+  </body>
+</html>
