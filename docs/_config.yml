@@ -1,1 +1,11 @@
+# Site settings
+title: OCRA MRI
+email: sanand@mit.edu
+description: > # this means to ignore newlines until "baseurl:"
+  OCRA - an Open-source Console for Real-time Acquisition.
+baseurl: ""
+url: "http://openmri.github.io/ocra" # the base hostname & protocol for your site
+
+# Build settings
+markdown: kramdown
 theme: jekyll-theme-slate
