@@ -71,7 +71,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.actionProj.triggered.connect(self.open_mri_proj)
         self.action2DImag.triggered.connect(self.open_mri_2dimag)
         self.action3DImag.triggered.connect(self.open_mri_3dimag)
-        self.actionReal_time_update.triggered.connect(self.open_mri_rt)
+        self.actionRTRotate.triggered.connect(self.open_mri_rt)
 
         # set shortcuts
         self.actionConfig.setShortcut('Ctrl+Shift+C')
@@ -82,7 +82,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.actionProj.setShortcut('Ctrl+4')
         self.action2DImag.setShortcut('Ctrl+5')
         self.action3DImag.setShortcut('Ctrl+6')
-        self.actionReal_time_update.setShortcut('Ctrl+7')
+        self.actionRTRotate.setShortcut('Ctrl+7')
 
     def init_stacked_widget(self):
         layout = QVBoxLayout()
@@ -152,49 +152,49 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.stacked_widget.setCurrentIndex(1)
         self.mriFidWidget.set_freq(parameters.get_freq()) # update frequency to server
         self.mriFidWidget.freqValue.setValue(parameters.get_freq()) # maybe put this in lower funcs
-        self.setWindowTitle('MRI tabletop - FID GUI')
+        self.setWindowTitle('Tabletop MRI - FID GUI')
 
     def open_mri_se(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(2)
         self.mriSeWidget.set_freq(parameters.get_freq())
         self.mriSeWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - SE GUI')
+        self.setWindowTitle('Tabletop MRI - SE GUI')
 
     def open_mri_sig(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(3)
         self.mriSigWidget.set_freq(parameters.get_freq())
         self.mriSigWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - Signals GUI')
+        self.setWindowTitle('Tabletop MRI - Signals GUI')
 
     def open_mri_proj(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(4)
         self.mriProjWidget.set_freq(parameters.get_freq())
         self.mriProjWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - 1D Projection GUI')
+        self.setWindowTitle('Tabletop MRI - 1D Projection GUI')
 
     def open_mri_2dimag(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(5)
         self.mri2DImagWidget.set_freq(parameters.get_freq())
         self.mri2DImagWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - 2D Image GUI')
+        self.setWindowTitle('Tabletop MRI - 2D Imaging GUI')
 
     def open_mri_3dimag(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(6)
         self.mri3DImagWidget.set_freq(parameters.get_freq())
         self.mri3DImagWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - 3D Image GUI')
+        self.setWindowTitle('Tabletop MRI - 3D Imaging GUI')
 
     def open_mri_rt(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(7)
         self.mriRtWidget.set_freq(parameters.get_freq())
         self.mriRtWidget.freqValue.setValue(parameters.get_freq())
-        self.setWindowTitle('MRI tabletop - Real-time Update GUI')
+        self.setWindowTitle('Tabletop MRI - Real-time Rotation GUI')
 
 
 # configuration dialog

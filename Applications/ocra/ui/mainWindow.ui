@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1600</width>
-    <height>900</height>
+    <width>1440</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1600</width>
-     <height>26</height>
+     <width>1440</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -41,7 +41,7 @@
     <addaction name="actionProj"/>
     <addaction name="action2DImag"/>
     <addaction name="action3DImag"/>
-    <addaction name="actionReal_time_update"/>
+    <addaction name="actionRTRotate"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelo">
@@ -110,9 +110,9 @@
     <string>Signals</string>
    </property>
   </action>
-  <action name="actionReal_time_update">
+  <action name="actionRTRotate">
    <property name="text">
-    <string>Real-time update</string>
+    <string>Real-time Rotation</string>
    </property>
   </action>
  </widget>

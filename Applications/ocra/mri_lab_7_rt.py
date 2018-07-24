@@ -81,12 +81,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
         self.data = np.frombuffer(self.buffer, np.complex64)
         self.data_sum = np.frombuffer(self.buffer, np.complex64)
 
-        # # Save data
-        # self.full_data = np.matrix(np.zeros(np.size(self.data)))
-        # self.fname = "acq_data_06_05_3"
-        # self.buffers_received = 0
-        # self.avgs_received = 0
-
         # Real time projection demo
         self.angleSpin.valueChanged.connect(self.set_angle_spin)
         self.angleSpin.setKeyboardTracking(False)
@@ -103,8 +97,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
         # Search demo
         self.max = 0.0
         self.maxes = []
-        # self.maxval = 0.0
-        # self.flag = 0  # flag for imaging
         self.max_angle = 0.0
         self.counter = 0
         self.proj = np.zeros(1000)
@@ -113,8 +105,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
         self.timer = QTimer(self)
         self.searchButton.clicked.connect(self.search_clicked)
         self.acqType.addItems(['Projection', '2D Image'])
-        # self.acqType.currentIndexChanged.connect(self.acquire)
-        # Disable if not start yet
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.acquireButton.setEnabled(False)
@@ -168,21 +158,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
         self.tse_k_pha = []
         self.kspace_center = 475 # k center time = 1.9*250: echo time is at 1.9ms after acq start
         self.crop_factor = 640 # 64 matrix size ~ 640 readout length (need FURTHER CALIBRATION)
-
-        # # Setup plot
-        # self.figure = Figure()
-        # self.figure.set_facecolor('none')
-        # # top and bottom axes: 2 rows, 1 column
-        # self.axes_top = self.figure.add_subplot(2, 1, 1)
-        # self.axes_bottom = self.figure.add_subplot(2, 1, 2)
-        # self.canvas = FigureCanvas(self.figure)
-        # self.plotLayout.addWidget(self.canvas)
-        # # create navigation toolbar
-        # self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
-        # remove subplots action (might be useful in the future)
-        # actions = self.toolbar.actions()
-        # self.toolbar.removeAction(actions[7])
-        # self.plotLayout.addWidget(self.toolbar)
 
     def start(self):
         self.idle = False
@@ -287,10 +262,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
             self.acqType.setCurrentIndex(self.acqType_idx)
 
     def acquire(self):
-        # gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
-        # gsocket.write(struct.pack('<I', 3 << 28 | self.angle))
-        # print("Acquiring data")
-
         # clear the plots, need to call draw() to update
         self.axes_bottom.clear()
         self.axes_top.clear()
@@ -732,9 +703,6 @@ class MRI_Rt_Widget(MRI_Rt_Widget_Base, MRI_Rt_Widget_Form):
         # cntr = int(750 / 2 - 5)
         cntr = int(640 / 2 - 5)
         img = np.abs(Y[:, cntr - int(self.num_TR / 2 - 1):cntr + int(self.num_TR / 2 + 1)])
-        # print(np.size(img,0))
-        # print(np.size(img,1))
-        # print(np.size(img))
         plt.figure()
         plt.imshow(img, cmap='gray')
         plt.show()
