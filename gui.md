@@ -107,7 +107,7 @@ To use the GUI, press Start. Select from the dropdown bar whether you want to ac
 Pulse sequences are written in an Assembly-like language. Fundamentally, the language specifies events (e.g. turning on an amplifier gating signal) by writing to and reading from registers. At the lowest level, the FPGA determines the event type by an 8-bit number written to a register, where event is specified by one bit. The pulse bits are described in the table below:
 
 | Bit        | Description |
-| ---- |:-------------:|
+|:----:|:-------------:|
 | 0 | Tx Pulse |
 | 1 | Rx Pulse |
 | 2 | Grad Pulse |
@@ -133,8 +133,8 @@ Each of these functions can be carried out with the receiver on and the receiver
 | GRAD_PULSE | 0x4      | Gradient pulse with receiver on |
 | TX_GATE `OR` TX_PULSE `OR` GRAD_PULSE `OR` RX_PULSE | 0x17      | RF and gradient pulse |
 | TX_GATE `OR` TX_PULSE `OR` GRAD_PULSE|  0x15      | RF and gradient pulse with receiver on |  
-
-
+  
+  
 The assembly-like language specifies low-level operations on registers. The language is specified by 64-bit words. However, because the bus between the ARM CPU and RAM is 32 bits, these words must be specified in two 32-bit integers. The bit order is little-Endian, meaning that the first 32-bit integer is the operand, and the second 32-bit integer contains the opcode. Like Assembly, there are commands to `JMP` to an address in memory, `LD64` a 64-bit integer into memory, and `PR` pulse a register for a certain amount of time. Each command is specified by a 6-bit opcode. The full list of commands is shown below.  
 
 
