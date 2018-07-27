@@ -93,7 +93,7 @@ In this GUI, you can acquire 3D images of a desired size. However, real-time rec
 
 ## Real-time Rotation GUI  
 This GUI is a simple demonstration of motion correction for a phantom with two tubes of water. If the phantom is inserted at an arbitrary angle, the console will correct the orientation  of the gradients such that the two tubes are horizontal in the image of the phantom. The GUI is pictured below.  
-<img src="{{ site.url }}/assets/images/rt_proj_gui.png" alt="rt_proj_gui" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/rt_proj_gui.png" alt="rt_proj_gui" width="700px"/>  
 The client (GUI) sends the current angle of the projection to the server, and the server rotates the gradients via multiplication with a rotation matrix. This is shown in the diagram below.  
 <img src="{{ site.url }}/assets/images/gui/rt_feedback.png" alt="rt_feedback" width="700px"/>   
 Then, the client performs a binary search to find the projection at which the two tubes collapse into one (the 0&deg; projection in the diagram below):  
