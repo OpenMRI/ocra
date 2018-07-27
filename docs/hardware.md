@@ -36,7 +36,11 @@ The gradient amplifier is pictured below. It is in the metal enclosure. The Red 
 These two components are not essential (it is possible to use a different attenuator and remove the second stage of amplification entirely). 
 However, the attenuator is a convenient way of calibrating the flip angle, and the amplifier boosts the received signal - we saw a two-fold increase in SNR. The amplifier is powered by a 15V power supply.
 <img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/hardware/minicircuits_atten.jpg" alt="Attenuator" width="400px"/>  
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/hardware/minicircuits_amp.jpg" alt="Minicircuits Amplifier" width="400px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/hardware/minicircuits_amp.jpg" alt="Minicircuits Amplifier" width="400px"/>  
+The attenuator requires software to control it, which can be downloaded from the [Minicircuits site](https://www.minicircuits.com/softwaredownload/patt.html) - download the "Full Software Package". There is a GUI for Windows and a commandline interface with Linux. We have tested both. The GUI is more intuitive to use. The Linux commandline interface requires that you run:  
+`./RUDAT [attenuation] `  
+in the folder where the `RUDAT` binary is (`RUDAT_CD_E0/Linux`), where `attenuation` is the desired attenuation in dB. The program must be run as root. You may need to change the privileges if the program does not run successfully.
+
 
 
 
