@@ -49,9 +49,9 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
  1. Install anaconda or miniconda. Installation instructions are [here](https://conda.io/docs/user-guide/install/index.html). Make sure that the installer successfully adds miniconda to the `PATH` and `PYTHONPATH` environment variables.  
  
  2. Create a conda environment: 
- ```
- conda env create -f environment.yml 
- ```
+     ```
+     conda env create -f environment.yml 
+     ```
  The name of the environment is in the first line of the yml file, `ocra_env`.  
  
  3. Activate the new environment.  
@@ -60,15 +60,15 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
     Make sure that the environment installed correctly by typing `conda list`. Among others, you should see `numpy`, `scipy`, `pyqt`, and `matplotlib`.  
  
  4. Test that the GUI opens by running 
- ```
- python runMRI.py
- ``` 
+     ```
+     python runMRI.py
+     ``` 
  If this doesn't work, make sure that you're in the correct directory. 
  You should see a window like this:
  
- <img src="{{ site.url }}/assets/images/software/gui_opening.png" alt="gui_opening" width="700px"/>    
+     <img src="{{ site.url }}/assets/images/software/gui_opening.png" alt="gui_opening" width="700px"/>    
  
- 5. Test that the dropdown bar works. You should see something like:  
+5. Test that the dropdown bar works. You should see something like:  
   <img src="{{ site.url }}/assets/images/software/gui_dropdown.png" alt="gui_dropdown" width="900px"/>  
   If you don't, try clicking on the Terminal window running the python script first, then clicking on the dropdown bar.
 
