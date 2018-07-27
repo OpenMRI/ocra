@@ -2,8 +2,7 @@
 title: Welcome
 ---
 
-
-![OCRA logo](ocra/docs/images/welcome/ocra.png "OCRA Logo")
+![OCRA logo]({{BASE_PATH}}/assets/images/welcome/ocra.png "OCRA Logo")
 ## What is OCRA MRI?
 
 OCRA stands for Open-source Console for Real-time Acquisition. It's a low-cost, open-source console (hardware controller) for MRI. Using the [Red Pitaya](https://www.redpitaya.com/) board and some other hardware, we have created this console for under $500. On this site, you'll find documentation on how to use it. We encourage you all to contribute and make your own changes!
@@ -14,7 +13,7 @@ In creating OCRA, our goals were to make an MRI console that is:
   2. Open source
   3. Capable of real-time control  
 By "real-time control", we mean that it should be able to make changes in real time to the pulse sequence. In other words, we would like to be able to change the acquisition based on the data, or _closed loop control_. This is shown below:
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/closed_loop.png" alt="closed loop" width="600px"/>
+<img src="{{ site.url }}/assets/images/welcome/closed_loop.png" alt="closed loop" width="600px"/>
 
 (We'll explain each of the pieces in that diagram further).
 
