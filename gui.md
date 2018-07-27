@@ -42,15 +42,15 @@ macOS and Linux: `source activate ocra_env`
  python runMRI.py
  ```
 You should see the following page:  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/welcome_page.png alt="gui_welcome" width="700px"/>
+<img src="{{ site.url }}/assets/images/gui/welcome_page.png" alt="gui_welcome" width="700px"/>
 
 Make sure that you are running python3 (any version of 3 should work, 3.4 and 3.6 have been tested). In order to use any of the GUIs, you need to connect to the server by entering the IP address. Press the `Configuration` button, then enter the IP address of the Red Pitaya. If the connection is successful, you will see the following window:  
 
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/config_page.png alt="gui_config" width="300px"/>
+<img src="{{ site.url }}/assets/images/gui/config_page.png" alt="gui_config" width="300px"/>
  
 ## FID GUI  
 In this GUI, you can acquire FIDs, find the center frequency, and adjust the B0 field via first-order shims. A labeled screenshot is shown below.    
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/fid_gui_labeled.png alt="fid_labeled" width="700px"/>
+<img src=="{{ site.url }}/assets/images/gui/fid_gui_labeled.png" alt="fid_labeled" width="700px"/>
 
 All GUIs share a time-domain plot, frequency domain plot, and control panel. In the control panel, you 
 can start and stop the connection to the server with the "Start" and "Stop" buttons.  
@@ -68,11 +68,11 @@ for each shim in the format `[shim_x, shim_y, shim_z]`. You can also change the 
 
 ## Spin Echo GUI  
 The Spin Echo GUI is very similar to the FID GUI, except that it acquires spin echoes instead of FIDs. A screenshot is shown below:  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/se_gui.png alt="se_gui" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/se_gui.png" alt="se_gui" width="700px"/>  
 
 ## Signals GUI  
 The Signals GUI is an integrated GUI to test out sequences. Sequences are written in a custom Assembly-like language, which is described in the Sequence Programming section. Sequences are saved as `.txt` files and uploaded via the GUI. The GUI is pictured below.  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/signals_gui.png alt="signals_gui" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/signals_gui.png" alt="signals_gui" width="700px"/>  
 
 There are the same time domain plot, frequency domain plot, and shim control panel as in the FID and spin echo GUIs. 
 Additionally, there is a Sequence control panel. Here, you can upload sequences and adjust parameters (e.g. TE). 
@@ -81,7 +81,7 @@ Sequence Programming section.
 
 ## 2D Imaging GUI  
 In this GUI, you can acquire 2D images, using one of our sequences or your own custom sequence. You can select the desired image size from a dropdown bar. The GUI updates the acquired kspace data and reconstructed image in real-time. A labeled screenshot is shown below.  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/2d_gui_labeled.png alt="2d_gui" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/2d_gui_labeled.png" alt="2d_gui" width="700px"/>  
 As in the other GUIs, press the "Start" button to start the connection to the server. Then, select a sequence type from the dropdown bar (e.g. "Spin Echo", "Gradient Echo") and upload a sequence. The provided sequences are `.txt` files in the `sequence` folder, described in the Sequence Programming section.  
 Then, select a matrix size. The image must be square and ranges from `4x4` to `256x256`. Note that saving the data becomes much slower as the image size increases. Press the `Acquire` button to acquire the image. The kspace data and reconstructed image will refresh in real-time.
 
@@ -89,15 +89,15 @@ In this GUI, the shims are loaded from previous settings and cannot be modified.
 
 ## 3D Imaging GUI  
 In this GUI, you can acquire 3D images of a desired size. However, real-time reconstruction is not integrated and must be done outside of the GUI, e.g. via MATLAB. The GUI saves each partition as a different `.mat` file with the filename `acq_data_N.mat`, where `N` is the partition number. For instance, if there are 4 partitions, there will be 4 saved `.mat` files - `acq_data_1.mat` through `acq_data_4.mat`. You can change the filename via the `fnameprefix` attribute. A screenshot of the GUI is shown below.  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/3d_gui.png alt="3d_gui" width="700px"/>  
+<img src={{ site.url }}/assets/images/gui/3d_gui.png alt="3d_gui" width="700px"/>  
 
 ## Real-time Rotation GUI  
 This GUI is a simple demonstration of motion correction for a phantom with two tubes of water. If the phantom is inserted at an arbitrary angle, the console will correct the orientation  of the gradients such that the two tubes are horizontal in the image of the phantom. The GUI is pictured below.  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/rt_proj_gui.png alt="rt_proj_gui" width="700px"/>  
+<img src="{{ site.url }}/assets/images/rt_proj_gui.png" alt="rt_proj_gui" width="700px"/>  
 The client (GUI) sends the current angle of the projection to the server, and the server rotates the gradients via multiplication with a rotation matrix. This is shown in the diagram below.  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/rt_feedback.png alt="rt_feedback" width="700px"/>   
+<img src="{{ site.url }}/assets/images/gui/rt_feedback.png" alt="rt_feedback" width="700px"/>   
 Then, the client performs a binary search to find the projection at which the two tubes collapse into one (the 0&deg; projection in the diagram below):  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/projections.png alt="projections" width="300px"/>  
+<img src="{{ site.url }}/assets/images/gui/projections.png" alt="projections" width="300px"/>  
 The binary search is as follows: if the current max is greater than the previous max, increase the angle. If the current max
 is less than the previous max, decrease the angle and decrease the step size. If the step size is less than the tolerance, return
 the max angle. The angle at which the two tubes are horizontal is 90&deg; offset from the 0&deg; angle.  
@@ -134,7 +134,9 @@ Each of these functions can be carried out with the receiver on and the receiver
 | TX_GATE `OR` TX_PULSE `OR` GRAD_PULSE `OR` RX_PULSE | 0x17      | RF and gradient pulse |
 | TX_GATE `OR` TX_PULSE `OR` GRAD_PULSE|  0x15      | RF and gradient pulse with receiver on |  
 
-The assembly-like language specifies low-level operations on registers. The language is specified by 64-bit words. However, because the bus between the ARM CPU and RAM is 32 bits, these words must be specified in two 32-bit integers. The bit order is little-Endian, meaning that the first 32-bit integer is the operand, and the second 32-bit integer contains the opcode. Like Assembly, there are commands to `JMP` to an address in memory, `LD64` a 64-bit integer into memory, and `PR` pulse a register for a certain amount of time. Each command is specified by a 6-bit opcode. The full list of commands is shown below.
+
+The assembly-like language specifies low-level operations on registers. The language is specified by 64-bit words. However, because the bus between the ARM CPU and RAM is 32 bits, these words must be specified in two 32-bit integers. The bit order is little-Endian, meaning that the first 32-bit integer is the operand, and the second 32-bit integer contains the opcode. Like Assembly, there are commands to `JMP` to an address in memory, `LD64` a 64-bit integer into memory, and `PR` pulse a register for a certain amount of time. Each command is specified by a 6-bit opcode. The full list of commands is shown below.  
+
 
 Instruction | Opcode | Format | Description |
 | :----: |:------:| :-----:| :-----:|
@@ -150,10 +152,12 @@ TXOFFSET Offset | 0b001000 | B | Set offset of Tx (RF) pulse to Offset |
 GRADOFFSET Offset | 0b001001 | B | Set offset of gradient pulse to Offset |  
 
 There are two formats for instructions: Format A and Format B. In both formats, the highest 6 bits are used for the opcode. In Format A, bits 36:32 specify the register to operate on, while the lower 32 bits specify an address in memory. In Format B, bits 44:40 specify the register, and the lower 40 bits specify a constant. Formats A and B are illustrated below.  
+
 Format A:  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/format_a.png alt="format_a" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/format_a.png" alt="format_a" width="700px"/>  
+
 Format B:  
-<img src=https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/gui/format_b.png alt="format_b" width="700px"/>  
+<img src="{{ site.url }}/assets/images/gui/format_b.png" alt="format_b" width="700px"/>  
 
 We provide a number of example sequences. In the `basic` folder, there is a sequence for spin echo (`se_default.txt`) and FID (`fid_default.txt`). 
 The spin echo sequence has a TE of 10ms.  
