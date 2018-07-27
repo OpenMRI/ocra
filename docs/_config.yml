@@ -9,4 +9,3 @@ github: "https://github.com/OpenMRI/ocra"
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-slate
