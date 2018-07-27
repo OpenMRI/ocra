@@ -7,7 +7,6 @@ production_url : http://openmri.github.io/ocra
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-slate
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
