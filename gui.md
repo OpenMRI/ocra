@@ -1,5 +1,4 @@
 ---
-layout: page
 title: Python GUIs
 tagline: OCRA MRI
 description: Python GUIs for OCRA
