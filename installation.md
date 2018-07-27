@@ -1,5 +1,4 @@
 ---
-layout: page
 title: OCRA Software
 tagline: OCRA MRI
 description: Installing Software for the OCRA console
