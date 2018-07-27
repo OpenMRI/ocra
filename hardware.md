@@ -1,5 +1,4 @@
 ---
-layout: page
 title: OCRA Hardware
 tagline: OCRA MRI
 description: Hardware of the OCRA console
