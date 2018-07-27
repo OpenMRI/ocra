@@ -34,9 +34,10 @@ ssh root@[IP address]
 arm-linux-gnueabihf-gcc -static -O3 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard /path/to/input.c -o output_file -lm
 
 ```  
-Once you have the server running, the GUI can connect to it. If using the anaconda environment, activate it:
-         Windows: `activate ocra_env`  
-        macOS and Linux: `source activate ocra_env`  
+Once you have the server running, the GUI can connect to it. If using the anaconda environment, activate it:  
+Windows: `activate ocra_env`  
+macOS and Linux: `source activate ocra_env`  
+
  Now run the GUI script:  
  ```
  python runMRI.py
