@@ -16,6 +16,7 @@
     <div id="header_wrap" class="outer">
         <header class="inner">
           <a id="forkme_banner" href="{{ site.github.repository_url }}">View on GitHub</a>
+          <a href="{{ site.url }}/"><img class="center-block" src="{{ site.url }}/assets/images/welcome/ocra.png"></a>
 
           <h1 id="project_title">{{ site.title | default: site.github.repository_name }}</h1>
           <h2 id="project_tagline">{{ site.description | default: site.github.project_tagline }}</h2>
@@ -27,6 +28,16 @@
             </section>
           {% endif %}
         </header>
+    </div>
+    
+    <!-- NAVIGATION BAR -->
+    <div class="navContainer">
+      <nav>
+      <a href="{{ site.url }}/"><img src="{{ site.url }}/assets/images/welcome/ocra_small.png" style="width:32px; margin-right:3px">JetStream</a>
+      <a href="{{ site.url }}/installation">Installation</a>
+      <a href="{{ site.url }}/hardware">Hardware</a>
+      <a href="{{ site.url }}/gui">GUI</a>
+      </nav> 
     </div>
 
     <!-- MAIN CONTENT -->
