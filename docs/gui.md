@@ -27,9 +27,14 @@ ssh root@[IP address]
  ```
  Now run the server:
  ```
- ./server/latest/mri_lab 60 32200
+ ./server/mri_lab_rt 60 32200
  ```
- The first argument, `60`, is the length of the 90 degree hard RF pulse in samples. The second argument, `32200` is the amplitude of the pulse (arbitrary units). Once you have the server running, the GUI can connect to it. If using the anaconda environment, activate it:
+(or whatever folder the server program is located in). The first argument, `60`, is the length of the 90 degree hard RF pulse in samples. The second argument, `32200` is the amplitude of the pulse (arbitrary units).  The program is `mri_lab_rt.c` in the `server` folder. We provide a pre-compiled binary, but you can also compile it yourself with the command:  
+```
+arm-linux-gnueabihf-gcc -static -O3 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard /path/to/input.c -o output_file -lm
+
+```  
+Once you have the server running, the GUI can connect to it. If using the anaconda environment, activate it:
          Windows: `activate ocra_env`  
         macOS and Linux: `source activate ocra_env`  
  Now run the GUI script:  
