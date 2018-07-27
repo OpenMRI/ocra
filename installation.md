@@ -1,5 +1,5 @@
 ---
-title: OCRA Software
+title: Installation
 tagline: OCRA MRI
 description: Installing Software for the OCRA console
 ---
@@ -23,9 +23,9 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
     arm-linux-gnueabihf-gcc -static -O3 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard /path/to/input.c -o output_file -lm
     
     ```
- This will output a binary executable file that you can run on the Red Pitaya. Use this command to compile the server code.
+ This will output a binary executable file that you can run on the Red Pitaya. Use this command to compile the server code.  
  
- ## Server  
+ ## Server
  
  The server is a program in C that runs on the Red Pitaya. It listens for a client (the Python GUI) over an Ethernet connection. The server needs a 
  static IP address for the client to connect to it. Set a static IP address following the [Red Pitaya documentation](http://redpitaya.readthedocs.io/en/latest/quickStart/connect/connect.html).
@@ -33,16 +33,16 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
  Once you've done this, you can run the server. The file is `mri_lab_rt.c` in the `server` folder. We have also provided the compiled binary `mri_lab_rt`.
  First cat the bitfile:  
  ```
- cat pulsed_nmr_planB_05192018.bit >/dev/xdevcfg
+ cat pulsed_nmr_planB_05192018.bit > /dev/xdevcfg
  ```
  Now run the server:
  ```
  ./server/latest/mri_lab 60 32200
  ```
- The first argument, `60`, is the length of the 90 degree hard RF pulse in samples. The second argument, `32200` is the amplitude of the pulse (arbitrary units). 
+ The first argument, `60`, is the length of the 90 degree hard RF pulse in samples. The second argument, `32200`, is the amplitude of the pulse (arbitrary units). 
  These are the optimal RF pulse parameters for our system.  
  
- ## Client  
+ ## Client
  
  For the client, you will need Python3 and the following packages: `pyqt5`, `matplotlib`, `numpy`, and `scipy`. You can install these yourself, but it is easier
  to use `anaconda` or `miniconda`. We've provided a conda environment (`environment.yml`) that already has the dependencies installed. To set up the environment in `anaconda` or `miniconda`:
@@ -69,7 +69,7 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
  <img src="{{ site.url }}/assets/images/software/gui_opening.png" alt="gui_opening" width="700px"/>    
  
  5. Test that the dropdown bar works. You should see something like:  
-  <img src="{{ site.url }}/assets/images/software/gui_dropdown.png" alt="gui_dropdown" width="700px"/>  
+  <img src="{{ site.url }}/assets/images/software/gui_dropdown.png" alt="gui_dropdown" width="900px"/>  
   If you don't, try clicking on the Terminal window running the python script first, then clicking on the dropdown bar.
 
 Now you are ready to run the GUI!
