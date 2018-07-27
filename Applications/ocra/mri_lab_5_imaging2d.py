@@ -436,7 +436,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 # display image
                 crop_size = int(self.num_pe / 64 * self.crop_factor)
                 half_crop_size = int(crop_size / 2)
-                cntr = int(crop_size * 0.975 / 2)
+                # cntr = int(crop_size * 0.975 / 2)
+                cntr = int(crop_size * 0.99 / 2)
+                # cntr = int(crop_size * 0.96 / 2)
                 if self.num_pe >= 128:
                     self.kspace = self.kspace_full[0:self.num_pe, 0:crop_size]
                     Y = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspace)))
@@ -486,8 +488,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 crop_size = int(self.num_pe / 64 * self.crop_factor)
                 half_crop_size = int(crop_size / 2)
                 # cntr = int(crop_size * 0.975 / 2)
+                # cntr = int(crop_size * 0.985 / 2)
+                cntr = int(crop_size * 0.99 / 2)
                 # cntr = int(crop_size * 1.0 / 2)
-                cntr = int(crop_size * 0.96 / 2)
+                # cntr = int(crop_size * 0.96 / 2)
                 self.tse_kspace[self.buffers_received * 2, :] = self.kspace_full[
                                                                 self.buffers_received,
                                                                 TE1 - half_crop_size: TE1 + half_crop_size]
