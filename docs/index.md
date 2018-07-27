@@ -3,7 +3,7 @@ title: Welcome
 ---
 
 
-![OCRA logo](https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/ocra.png "OCRA Logo")
+![OCRA logo](https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/ocra.png "OCRA Logo")
 ## What is OCRA MRI?
 
 OCRA stands for Open-source Console for Real-time Acquisition. It's a low-cost, open-source console (hardware controller) for MRI. Using the [Red Pitaya](https://www.redpitaya.com/) board and some other hardware, we have created this console for under $500. On this site, you'll find documentation on how to use it. We encourage you all to contribute and make your own changes!
@@ -14,21 +14,21 @@ In creating OCRA, our goals were to make an MRI console that is:
   2. Open source
   3. Capable of real-time control  
 By "real-time control", we mean that it should be able to make changes in real time to the pulse sequence. In other words, we would like to be able to change the acquisition based on the data, or _closed loop control_. This is shown below:
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/closed_loop.png" alt="closed loop" width="600px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/closed_loop.png" alt="closed loop" width="600px"/>
 
 (We'll explain each of the pieces in that diagram further).
 
 So far, we've used OCRA with the [MGH/MIT Tabletop MRI scanners](https://tabletop.martinos.org/index.php/Main_Page). These are educational scanners that are used in classes at MIT to teach students about MRI. There are currently 26 of them. The scanner that we used has a field strength of 0.4T, and an imaging Field-of-View (FOV) of 1cm. This is what our setup looks like:
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/tabletop.png" alt="tabletop" width="700px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/tabletop.png" alt="tabletop" width="700px"/>
 
 And here are some images that we've acquired with OCRA and the Tabletop:
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/3d_mit_se.png" alt="MIT" width="700px"/>
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/3d_veggies.png" alt="veggies" width="700px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/3d_mit_se.png" alt="MIT" width="700px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/3d_veggies.png" alt="veggies" width="700px"/>
 
 ## Basic architecture
 OCRA uses the [STEMLab/Red Pitaya 125-14](https://www.redpitaya.com/) board, commercially available for $329. The Red Pitaya uses a Xilinx 7010 Zynq SoC, which is a board that contains a Xilinx FPGA, dual-core ARM CPU, and shared RAM. It is pictured here:  
 
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/red_pitaya.png" alt="MIT" width="400px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/red_pitaya.png" alt="MIT" width="400px"/>
 
 Additionally, the Red Pitaya has some RF hardware: 
 * 2 RF Tx outputs
@@ -42,7 +42,7 @@ In our case, the client is a Python-based GUI. On the CPU, we have a server (wri
 
 ## Server-client model
 The server is simply a C program that is run on the Red Pitaya. It has to be compiled with the ARM cross-compiler `arm-linux-gnueabihf-gcc`. We use the `Vivado` environment from Xilinx to compile the code. The server communicates with the client (the Python GUI) using TCP sockets. A diagram is shown below:  
-<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/server_client.png" alt="server-client" width="700px"/>
+<img src="https://github.com/OpenMRI/ocra/blob/gh-pages/docs/images/welcome/server_client.png" alt="server-client" width="700px"/>
 
 The Python GUI is intended as an educational tool for students to learn about MRI.  
 For more details on the hardware and software, check out the rest of the pages!
