@@ -50,7 +50,7 @@ Make sure that you are running python3 (any version of 3 should work, 3.4 and 3.
  
 ## FID GUI  
 In this GUI, you can acquire FIDs, find the center frequency, and adjust the B0 field via first-order shims. A labeled screenshot is shown below.    
-<img src=="{{ site.url }}/assets/images/gui/fid_gui_labeled.png" alt="fid_labeled" width="700px"/>
+<img src="{{ site.url }}/assets/images/gui/fid_gui_labeled.png" alt="fid_labeled" width="700px"/>
 
 All GUIs share a time-domain plot, frequency domain plot, and control panel. In the control panel, you 
 can start and stop the connection to the server with the "Start" and "Stop" buttons.  
@@ -97,7 +97,7 @@ This GUI is a simple demonstration of motion correction for a phantom with two t
 The client (GUI) sends the current angle of the projection to the server, and the server rotates the gradients via multiplication with a rotation matrix. This is shown in the diagram below.  
 <img src="{{ site.url }}/assets/images/gui/rt_feedback.png" alt="rt_feedback" width="700px"/>   
 Then, the client performs a binary search to find the projection at which the two tubes collapse into one (the 0&deg; projection in the diagram below):  
-<img src="{{ site.url }}/assets/images/gui/projections.png" alt="projections" width="300px"/>  
+<img src="{{ site.url }}/assets/images/gui/projections2.png" alt="projections" width="300px"/>  
 The binary search is as follows: if the current max is greater than the previous max, increase the angle. If the current max
 is less than the previous max, decrease the angle and decrease the step size. If the step size is less than the tolerance, return
 the max angle. The angle at which the two tubes are horizontal is 90&deg; offset from the 0&deg; angle.  
