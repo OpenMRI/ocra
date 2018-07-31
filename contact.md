@@ -5,7 +5,7 @@ description: Contact the team
 permalink: /contact
 ---
 ## Contact
-<img src="{{ site.url }}/assets/images/contact/group_photo.png" alt="Group Photo" width="700px"/>  
+<img src="{{ site.github.url }}/assets/images/contact/group_photo.png" alt="Group Photo" width="700px"/>  
 
 The OCRA team includes the following faculty at the [Martinos Center for Biomedical Imaging](https://www.martinos.org/):  
 * Thomas Witzel (<twitzel@nmr.mgh.harvard.edu>) 

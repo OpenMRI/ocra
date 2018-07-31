@@ -67,10 +67,10 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
  If this doesn't work, make sure that you're in the correct directory. 
  You should see a window like this:
  
-     <img src="{{ site.url }}/assets/images/software/gui_opening.png" alt="gui_opening" width="700px"/>    
+     <img src="{{ site.github.url }}/assets/images/software/gui_opening.png" alt="gui_opening" width="700px"/>    
  
 5. Test that the dropdown bar works. You should see something like:  
-  <img src="{{ site.url }}/assets/images/software/gui_dropdown.png" alt="gui_dropdown" width="900px"/>  
+  <img src="{{ site.github.url }}/assets/images/software/gui_dropdown.png" alt="gui_dropdown" width="900px"/>  
   If you don't, try clicking on the Terminal window running the python script first, then clicking on the dropdown bar.
 
 Now you are ready to run the GUI!
