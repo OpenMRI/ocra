@@ -1,5 +1,6 @@
 ---
 title: Welcome
+layout: page
 ---
 
 ## What is OCRA MRI?
