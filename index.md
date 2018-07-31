@@ -14,7 +14,7 @@ By "real-time control", we mean that it should be able to make changes in real t
 (We'll explain each of the pieces in that diagram further).
 
 So far, we've used OCRA with the [MGH/MIT Tabletop MRI scanners](https://tabletop.martinos.org/index.php/Main_Page). These are educational scanners that are used in classes at MIT to teach students about MRI. There are currently 26 of them. The scanner that we used has a field strength of 0.4T, and an imaging Field-of-View (FOV) of 1cm. This is what our setup looks like:
-<img src="{{ site.url }}/assets/images/welcome/tabletop.png" alt="tabletop" width="700px"/>
+<img src="{{ BASE_PATH }}/assets/images/welcome/tabletop.png" alt="tabletop" width="700px"/>
 
 And here are some images that we've acquired with OCRA and the Tabletop:
 <img src="{{ site.url }}/assets/images/welcome/3d_mit_se.png" alt="MIT" width="700px"/>
