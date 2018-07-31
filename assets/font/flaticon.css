@@ -1,6 +1,6 @@
 	/*
   	Flaticon icon font: Flaticon
-  	Creation date: 26/06/2016 15:26
+  	Creation date: 31/07/2018 03:13
   	*/
 
 @font-face {
@@ -26,19 +26,11 @@
   font-family: Flaticon;
         font-size: 20px;
 font-style: normal;
-margin-left: 6px;
-margin-right: 9px;
-font-weight: normal;
+margin-left: 20px;
 }
 
-.flaticon-cloud-computing:before { content: "\f100"; }
-.flaticon-documentation:before { content: "\f101"; }
-.flaticon-documentationstack:before { content: "\f102"; }
-.flaticon-download:before { content: "\f103"; }
-.flaticon-download-round:before { content: "\f104"; }
-.flaticon-github:before { content: "\f105"; }
-.flaticon-newsround:before { content: "\f106"; }
-.flaticon-publication:before { content: "\f107"; }
-.flaticon-round-play-button:before { content: "\f108"; }
-.flaticon-send:before { content: "\f109"; }
-.flaticon-start:before { content: "\f10a"; }
+.flaticon-plane:before { content: "\f100"; }
+.flaticon-monitor:before { content: "\f101"; }
+.flaticon-circuit:before { content: "\f102"; }
+.flaticon-install:before { content: "\f103"; }
+.flaticon-blog:before { content: "\f104"; }
