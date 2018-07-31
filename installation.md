@@ -4,6 +4,7 @@ tagline: OCRA MRI
 description: Installing Software for the OCRA console
 ---
 ## Software Installation
+First, download a zip file or clone the [repository](https://github.com/OpenMRI/ocra) to your computer with `git clone`.  
 To run OCRA, you need three main files:
 * A bit file for the FPGA
 * A server running on the Red Pitaya
@@ -37,7 +38,7 @@ follow [these instructions](http://pavel-demin.github.io/red-pitaya-notes/develo
  ```
  Now run the server:
  ```
- ./server/latest/mri_lab 60 32200
+ ./server/mri_lab_rt 60 32200
  ```
  The first argument, `60`, is the length of the 90 degree hard RF pulse in samples. The second argument, `32200`, is the amplitude of the pulse (arbitrary units). 
  These are the optimal RF pulse parameters for our system.  
