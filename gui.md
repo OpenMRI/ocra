@@ -15,6 +15,21 @@ which are in MATLAB. The GUI is composed of a series of GUIs, each of which has 
 * Real-time Rotation
 
 On this page, we provide a description of each GUI and how to use it.  
+
+## Sockets  
+The Python GUI communicates with the server on the Red Pitaya via an abstraction known as a [socket](https://www.wikiwand.com/en/Network_socket). A socket is an internal endpoint for sending or receiving data over a computer network. The client and server are both processes. In the client-server model, each process (i.e., the client and the server) establishes its own socket. The server socket resides at a particular IP address and, if used with TCP (as we do), requires a port number. The client socket needs to perform the following functions:
+1. Create a socket
+2. Connect the socket to the address of the server
+3. Send and receive data with the functions read() and write()  
+
+The server socket does the following:
+1. Create a socket
+2. Bind the socket to an address and port 3. Listen for a client on the port
+4. Accept a connection to a client
+5. Send and receive data
+
+Our sockets use the reliable, stream-based TCP (Transmission Control Protocol) protocol to communicate over the network. On the client side, we used the software package PyQt’s `QTCPSocket()`, which provides useful abstractions. On the server side, we used the functions and abstractions defined in C’s native `socket.h` header file. In data transfer, the key functions were to `read()` and `write()` to the buffer.
+
 ## Setup  
 In order to communicate with the Red Pitaya, you need to run the server program on it. First, ssh into the Red Pitaya. You need to have a static IP address set on it (follow the [Red Pitaya documentation](http://redpitaya.readthedocs.io/en/latest/quickStart/connect/connect.html).
 ```
