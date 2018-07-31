@@ -3,7 +3,8 @@ title: OCRA MRI
 email: sanand@mit.edu
 description: > # this means to ignore newlines until "baseurl:"
   OCRA - an Open-source Console for Real-time Acquisition
-production_url : http://openmri.github.io/ocra
+url: "https://openmri.github.io/ocra/"
+baseurl: "/ocra"
 
 # Build settings
 markdown: kramdown
@@ -37,7 +38,7 @@ JB :
   #     This means always setting the protocol (http|https) or prefixing with "/"
   #
   # NOTE: Replace this next line with your own URL, likely with username.github.io
-  BASE_PATH : openmri.github.io/ocra
+  BASE_PATH : http://openmri.github.io/ocra
 
   # By default, the asset_path is automatically defined relative to BASE_PATH plus the enabled theme.
   # ex: [BASE_PATH]/assets/themes/[THEME-NAME]
