@@ -1,7 +1,7 @@
 ---
 title: Welcome
 ---
-
+## What is OCRA MRI?
 OCRA stands for Open-source Console for Real-time Acquisition. It's a low-cost, open-source console (hardware controller) for MRI. Using the [Red Pitaya](https://www.redpitaya.com/) board and some other hardware, we have created this console for under $500. On this site, you'll find documentation on how to use it. We encourage you all to contribute and make your own changes!
 
 ## Goals of this project
