@@ -1,6 +1,6 @@
 ---
 title: Blog
-layout: page
+layout: post
 permalink: /blog
 ---
 <ul>
