@@ -1,3 +1,9 @@
+---
+title: Contact
+tagline: OCRA MRI
+description: Contact the team
+permalink: /contact
+---
 ## Contact
 <img src="{{ site.url }}/assets/images/contact/group_photo.png" alt="Group Photo" width="700px"/>  
 
