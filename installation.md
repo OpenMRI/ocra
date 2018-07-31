@@ -1,8 +1,9 @@
 ---
-title: Software Installation
+title: Installation
 tagline: OCRA MRI
 description: Installing Software for the OCRA console
 ---
+## Software Installation
 To run OCRA, you need three main files:
 * A bit file for the FPGA
 * A server running on the Red Pitaya
