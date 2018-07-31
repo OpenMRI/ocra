@@ -17,7 +17,7 @@ So far, we've used OCRA with the [MGH/MIT Tabletop MRI scanners](https://tableto
 <img src="{{ BASE_PATH }}/assets/images/welcome/tabletop.png" alt="tabletop" width="700px"/>
 
 And here are some images that we've acquired with OCRA and the Tabletop:
-<img src="{{ site.url }}/assets/images/welcome/3d_mit_se.png" alt="MIT" width="700px"/>
+<img src="{{ site.github.url }}/assets/images/welcome/3d_mit_se.png" alt="MIT" width="700px"/>
 <img src="{{ site.url }}/assets/images/welcome/3d_veggies.png" alt="veggies" width="700px"/>
 
 ## Basic architecture
