@@ -73,7 +73,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.actionProj.triggered.connect(self.open_mri_proj)
         self.action2DImag.triggered.connect(self.open_mri_2dimag)
         self.action3DImag.triggered.connect(self.open_mri_3dimag)
-        self.actionReal_time_update.triggered.connect(self.open_mri_rt)
+        self.actionRTRotate.triggered.connect(self.open_mri_rt)
         self.actionSequence_Design.triggered.connect(self.open_mri_sd)
 
         # set shortcuts
@@ -85,7 +85,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.actionProj.setShortcut('Ctrl+4')
         self.action2DImag.setShortcut('Ctrl+5')
         self.action3DImag.setShortcut('Ctrl+6')
-        self.actionReal_time_update.setShortcut('Ctrl+7')
+        self.actionRTRotate.setShortcut('Ctrl+7')
         self.actionSequence_Design.setShortcut('Ctrl+8')
 
     def init_stacked_widget(self):
