@@ -1099,7 +1099,7 @@ class MRI_SD_Widget(QDialog):
                     fileObject.write("    gz[i] = 0x001fffff & (ival | 0x00100000);"+'\n')
                     fileObject.write("  }"+'\n')
             else:
-            timing=timing2
+                timing=timing2
         fileObject.write("  for(i="+str(timing)+"; i<200000; i++)"+'\n')
         fileObject.write("  {"+'\n')
         fileObject.write("    ival=(int32_t)floor(offset.gradient_z/fLSB)*16;"+'\n')
