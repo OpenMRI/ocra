@@ -80,19 +80,19 @@ class Ui_square_Dialog(QDialog):
         self.lineEdit_4.setText(_translate("square_Dialog", "Decrease duration/us"))
         
     def SquareMade(self):
-        print(float(self.IncreaseEdit.text()))
-        print(float(self.HoldingEdit.text()))
-        print(float(self.DecreaseEdit.text()))
-        print(self.timeLimit)
-        if(abs(float(self.IncreaseEdit.text())+float(self.HoldingEdit.text())+float(self.DecreaseEdit.text())-self.timeLimit)<1e-1):
-            self.string=str()
-            self.string=u'Amplitude:%s Increase duration:%s Holding duration:%s Decrease duration:%s The END' %(self.AmplEdit.text(),
-                                                                                               self.IncreaseEdit.text(),
-                                                                                               self.HoldingEdit.text(),
-                                                                                               self.DecreaseEdit.text())
-            self.accept()
+        if self.AmplEdit.text()=="" or self.IncreaseEdit.text()=="" or self.HoldingEdit.text()=="" or self.DecreaseEdit.text()==""\
+         or self.AmplEdit.text()=="0" or self.IncreaseEdit.text()=="0" or self.HoldingEdit.text()=="0" or self.DecreaseEdit.text()=="0":
+             reply=QMessageBox.information(self,"inform","zero or blank is not allowed!")
         else:
-            reply=QMessageBox.information(self,"warning","Set the time and make sure that you design matches time!")
+            if(abs(float(self.IncreaseEdit.text())+float(self.HoldingEdit.text())+float(self.DecreaseEdit.text())-self.timeLimit)<1e-1):
+                self.string=str()
+                self.string=u'Amplitude:%s Increase duration:%s Holding duration:%s Decrease duration:%s The END' %(self.AmplEdit.text(),
+                                                                                                   self.IncreaseEdit.text(),
+                                                                                                   self.HoldingEdit.text(),
+                                                                                                   self.DecreaseEdit.text())
+                self.accept()
+            else:
+                reply=QMessageBox.information(self,"warning","Set the time and make sure that you design matches time!")
 
 
 if __name__=="__main__":

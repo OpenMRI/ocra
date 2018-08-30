@@ -5,7 +5,6 @@
 # Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
-#右键菜单的槽函数响应还没有完成
 
 import sys
 import re
@@ -23,6 +22,7 @@ from Function_Canvas import ShowFunction
 from MyFunctions import myFunctions
 from Square_Character import Ui_square_Dialog
 from Pulse_Character import Ui_pulse_Dialog
+from Spiral_Character import Ui_spiral_Dialog
 
 
 
@@ -37,7 +37,7 @@ class MRI_SD_Widget(QDialog):
 
         _translate = QtCore.QCoreApplication.translate
         self.tableWidget_set()
-        #创建按钮
+        #create buttons
         self.AddColumnBtn=QPushButton("Add column",self)
         self.AddColumnBtn.setToolTip("Add a Column to Pulse")
         self.AddColumnBtn.move(1230,173)
@@ -58,7 +58,7 @@ class MRI_SD_Widget(QDialog):
         self.CreateBtn.move(1230,623)
         self.CreateBtn.resize(180,40)
         self.CreateBtn.clicked.connect(self.CreateBtnClicked)
-        #左键菜单
+        #menu
         self.createGradMenu()
         self.createPulseMenu()
         self.createLoopMenu()
@@ -72,9 +72,9 @@ class MRI_SD_Widget(QDialog):
 
     def tableWidget_set(self):
         
-        #打开存储文件
+        #open file
         fileObject=open('Pulse_design/data.txt','r')
-        #设置大小
+        #design size
         self.CountColumn=int(fileObject.readline())
         self.CountRow=int(fileObject.readline())
         self.rangeMax=int(fileObject.readline()) #最大列数
@@ -91,7 +91,6 @@ class MRI_SD_Widget(QDialog):
         self.tableWidget.setShowGrid(False)
         self.tableWidget.setStyleSheet("QTableView{ selection-background-color: rgb(180,250,195)}")
 
-        #设置垂直表头
         self.headerVertical=["Time Delay /us",
                              "Pulse Sequence",
                         "Gradient X",
@@ -101,11 +100,9 @@ class MRI_SD_Widget(QDialog):
         self.tableWidget.setVerticalHeaderLabels(self.headerVertical)
         self.tableWidget.verticalHeader().setFixedWidth(140)
         
-        #设置表头显示居中
         self.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
         
-        #加载图片
         self.zero=QPixmap('Pulse_Design/zero.png')
         self.zeroSize=QSize(self.ColumnWidth,self.RowWidth)
         self.zeroScaled=self.zero.scaled(self.zeroSize)
@@ -160,15 +157,14 @@ class MRI_SD_Widget(QDialog):
 
         #创建labels数组
         #与labels对应的flags标识
-        #0表示低电平
-        #1表示高电平
-        #方程字符串表示function
+        #0 means low
+        #1 means high
+        #string means function
         self.labels=[[QLabel() for i in range(self.rangeMax)]for k in range(self.CountRow)]
         self.flags=[[str() for i in range(self.rangeMax)]for k in range(self.CountRow)]
         self.loopStartPos=-1
         self.loopEndPos=-1
         self.LoopTime = 1
-        #设置列宽以及初始flags
         for i in range(0,self.CountColumn):
             self.tableWidget.setColumnWidth(i,int(fileObject.readline()))
             self.tableWidget.setItem(0,i,QTableWidgetItem(fileObject.readline().rstrip('\n')))
@@ -180,15 +176,12 @@ class MRI_SD_Widget(QDialog):
             elif self.flags[5][i]=="loopEnd":
                 self.loopEndPos=i
         
-        #关闭存储文件
         fileObject.close()
         
-        #设置行宽
         self.tableWidget.setRowHeight(0,70)
         for i in range(1,self.CountRow):
             self.tableWidget.setRowHeight(i,self.RowWidth)
         
-        #设置labels初始值
         for i in range(self.CountColumn):
             for k in range(1,self.CountRow):
                 self.labels[k][i].setMinimumSize(3,3)
@@ -200,7 +193,7 @@ class MRI_SD_Widget(QDialog):
                     self.labels[k][i].setPixmap(self.highScaled)
                 elif self.flags[k][i][0]=='-':
                     self.labels[k][i].setPixmap(self.lowScaled)
-                elif self.flags[k][i][0]=='?':
+                elif self.flags[k][i][0]=='?' or self.flags[k][i][0:6]=="Spiral":
                     self.labels[k][i].setPixmap(self.funcScaled)
                 elif self.flags[k][i]=="pulse90":
                     self.labels[k][i].setPixmap(self.pulse90Scaled)
@@ -233,48 +226,29 @@ class MRI_SD_Widget(QDialog):
                 else:
                     self.labels[k][i].setPixmap(self.funcScaled)
                     
-        #设置初始表项
         for i in range(self.CountColumn):
             for k in range(1,self.CountRow):
                 self.tableWidget.setCellWidget(k,i,self.labels[k][i])
 
-        #设置鼠标跟踪
         self.tableWidget.setMouseTracking(True)
         
-        #设置鼠标点击次数
         self.MouseCount=0
         
-        #点击产生菜单
         self.tableWidget.clicked.connect(self.showContextMenu)
-    
-    '''
-    #好像不起作用了
-    #重写关闭窗口的函数
-    def closeEvent(self,event):
-        reply=QMessageBox.question(self,'Quit!',"Sure to Quit?",
-                                   QMessageBox.Yes|QMessageBox.No,QMessageBox.No)
-        if reply==QMessageBox.Yes:
-            reply2=QMessageBox.question(self,"Quit!","Do you want save the Pulse?",
-                                        QMessageBox.Yes|QMessageBox.No,QMessageBox.Yes)
-            if reply2==QMessageBox.Yes:
-                self.SaveBtnClicked()
-                event.accept()
-            else:
-                event.accept()
-        else:
-            event.ignore()
-    '''
-    #创建左键菜单
+
+    #menu
     def createGradMenu(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.GradMenu=QMenu(self)
         self.GradactionHigh=self.GradMenu.addAction(self.highIcon,u'|    High')
         self.GradactionZero=self.GradMenu.addAction(self.zeroIcon,u'|    Zero')
         self.GradactionLow=self.GradMenu.addAction(self.lowIcon,u'|     Low')
+        self.GradactionSpiral=self.GradMenu.addAction(self.funcIcon,u'|    Spiral')
         self.GradactionShow=self.GradMenu.addAction(QIcon(""),u'|   Show')
         self.GradactionHigh.triggered.connect(self.GradactionHighHandler)
         self.GradactionZero.triggered.connect(self.GradactionZeroHandler)
         self.GradactionLow.triggered.connect(self.GradactionLowHandler)
+        self.GradactionSpiral.triggered.connect(self.GradactionSpiralHandler)
         self.GradactionShow.triggered.connect(self.GradactionShowHandler)
     def createPulseMenu(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -305,7 +279,6 @@ class MRI_SD_Widget(QDialog):
         self.LoopactionEnd.triggered.connect(self.LoopactionEndHandler)
         self.LoopactionDelete.triggered.connect(self.LoopactionDeleteHandler)
         
-    #全都用不上
     '''
     def createAmplMenu(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -346,7 +319,7 @@ class MRI_SD_Widget(QDialog):
         self.GateactionHigh.triggered.connect(self.GateactionHighHandler)
         self.GateactionFunc.triggered.connect(self.GateactionFuncHandler)
     '''
-    #左键菜单槽函数
+    #menu functions
     def showContextMenu(self, pos):
         self.MouseCount+=1
         if ((self.MouseCount)%2):
@@ -359,8 +332,6 @@ class MRI_SD_Widget(QDialog):
             elif self.RowSelected==5:
                 self.LoopMenu.exec_(QCursor.pos())
                 
-    #菜单槽函数响应
-    #梯度磁场右键菜单
     def GradactionHighHandler(self):
         self.MouseCount+=1
         x=self.RowSelected
@@ -406,6 +377,30 @@ class MRI_SD_Widget(QDialog):
             self.flags[x][y]="-"+Square.string
             self.labels[x][y].setPixmap(self.lowScaled)
             self.tableWidget.setCellWidget(x,y,self.labels[x][y])
+        if y==self.CountColumn-1:
+            self.AddColumnBtnClicked()
+    def GradactionSpiralHandler(self):
+        self.MouseCount+=1
+        x=self.RowSelected
+        y=self.ColumnSelected
+        if x!=2 and x!=3:
+            reply=QMessageBox.information(self,"inform","Spiral Trajectory can only be used on x and y axis!")
+        else:
+            Spiral=Ui_spiral_Dialog()
+            if self.flags[x][y][0:6]=="Spiral":
+                regex1=r'Amplitude:([\s\S]*) Angular velocity:'
+                regex2=r' Angular velocity:([\s\S]*) Duration:'
+                regex3=r' Duration:([\s\S]*) The END'
+                Spiral.AmplEdit.setText(re.findall(regex1, self.flags[x][y])[0])
+                Spiral.omegaEdit.setText(re.findall(regex2, self.flags[x][y])[0])
+                Spiral.durationEdit.setText(re.findall(regex3, self.flags[x][y])[0])
+            if Spiral.exec_()==QDialog.Accepted:
+                self.flags[2][y]=Spiral.string
+                self.labels[2][y].setPixmap(self.funcScaled)
+                self.tableWidget.setCellWidget(2,y,self.labels[2][y])
+                self.flags[3][y]=Spiral.string
+                self.labels[3][y].setPixmap(self.funcScaled)
+                self.tableWidget.setCellWidget(3,y,self.labels[3][y])
         if y==self.CountColumn-1:
             self.AddColumnBtnClicked()
     def GradactionShowHandler(self):
@@ -538,9 +533,7 @@ class MRI_SD_Widget(QDialog):
         self.flags[x][y]="0"
         self.tableWidget.setItem(x,y,QTableWidgetItem(" "))
         self.tableWidget.setCellWidget(x,y,self.labels[x][y])
-    #全都用不上
     '''
-    #Ampl菜单槽函数
     def AmplactionFuncHandler(self):
         self.MouseCount+=1
         x=self.RowSelected
@@ -564,7 +557,6 @@ class MRI_SD_Widget(QDialog):
         self.flags[x][y]="0"
         self.tableWidget.setCellWidget(x,y,self.labels[x][y])
         
-    #PhMod菜单槽函数
     def PhModactionHighXHandler(self):
         self.MouseCount+=1
         x=self.RowSelected
@@ -605,7 +597,6 @@ class MRI_SD_Widget(QDialog):
         self.AmplactionZeroHandler()
     
     
-    #Gate菜单槽函数
     def GateactionZeroHandler(self):
         self.AmplactionZeroHandler()
     def GateactionHighHandler(self):
@@ -639,11 +630,19 @@ class MRI_SD_Widget(QDialog):
             x=currentQTableWidgetItem.row()
             y=currentQTableWidgetItem.column()
             if x>0:
+                if self.flags[x][y][0:6]=="Spiral":
+                    self.labels[2][y].setPixmap(self.zeroScaled)
+                    self.flags[2][y]="0"
+                    self.tableWidget.setCellWidget(2,y,self.labels[2][y])
+                    self.tableWidget.setItem(2,y,QTableWidgetItem(" "))
+                    self.labels[3][y].setPixmap(self.zeroScaled)
+                    self.flags[3][y]="0"
+                    self.tableWidget.setCellWidget(3,y,self.labels[3][y])
+                    self.tableWidget.setItem(3,y,QTableWidgetItem(" "))
                 self.labels[x][y].setPixmap(self.zeroScaled)
                 self.flags[x][y]="0"
                 self.tableWidget.setCellWidget(x,y,self.labels[x][y])
                 self.tableWidget.setItem(x,y,QTableWidgetItem(" "))
-                
     def SaveBtnClicked(self):
         fileObject=open('Pulse_design/data.txt','w')
         fileObject.write(str(self.CountColumn))
@@ -664,7 +663,6 @@ class MRI_SD_Widget(QDialog):
         
     def CreateBtnClicked(self):
         #create time and xyz program
-        #创建时间轴的txt
         fileObject=open('sequence/sig/myPulse.txt','w')
         print("creating TimePulse")
         fileObject.write("J C"+'\n')
@@ -692,7 +690,7 @@ class MRI_SD_Widget(QDialog):
         timing=0
         for i in range(self.CountColumn):
             timing+=int(self.tableWidget.item(0,i).text())
-        #给RP的记录数组
+
         pulsRecord=[0 for i in range(timing)]
         gradRecord=[0 for i in range(timing)]
         loopRecord=[0 for i in range(timing)]
@@ -702,19 +700,19 @@ class MRI_SD_Widget(QDialog):
         recordEcho=[]
         NowLine=23
         LoopStartLine=0
-        recordStay=1 #不动循环数
-        recordCondition=0  #当前状态值
-        recordCal=0#跟踪计算状态
-        pulsing=0#记录OFFSET的上一个是不是OFFSET
+        recordStay=1 
+        recordCondition=0
+        recordCal=0
+        pulsing=0
         for i in range(self.CountColumn):
             if self.tableWidget.item(1,i).text()=="90°":
-                for k in range(timing,timing+120):  #私以为+++++++++++++++++++++++++
+                for k in range(timing,timing+120):
                     pulsRecord[k]=1
                 record90=timing
             elif self.tableWidget.item(1,i).text()=="180°X+":
                 for k in range(timing,timing+180):
                     pulsRecord[k]=2
-                recordEcho.append(timing*2-record90)     #记录下所有可能出现比较大的echo的地方
+                recordEcho.append(timing*2-record90)
             elif self.tableWidget.item(1,i).text()=="180°X-":
                 for k in range(timing,timing+180):
                     pulsRecord[k]=3
@@ -744,7 +742,7 @@ class MRI_SD_Widget(QDialog):
                 LoopCondition=-1
             if pulsRecord[i]==1 or pulsRecord[i]==2 or pulsRecord[i]==3 or pulsRecord[i]==4 or pulsRecord[i]==5:
                 if gradRecord[i]==1:
-                    if i>=(recordEcho[0]-100):   #现在咱们先从第一个就全部记录
+                    if i>=(recordEcho[0]-100):
                         if loopRecord[i]==0:
                             recordCal=111
                         else:
@@ -885,12 +883,6 @@ class MRI_SD_Widget(QDialog):
         fileObject.write("  gx[1] = 0x00200002;"+'\n')
         fileObject.write("  gy[1] = 0x00200002;"+'\n')
         fileObject.write("  gz[1] = 0x00200002;"+'\n')
-        '''   #我感觉从我的设计理念，这一段是可以丢弃的
-        fileObject.write("  float fROamplitude = ROamp;"+'\n')
-        fileObject.write("  float fROpreamplitude = ROamp*2;"+'\n')
-        fileObject.write("  float fROstep = fROamplitude/20.0;"+'\n')
-        fileObject.write("  float fROprestep = fROpreamplitude/20.0;"+'\n')
-        '''
         fileObject.write("  float fRO = offset.gradient_x;"+'\n')
         fileObject.write("  //Design the X gradient"+'\n')
         timing=int(0)
@@ -958,7 +950,7 @@ class MRI_SD_Widget(QDialog):
                     fileObject.write("    ival = (int32_t)floor(fRO/fLSB)*16;"+'\n')
                     fileObject.write("    gx[i] = 0x001fffff & (ival | 0x00100000);"+'\n')
                     fileObject.write("  }"+'\n')
-            else: #是func的情况，暂时不考虑
+            else:
                 pass
             timing=timing2
         fileObject.write("  for(i="+str(timing)+"; i<200000; i++)"+'\n')
@@ -1032,7 +1024,7 @@ class MRI_SD_Widget(QDialog):
                     fileObject.write("    ival = (int32_t)floor(fRO/fLSB)*16;"+'\n')
                     fileObject.write("    gy[i] = 0x001fffff & (ival | 0x00100000);"+'\n')
                     fileObject.write("  }"+'\n')
-            else: #是func的情况，暂时不考虑
+            else:
                 pass
             timing=timing2
         fileObject.write("  for(i="+str(timing)+"; i<200000; i++)"+'\n')
@@ -1106,8 +1098,7 @@ class MRI_SD_Widget(QDialog):
                     fileObject.write("    ival = (int32_t)floor(fRO/fLSB)*16;"+'\n')
                     fileObject.write("    gz[i] = 0x001fffff & (ival | 0x00100000);"+'\n')
                     fileObject.write("  }"+'\n')
-            else: #是func的情况，暂时不考虑
-                pass
+            else:
             timing=timing2
         fileObject.write("  for(i="+str(timing)+"; i<200000; i++)"+'\n')
         fileObject.write("  {"+'\n')

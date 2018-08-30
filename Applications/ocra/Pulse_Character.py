@@ -78,12 +78,16 @@ class Ui_pulse_Dialog(QDialog):
         self.lineEdit_4.setText(_translate("pulse_Dialog", "pulse duration/ms"))
         
     def pulseMade(self):
-        self.string=str()
-        self.string=u'order:%s Center frequency:%s Bandwidth:%s Pulse duration:%s The END' %(self.orderEdit.text(),
-                                                                                             self.centerFreqEdit.text(),
-                                                                                             self.BWEdit.text(),
-                                                                                             self.durationEdit.text())
-        self.accept()
+        if self.orderEdit.text()=="" or self.centerFreqEdit.text()=="" or self.BWEdit.text()=="" or self.durationEdit.text()==""\
+         or self.orderEdit.text()=="0" or self.centerFreqEdit.text()=="0" or self.BWEdit.text()=="0" or self.durationEdit.text()=="0":
+             reply=QMessageBox.information(self,"inform","zero or blank is not allowed!")
+        else:
+            self.string=str()
+            self.string=u'order:%s Center frequency:%s Bandwidth:%s Pulse duration:%s The END' %(self.orderEdit.text(),
+                                                                                                 self.centerFreqEdit.text(),
+                                                                                                 self.BWEdit.text(),
+                                                                                                 self.durationEdit.text())
+            self.accept()
 
 '''
 if __name__=="__main__":

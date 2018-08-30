@@ -90,13 +90,26 @@ class MyFigure(FigureCanvas):
             fc=int((re.findall(regex2, flagReceiver)[0]))
             BW=int((re.findall(regex3, flagReceiver)[0]))
             dur=int(1000*float((re.findall(regex4, flagReceiver)[0])))
-            Time = np.linspace(0,dur,4*dur)
+            Time = np.linspace(0,dur,10*dur)
             V = [ ((1-math.pow((abs(np.cos((np.pi)*t/dur))),n)) \
             * complex(np.cos(fc*t*2*np.pi),np.sin(fc*t*2*np.pi)) \
             * complex(np.cos((-2)*np.pi*(BW/2*t - (BW/2/dur)*t*t)),np.sin((-2)*np.pi*(BW/2*t - (BW/2/dur)*t*t)))).real \
             for t in Time]
             print("ploting...")
             self.axes.plot(Time,V,c='red',lw=0.15)
+        elif flagReceiver[0:6]=="Spiral":
+            regex1=r'Amplitude:([\s\S]*) Angular velocity:'
+            regex2=r' Angular velocity:([\s\S]*) Duration:'
+            regex3=r' Duration:([\s\S]*) The END'
+            A=float(re.findall(regex1, flagReceiver)[0])
+            w=float(re.findall(regex2, flagReceiver)[0])
+            dur=int(re.findall(regex3, flagReceiver)[0])
+            Time = np.linspace(0,dur,10*dur)
+            Gx = [A*w*(np.cos(w*t)-t*w*np.sin(w*t))for t in Time]
+            Gy = [A*w*(np.sin(w*t)+t*w*np.cos(w*t))for t in Time]
+            print("ploting...")
+            self.axes.plot(Time,Gx,
+                           Time,Gy)
         else:#此处为function 暂定
             pass
         '''
