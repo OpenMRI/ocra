@@ -8,7 +8,6 @@
 
 import sys
 import re
-from interval import Interval, IntervalSet
 
 import numpy as np
 import matplotlib.pyplot as plt
