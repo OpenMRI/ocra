@@ -16,7 +16,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 
 # Create clk_wiz
-cell xilinx.com:ip:clk_wiz:5.3 pll_0 {
+# (using v5.4 is also an option)
+cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   PRIMITIVE PLL
   PRIM_IN_FREQ.VALUE_SRC USER
   PRIM_IN_FREQ 125.0
@@ -168,7 +169,8 @@ set_property RANGE 128K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 
 # Create Memory for pulse sequence
-cell xilinx.com:ip:blk_mem_gen:8.3 sequence_memory {
+# (Could also use V8.3)
+cell xilinx.com:ip:blk_mem_gen:8.4 sequence_memory {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
@@ -221,7 +223,7 @@ set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40080000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 
 # Create Memory for gradient waveform
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryx {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryx {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
@@ -232,7 +234,7 @@ cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryx {
   REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
 }
 
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryy {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryy {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
@@ -242,7 +244,7 @@ cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryy {
   ENABLE_B Always_Enabled
   REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
 }
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryz {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
