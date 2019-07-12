@@ -1,5 +1,5 @@
-#ifndef __CONFIG_ZYNQ_RED_PITAYA_H
-#define __CONFIG_ZYNQ_RED_PITAYA_H
+#ifndef __CONFIG_ZYNQ_STEMLAB_SDR_H
+#define __CONFIG_ZYNQ_STEMLAB_SDR_H
 
 #define CONFIG_ZYNQ_I2C0
 #define CONFIG_ZYNQ_EEPROM
@@ -22,4 +22,4 @@
 #define CONFIG_ENV_SIZE		1024 /* Total Size of Environment Sector */
 #define CONFIG_ENV_OFFSET	(2048*3) /* WP area starts at last 1/4 of 8k eeprom */
 
-#endif /* __CONFIG_ZYNQ_RED_PITAYA_H */
+#endif /* __CONFIG_ZYNQ_STEMLAB_SDR_H */

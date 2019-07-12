@@ -6,8 +6,8 @@
 #include "zynq-7000.dtsi"
 
 / {
-	model = "Red Pitaya Board";
-	compatible = "xlnx,zynq-red-pitaya", "xlnx,zynq-7000";
+	model = "STEMlab SDR Board";
+	compatible = "xlnx,zynq-stemlab-sdr", "xlnx,zynq-7000";
 
 	aliases {
 		ethernet0 = &gem0;
