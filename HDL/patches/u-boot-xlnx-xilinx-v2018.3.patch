@@ -7,7 +7,7 @@ diff -rupN old/u-boot-xlnx-xilinx-v2018.3/arch/arm/dts/Makefile u-boot-xlnx-xili
  	zynq-zturn-myir.dtb \
 -	zynq-zybo.dtb
 +	zynq-zybo.dtb \
-+	zynq-red-pitaya.dtb
++	zynq-stemlab-sdr.dtb
  dtb-$(CONFIG_ARCH_ZYNQMP) += \
  	avnet-ultra96-rev1.dtb			\
  	zynqmp-mini.dtb				\
