@@ -18,7 +18,7 @@ cell pavel-demin:user:axis_constant:1.0 phase_nco {
 
 # Create dds_compiler
 cell xilinx.com:ip:dds_compiler:6.0 dds_nco {
-  DDS_CLOCK_RATE 125
+  DDS_CLOCK_RATE 122.88
   SPURIOUS_FREE_DYNAMIC_RANGE 138
   FREQUENCY_RESOLUTION 0.2
   PHASE_INCREMENT Streaming

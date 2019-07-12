@@ -1,6 +1,6 @@
 # Create processing_system7
-cell xilinx.com:ip:processing_system7:5.5 ps_0 {
-  PCW_IMPORT_BOARD_PRESET cfg/red_pitaya.xml
+cell xilinx.com:ip:processing_system7 ps_0 {
+  PCW_IMPORT_BOARD_PRESET cfg/stemlab_sdr.xml
 } {
   M_AXI_GP0_ACLK ps_0/FCLK_CLK0
 }
@@ -12,21 +12,26 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
   Slave Disable
 } [get_bd_cells ps_0]
 
+# Create xlconstant
+cell xilinx.com:ip:xlconstant const_0
+
 # Create proc_sys_reset
-cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
+cell xilinx.com:ip:proc_sys_reset rst_0
 
 # Create clk_wiz
-# (using v5.4 is also an option)
-cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
+cell xilinx.com:ip:clk_wiz pll_0 {
   PRIMITIVE PLL
   PRIM_IN_FREQ.VALUE_SRC USER
-  PRIM_IN_FREQ 125.0
+  PRIM_IN_FREQ 122.88
   PRIM_SOURCE Differential_clock_capable_pin
   CLKOUT1_USED true
-  CLKOUT1_REQUESTED_OUT_FREQ 125.0
+  CLKOUT1_REQUESTED_OUT_FREQ 122.88
   CLKOUT2_USED true
-  CLKOUT2_REQUESTED_OUT_FREQ 250.0
-  CLKOUT2_REQUESTED_PHASE -90.0
+  CLKOUT2_REQUESTED_OUT_FREQ 245.76
+  CLKOUT2_REQUESTED_PHASE -112.5
+  CLKOUT3_USED true
+  CLKOUT3_REQUESTED_OUT_FREQ 245.76
+  CLKOUT3_REQUESTED_PHASE -67.5    
   USE_RESET false
 } {
   clk_in1_p adc_clk_p_i
@@ -35,28 +40,34 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
 
 # ADC
 
-# Create axis_red_pitaya_adc
-cell pavel-demin:user:axis_red_pitaya_adc:2.0 adc_0 {} {
+# Create axis_stemlab_sdr_adc
+cell pavel-demin:user:axis_stemlab_sdr_adc adc_0 {
+  ADC_DATA_WIDTH 16
+} {
   aclk pll_0/clk_out1
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
 }
 
-# Create axis_red_pitaya_dac
-cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
+# Create axis_stemlab_sdr_dac
+cell pavel-demin:user:axis_stemlab_sdr_dac dac_0 {
+  DAC_DATA_WIDTH 14
+} {
   aclk pll_0/clk_out1
   ddr_clk pll_0/clk_out2
+  wrt_clk pll_0/clk_out3    
   locked pll_0/locked
   dac_clk dac_clk_o
   dac_rst dac_rst_o
   dac_sel dac_sel_o
   dac_wrt dac_wrt_o
   dac_dat dac_dat_o
+  s_axis_tvalid const_0/dout    
 }
 
 # Create axi_cfg_register
-cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
+cell pavel-demin:user:axi_cfg_register cfg_0 {
   CFG_DATA_WIDTH 128
   AXI_ADDR_WIDTH 32
   AXI_DATA_WIDTH 32
@@ -90,11 +101,9 @@ cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
   Din cfg_0/cfg_data
 }
 
-# Create xlconstant
-cell xilinx.com:ip:xlconstant:1.1 const_0
-
-# Removed this connection from rx:
-# slice_0/Din rst_slice_0/Dout
+# Removed these connections from rx:
+# slice_0/Din
+# rst_slice_0/Dout
 module rx_0 {
   source projects/ocra_mri/rx2.tcl
 } {
