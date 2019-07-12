@@ -14,7 +14,7 @@ PROC = ps7_cortexa9_0
 
 CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
-        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
+        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 \
 	axis_stemlab_sdr_adc_v1_0 axis_stemlab_sdr_dac_v1_0 \
         axis_zeroer_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0

@@ -1,7 +1,7 @@
 
 `timescale 1 ns / 1 ps
 
-module axis_red_pitaya_dac #
+module axis_stemlab_sdr_dac #
 (
   parameter integer DAC_DATA_WIDTH = 14,
   parameter integer AXIS_TDATA_WIDTH = 32
@@ -10,6 +10,7 @@ module axis_red_pitaya_dac #
   // PLL signals
   input  wire                        aclk,
   input  wire                        ddr_clk,
+  input  wire                        wrt_clk,
   input  wire                        locked,
 
   // DAC signals
@@ -54,7 +55,7 @@ module axis_red_pitaya_dac #
 
   ODDR ODDR_rst(.Q(dac_rst), .D1(int_rst_reg), .D2(int_rst_reg), .C(aclk), .CE(1'b1), .R(1'b0), .S(1'b0));
   ODDR ODDR_sel(.Q(dac_sel), .D1(1'b0), .D2(1'b1), .C(aclk), .CE(1'b1), .R(1'b0), .S(1'b0));
-  ODDR ODDR_wrt(.Q(dac_wrt), .D1(1'b0), .D2(1'b1), .C(ddr_clk), .CE(1'b1), .R(1'b0), .S(1'b0));
+  ODDR ODDR_wrt(.Q(dac_wrt), .D1(1'b0), .D2(1'b1), .C(wrt_clk), .CE(1'b1), .R(1'b0), .S(1'b0));
   ODDR ODDR_clk(.Q(dac_clk), .D1(1'b0), .D2(1'b1), .C(ddr_clk), .CE(1'b1), .R(1'b0), .S(1'b0));
 
   generate
