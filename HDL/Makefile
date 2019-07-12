@@ -9,12 +9,13 @@
 LD_LIBRARY_PATH =
 
 NAME = ocra_mri
-PART = xc7z010clg400-1
+PART = xc7z020clg400-1
 PROC = ps7_cortexa9_0
 
 CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
         axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
+	axis_stemlab_sdr_adc_v1_0 axis_stemlab_sdr_dac_v1_0 \
         axis_zeroer_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
 
@@ -82,9 +83,9 @@ $(UBOOT_DIR): $(UBOOT_TAR)
 	mkdir -p $@
 	tar -zxf $< --strip-components=1 --directory=$@
 	patch -d tmp -p 0 < patches/u-boot-xlnx-$(UBOOT_TAG).patch
-	cp patches/zynq_red_pitaya_defconfig $@/configs
-	cp patches/zynq-red-pitaya.dts $@/arch/arm/dts
-	cp patches/zynq_red_pitaya.h $@/include/configs
+	cp patches/zynq_stemlab_sdr_defconfig $@/configs
+	cp patches/zynq-stemlab-sdr.dts $@/arch/arm/dts
+	cp patches/zynq_stemlab_sdr.h $@/include/configs
 	cp patches/u-boot-lantiq.c $@/drivers/net/phy/lantiq.c
 
 $(LINUX_DIR): $(LINUX_TAR) $(RTL8188_TAR) $(RTL8192_TAR)
@@ -113,7 +114,7 @@ uImage: $(LINUX_DIR)
 tmp/u-boot.elf: $(UBOOT_DIR)
 	mkdir -p $(@D)
 	make -C $< mrproper
-	make -C $< ARCH=arm zynq_red_pitaya_defconfig
+	make -C $< ARCH=arm zynq_stemlab_sdr_defconfig
 	make -C $< ARCH=arm CFLAGS=$(UBOOT_CFLAGS) \
 	  CROSS_COMPILE=arm-linux-gnueabihf- all
 	cp $</u-boot $@
@@ -155,5 +156,6 @@ tmp/%.tree/system-top.dts: tmp/%.hwdef $(DTREE_DIR)
 clean:
 	$(RM) uImage boot.bin devicetree.dtb tmp
 	$(RM) .Xil usage_statistics_webtalk.html usage_statistics_webtalk.xml
+	$(RM) apk-tools-static-* alpine-uboot-* linux-firmware-* stemlab-sdr-alpine-*
 	$(RM) vivado*.jou vivado*.log
 	$(RM) webtalk*.jou webtalk*.log
