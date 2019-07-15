@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 
 // local includes
-#include "server_mmap.h"
+#include "server_config.h"
 
 #define PI 3.14159265
 
@@ -2186,7 +2186,7 @@ int main(int argc, char *argv[])
   
 	// set the NCO to 15.67 MHz
 	printf("setting frequency to %.4f MHz\n",default_frequency/1e6f);
-	*rx_freq = (uint32_t)floor(default_frequency / 125.0e6 * (1<<30) + 0.5);
+	*rx_freq = (uint32_t)floor(default_frequency / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
 
 	/* set default rx sample rate */
 	*rx_rate = 250;
@@ -2292,7 +2292,7 @@ int main(int argc, char *argv[])
     // Change center frequency when client status is idle (not start yet)
     if ((command>>28) == 1) {
       value = command & 0xfffffff;
-      *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+      *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
       printf("Setting frequency to %.4f MHz\n",value/1e6f);
       if(value < 0 || value > 60000000) {
         printf("Frequency value out of range\n");
@@ -2341,7 +2341,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -2480,7 +2480,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -2593,7 +2593,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -2754,7 +2754,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -2940,7 +2940,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -3326,7 +3326,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
@@ -3471,7 +3471,7 @@ int main(int argc, char *argv[])
 
         if ( trig == 1 ) { // Change center frequency
           value = command & 0xfffffff;
-          *rx_freq = (uint32_t)floor(value / 125.0e6 * (1<<30) + 0.5);
+          *rx_freq = (uint32_t)floor(value / FPGA_CLK_FREQ_HZ * (1<<30) + 0.5);
           printf("Setting frequency to %.4f MHz\n",value/1e6f);
           if(value < 0 || value > 60000000) {
             printf("Frequency value out of range\n");
