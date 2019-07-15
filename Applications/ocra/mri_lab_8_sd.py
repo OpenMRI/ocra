@@ -72,7 +72,7 @@ class MRI_SD_Widget(QDialog):
     def tableWidget_set(self):
         
         #open file
-        fileObject=open('Pulse_design/data.txt','r')
+        fileObject=open('Pulse_Design/data.txt','r')
         #design size
         self.CountColumn=int(fileObject.readline())
         self.CountRow=int(fileObject.readline())
@@ -643,7 +643,7 @@ class MRI_SD_Widget(QDialog):
                 self.tableWidget.setCellWidget(x,y,self.labels[x][y])
                 self.tableWidget.setItem(x,y,QTableWidgetItem(" "))
     def SaveBtnClicked(self):
-        fileObject=open('Pulse_design/data.txt','w')
+        fileObject=open('Pulse_Design/data.txt','w')
         fileObject.write(str(self.CountColumn))
         fileObject.write('\n')
         fileObject.write(str(self.CountRow))
