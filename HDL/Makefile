@@ -22,9 +22,9 @@ VIVADO = vivado -nolog -nojournal -mode batch
 HSI = hsi -nolog -nojournal -mode batch
 RM = rm -rf
 
-UBOOT_TAG = xilinx-v2016.4
-LINUX_TAG = xilinx-v2016.4
-DTREE_TAG = xilinx-v2016.4
+UBOOT_TAG = xilinx-v2019.1
+LINUX_TAG = xilinx-v2019.1
+DTREE_TAG = xilinx-v2019.1
 
 UBOOT_DIR = tmp/u-boot-xlnx-$(UBOOT_TAG)
 LINUX_DIR = tmp/linux-xlnx-$(LINUX_TAG)
@@ -47,7 +47,7 @@ RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/r
 
 .PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hwdef tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin uImage devicetree.dtb fw_printenv
+all: boot.bin devicetree.dtb tmp/%.bin
 
 xpr: tmp/$(NAME).xpr
 
@@ -110,12 +110,12 @@ fw_printenv: $(UBOOT_DIR) tmp/u-boot.elf
 	  CROSS_COMPILE=arm-linux-gnueabihf- env
 	cp $</tools/env/fw_printenv $@
 
-boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit tmp/u-boot.elf
+boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
 	echo "img:{[bootloader] $^}" > tmp/boot.bif
 	bootgen -image tmp/boot.bif -w -o i $@
 
-devicetree.dtb: uImage tmp/$(NAME).tree/system.dts
-	$(LINUX_DIR)/scripts/dtc/dtc -I dts -O dtb -o devicetree.dtb \
+devicetree.dtb: tmp/$(NAME).tree/system.dts
+	dtc -I dts -O dtb -o devicetree.dtb \
 	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system.dts
 
 tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
@@ -133,6 +133,10 @@ tmp/%.hwdef: tmp/%.xpr
 tmp/%.bit: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $*
+
+tmp/%.bin: tmp/%.bit
+	echo "all:{ $^}" > tmp/ocra_mri.bif
+	bootgen -image tmp/ocra_mri.bif -w -o i $@
 
 tmp/%.fsbl/executable.elf: tmp/%.hwdef
 	mkdir -p $(@D)
