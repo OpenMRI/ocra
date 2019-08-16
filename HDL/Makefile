@@ -47,7 +47,7 @@ RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/r
 
 .PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hwdef tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin devicetree.dtb tmp/%.bin
+all: boot.bin devicetree.dtb tmp/%.bin 
 
 xpr: tmp/$(NAME).xpr
 
@@ -115,8 +115,13 @@ boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
 	bootgen -image tmp/boot.bif -w -o i $@
 
 devicetree.dtb: tmp/$(NAME).tree/system.dts
+	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
+	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
 	dtc -I dts -O dtb -o devicetree.dtb \
-	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system.dts
+	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system-top.dts.preprocessed
+
+ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
+	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
 
 tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
 	mkdir -p $(@D)
@@ -145,7 +150,7 @@ tmp/%.fsbl/executable.elf: tmp/%.hwdef
 tmp/%.tree/system.dts: tmp/%.hwdef $(DTREE_DIR)
 	mkdir -p $(@D)
 	$(HSI) -source scripts/devicetree.tcl -tclargs $* $(PROC) $(DTREE_DIR)
-	patch $@ patches/devicetree.patch
+	#patch $@ patches/devicetree.patch
 
 clean:
 	$(RM) uImage fw_printenv boot.bin devicetree.dtb tmp
