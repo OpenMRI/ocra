@@ -155,8 +155,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins rx_0/reader_0/S_AXI]
 
-set_property RANGE 256K [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
-set_property OFFSET 0x40100000 [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
+set_property OFFSET 0x40010000 [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
@@ -164,7 +164,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins tx_0/writer_0/S_AXI]
 
-set_property RANGE 128K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 
 # Create Memory for pulse sequence
@@ -199,7 +199,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 } [get_bd_intf_pins sequence_writer/S_AXI]
 
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
-set_property OFFSET 0x40070000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
+set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 
 # Create microsequencer
 cell pavel-demin:user:micro_sequencer:1.0 micro_sequencer {
@@ -217,8 +217,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins micro_sequencer/S_AXI]
 
-set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
-set_property OFFSET 0x40080000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 
 # Create Memory for gradient waveform
 cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryx {
@@ -294,12 +294,12 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins gradient_writerz/S_AXI]
 
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
-set_property OFFSET 0x400A0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
-set_property OFFSET 0x400B0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
-set_property OFFSET 0x400C0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
+set_property OFFSET 0x40002000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
+set_property OFFSET 0x40004000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property OFFSET 0x40006000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 
 module gradient_dac_0 {
     source projects/ocra_mri/gradient_dacs_daisy.tcl
@@ -315,8 +315,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins gradient_dac_0/spi_sequencer_0/S_AXI]
 
-set_property RANGE  4K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
-set_property OFFSET 0x40090000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property RANGE  64K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property OFFSET 0x40060000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
 
 #
 # hook up the event pulses to something
