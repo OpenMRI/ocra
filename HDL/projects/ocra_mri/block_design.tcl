@@ -302,7 +302,7 @@ set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 set_property OFFSET 0x400C0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 
 module gradient_dac_0 {
-    source projects/ocra_mri/gradient_dacs.tcl
+    source projects/ocra_mri/gradient_dacs_daisy.tcl
 } {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
