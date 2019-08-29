@@ -141,7 +141,7 @@ tmp/%.bit: tmp/%.xpr
 
 tmp/%.bin: tmp/%.bit
 	echo "all:{ $^}" > tmp/ocra_mri.bif
-	bootgen -image tmp/ocra_mri.bif -w -o i $@
+	bootgen -image tmp/ocra_mri.bif -arch zynq -process_bitstream bin -w -o $@
 
 tmp/%.fsbl/executable.elf: tmp/%.hdf
 	mkdir -p $(@D)
