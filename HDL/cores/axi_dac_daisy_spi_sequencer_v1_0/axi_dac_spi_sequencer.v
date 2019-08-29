@@ -578,7 +578,7 @@ module axi_dac_spi_sequencer #
 			 // update on a rising clock only
 			 if(serial_clock_reg == 0)
 			   begin
-			      spi_transfer_out_regx <= spi_data_reg_daisy[951];
+			      spi_transfer_out_regx <= spi_data_reg_daisy[95];
 			      spi_data_reg_daisy <= {spi_data_reg_daisy[94:0],1'b0};
 			      
 			      //spi_transfer_out_regy <= spi_data_regy[23];
