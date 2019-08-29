@@ -45,7 +45,7 @@ ARMHF_CFLAGS = "-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -
 RTL_TAR = tmp/rtl8192cu.tgz
 RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/rtl8192cu/rtl8192cu.tgz?dl=1
 
-.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hwdef tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
 all: boot.bin devicetree.dtb tmp/%.bin 
 
@@ -131,7 +131,7 @@ tmp/%.xpr: projects/% $(addprefix tmp/cores/, $(CORES))
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $* $(PART)
 
-tmp/%.hwdef: tmp/%.xpr
+tmp/%.hdf: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $*
 
@@ -143,11 +143,11 @@ tmp/%.bin: tmp/%.bit
 	echo "all:{ $^}" > tmp/ocra_mri.bif
 	bootgen -image tmp/ocra_mri.bif -w -o i $@
 
-tmp/%.fsbl/executable.elf: tmp/%.hwdef
+tmp/%.fsbl/executable.elf: tmp/%.hdf
 	mkdir -p $(@D)
 	$(HSI) -source scripts/fsbl.tcl -tclargs $* $(PROC)
 
-tmp/%.tree/system.dts: tmp/%.hwdef $(DTREE_DIR)
+tmp/%.tree/system.dts: tmp/%.hdf $(DTREE_DIR)
 	mkdir -p $(@D)
 	$(HSI) -source scripts/devicetree.tcl -tclargs $* $(PROC) $(DTREE_DIR)
 	#patch $@ patches/devicetree.patch

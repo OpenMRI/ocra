@@ -11,7 +11,7 @@ set hard_path tmp/$project_name.hard
 set tree_path tmp/$project_name.tree
 
 file mkdir $hard_path
-file copy -force tmp/$project_name.hwdef $hard_path/$project_name.hdf
+file copy -force tmp/$project_name.hdf $hard_path/$project_name.hdf
 
 set_repo_path $repo_path
 
