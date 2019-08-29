@@ -21,6 +21,7 @@ create_sw_design -proc $proc_name -os device_tree devicetree
 set_property CONFIG.kernel_version {2019.1} [get_os]
 set_property CONFIG.bootargs $boot_args [get_os]
 set_property CONFIG.dt_overlay true [get_os]
+set_property CONFIG.firmware_name $project_name.bit [get_os]
 
 generate_bsp -dir $tree_path
 
