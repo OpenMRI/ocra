@@ -564,7 +564,7 @@ module axi_dac_spi_sequencer #
 		    spi_data_regy <= bram_porty_rddata[23:0];
 		    spi_data_regz <= bram_portz_rddata[23:0];
 
-		    spi_data_reg_daisy <= {bram_portz_rddata[23:0],bram_porty_rddata[23:0],bram_portx_rddata[23:0]};
+		    spi_data_reg_daisy <= {24'd0,bram_portz_rddata[23:0],bram_porty_rddata[23:0],bram_portx_rddata[23:0]};
 		    
 		    spi_transfer_out_regx <= 1'b0;
 		    spi_transfer_out_regy <= 1'b0;
