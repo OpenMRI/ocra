@@ -118,7 +118,7 @@ devicetree.dtb: tmp/$(NAME).tree/system.dts
 	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
 	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
 	dtc -I dts -O dtb -o devicetree.dtb \
-	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system-top.dts.preprocessed
+	  -i tmp/$(NAME).tree -@ tmp/$(NAME).tree/system-top.dts.preprocessed
 
 ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
