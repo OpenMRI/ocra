@@ -154,7 +154,7 @@ module axi_dac_spi_sequencer #
    reg                              enable_transfer;
    reg 				    syncn_reg;
    reg 				    ldacn_reg; 				    
-   reg [6:0] 			    serial_fe_counter;
+   reg [7:0] 			    serial_fe_counter;
    reg [2:0] 			    ldac_counter_reg;
    wire                             m_axis_tready;
    wire 			    m_axis_config_tready;
@@ -163,7 +163,7 @@ module axi_dac_spi_sequencer #
    
    reg 				    spi_clock_enable_reg;
    reg [2:0] 			    spi_sequencer_state_reg;
-   reg [7:0] 			    spi_transfer_counter_reg;
+   reg [15:0] 			    spi_transfer_counter_reg;
    reg [23:0] 			    spi_data_regx;
    reg [23:0] 			    spi_data_regy;
    reg [23:0] 			    spi_data_regz;
@@ -531,10 +531,10 @@ module axi_dac_spi_sequencer #
    assign spi_sdoz = spi_transfer_out_regz;
    
    // generate the gradient update clock, which should also be done by a different core at some point
-   // For a 143 MHz FPGA clock, we would divide by 1430 to get a 100 kHz clock
-   
+   // For a 143 MHz FPGA clock, we would divide by 1430 to get a 100 kHz clock   
    assign gradient_update_clock = (gradient_update_clock_counter == 16'd1430);
 
+   
    // this block just deals with the SPI data transfer out (serializer)
    always @(posedge aclk)
      begin
@@ -560,11 +560,13 @@ module axi_dac_spi_sequencer #
 		    // spi_data_reg <= {4'b0001,spi_data_val[17:0],2'b00};
 		    
 		    //spi_data_regx <= {4'b0001,16'h5555,4'b0000};
-		    spi_data_regx <= bram_portx_rddata[23:0];
-		    spi_data_regy <= bram_porty_rddata[23:0];
-		    spi_data_regz <= bram_portz_rddata[23:0];
+		    //spi_data_regx <= bram_portx_rddata[23:0];
+		    //spi_data_regy <= bram_porty_rddata[23:0];
+		    //spi_data_regz <= bram_portz_rddata[23:0];
 
 		    spi_data_reg_daisy <= {24'd0,bram_portz_rddata[23:0],bram_porty_rddata[23:0],bram_portx_rddata[23:0]};
+		    
+		    //spi_data_reg_daisy <= {24'h1fffff,24'h155555,24'h1fffff,24'h155555};
 		    
 		    spi_transfer_out_regx <= 1'b0;
 		    spi_transfer_out_regy <= 1'b0;
@@ -671,11 +673,11 @@ module axi_dac_spi_sequencer #
 	     syncn_reg <= 1'b1;
 	     ldacn_reg <= 1'b1;
 	     spi_sequencer_state_reg <= 3'd0;
-	     spi_transfer_counter_reg <= 8'd0;
+	     spi_transfer_counter_reg <= 16'd0;
 	     gradient_update_clock_counter <= 40'd0;
 	     serial_clock_counter <= 4'd0;
 	     serial_clock_reg <= 1'b0;
-	     serial_fe_counter <= 6'd0;
+	     serial_fe_counter <= 8'd0;
 	     post_ldac_count <= 3'd0;
 	     
 	     spi_first_cmd_reg <= 1'b1;
@@ -725,15 +727,15 @@ module axi_dac_spi_sequencer #
 		    // start with a sign change
 		    serial_clock_reg <= 1'b0;
 		    serial_clock_counter <= 4'd3;
-		    serial_fe_counter <= 6'd0;
-		    spi_transfer_counter_reg <= 8'd0;
+		    serial_fe_counter <= 8'd0;
+		    spi_transfer_counter_reg <= 16'd0;
 		 end
 	       3'd2:
 		 begin
-		    if(spi_transfer_counter_reg == 8'd192)
+		    if(spi_transfer_counter_reg == 16'd768)
 		      begin
 			 spi_sequencer_state_reg <= 3'd3;
-			 spi_transfer_counter_reg <= 8'd0;
+			 spi_transfer_counter_reg <= 16'd0;
 			 spi_clock_enable_reg <= 1'b0;
 			 syncn_reg <= 1'b1;
 			 // stop the clock generation
@@ -749,7 +751,7 @@ module axi_dac_spi_sequencer #
 			 // with the other 192 cycle counter
 			 //
 			 // 08/28/2019 changed this to 96
-			 if(serial_fe_counter >= 6'd96)
+			 if(serial_fe_counter >= 8'd96)
 			   begin
 			      spi_clock_enable_reg <= 1'b0;
 			   end
@@ -777,7 +779,7 @@ module axi_dac_spi_sequencer #
 			   end
 			 else
 			   begin
-			      serial_clock_counter <= serial_clock_counter + 1'b1;
+			      serial_clock_counter <= serial_clock_counter + 1;
 			      spi_transfer_counter_reg <= spi_transfer_counter_reg + 1;
 			   end
 		      end // else: !if(spi_transfer_counter_reg == 8'd192)
@@ -798,7 +800,7 @@ module axi_dac_spi_sequencer #
 			 spi_sequencer_state_reg <= 3'd3;
 		      end
 		    syncn_reg <= 1'b1;
-		    spi_transfer_counter_reg <= 8'd0;
+		    spi_transfer_counter_reg <= 16'd0;
 		    serial_clock_counter <= 4'd0;
 		    serial_clock_reg <= 1'b0;
 		 end // case: 3'd3
@@ -811,7 +813,7 @@ module axi_dac_spi_sequencer #
 			 // make ldac the proper length
 			 ldacn_reg <= 1'b1;
 			 spi_sequencer_state_reg <= 3'd0;
-			 spi_transfer_counter_reg <= 8'd0;
+			 spi_transfer_counter_reg <= 16'd0;
 			 serial_clock_counter <= 4'd0;
 			 serial_clock_reg <= 1'b0;
 		      end // if (post_ldac_count == 3'd4)
@@ -821,7 +823,7 @@ module axi_dac_spi_sequencer #
 			 spi_sequencer_state_reg <= 3'd4;
 		      end // else: !if(post_ldac_count == 3'd2)
 		    syncn_reg <= 1'b1;
-		    spi_transfer_counter_reg <= 8'd0;
+		    spi_transfer_counter_reg <= 16'd0;
 		 end // case: 3'd4
 	       3'd5:
 		 begin
