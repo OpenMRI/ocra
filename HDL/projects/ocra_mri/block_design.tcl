@@ -225,7 +225,7 @@ cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryx {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -236,7 +236,7 @@ cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryy {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -246,7 +246,7 @@ cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -258,7 +258,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerx {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryx/BRAM_PORTA
 }
@@ -266,7 +266,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writery {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryy/BRAM_PORTA
 }
@@ -274,7 +274,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerz {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryz/BRAM_PORTA
 }
@@ -302,7 +302,7 @@ set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 set_property OFFSET 0x40006000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 
 module gradient_dac_0 {
-    source projects/ocra_mri/gradient_dacs_daisy.tcl
+    source projects/ocra_mri/gradient_dacs.tcl
 } {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
