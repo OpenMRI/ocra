@@ -45,7 +45,7 @@ ARMHF_CFLAGS = "-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -
 RTL_TAR = tmp/rtl8192cu.tgz
 RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/rtl8192cu/rtl8192cu.tgz?dl=1
 
-.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hwdef tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
 all: boot.bin devicetree.dtb tmp/%.bin 
 
@@ -118,7 +118,7 @@ devicetree.dtb: tmp/$(NAME).tree/system.dts
 	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
 	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
 	dtc -I dts -O dtb -o devicetree.dtb \
-	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system-top.dts.preprocessed
+	  -i tmp/$(NAME).tree -@ tmp/$(NAME).tree/system-top.dts.preprocessed
 
 ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
@@ -131,7 +131,7 @@ tmp/%.xpr: projects/% $(addprefix tmp/cores/, $(CORES))
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $* $(PART)
 
-tmp/%.hwdef: tmp/%.xpr
+tmp/%.hdf: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $*
 
@@ -141,13 +141,13 @@ tmp/%.bit: tmp/%.xpr
 
 tmp/%.bin: tmp/%.bit
 	echo "all:{ $^}" > tmp/ocra_mri.bif
-	bootgen -image tmp/ocra_mri.bif -w -o i $@
+	bootgen -image tmp/ocra_mri.bif -arch zynq -process_bitstream bin -w -o $@
 
-tmp/%.fsbl/executable.elf: tmp/%.hwdef
+tmp/%.fsbl/executable.elf: tmp/%.hdf
 	mkdir -p $(@D)
 	$(HSI) -source scripts/fsbl.tcl -tclargs $* $(PROC)
 
-tmp/%.tree/system.dts: tmp/%.hwdef $(DTREE_DIR)
+tmp/%.tree/system.dts: tmp/%.hdf $(DTREE_DIR)
 	mkdir -p $(@D)
 	$(HSI) -source scripts/devicetree.tcl -tclargs $* $(PROC) $(DTREE_DIR)
 	#patch $@ patches/devicetree.patch

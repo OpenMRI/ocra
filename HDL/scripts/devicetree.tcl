@@ -11,7 +11,7 @@ set hard_path tmp/$project_name.hard
 set tree_path tmp/$project_name.tree
 
 file mkdir $hard_path
-file copy -force tmp/$project_name.hwdef $hard_path/$project_name.hdf
+file copy -force tmp/$project_name.hdf $hard_path/$project_name.hdf
 
 set_repo_path $repo_path
 
@@ -21,6 +21,7 @@ create_sw_design -proc $proc_name -os device_tree devicetree
 set_property CONFIG.kernel_version {2019.1} [get_os]
 set_property CONFIG.bootargs $boot_args [get_os]
 set_property CONFIG.dt_overlay true [get_os]
+set_property CONFIG.firmware_name $project_name.bit [get_os]
 
 generate_bsp -dir $tree_path
 
