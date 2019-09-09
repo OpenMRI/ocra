@@ -7,13 +7,13 @@ set elements [split $core_name _]
 set project_name [join [lrange $elements 0 end-2] _]
 set version [string trimleft [join [lrange $elements end-1 end] .] v]
 
-file delete -force tmp/cores/$core_name tmp/cores/$project_name.cache tmp/cores/$project_name.hw tmp/cores/$project_name.xpr
+file delete -force tmp/cores_pavel/$core_name tmp/cores_pavel/$project_name.cache tmp/cores_pavel/$project_name.hw tmp/cores_pavel/$project_name.xpr
 
-create_project -part $part_name $project_name tmp/cores
+create_project -part $part_name $project_name tmp/cores_pavel
 
-add_files -norecurse [glob cores/$core_name/*.v]
+add_files -norecurse [glob cores_pavel/$core_name/*.v]
 
-ipx::package_project -import_files -root_dir tmp/cores/$core_name
+ipx::package_project -import_files -root_dir tmp/cores_pavel/$core_name
 
 set core [ipx::current_core]
 
@@ -37,7 +37,7 @@ proc core_parameter {name display_name description} {
   set_property TOOLTIP $description $parameter
 }
 
-source cores/$core_name/core_config.tcl
+source cores_pavel/$core_name/core_config.tcl
 
 rename core_parameter {}
 
