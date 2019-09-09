@@ -12,7 +12,7 @@ cell xilinx.com:ip:xlslice:1.0 slice_1 {
 }
 
 # Create dac_spi_sequencer
-cell pavel-demin:user:axi_dac_spi_sequencer:1.0 spi_sequencer_0 {
+cell open-mri:user:axi_dac_spi_sequencer:1.0 spi_sequencer_0 {
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 11
   CONTINUOUS FALSE

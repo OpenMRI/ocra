@@ -20,9 +20,9 @@ set core [ipx::current_core]
 set_property VERSION $version $core
 set_property NAME $project_name $core
 set_property LIBRARY {user} $core
-set_property VENDOR {pavel-demin} $core
-set_property VENDOR_DISPLAY_NAME {Pavel Demin} $core
-set_property COMPANY_URL {https://github.com/pavel-demin/red-pitaya-notes} $core
+set_property VENDOR {open-mri} $core
+set_property VENDOR_DISPLAY_NAME {OpenMRI} $core
+set_property COMPANY_URL {https://openmri.github.io/ocra/} $core
 set_property SUPPORTED_FAMILIES {zynq Production} $core
 
 proc core_parameter {name display_name description} {

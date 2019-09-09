@@ -202,7 +202,7 @@ set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 
 # Create microsequencer
-cell pavel-demin:user:micro_sequencer:1.0 micro_sequencer {
+cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
   C_S_AXI_DATA_WIDTH 32
   C_S_AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 64
