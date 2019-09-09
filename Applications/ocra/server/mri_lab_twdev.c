@@ -54,6 +54,7 @@ typedef struct {
   Notes about the DAC control:
   In the present OCRA hardware configuration of the AD5781 DAC, the RBUF bit must always be set so
   that it can function. (HW config is as Figure 52 in the datasheet).
+
 */
 void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz,gradient_state_t state, gradient_offset_t offset)
 { 
