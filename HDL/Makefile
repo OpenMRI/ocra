@@ -12,7 +12,7 @@ NAME = ocra_mri
 PART = xc7z010clg400-1
 PROC = ps7_cortexa9_0
 
-CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
+CORES_PAVEL = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
         axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
         axis_zeroer_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
@@ -45,7 +45,7 @@ ARMHF_CFLAGS = "-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -
 RTL_TAR = tmp/rtl8192cu.tgz
 RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/rtl8192cu/rtl8192cu.tgz?dl=1
 
-.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores_pavel/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
 all: boot.bin devicetree.dtb tmp/%.bin 
 
@@ -123,11 +123,11 @@ devicetree.dtb: tmp/$(NAME).tree/system.dts
 ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
 
-tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
+tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
 	mkdir -p $(@D)
-	$(VIVADO) -source scripts/core.tcl -tclargs $* $(PART)
+	$(VIVADO) -source scripts/core_pavel.tcl -tclargs $* $(PART)
 
-tmp/%.xpr: projects/% $(addprefix tmp/cores/, $(CORES))
+tmp/%.xpr: projects/% $(addprefix tmp/cores_pavel/, $(CORES_PAVEL))
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $* $(PART)
 
