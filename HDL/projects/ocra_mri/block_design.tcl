@@ -323,10 +323,10 @@ set_property OFFSET 0x40060000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_r
 #
 
 # the LEDs
-create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0
-set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DOUT_WIDTH {8}] [get_bd_cells xlslice_0]
-connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins xlslice_0/Din]
-connect_bd_net [get_bd_ports led_o] [get_bd_pins xlslice_0/Dout]
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xled_slice_0
+set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DOUT_WIDTH {8}] [get_bd_cells xled_slice_0]
+connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins xled_slice_0/Din]
+connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_slice_0/Dout]
 
 # the transmit trigger pulse
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 trigger_slice_0
@@ -363,5 +363,23 @@ connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
 
 # Create output port for the SPI stuff
 create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
-connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins gradient_dac_0/spiconcat_0/Dout]
+
+# 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
+#          and the txgate will use the eight' pin on the n side
+
+# Slice the txgate off the microsequencer pulse word. I'm torn on style here, but the trigger slice is almost obsolete,
+# so its easier to not use it
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 txgate_slice_0
+set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {4} CONFIG.DIN_TO {4} CONFIG.DOUT_WIDTH {1}] [get_bd_cells txgate_slice_0]
+connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins txgate_slice_0/Din]
+
+# Concat with the gradient DAC slice
+cell xilinx.com:ip:xlconcat:2.1 nio_concat_0 {
+    NUM_PORTS 2
+}
+connect_bd_net [get_bd_pins nio_concat_0/In0] [get_bd_pins gradient_dac_0/spiconcat_0/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In1] [get_bd_pins txgate_slice_0/Dout]
+
+# connect to pins
+connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins nio_concat_0/Dout]
 
