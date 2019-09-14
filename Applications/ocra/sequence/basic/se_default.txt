@@ -1,6 +1,6 @@
 J 10 										// A[0] J to address 10 x 8 bytes A[B]
 LOOP_CTR = 0x1 								// A[1] LOOP COUNTER (NO repetitions for now)
-CMD1 = TX_GATE                         		// A[2] UNUSED
+CMD1 = TX_GATE | RX_PULSE                   // A[2] UNUSED
 CMD2 = 0x0                          		// A[3] UNUSED
 CMD3 = 0x2                          				// A[4] all off (note that RX_PULSE use inverted logic)
 CMD4 = 0X0                          				// A[5] only receiver on (all off, but do not reset RX FIFO)
