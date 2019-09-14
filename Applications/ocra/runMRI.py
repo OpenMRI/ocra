@@ -2,6 +2,20 @@
 #!/usr/bin/env python
 
 # import general packages
+from basicpara import parameters
+from globalsocket import gsocket
+from mri_lab_8_sd import MRI_SD_Widget
+from mri_lab_7_rt import MRI_Rt_Widget
+from mri_lab_6_imaging3d import MRI_3DImag_Widget
+from mri_lab_5_imaging2d import MRI_2DImag_Widget
+from mri_lab_4_projection import MRI_Proj_Widget
+from mri_lab_3_signals import MRI_Sig_Widget
+from mri_lab_2_se import MRI_SE_Widget
+from mri_lab_1_fid import MRI_FID_Widget
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 import sys
 import struct
 
@@ -18,24 +32,10 @@ import numpy as np
 import scipy.io as sp
 import matplotlib
 matplotlib.use('Qt5Agg')
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
 
 # import GUI classes
-from mri_lab_1_fid import MRI_FID_Widget
-from mri_lab_2_se import MRI_SE_Widget
-from mri_lab_3_signals import MRI_Sig_Widget
-from mri_lab_4_projection import MRI_Proj_Widget
-from mri_lab_5_imaging2d import MRI_2DImag_Widget
-from mri_lab_6_imaging3d import MRI_3DImag_Widget
-from mri_lab_7_rt import MRI_Rt_Widget
-from mri_lab_8_sd import MRI_SD_Widget
 
 # import private packages
-from globalsocket import gsocket
-from basicpara import parameters
 # from assembler import Assembler
 
 # load .ui files for different pages
@@ -103,7 +103,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.mri3DImagWidget = MRI_3DImag_Widget()
         self.mriRtWidget = MRI_Rt_Widget()
         self.mriSdWidget = MRI_SD_Widget()
-        self.mriDesignWidget= MRI_SD_Widget()
+        self.mriDesignWidget = MRI_SD_Widget()
         self.stacked_widget.addWidget(self.welcomeWidget)
         self.stacked_widget.addWidget(self.mriFidWidget)
         self.stacked_widget.addWidget(self.mriSeWidget)
@@ -125,7 +125,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         if quit_choice == QMessageBox.Yes:
             sys.exit()
             # QCoreApplication.instance().quit() # same function
-        else: pass
+        else:
+            pass
 
     def closeEvent(self, event):
         quit_choice = QMessageBox.question(self, 'Confirm', 'Do you want to quit?',
@@ -157,8 +158,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def open_mri_fid(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(1)
-        self.mriFidWidget.set_freq(parameters.get_freq()) # update frequency to server
-        self.mriFidWidget.freqValue.setValue(parameters.get_freq()) # maybe put this in lower funcs
+        # update frequency to server
+        self.mriFidWidget.set_freq(parameters.get_freq())
+        self.mriFidWidget.freqValue.setValue(
+            parameters.get_freq())  # maybe put this in lower funcs
         self.setWindowTitle('MRI tabletop - FID GUI')
 
     def open_mri_se(self):
@@ -202,7 +205,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.mriRtWidget.set_freq(parameters.get_freq())
         self.mriRtWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - Real-time Update GUI')
-    
+
     def open_mri_sd(self):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(8)
@@ -226,9 +229,10 @@ class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
         gsocket.error.connect(self.socket_error)
         # IP address validator
         IP_validator = QRegExp(
-            '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)' \
+            '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)'
             '{3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$')
-        self.addrValue.setValidator(QRegExpValidator(IP_validator, self.addrValue))
+        self.addrValue.setValidator(
+            QRegExpValidator(IP_validator, self.addrValue))
 
     def socket_connect(self):
         print('Connecting...')
@@ -244,7 +248,8 @@ class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
         if socketError == QAbstractSocket.RemoteHostClosedError:
             pass
         else:
-            QMessageBox.information(self, 'PulsedNMR', 'Error: %s.' % gsocket.errorString())
+            QMessageBox.information(
+                self, 'PulsedNMR', 'Error: %s.' % gsocket.errorString())
         self.connectButton.setEnabled(True)
 
     def closeEvent(self, event):

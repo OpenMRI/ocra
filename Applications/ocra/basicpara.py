@@ -1,14 +1,14 @@
 # class of basic parameters
 class BasicParameters:
     def __init__(self):
-        # gradient offsets
-        # self.gradient_offsets =  [120, 45, -92]
-        # self.gradient_offsets =  [-120, 45, 92]
-        self.gradient_offsets = [-119, 42, 74]
+		# TW: These parameters should be from an external "tuneup" parameter file, and it should be possible to save them there,
+		#     and not be hardwired in the code here. Alas I'm using values that are typical for the tabletop magnet #26 in my lab
+		#     that are a reasonable starting point for its configuration as of 12/14/2018
+        self.gradient_offsets = [117, 35, 33]
         # X -119, Y 42, Z 74 mA
 
-        # central frequency
-        self.freq = 15.670000
+        # central frequency (MHz)
+        self.freq = 15.673000
 
     def set_grad_offsets(self, offset_list):
         self.gradient_offsets = offset_list
