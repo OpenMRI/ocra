@@ -114,12 +114,14 @@ class Assembler:
 
 		# Format A
 		elif self.opcode_table[opcode][1] == 'A':
-			reg_addr = format(int(line[1], 16), 'b').zfill(5) 
+			reg_addr = format(int(line[1], 10), 'b').zfill(5)
 			print(reg_addr)
 			if opcode == 'LD64' or opcode == 'JNZ': # Reg and addr specified
 				if line[2] in self.var_table.keys():
 					addr = self.var_table[line[2]] # Look up address of variable
-					#print(self.var_table)
+					print(self.var_table)
+					print(addr)
+                                        
 				else:
 					try:
 						addr = int(line[2], 16) # Must be in hex
@@ -149,9 +151,11 @@ class Assembler:
 				num_cycles = math.floor(int(line[2]) * conversion_factor) # Round down
 				const = format(num_cycles, 'b').zfill(40)
 				reg_addr = format(int(line[1]), 'b')
+				print(reg_addr)
 				remaining_bits = 64 - len(const) - len(opcode_bin) - len(reg_addr)
 				remainder = '0'.zfill(remaining_bits)
 				cmd = opcode_bin + remainder + reg_addr + const
+				print(cmd)
 			else: # TXOFFSET and GRADOFFSET
 				# const = format(int(line[1], 16), 'b').zfill(40)
 				const = format(int(line[1], 10), 'b').zfill(40)
@@ -265,7 +269,7 @@ class Assembler:
 # Sample usage
 if __name__ == "__main__":
 	a = Assembler()
-	inp_file = 'se_org.txt'
+	inp_file = 'sequence/basic/se_default.txt'
 	hex_bytes = a.assemble(inp_file)
 	print("Hex bytes = {}\n".format(hex_bytes))
 
