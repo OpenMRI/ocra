@@ -104,9 +104,13 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # display 2: k-space and image
         self.figure2 = Figure()
         self.figure2.set_facecolor('whitesmoke')
-        self.axes_k_amp = self.figure2.add_subplot(3, 1, 1)
-        self.axes_k_pha = self.figure2.add_subplot(3, 1, 2)
-        self.axes_image = self.figure2.add_subplot(3, 1, 3)
+
+        self.figure2.set_tight_layout(True)
+
+        #self.axes_k_amp = self.figure2.add_subplot(3, 1, 1)
+        #self.axes_k_pha = self.figure2.add_subplot(3, 1, 2)
+        
+        self.axes_image = self.figure2.add_subplot(1, 1, 1)
         self.canvas2 = FigureCanvas(self.figure2)
         self.imageLayout.addWidget(self.canvas2)
         # create navigation toolbar
