@@ -2211,44 +2211,57 @@ int main(int argc, char *argv[])
   int32_t RF_amp; //7*2300 = 16100 
   RF_amp = atoi(argv[2]);
 
-	// RF Pulse 0: RF:90x+ offset 0, start with 50 us lead-in
-  for(i = 64; i <= 64+duration; i=i+2) {
+  // this divider makes the sample duration a convenient 1us
+  *tx_divider = 125;
+
+  // RF sample duration is
+  float txsample_duration_us = 1.0/125.0*(float)(*tx_divider);
+
+  printf("Transmit sample duration is %g us\n",txsample_duration_us);
+
+  unsigned int ntxsamples_needed = (float)(duration)/txsample_duration_us;
+  printf("A %d us pulse would need %d samples !\n",duration,ntxsamples_needed);
+  
+  // RF Pulse 0: RF:90x+ offset 0
+  for(i = 0; i <= 2*ntxsamples_needed; i=i+2) {
+    pulse[i] = RF_amp;
+  }
+
+  // RF Pulse 1: RF:180x+ offset 1000 in 32 bit space
+  // this is a hard pulse with double the duration of the hard 90
+  for(i = 1*memory_gap; i <= 1*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
     pulse[i] = RF_amp;
 	}
 
-	// RF Pulse 1: RF:180x+ offset 1000 in 32 bit space, start with 50 us lead-in
-  for(i = 1*memory_gap+64; i <= 1*memory_gap+64+duration*2; i=i+2) {
-    pulse[i] = RF_amp;
-	}
-
-  // RF Pulse 2: RF:180y+ offset 2000 in 32 bit space, start with 50 us lead-in
-  for(i = 2*memory_gap+64; i <= 2*memory_gap+64+duration*2; i=i+2) {
+  // RF Pulse 2: RF:180y+ offset 2000 in 32 bit space
+  for(i = 2*memory_gap; i <= 2*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
     pulse[i+1] = RF_amp;
   }
 
-  // RF Pulse 3: RF:180y- offset 3000 in 32 bit space, start with 50 us lead-in
-  for(i = 3*memory_gap+64; i <= 3*memory_gap+64+duration*2; i=i+2) {
+  // RF Pulse 3: RF:180y- offset 3000 in 32 bit space
+  for(i = 3*memory_gap; i <= 3*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
     pulse[i+1] = -RF_amp;
   }
 
-  // RF Pulse 4: RF:180x+ offset 4000 in 32 bit space, start with 50 us lead-in
-  for(i = 4*memory_gap+64; i <= 4*memory_gap+64+duration; i=i+2) {
+  // RF Pulse 4: RF:180x+ offset 4000 in 32 bit space
+  // this is a hard 180 created by doubling the amplitude of the hard 90
+  for(i = 4*memory_gap; i <= 4*memory_gap+(2*ntxsamples_needed); i=i+2) {
     pulse[i] = 2*RF_amp;
   }
 
   // RF Pulse 5: SINC PULSE
-  for(i = 5*memory_gap+64; i <= 5*memory_gap+576; i=i+2) {
+  for(i = 5*memory_gap; i <= 5*memory_gap+512; i=i+2) {
     j = (int)((i - (5*memory_gap+64)) / 2) - 128;
     pulse[i] = (int16_t) floor(48*RF_amp*(0.54 + 0.46*(cos((pi*j)/(2*48)))) * sin((pi*j)/(48))/(pi*j)); 
   }
   pulse[5*memory_gap+64+256] = RF_amp;
 
   // RF Pulse 6: SIN PULSE
-  for(i = 6*memory_gap+64; i <= 6*memory_gap+576; i=i+2) {
+  for(i = 6*memory_gap; i <= 6*memory_gap+512; i=i+2) {
     pulse[i] = (int16_t) floor(RF_amp * sin((pi*i)/(128)));
   }
 
-	*tx_divider = 200;
+	
 
 	size = 32768-1;
 	*tx_size = size;
@@ -3024,7 +3037,7 @@ int main(int argc, char *argv[])
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
                 update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro, pe, gradient_offset);
-                usleep(500000);
+                usleep(4000000); // sleep 4 seconds
               }
               printf("*********************************************\n");
               break;
