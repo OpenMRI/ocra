@@ -67,8 +67,14 @@
        <widget class="QWidget" name="imageWidget" native="true">
         <property name="maximumSize">
          <size>
-          <width>400</width>
+          <width>1000</width>
           <height>16777215</height>
+         </size>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>400</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="imageLayout">
