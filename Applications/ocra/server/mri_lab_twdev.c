@@ -21,12 +21,14 @@ typedef struct {
   float gradient_sens_x; // [mT/m/A]
   float gradient_sens_y; // [mT/m/A]
   float gradient_sens_z; // [mT/m/A]
+  float gradient_sens_z2; // [?/A]
 } gradient_spec_t;
 
 typedef struct {
   float gradient_x; // [A]
   float gradient_y; // [A]
   float gradient_z; // [A]
+  float gradient_z2; // [A];
 } gradient_offset_t;
 
 typedef enum {
@@ -38,7 +40,8 @@ typedef enum {
 typedef enum {
 	GRAD_AXIS_X = 0,
 	GRAD_AXIS_Y,
-	GRAD_AXIS_Z
+	GRAD_AXIS_Z,
+	GRAD_AXIS_Z2
 } gradient_axis_t;
 
 typedef struct {
@@ -56,7 +59,7 @@ typedef struct {
   that it can function. (HW config is as Figure 52 in the datasheet).
 
 */
-void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz,gradient_state_t state, gradient_offset_t offset)
+void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz,volatile uint32_t *gz2,gradient_state_t state, gradient_offset_t offset)
 { 
 	uint32_t i;
 	int32_t ival;
@@ -70,21 +73,25 @@ void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy,
 			gx[0] = 0x001fffff & (0 | 0x00100000);
 			gy[0] = 0x001fffff & (0 | 0x00100000);
 			gz[0] = 0x001fffff & (0 | 0x00100000);
+			gz2[0] = 0x001fffff & (0 | 0x00100000);
 			// disable the outputs with 2's completment coding
 			// 24'b0010 0000 0000 0000 0000 1110;
 			gx[1] = 0x0020000e;
 			gy[1] = 0x0020000e;
 			gz[1] = 0x0020000e;
+			gz2[1] = 0x0020000e;
 			break;
 		case GRAD_ZERO_ENABLED_OUTPUT:
 			gx[0] = 0x001fffff & (0 | 0x00100000);
 			gy[0] = 0x001fffff & (0 | 0x00100000);
 			gz[0] = 0x001fffff & (0 | 0x00100000);
+			gz2[0] = 0x001fffff & (0 | 0x00100000);
 			// enable the outputs with 2's completment coding
 			// 24'b0010 0000 0000 0000 0000 0010;
 			gx[1] = 0x00200002;
 			gy[1] = 0x00200002;
-			gz[1] = 0x00200002;			
+			gz[1] = 0x00200002;
+			gz2[1] = 0x00200002;
 			break;
 		case GRAD_OFFSET_ENABLED_OUTPUT:
 			ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
@@ -93,33 +100,38 @@ void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy,
 			gy[0] = 0x001fffff & (ival | 0x00100000);
 			ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
 			gz[0] = 0x001fffff & (ival | 0x00100000);
+			ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+			gz2[0] = 0x001fffff & (ival | 0x00100000);
 			// enable the outputs with 2's completment coding
 			// 24'b0010 0000 0000 0000 0000 0010;
 			gx[1] = 0x00200002;
 			gy[1] = 0x00200002;
-			gz[1] = 0x00200002;	
+			gz[1] = 0x00200002;
+			gz2[1] = 0x00200002;
 			break;
 	}
 	for (int k=2; k<2000; k++) {
 		gx[k] = 0x0;
 		gy[k] = 0x0;
 		gz[k] = 0x0;
+		gz2[k] = 0x0;
 	}
 }
 
 // Function 2
-void clear_gradient_waveforms( volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz)
+void clear_gradient_waveforms( volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2)
 {
 	for (int k=0; k<2000; k++) {
 		gx[k] = 0x0;
 		gy[k] = 0x0;
 		gz[k] = 0x0;
+		gz2[k] = 0x0;
 	}	
 }
 
 // Function 3.1
 // just generate a projection along one dimension
-void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, float ROamp, gradient_axis_t axis, gradient_offset_t offset)
+void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, gradient_axis_t axis, gradient_offset_t offset)
 {
   printf("Designing a gradient waveform -- projection !\n"); fflush(stdout);
 
@@ -142,6 +154,10 @@ void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t
 		waveform = gz;
 		offset_val = offset.gradient_z;
 		break;
+        case GRAD_AXIS_Z2:
+		waveform = gz2;
+		offset_val = offset.gradient_z2;
+		break;
   }
   float fLSB = 10.0/((1<<15)-1);
   printf("fLSB = %g Volts\n",fLSB);
@@ -153,12 +169,14 @@ void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t
   gy[0] = 0x001fffff & (ival | 0x00100000);
   ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
   gz[0] = 0x001fffff & (ival | 0x00100000);
-  
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
   // enable the outputs with 2's completment coding
   // 24'b0010 0000 0000 0000 0000 0010;
   gx[1] = 0x00200002;
   gy[1] = 0x00200002;
   gz[1] = 0x00200002;
+  gz2[1] = 0x00200002;
   
   // set the offset current for all 3 axis
   for(int k=2; k<2000; k++)
@@ -169,6 +187,8 @@ void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t
 	  gy[k] = 0x001fffff & (ival | 0x00100000);
 	  ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
 	  gz[k] = 0x001fffff & (ival | 0x00100000);
+	  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+	  gz2[k] = 0x001fffff & (ival | 0x00100000);
   }
 
   float fROamplitude = ROamp;
@@ -345,7 +365,7 @@ void generate_gradient_waveforms_se_proj_rot(volatile uint32_t *gx,volatile uint
    This also still includes a state update.
    The waveform will play out with a 30us delay.
  */
-void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, float ROamp, float PEamp, gradient_offset_t offset)
+void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, gradient_offset_t offset)
 {
   printf("Designing a gradient waveform -- 2D SE/GRE !\n"); fflush(stdout);
  
@@ -362,13 +382,16 @@ void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy,
   gy[0] = 0x001fffff & (ival | 0x00100000);
   ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
   gz[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
   
   // enable the outputs with 2's completment coding
   // 24'b0010 0000 0000 0000 0000 0010;
   gx[1] = 0x00200002;
   gy[1] = 0x00200002;
   gz[1] = 0x00200002;
-
+  gz2[1] = 0x00200002;
+  
   float fROamplitude = ROamp;
   float fROpreamplitude = ROamp*2;
   float fROstep = fROamplitude/20.0;
@@ -438,6 +461,16 @@ void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy,
     ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
     gy[i] = 0x001fffff & (ival | 0x00100000);
   }
+
+  // Z,Z2 shim
+  for(int k=2; k<2000; k++)
+  {
+    ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+    gz[k] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    gz2[k] = 0x001fffff & (ival | 0x00100000);
+  }
+  
 }
 
 // Function 4.1.1
@@ -610,18 +643,20 @@ void update_gradient_waveforms_echo_rot(volatile uint32_t *gx,volatile uint32_t 
 
   }
 
-  // Z shim
+  // Z,Z2 shim
   for(int k=2; k<2000; k++)
   {
     ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
     gz[k] = 0x001fffff & (ival | 0x00100000);
+    //ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    //gz2[k] = 0x001fffff & (ival | 0x00100000);
   }
 }
 
 
 // Function 4.2
 // This function makes gradient waveforms for the slice selective SE or GRE sequences
-void update_gradient_waveforms_slice(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, float ROamp, float PEamp, float PE2amp, gradient_offset_t offset)
+void update_gradient_waveforms_slice(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, float PE2amp, gradient_offset_t offset)
 {
   printf("Designing a gradient waveform -- Slice-selective SE/GRE!\n"); fflush(stdout);
   
@@ -638,13 +673,15 @@ void update_gradient_waveforms_slice(volatile uint32_t *gx,volatile uint32_t *gy
   gy[0] = 0x001fffff & (ival | 0x00100000);
   ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
   gz[0] = 0x001fffff & (ival | 0x00100000);
-
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
   // enable the outputs with 2's completment coding
   // 24'b0010 0000 0000 0000 0000 0010;
   gx[1] = 0x00200002;
   gy[1] = 0x00200002;
   gz[1] = 0x00200002;
-
+  gz2[i] = 0x00200002;
+  
   float fROamplitude = ROamp;
   float fROpreamplitude = ROamp*2;
   float fROstep = fROamplitude/20.0;
@@ -717,6 +754,12 @@ void update_gradient_waveforms_slice(volatile uint32_t *gx,volatile uint32_t *gy
   for(i=512; i<2000; i++) {
     ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
     gz[i] = 0x001fffff & (ival | 0x00100000);
+
+  }
+  
+  for(i=2; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    gz2[i] = 0x001fffff & (ival | 0x00100000);
   }
 
 
@@ -1496,7 +1539,7 @@ void update_gradient_waveforms_spiral(volatile uint32_t *gx,volatile uint32_t *g
 
 
 // Function 5
-void update_gradient_waveforms_echo3d(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, float ROamp, float PEamp, float PE2amp, gradient_offset_t offset)
+void update_gradient_waveforms_echo3d(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, float PE2amp, gradient_offset_t offset)
 {
   printf("Designing a gradient waveform -- 3D SE/GRE!\n"); fflush(stdout);
 
@@ -1513,12 +1556,15 @@ void update_gradient_waveforms_echo3d(volatile uint32_t *gx,volatile uint32_t *g
   gy[0] = 0x001fffff & (ival | 0x00100000);
   ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
   gz[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
   
   // enable the outputs with 2's completment coding
   // 24'b0010 0000 0000 0000 0000 0010;
   gx[1] = 0x00200002;
   gy[1] = 0x00200002;
   gz[1] = 0x00200002;
+  gz2[1] = 0x00200002;
   
   float fROamplitude = ROamp;
   float fROpreamplitude = ROamp*2;
@@ -1615,6 +1661,12 @@ void update_gradient_waveforms_echo3d(volatile uint32_t *gx,volatile uint32_t *g
     gy[i] = 0x001fffff & (ival | 0x00100000);
     ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
     gz[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // Z2 shim
+  for(i=2; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    gz2[i] = 0x001fffff & (ival | 0x00100000);
   }
 }
 
@@ -2088,7 +2140,8 @@ int main(int argc, char *argv[])
 	volatile uint32_t *gradient_memory_x;
 	volatile uint32_t *gradient_memory_y;
 	volatile uint32_t *gradient_memory_z;
-
+	volatile uint32_t *gradient_memory_z2;
+	
 	volatile uint32_t *attn_config;
 	
   gradient_offset_t gradient_offset;  // these offsets are in Ampere
@@ -2456,7 +2509,7 @@ int main(int argc, char *argv[])
         }
 
         // turn on gradients with offset currents
-        update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
+        update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
         // take spin-echoes with offset currents enabled
         printf("Aquiring data\n");
         seq_config[0] = 0x00000007;
@@ -2548,10 +2601,16 @@ int main(int argc, char *argv[])
             printf("Set gradient offsets Z %d\n", value3);
             gradient_offset.gradient_z = (float)value3/1000.0; // these offsets are in Ampere
             break;
-          case 4:
+	  case 4:
+	    printf("Set gradient offsets Z2 %d\n", value3);
+            gradient_offset.gradient_z2 = (float)value3/1000.0; // these offsets are in Ampere
+            break;
+          case 5:
             printf("Load gradient offsets\n");
             gradient_offset.gradient_x = (float)value3/1000.0;
-            if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+
+	    // read another value
+	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
             value2 = (command & 0x00ffffff) >> 20;
@@ -2560,6 +2619,8 @@ int main(int argc, char *argv[])
               value3 = -value3;
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_y = (float)value3/1000.0;
+
+	    // read another value
             if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
@@ -2569,7 +2630,20 @@ int main(int argc, char *argv[])
               value3 = -value3;
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_z = (float)value3/1000.0;
+
+	    // read another value
             if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+               break;
+            }
+            value2 = (command & 0x00ffffff) >> 20;
+            value3 = (int)(command & 0x000fffff);
+            if (value2)
+              value3 = -value3;
+            printf("%s %d %d %d\n", "Received values", value1, value2, value3);
+            gradient_offset.gradient_z2 = (float)value3/1000.0;
+	    
+	    // read a terminator and do what with it???
+	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
             value2 = (command & 0x00ffffff) >> 20;
@@ -2577,17 +2651,18 @@ int main(int argc, char *argv[])
               continue;
             }
             break;
-          case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+          case 6:
+            printf("Set gradient offsets to 0 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
+	    gradient_offset.gradient_z2 = 0.0;
             break;          
           default:
             printf("Acquiring\n");
             break;
           }
-          printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000)); 
+          printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000)); 
         } 
 
         else {
@@ -2595,7 +2670,7 @@ int main(int argc, char *argv[])
         }
 
         // turn on gradients with offset currents
-        update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
+        update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
         // take spin-echoes with offset currents enabled
         printf("Aquiring data\n");
         seq_config[0] = 0x00000007;
@@ -2747,13 +2822,13 @@ int main(int argc, char *argv[])
         if (is_gradient_on == 0){
           // turn on gradients with offset currents (sequence with no gradient waveforms)
           printf("sequence with NO gradient waveforms\n");
-          update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
+          update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
         }
         else {
           // sequence with gradient waveforms
           printf("sequence with gradient waveforms\n");
           ro = 1.865/2;
-          update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , 0, gradient_offset);
+          update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , 0, gradient_offset);
         }
         printf("Aquiring data\n");
         seq_config[0] = 0x00000007;
@@ -2864,7 +2939,7 @@ int main(int argc, char *argv[])
 
         else if ( trig == 3 ) { // Acquire all three projections
 
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_X,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_X,gradient_offset);
           printf("Aquiring x data\n");
           seq_config[0] = 0x00000007;
           usleep(1000000); // sleep 1 second  
@@ -2881,7 +2956,7 @@ int main(int argc, char *argv[])
           usleep(500000);
           //usleep(2000000);
 
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_Y,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_Y,gradient_offset);
           printf("Aquiring y data\n");
           seq_config[0] = 0x00000007;
           usleep(1000000); // sleep 1 second  
@@ -2898,7 +2973,7 @@ int main(int argc, char *argv[])
           usleep(500000);
           //usleep(2000000);
 
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_Z,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_Z,gradient_offset);
           printf("Aquiring z data\n");
           seq_config[0] = 0x00000007;
           usleep(1000000); // sleep 1 second  
@@ -2923,13 +2998,13 @@ int main(int argc, char *argv[])
         // take 1 D spin echo projection image with offset currents enabled
         switch(pAxis) {
         case 'x':
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_X,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_X,gradient_offset);
           break;
         case 'y':
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_Y,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_Y,gradient_offset);
           break;
         case 'z':
-          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,1.0,GRAD_AXIS_Z,gradient_offset);
+          generate_gradient_waveforms_se_proj(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,1.0,GRAD_AXIS_Z,gradient_offset);
           break;
         }
 
@@ -3035,13 +3110,13 @@ int main(int argc, char *argv[])
               printf("*** MRI Lab *** -- 2D Imaging Spin Echo -- npe = %d\n", npe);
               usleep(2000000); // sleep 2 second  give enough time to monitor the printout
               printf("Acquiring\n");
-              printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000)); 
+              printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000)); 
               // Phase encoding gradient loop
               pe_step = 2.936/44.53/2; //[A]
               pe = -(npe/2-1)*pe_step;
               ro = 1.865/2;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
-              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, gradient_offset);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
               for(int reps=0; reps<npe; reps++) { 
                 printf("TR[%d]: go!!\n",reps);
                 seq_config[0] = 0x00000007;
@@ -3057,7 +3132,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro, pe, gradient_offset);
+                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, gradient_offset);
                 usleep(4000000); // sleep 4 seconds
               }
               printf("*********************************************\n");
@@ -3069,13 +3144,13 @@ int main(int argc, char *argv[])
               printf("*** MRI Lab *** -- 2D Imaging Gradient Echo -- npe = %d\n", npe);
               usleep(2000000); // sleep 2 second  give enough time to monitor the printout
               printf("Acquiring\n");
-              printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000)); 
+              printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000),(int)(gradient_offset.gradient_z2*1000)); 
               // Phase encoding gradient loop
               pe_step = 2.936/44.53/2; //[A]
               pe = -(npe/2-1)*pe_step;
               ro = 1.865/2;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
-              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, gradient_offset);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
               for(int reps=0; reps<npe; reps++) { 
                 printf("TR[%d]: go!!\n",reps);
                 seq_config[0] = 0x00000007;
@@ -3091,7 +3166,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro, pe, gradient_offset);
+                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, gradient_offset);
                 usleep(500000);
               }
               printf("*********************************************\n");
@@ -3108,8 +3183,8 @@ int main(int argc, char *argv[])
               pe = -(npe/2-1)*pe_step;
               pe2 = 2.02;
               ro = 1.865/2;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
-              update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, pe2, gradient_offset);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+              update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, pe2, gradient_offset);
               for(int reps=0; reps<npe; reps++) { 
                 printf("TR[%d]: go!!\n",reps);
                 seq_config[0] = 0x00000007;
@@ -3125,7 +3200,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, pe2, gradient_offset);
+                update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, pe2, gradient_offset);
                 usleep(500000);
               }
               printf("*********************************************\n");
@@ -3142,8 +3217,8 @@ int main(int argc, char *argv[])
               pe = -(npe/2-1)*pe_step;
               pe2 = 2.02;
               ro = 1.865/2;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
-              update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, pe2, gradient_offset);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+              update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, pe2, gradient_offset);
               for(int reps=0; reps<npe; reps++) { 
                 printf("TR[%d]: go!!\n",reps);
                 seq_config[0] = 0x00000007;
@@ -3159,7 +3234,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, pe2, gradient_offset);
+                update_gradient_waveforms_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z, gradient_memory_z2,ro , pe, pe2, gradient_offset);
                 usleep(500000);
               }
               printf("*********************************************\n");
@@ -3177,7 +3252,7 @@ int main(int argc, char *argv[])
               pe = -(npe/2-1)*pe_step;
               ro = 1.865/2;
               float pes[] = {pe, pe+pe_step};
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
               update_gradient_waveforms_tse_2(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pes, gradient_offset);
               for(int reps=0; reps<npe/etl; reps++) { 
                 printf("TR[%d]: go!!\n",reps);
@@ -3211,7 +3286,7 @@ int main(int argc, char *argv[])
               pe_step = 2.936/44.53/2;  //* delta_ky = 800.0 * pe_step *//
               amp_x = 800.0 * pe_step * 64.0 / 300.0;
               amp_y = 800.0 * pe_step / 50.0;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
               update_gradient_waveforms_epi(gradient_memory_x,gradient_memory_y,gradient_memory_z, amp_x, amp_y, gradient_offset, 0);
               printf("EPI TR[0]: go!!\n");
               seq_config[0] = 0x00000007;
@@ -3239,7 +3314,7 @@ int main(int argc, char *argv[])
               pe_step = 2.936/44.53/2;  //* delta_ky = 800.0 * pe_step *//
               amp_x = 800.0 * pe_step * 64.0 / 300.0;
               amp_y = 800.0 * pe_step / 50.0;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
               update_gradient_waveforms_epi(gradient_memory_x,gradient_memory_y,gradient_memory_z, amp_x, amp_y, gradient_offset, 1);
               printf("EPI TR[0]: go!!\n");
               seq_config[0] = 0x00000007;
@@ -3266,7 +3341,7 @@ int main(int argc, char *argv[])
               printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000)); 
               a0 = 2.936/44.53/2 * 800 /2/3.14159;
               w0 = 0.01;
-              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z);
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
               update_gradient_waveforms_spiral(gradient_memory_x,gradient_memory_y,gradient_memory_z, a0, w0, gradient_offset);
               printf("SPIRAL TR[0]: go!!\n");
               seq_config[0] = 0x00000007;
@@ -3406,7 +3481,7 @@ int main(int argc, char *argv[])
             usleep(2000000); // sleep 2 second  give enough time to monitor the printout
 
             printf("Acquiring\n");
-            printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000)); 
+            printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000),(int)(gradient_offset.gradient_z2*1000)); 
             // Phase encoding gradient loop
             pe_step = 2.936/44.53/2; //[A]
             pe_step2 = 2.349/44.53;  //[A]
@@ -3414,7 +3489,7 @@ int main(int argc, char *argv[])
             pe2 = -(npe2/2-1)*pe_step2;
             ro = 1.865/2;
             for(int parts = 0; parts<npe2; parts++) { // Phase encoding 2 gradient loop
-              update_gradient_waveforms_echo3d(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro , pe, pe2, gradient_offset);
+              update_gradient_waveforms_echo3d(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, pe2, gradient_offset);
               for(int reps=0; reps<npe; reps++) { // Phase encoding 1 gradient loop
                 printf("TR[%d]: go!!\n",parts*64+reps);  
                 seq_config[0] = 0x00000007;
@@ -3430,7 +3505,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_echo3d(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro, pe, pe2, gradient_offset);
+                update_gradient_waveforms_echo3d(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, pe2, gradient_offset);
                 usleep(500000);
               }
               pe = -(npe/2-1)*pe_step;
@@ -3707,7 +3782,7 @@ int main(int argc, char *argv[])
     }
 
 		// kill the gradients
-		update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,GRAD_ZERO_DISABLED_OUTPUT,gradient_offset);
+    update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_ZERO_DISABLED_OUTPUT,gradient_offset);
 		// the gradient state sequence
 		update_pulse_sequence(100, pulseq_memory);	
 		printf("disabling gradients with service sequence 100\n");
