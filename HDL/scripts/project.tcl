@@ -7,7 +7,7 @@ file delete -force tmp/$project_name.cache tmp/$project_name.hw tmp/$project_nam
 
 create_project -part $part_name $project_name tmp
 
-set_property IP_REPO_PATHS tmp/cores [current_project]
+set_property IP_REPO_PATHS {tmp/cores tmp/cores_pavel} [current_project]
 
 set bd_path tmp/$project_name.srcs/sources_1/bd/system
 

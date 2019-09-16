@@ -12,19 +12,21 @@ NAME = ocra_mri
 PART = xc7z010clg400-1
 PROC = ps7_cortexa9_0
 
-CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
+CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
         axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
-        axis_zeroer_v1_0 dac_spi_sequencer_v1_0 axi_dac_spi_sequencer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
+        axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
+
+CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = hsi -nolog -nojournal -mode batch
 RM = rm -rf
 
-UBOOT_TAG = xilinx-v2016.4
-LINUX_TAG = xilinx-v2016.4
-DTREE_TAG = xilinx-v2016.4
+UBOOT_TAG = xilinx-v2019.1
+LINUX_TAG = xilinx-v2019.1
+DTREE_TAG = xilinx-v2019.1
 
 UBOOT_DIR = tmp/u-boot-xlnx-$(UBOOT_TAG)
 LINUX_DIR = tmp/linux-xlnx-$(LINUX_TAG)
@@ -45,9 +47,9 @@ ARMHF_CFLAGS = "-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -
 RTL_TAR = tmp/rtl8192cu.tgz
 RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/rtl8192cu/rtl8192cu.tgz?dl=1
 
-.PRECIOUS: tmp/cores/% tmp/%.xpr tmp/%.hwdef tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin uImage devicetree.dtb fw_printenv
+all: boot.bin devicetree.dtb tmp/%.bin 
 
 xpr: tmp/$(NAME).xpr
 
@@ -110,23 +112,32 @@ fw_printenv: $(UBOOT_DIR) tmp/u-boot.elf
 	  CROSS_COMPILE=arm-linux-gnueabihf- env
 	cp $</tools/env/fw_printenv $@
 
-boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit tmp/u-boot.elf
+boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
 	echo "img:{[bootloader] $^}" > tmp/boot.bif
 	bootgen -image tmp/boot.bif -w -o i $@
 
-devicetree.dtb: uImage tmp/$(NAME).tree/system.dts
-	$(LINUX_DIR)/scripts/dtc/dtc -I dts -O dtb -o devicetree.dtb \
-	  -i tmp/$(NAME).tree tmp/$(NAME).tree/system.dts
+devicetree.dtb: tmp/$(NAME).tree/system.dts
+	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
+	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
+	dtc -I dts -O dtb -o devicetree.dtb \
+	  -i tmp/$(NAME).tree -@ tmp/$(NAME).tree/system-top.dts.preprocessed
+
+ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
+	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
+
+tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
+	mkdir -p $(@D)
+	$(VIVADO) -source scripts/core_pavel.tcl -tclargs $* $(PART)
 
 tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/core.tcl -tclargs $* $(PART)
 
-tmp/%.xpr: projects/% $(addprefix tmp/cores/, $(CORES))
+tmp/%.xpr: projects/% $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $* $(PART)
 
-tmp/%.hwdef: tmp/%.xpr
+tmp/%.hdf: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $*
 
@@ -134,14 +145,18 @@ tmp/%.bit: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $*
 
-tmp/%.fsbl/executable.elf: tmp/%.hwdef
+tmp/%.bin: tmp/%.bit
+	echo "all:{ $^}" > tmp/ocra_mri.bif
+	bootgen -image tmp/ocra_mri.bif -arch zynq -process_bitstream bin -w -o $@
+
+tmp/%.fsbl/executable.elf: tmp/%.hdf
 	mkdir -p $(@D)
 	$(HSI) -source scripts/fsbl.tcl -tclargs $* $(PROC)
 
-tmp/%.tree/system.dts: tmp/%.hwdef $(DTREE_DIR)
+tmp/%.tree/system.dts: tmp/%.hdf $(DTREE_DIR)
 	mkdir -p $(@D)
 	$(HSI) -source scripts/devicetree.tcl -tclargs $* $(PROC) $(DTREE_DIR)
-	patch $@ patches/devicetree.patch
+	#patch $@ patches/devicetree.patch
 
 clean:
 	$(RM) uImage fw_printenv boot.bin devicetree.dtb tmp

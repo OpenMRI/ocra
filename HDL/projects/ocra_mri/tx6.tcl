@@ -18,7 +18,7 @@ cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
 }
 
 # Create blk_mem_gen
-cell xilinx.com:ip:blk_mem_gen:8.3 bram_0 {
+cell xilinx.com:ip:blk_mem_gen:8.4 bram_0 {
   MEMORY_TYPE True_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
@@ -40,7 +40,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 writer_0 {
 }
 
 # Create axis_bram_reader
-cell pavel-demin:user:axis_segmented_bram_reader:1.0 reader_0 {
+cell open-mri:user:axis_segmented_bram_reader:1.0 reader_0 {
   AXIS_TDATA_WIDTH 32
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 14

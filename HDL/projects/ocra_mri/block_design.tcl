@@ -16,7 +16,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 
 # Create clk_wiz
-cell xilinx.com:ip:clk_wiz:5.3 pll_0 {
+cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   PRIMITIVE PLL
   PRIM_IN_FREQ.VALUE_SRC USER
   PRIM_IN_FREQ 125.0
@@ -155,8 +155,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins rx_0/reader_0/S_AXI]
 
-set_property RANGE 256K [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
-set_property OFFSET 0x40100000 [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
+set_property OFFSET 0x40010000 [get_bd_addr_segs ps_0/Data/SEG_reader_0_reg0]
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
@@ -164,11 +164,11 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins tx_0/writer_0/S_AXI]
 
-set_property RANGE 128K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 
 # Create Memory for pulse sequence
-cell xilinx.com:ip:blk_mem_gen:8.3 sequence_memory {
+cell xilinx.com:ip:blk_mem_gen:8.4 sequence_memory {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
@@ -199,10 +199,10 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 } [get_bd_intf_pins sequence_writer/S_AXI]
 
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
-set_property OFFSET 0x40070000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
+set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 
 # Create microsequencer
-cell pavel-demin:user:micro_sequencer:1.0 micro_sequencer {
+cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
   C_S_AXI_DATA_WIDTH 32
   C_S_AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 64
@@ -210,43 +210,67 @@ cell pavel-demin:user:micro_sequencer:1.0 micro_sequencer {
 } {
   BRAM_PORTA sequence_memory/BRAM_PORTB
 }
-
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master /ps_0/M_AXI_GP0
   Clk Auto
 } [get_bd_intf_pins micro_sequencer/S_AXI]
 
-set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
-set_property OFFSET 0x40080000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+
+# Create RF attenuator
+cell open-mri:user:axi_serial_attenuator:1.0 serial_attenuator {
+  C_S_AXI_DATA_WIDTH 32
+  C_S_AXI_ADDR_WIDTH 16
+} {
+  
+}
+# Create all required interconnections
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins serial_attenuator/S_AXI]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
+set_property OFFSET 0x40050000 [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
 
 # Create Memory for gradient waveform
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryx {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryx {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
   REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
 }
 
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryy {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryy {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
   REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
 }
-cell xilinx.com:ip:blk_mem_gen:8.3 gradient_memoryz {
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 4000
+  WRITE_DEPTH_A 2000
+  WRITE_WIDTH_B 32
+  ENABLE_A Always_Enabled
+  ENABLE_B Always_Enabled
+  REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
+}
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz2 {
+  MEMORY_TYPE Simple_Dual_Port_RAM
+  USE_BRAM_BLOCK Stand_Alone
+  WRITE_WIDTH_A 32
+  WRITE_DEPTH_A 2000
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -258,7 +282,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerx {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryx/BRAM_PORTA
 }
@@ -266,7 +290,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writery {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryy/BRAM_PORTA
 }
@@ -274,9 +298,17 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerz {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 11
 } {
   BRAM_PORTA gradient_memoryz/BRAM_PORTA
+}
+cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerz2 {
+  AXI_DATA_WIDTH 32
+  AXI_ADDR_WIDTH 32
+  BRAM_DATA_WIDTH 32
+  BRAM_ADDR_WIDTH 11
+} {
+  BRAM_PORTA gradient_memoryz2/BRAM_PORTA
 }
 
 
@@ -293,13 +325,19 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master /ps_0/M_AXI_GP0
   Clk Auto
 } [get_bd_intf_pins gradient_writerz/S_AXI]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins gradient_writerz2/S_AXI]
 
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
-set_property OFFSET 0x400A0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
-set_property OFFSET 0x400B0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
-set_property OFFSET 0x400C0000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
+set_property OFFSET 0x40002000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
+set_property OFFSET 0x40004000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property OFFSET 0x40006000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
+set_property OFFSET 0x40008000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 
 module gradient_dac_0 {
     source projects/ocra_mri/gradient_dacs.tcl
@@ -307,6 +345,7 @@ module gradient_dac_0 {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTZ gradient_memoryz/BRAM_PORTB
+    spi_sequencer_0/BRAM_PORTZ2 gradient_memoryz2/BRAM_PORTB
 }
 
 # Create all required interconnections
@@ -315,18 +354,18 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins gradient_dac_0/spi_sequencer_0/S_AXI]
 
-set_property RANGE  4K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
-set_property OFFSET 0x40090000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property RANGE  64K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property OFFSET 0x40060000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
 
 #
 # hook up the event pulses to something
 #
 
 # the LEDs
-create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0
-set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DOUT_WIDTH {8}] [get_bd_cells xlslice_0]
-connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins xlslice_0/Din]
-connect_bd_net [get_bd_ports led_o] [get_bd_pins xlslice_0/Dout]
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xled_slice_0
+set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_TO {8} CONFIG.DIN_FROM {15} CONFIG.DOUT_WIDTH {8}] [get_bd_cells xled_slice_0]
+connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins xled_slice_0/Din]
+connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_slice_0/Dout]
 
 # the transmit trigger pulse
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 trigger_slice_0
@@ -350,6 +389,7 @@ set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryx]
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryy]
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryz]
+set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryz2]
 #
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
@@ -359,9 +399,37 @@ delete_bd_objs [get_bd_ports exp_n_tri_io]
 
 # Create newoutput port
 create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
-connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
+#connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
 
 # Create output port for the SPI stuff
 create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
-connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins gradient_dac_0/spiconcat_0/Dout]
 
+# 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
+#          and the txgate will use the eight' pin on the n side
+
+# Slice the txgate off the microsequencer pulse word. I'm torn on style here, but the trigger slice is almost obsolete,
+# so its easier to not use it
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 txgate_slice_0
+set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {4} CONFIG.DIN_TO {4} CONFIG.DOUT_WIDTH {1}] [get_bd_cells txgate_slice_0]
+connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins txgate_slice_0/Din]
+
+# Concat with the gradient DAC slice
+cell xilinx.com:ip:xlconcat:2.1 nio_concat_0 {
+    NUM_PORTS 2
+}
+connect_bd_net [get_bd_pins nio_concat_0/In0] [get_bd_pins gradient_dac_0/spiconcat_0/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In1] [get_bd_pins txgate_slice_0/Dout]
+
+# connect to pins
+connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins nio_concat_0/Dout]
+
+# Generate the signals for the positive side
+cell xilinx.com:ip:xlconcat:2.1 pio_concat_0 {
+    NUM_PORTS 3
+}
+connect_bd_net [get_bd_pins pio_concat_0/In0] [get_bd_pins serial_attenuator/attn_clk]
+connect_bd_net [get_bd_pins pio_concat_0/In1] [get_bd_pins serial_attenuator/attn_serial]
+connect_bd_net [get_bd_pins pio_concat_0/In2] [get_bd_pins serial_attenuator/attn_le]
+
+# connect to pins
+connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins pio_concat_0/Dout]
