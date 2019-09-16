@@ -168,7 +168,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.stop_all()
         self.stacked_widget.setCurrentIndex(2)
         self.mriSeWidget.set_freq(parameters.get_freq())
+        self.mriSeWidget.set_at(parameters.get_at())
         self.mriSeWidget.freqValue.setValue(parameters.get_freq())
+        self.mriSeWidget.atValue.setValue(parameters.get_at())
         self.setWindowTitle('MRI tabletop - SE GUI')
 
     def open_mri_sig(self):

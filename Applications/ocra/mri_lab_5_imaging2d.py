@@ -89,29 +89,34 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.data = np.frombuffer(self.buffer, np.complex64)
 
         # setup display
-        # display 1: real time signal
+        # display 1: image
         self.figure = Figure()
-        self.figure.set_facecolor('none')
-        # top and bottom axes: 2 rows, 1 column
-        self.axes_top = self.figure.add_subplot(2, 1, 1)
-        self.axes_bottom = self.figure.add_subplot(2, 1, 2)
-        self.canvas = FigureCanvas(self.figure)
+        self.figure.set_facecolor('whitesmoke')
+        self.figure.set_tight_layout(True)
+
+        # Large image view 1 row, 1 column
+        self.axes_image = self.figure.add_subplot(111)
+
+        self.canvas = FigureCanvas(self.figure) # canvas = image
         self.plotLayout.addWidget(self.canvas)
         # create navigation toolbar
         self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
         self.plotLayout.addWidget(self.toolbar)
 
-        # display 2: k-space and image
+        # display 2: real time signals
         self.figure2 = Figure()
-        self.figure2.set_facecolor('whitesmoke')
-        self.axes_k_amp = self.figure2.add_subplot(3, 1, 1)
-        self.axes_k_pha = self.figure2.add_subplot(3, 1, 2)
-        self.axes_image = self.figure2.add_subplot(3, 1, 3)
-        self.canvas2 = FigureCanvas(self.figure2)
+        self.figure2.set_facecolor('none')
+        self.figure2.set_tight_layout(True)
+
+        # Real time signal view with 2 rows, 1 column
+        self.axes_top = self.figure2.add_subplot(2, 1, 1)
+        self.axes_bottom = self.figure2.add_subplot(2, 1, 2)
+
+        self.canvas2 = FigureCanvas(self.figure2) # canvas2 = real time
         self.imageLayout.addWidget(self.canvas2)
         # create navigation toolbar
-        self.toolbar2 = NavigationToolbar(self.canvas2, self.imageWidget, False)
-        self.imageLayout.addWidget(self.toolbar2)
+        # self.toolbar2 = NavigationToolbar(self.canvas2, self.imageWidget, False)
+        # self.imageLayout.addWidget(self.toolbar2)
 
         # Acquire image
         self.full_data = np.matrix(np.zeros(np.size(self.data)))
@@ -243,12 +248,16 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             return
 
         # clear the plots, need to call draw() to update
+
+        self.axes_image.clear()
+        self.canvas.draw()
+
+        # Disables k-space representation
+        # self.axes_k_amp.clear()
+        # self.axes_k_pha.clear()
+
         self.axes_bottom.clear()
         self.axes_top.clear()
-        self.canvas.draw()
-        self.axes_k_amp.clear()
-        self.axes_k_pha.clear()
-        self.axes_image.clear()
         self.canvas2.draw()
 
         self.progressBar.setValue(0)
@@ -379,9 +388,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         imag_t = imag[0:data_idx]
         time_axis = np.linspace(0, time, data_idx)
 
-        self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t)   # blue
-        self.curve_bottom = self.axes_bottom.plot(time_axis, real_t)  # red
-        self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t)  # green
+        self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t, linewidth=0.5)   # blue
+        self.curve_bottom = self.axes_bottom.plot(time_axis, real_t, linewidth=0.5)  # red
+        self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t, linewidth=0.5)  # green
         self.axes_bottom.set_xlabel('time, ms')
 
         # Plot the top (frequency domain)
@@ -406,11 +415,11 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             freqaxis = np.linspace(-125000, 125000, 4000)
 
         fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(dclip))))
-        self.curve_top, = self.axes_top.plot(freqaxis, fft_mag)
+        self.curve_top, = self.axes_top.plot(freqaxis, fft_mag, linewidth=0.5)
         self.axes_top.set_xlabel('frequency, Hz')
 
         # Update the figure
-        self.canvas.draw()
+        self.canvas2.draw()
 
 
         if self.seqType_idx in [0, 1, 2, 3, 4]: # not single shot sequence such as epi and spiral
@@ -425,13 +434,16 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                                                            : (self.kspace_center + self.num_pe)]
                 k_amp_1og10 = np.log10(self.k_amp)
 
-                self.axes_k_amp.imshow(k_amp_1og10, cmap='plasma')
-                self.axes_k_amp.set_title('k-space amplitude (log10)')
+                # Disabled k-space representation:
+                # self.axes_k_amp.imshow(k_amp_1og10, cmap='plasma')
+                # self.axes_k_amp.set_title('k-space amplitude (log10)')
+
                 # self.axes_k_pha.imshow(self.k_amp, cmap='plasma')
                 # self.axes_k_pha.set_title('k-space amplitude')
-                self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
-                self.axes_k_pha.set_title('k-space phase')
-                self.canvas2.draw()
+
+                # self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
+                # self.axes_k_pha.set_title('k-space phase')
+                # self.canvas2.draw()
 
                 # display image
                 crop_size = int(self.num_pe / 64 * self.crop_factor)
@@ -451,10 +463,11 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                     Y = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspace)))
                     img = np.abs(
                         Y[:, cntr - int(self.num_pe / 2 - 1):cntr + int(self.num_pe / 2 + 1)])
+
                 self.img = img
                 self.axes_image.imshow(self.img, cmap='gray')
                 self.axes_image.set_title('image')
-                self.canvas2.draw()
+                self.canvas.draw()
 
             else: # tse
                 # display kspace
@@ -476,13 +489,16 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
                 k_amp_1og10 = np.log10(self.k_amp)
 
-                self.axes_k_amp.imshow(k_amp_1og10, cmap='plasma')
-                self.axes_k_amp.set_title('k-space amplitude (log10)')
+                # Disabled k-space representation:
+
+                # self.axes_k_amp.imshow(k_amp_1og10, cmap='plasma')
+                # self.axes_k_amp.set_title('k-space amplitude (log10)')
                 # self.axes_k_pha.imshow(self.k_amp, cmap='plasma')
                 # self.axes_k_pha.set_title('k-space amplitude')
-                self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
-                self.axes_k_pha.set_title('k-space phase')
-                self.canvas2.draw()
+                # self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
+                # self.axes_k_pha.set_title('k-space phase')
+
+                # self.canvas2.draw()
 
                 # display image
                 crop_size = int(self.num_pe / 64 * self.crop_factor)
@@ -506,7 +522,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 self.img = img
                 self.axes_image.imshow(self.img, cmap='gray')
                 self.axes_image.set_title('image')
-                self.canvas2.draw()
+                self.canvas.draw()
 
         elif self.seqType_idx in [5, 6]:  # epi
             readout_size = 70
@@ -534,13 +550,15 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             img_odd = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(kspace_odd))))
             img_even = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(kspace_even))))
 
-            self.axes_k_amp.imshow(img_odd, cmap='gray')
-            self.axes_k_amp.set_title('image recon by odd lines')
-            self.axes_k_pha.imshow(img_even, cmap='gray')
-            self.axes_k_pha.set_title('image recon by even lines')
+            # Disabled k-space representation
+            # self.axes_k_amp.imshow(img_odd, cmap='gray')
+            # self.axes_k_amp.set_title('image recon by odd lines')
+            # self.axes_k_pha.imshow(img_even, cmap='gray')
+            # self.axes_k_pha.set_title('image recon by even lines')
+
             self.axes_image.imshow(img, cmap='gray')
             self.axes_image.set_title('image recon by all lines')
-            self.canvas2.draw()
+            self.canvas.draw()
 
             self.images_received += 1
             sp.savemat('epi_' + str(self.images_received),
