@@ -197,6 +197,9 @@
           <property name="text">
            <string>Zoom</string>
           </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item row="1" column="1">
