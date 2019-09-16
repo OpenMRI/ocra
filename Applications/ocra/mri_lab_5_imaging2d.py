@@ -91,10 +91,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # setup display
         # display 1: real time signal
         self.figure = Figure()
-        self.figure.set_facecolor('none')
+        self.figure.set_facecolor('whitesmoke')
         # top and bottom axes: 2 rows, 1 column
-        self.axes_top = self.figure.add_subplot(2, 1, 1)
-        self.axes_bottom = self.figure.add_subplot(2, 1, 2)
+        self.axes_top = self.figure.add_subplot(1, 1, 1)
         self.canvas = FigureCanvas(self.figure)
         self.plotLayout.addWidget(self.canvas)
         # create navigation toolbar
@@ -103,14 +102,14 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
         # display 2: k-space and image
         self.figure2 = Figure()
-        self.figure2.set_facecolor('whitesmoke')
-
-        self.figure2.set_tight_layout(True)
+        self.figure2.set_facecolor('none')
 
         #self.axes_k_amp = self.figure2.add_subplot(3, 1, 1)
         #self.axes_k_pha = self.figure2.add_subplot(3, 1, 2)
-        
-        self.axes_image = self.figure2.add_subplot(1, 1, 1)
+
+        self.axes_image = self.figure2.add_subplot(2, 1, 1)
+        self.axes_image = self.figure2.add_subplot(2, 1, 2)
+
         self.canvas2 = FigureCanvas(self.figure2)
         self.imageLayout.addWidget(self.canvas2)
         # create navigation toolbar
