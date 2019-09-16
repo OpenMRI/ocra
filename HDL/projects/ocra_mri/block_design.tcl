@@ -210,7 +210,6 @@ cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
 } {
   BRAM_PORTA sequence_memory/BRAM_PORTB
 }
-
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master /ps_0/M_AXI_GP0
@@ -219,6 +218,21 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+
+# Create RF attenuator
+cell open-mri:user:axi_serial_attenuator:1.0 serial_attenuator {
+  C_S_AXI_DATA_WIDTH 32
+  C_S_AXI_ADDR_WIDTH 16
+} {
+  
+}
+# Create all required interconnections
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins serial_attenuator/S_AXI]
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
+set_property OFFSET 0x40050000 [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
 
 # Create Memory for gradient waveform
 cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryx {
@@ -359,7 +373,7 @@ delete_bd_objs [get_bd_ports exp_n_tri_io]
 
 # Create newoutput port
 create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
-connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
+#connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
 
 # Create output port for the SPI stuff
 create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
@@ -383,3 +397,13 @@ connect_bd_net [get_bd_pins nio_concat_0/In1] [get_bd_pins txgate_slice_0/Dout]
 # connect to pins
 connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins nio_concat_0/Dout]
 
+# Generate the signals for the positive side
+cell xilinx.com:ip:xlconcat:2.1 pio_concat_0 {
+    NUM_PORTS 3
+}
+connect_bd_net [get_bd_pins pio_concat_0/In0] [get_bd_pins serial_attenuator/attn_clk]
+connect_bd_net [get_bd_pins pio_concat_0/In1] [get_bd_pins serial_attenuator/attn_serial]
+connect_bd_net [get_bd_pins pio_concat_0/In2] [get_bd_pins serial_attenuator/attn_le]
+
+# connect to pins
+connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins pio_concat_0/Dout]

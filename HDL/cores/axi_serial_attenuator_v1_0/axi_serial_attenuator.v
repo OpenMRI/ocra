@@ -9,15 +9,15 @@ module axi_serial_attenuator #
  parameter integer C_S_AXI_ADDR_WIDTH = 16
 )
 (
-  // System signals
-  input wire 				    aclk,
-  input wire 				    aresetn,
-
   // Serial Pins for the attenuator
   output wire 				    attn_serial,
   output wire 				    attn_clk,
   output wire 				    attn_le,
-  
+
+  reg 					    attn_serial_reg,
+  reg 					    attn_clk_reg,
+  reg 					    attn_le_reg,
+ 
  // Do not modify the ports beyond this line
  
  // Global Clock Signal
@@ -415,22 +415,128 @@ module axi_serial_attenuator #
      end    
    
    // Add user logic here
+   reg  saclk;               // thats the serial output clock
+   reg [4:0] saclk_ctr;      // the counter for the serial clock divider
+   reg [4:0] sa_bits_out;    // counter for how many bits we have sent out
+   reg [15:0] sa_data_last;  // the data word
+   reg [15:0] sa_data_shr;   // the data shift register
+   reg 	      attn_run;      // control if attenuator runs
    
- 
+   wire aclk = S_AXI_ACLK;
+   wire aresetn = S_AXI_ARESETN;
+
+   assign attn_serial = attn_serial_reg;
+   assign attn_clk = attn_clk_reg;
+   assign attn_le = attn_le_reg;
+
+   // Interesting conditions
+   wire c_newdata = (slv_reg0[15:0] != sa_data_last) && ~attn_run;
+   
+   //
+   // control the state of this device
+   //
+   always @(posedge aclk)
+     begin
+	if(~aresetn)
+	  begin
+	     attn_run <= 0;
+	     sa_data_last <= 16'd0;
+	  end
+	else
+	  begin
+	     if (c_newdata)
+	       begin
+		  attn_run <= 1'b1;
+		  sa_data_last <= slv_reg0[15:0];
+	       end
+	     else if ((attn_run == 1'b1) && (attn_le_reg == 1'b1) && (attn_clk_reg == 1'b0) && (saclk_ctr == 3))
+	       begin
+		  attn_run <= 1'b0;
+	       end
+	  end
+     end // always @ (posedge aclk)
+   
+   //
+   // generate the serial attenuator clock
+   //
+   always @(posedge aclk)
+     begin
+	if(~aresetn || ~attn_run)
+	  begin
+	     attn_clk_reg <= 1'b0;
+	     saclk_ctr <= 5'b0;
+	  end
+	else
+	  begin
+	     if (saclk_ctr == 5'd7)
+	       begin
+		  attn_clk_reg <= ~attn_clk_reg;
+		  saclk_ctr <= 5'b0; 
+	       end
+	     else
+	       begin
+		  saclk_ctr <= saclk_ctr + 1;
+	       end	   
+	  end
+     end // always @ (posedge aclk)
+
+   //
+   // shift out the data
+   //
    always @(posedge aclk)
      begin
 	if(~aresetn)
 	  begin
 	     attn_serial_reg <= 1'b0;
-	     attn_clk <= 1'b0;
-	     attn_le <= 1'b0;
-	     
+	     sa_bits_out <= 5'd0;
+	     sa_data_shr <= 16'd0;
 	  end
 	else
 	  begin
-
+	     if (c_newdata)
+	       begin
+		  sa_data_shr <= {5'b0,slv_reg0[10:0]};
+	       end
+	     // 6 clock cycles before serial clock posedge
+	     else if (attn_run && (attn_clk_reg == 1'b0) && (saclk_ctr == 1)) 
+	       begin
+		  // "Serial data is clocked in LSB first, beginning with the
+		  // Attenuation Word": PE43704 data sheet
+		  attn_serial_reg <= sa_data_shr[0];
+		  sa_data_shr <= {1'b0,sa_data_shr[15:1]};
+		  sa_bits_out <= sa_bits_out + 1;
+	       end
+	     else if (~attn_run)
+	       begin
+		  attn_serial_reg <= 1'b0;
+		  sa_bits_out <= 5'd0;
+	       end
 	  end
-	
+     end // always @ (posedge aclk
+
+   //
+   // generate the the LE signal
+   // disable the transfer at the end
+   //
+   // according to datasheet the LE signal needs to:
+   //  - rise at least 10 ns after the last rising clock (ctr=3)
+   //  - stay on at least 30 ns (5 cycles, ctr = 2 on low)
+   always @(posedge aclk)
+     begin
+	if(~aresetn || ~attn_run)
+	  begin
+	     attn_le_reg <= 1'b0;	  
+	  end
+	else
+	  begin
+	     if ((sa_bits_out == 5'd16) && (attn_clk_reg == 1'b1) && (saclk_ctr == 3))
+	       begin
+		  attn_le_reg <= 1'b1;
+	       end
+	     else if ((attn_le_reg == 1'b1) && (attn_clk_reg == 1'b0) && (saclk_ctr == 3))
+	       begin
+		  attn_le_reg <= 1'b0;
+	       end
+	  end
      end // always @ (posedge aclk)
-   
 endmodule

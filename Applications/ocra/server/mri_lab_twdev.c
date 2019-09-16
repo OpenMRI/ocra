@@ -2088,6 +2088,9 @@ int main(int argc, char *argv[])
 	volatile uint32_t *gradient_memory_x;
 	volatile uint32_t *gradient_memory_y;
 	volatile uint32_t *gradient_memory_z;
+
+	volatile uint32_t *attn_config;
+	
   gradient_offset_t gradient_offset;  // these offsets are in Ampere
   gradient_offset.gradient_x =  0.120;
   gradient_offset.gradient_y =  0.045;
@@ -2131,9 +2134,9 @@ int main(int argc, char *argv[])
   
   
 
-  if(argc != 3) {
-    fprintf(stderr,"parameters: RF duration, RF amplitude\n");
-    fprintf(stderr,"e.g.\t./mri_lab 60 32200\n");
+  if(argc != 4) {
+    fprintf(stderr,"parameters: RF duration, RF amplitude Attenuation (0-31.75dB)\n");
+    fprintf(stderr,"e.g.\t./mri_lab 60 32200 32\n");
     return -1;
   }
 
@@ -2151,7 +2154,25 @@ int main(int argc, char *argv[])
 	tx_data = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40020000);
 	pulseq_memory = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40030000);
 	seq_config = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40040000);  
+	attn_config = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40050000); 
 
+
+	// Attenuation
+	float attenuation = atof(argv[3]);
+	// Check if its bigger than 31.75 or some thing (later)
+	if(attenuation < 0.0 || attenuation > 31.75) {
+	  fprintf(stderr,"Error: transmit attenuation of %g dB out of range.\n Please specify a value between 0 and 31.75 dB!\n");
+	  return -1;
+	}
+	
+	// convert to the bits
+	unsigned int attn_bits = attenuation/0.25;
+	
+	/* set the attenuation value */
+	attn_config[0] = attn_bits;
+	
+	printf("Attn register value: %g dB (bits = %d)\n",attenuation,attn_config[0]);
+	
 	/*
 	NOTE: The block RAM can only be addressed with 32 bit transactions, so gradient_memory needs to
 			be of type uint32_t. The HDL would have to be changed to an 8-bit interface to support per
