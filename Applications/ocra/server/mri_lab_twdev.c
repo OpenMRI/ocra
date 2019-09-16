@@ -2189,7 +2189,7 @@ int main(int argc, char *argv[])
 
   if(argc != 4) {
     fprintf(stderr,"parameters: RF duration, RF amplitude Attenuation (0-31.75dB)\n");
-    fprintf(stderr,"e.g.\t./mri_lab 60 32200 32\n");
+    fprintf(stderr,"e.g.\t./mri_lab 60 32200 2.0\n");
     return -1;
   }
 
@@ -2214,7 +2214,7 @@ int main(int argc, char *argv[])
 	float attenuation = atof(argv[3]);
 	// Check if its bigger than 31.75 or some thing (later)
 	if(attenuation < 0.0 || attenuation > 31.75) {
-	  fprintf(stderr,"Error: transmit attenuation of %g dB out of range.\n Please specify a value between 0 and 31.75 dB!\n");
+	  fprintf(stderr,"Error: transmit attenuation of %g dB out of range.\n Please specify a value between 0 and 31.75 dB!\n",attenuation);
 	  return -1;
 	}
 	
@@ -2439,6 +2439,17 @@ int main(int argc, char *argv[])
           }          
         }
 
+	else if ( trig == 3 ) { // change attenuator value
+	  unsigned int attn_value = command & 0x000007f;
+	  printf("Setting attenuation to %.2f dB\n", (float)(attn_value)*0.25);
+	  if (attn_value > 127) {
+	    printf("Attenuator setting out of range, clipping at 31.75 dB\n");
+	    attn_value = 127;
+	  }
+	  /* set the attenuation value */
+	  attn_config[0] = attn_value;
+	}
+	
         else if ( trig == 2 ) { // refresh/acquire, change gradient offset, load/zero shims
           value1 = (command & 0x0fffffff) >> 24;  
           value2 = (command & 0x00ffffff) >> 20 ; 
@@ -2462,7 +2473,12 @@ int main(int argc, char *argv[])
             printf("Set gradient offsets Z %d\n", value3);
             gradient_offset.gradient_z = (float)value3/1000.0; // these offsets are in Ampere
             break;
-          case 4:
+	  case 4: 
+            printf("Set gradient offsets Z2 %d\n", value3);
+            gradient_offset.gradient_z2 = (float)value3/1000.0; // these offsets are in Ampere
+            break;
+	    
+          case 5:
             printf("Load gradient offsets\n");
             gradient_offset.gradient_x = (float)value3/1000.0;
             if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
@@ -2474,7 +2490,8 @@ int main(int argc, char *argv[])
               value3 = -value3;
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_y = (float)value3/1000.0;
-            if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+
+	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
             value2 = (command & 0x00ffffff) >> 20;
@@ -2483,6 +2500,18 @@ int main(int argc, char *argv[])
               value3 = -value3;
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_z = (float)value3/1000.0;
+
+	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+               break;
+            }
+            value2 = (command & 0x00ffffff) >> 20;
+            value3 = (int)(command & 0x000fffff);
+            if (value2)
+              value3 = -value3;
+            printf("%s %d %d %d\n", "Received values", value1, value2, value3);
+            gradient_offset.gradient_z2 = (float)value3/1000.0;
+	    
+	    // WTF??
             if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
@@ -2491,11 +2520,12 @@ int main(int argc, char *argv[])
               continue;
             }
             break;
-          case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+          case 6:
+            printf("Set gradient offsets to 0 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
+	    gradient_offset.gradient_z2 = 0.0;
             break;          
           default:
             printf("Acquiring\n");
@@ -2578,6 +2608,17 @@ int main(int argc, char *argv[])
           }          
         }
 
+	else if ( trig == 3 ) { // change attenuator value
+	  unsigned int attn_value = command & 0x000007f;
+	  printf("Setting attenuation to %.2f dB\n", (float)(attn_value)*0.25);
+	  if (attn_value > 127) {
+	    printf("Attenuator setting out of range, clipping at 31.75 dB\n");
+	    attn_value = 127;
+	  }
+	  /* set the attenuation value */
+	  attn_config[0] = attn_value;
+	}
+	
         else if ( trig == 2 ) { // Acquisition: Acquire when triggered, change gradient offset, load/zero shims
           value1 = (command & 0x0fffffff) >> 24;  
           value2 = (command & 0x00ffffff) >> 20 ; 
