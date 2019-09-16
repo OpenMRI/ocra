@@ -12,7 +12,7 @@ cell xilinx.com:ip:xlslice:1.0 slice_1 {
 }
 
 # Create dac_spi_sequencer
-cell open-mri:user:axi_dac_spi_sequencer:1.0 spi_sequencer_0 {
+cell open-mri:user:axi_dac_spi_sequencer:1.1 spi_sequencer_0 {
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 11
   CONTINUOUS FALSE
@@ -46,4 +46,5 @@ connect_bd_net [get_bd_pins spiconcat_0/In2] [get_bd_pins spi_sequencer_0/spi_ld
 connect_bd_net [get_bd_pins spiconcat_0/In3] [get_bd_pins spi_sequencer_0/spi_sdox]
 connect_bd_net [get_bd_pins spiconcat_0/In4] [get_bd_pins spi_sequencer_0/spi_sdoy]
 connect_bd_net [get_bd_pins spiconcat_0/In5] [get_bd_pins spi_sequencer_0/spi_sdoz]
+connect_bd_net [get_bd_pins spiconcat_0/In6] [get_bd_pins spi_sequencer_0/spi_sdoz2]
 # Since the sequencer has no z2 yet, lets connect with a constant 0

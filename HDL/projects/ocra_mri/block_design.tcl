@@ -266,6 +266,16 @@ cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz {
   ENABLE_B Always_Enabled
   REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
 }
+cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memoryz2 {
+  MEMORY_TYPE Simple_Dual_Port_RAM
+  USE_BRAM_BLOCK Stand_Alone
+  WRITE_WIDTH_A 32
+  WRITE_DEPTH_A 2000
+  WRITE_WIDTH_B 32
+  ENABLE_A Always_Enabled
+  ENABLE_B Always_Enabled
+  REGISTER_PORTB_OUTPUT_OF_MEMORY_PRIMITIVES false
+}
 
 # Create axi_bram_writer for gradient waveform
 cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerx {
@@ -292,6 +302,14 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerz {
 } {
   BRAM_PORTA gradient_memoryz/BRAM_PORTA
 }
+cell pavel-demin:user:axi_bram_writer:1.0 gradient_writerz2 {
+  AXI_DATA_WIDTH 32
+  AXI_ADDR_WIDTH 32
+  BRAM_DATA_WIDTH 32
+  BRAM_ADDR_WIDTH 11
+} {
+  BRAM_PORTA gradient_memoryz2/BRAM_PORTA
+}
 
 
 # Create all required interconnections
@@ -307,6 +325,10 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master /ps_0/M_AXI_GP0
   Clk Auto
 } [get_bd_intf_pins gradient_writerz/S_AXI]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins gradient_writerz2/S_AXI]
 
 set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
 set_property OFFSET 0x40002000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerx_reg0]
@@ -314,6 +336,8 @@ set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
 set_property OFFSET 0x40004000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writery_reg0]
 set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
 set_property OFFSET 0x40006000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz_reg0]
+set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
+set_property OFFSET 0x40008000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 
 module gradient_dac_0 {
     source projects/ocra_mri/gradient_dacs.tcl
@@ -321,6 +345,7 @@ module gradient_dac_0 {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTZ gradient_memoryz/BRAM_PORTB
+    spi_sequencer_0/BRAM_PORTZ2 gradient_memoryz2/BRAM_PORTB
 }
 
 # Create all required interconnections
@@ -364,6 +389,7 @@ set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryx]
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryy]
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryz]
+set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memoryz2]
 #
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
