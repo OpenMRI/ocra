@@ -49,17 +49,21 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         # setup frequency related GUI
 		# don't emit valueChanged signal while typing
         self.freqValue.setKeyboardTracking(False)
-		
+        self.atValue.setKeyboardTracking(False)
+
         self.freqValue.valueChanged.connect(self.set_freq)
         self.freqCheckBox = QCheckBox('Zoom')
-        self.checkBoxLayout.addWidget(self.freqCheckBox)
+        #self.checkBoxLayout.addWidget(self.freqCheckBox)
         self.center_freq = 0
         self.applyFreqButton.clicked.connect(self.apply_center_freq)
 
+        '''
         # setup gradient offsets related GUI
         self.gradOffset_disp_x.setVisible(False)
         self.gradOffset_disp_y.setVisible(False)
         self.gradOffset_disp_z.setVisible(False)
+        self.gradOffset_disp_z2.setVisible(False)
+
         # use lambda function and objectName() to distinguish different Q-objects(x,y,z)
         self.horizontalSlider_x.sliderMoved.connect(
             lambda: self.slider_disp_grad_offset(self.horizontalSlider_x))
@@ -73,15 +77,17 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             lambda: self.slider_set_grad_offset(self.horizontalSlider_y))
         self.horizontalSlider_z.sliderReleased.connect(
             lambda: self.slider_set_grad_offset(self.horizontalSlider_z))
-		
+        '''
 		# Don't emit valueChanged signal while typing
         self.gradOffset_x.setKeyboardTracking(False)
         self.gradOffset_y.setKeyboardTracking(False)
         self.gradOffset_z.setKeyboardTracking(False)
-		
+        self.gradOffset_z2.setKeyboardTracking(False)
+
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
+        self.gradOffset_z2.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z2))
         self.saveShimButton.clicked.connect(self.save_shim)
         self.loadShimButton.clicked.connect(self.load_shim)
         self.zeroShimButton.clicked.connect(self.zero_shim)
@@ -92,12 +98,13 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.applyFreqButton.setEnabled(False)
-        self.horizontalSlider_x.setEnabled(False)
-        self.horizontalSlider_y.setEnabled(False)
-        self.horizontalSlider_z.setEnabled(False)
+        # self.horizontalSlider_x.setEnabled(False)
+        # self.horizontalSlider_y.setEnabled(False)
+        # self.horizontalSlider_z.setEnabled(False)
         self.gradOffset_x.setEnabled(False)
         self.gradOffset_y.setEnabled(False)
         self.gradOffset_z.setEnabled(False)
+        self.gradOffset_z2.setEnabled(False)
         self.acquireButton.setEnabled(False)
         self.saveShimButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
@@ -136,12 +143,13 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self.applyFreqButton.setEnabled(True)
-        self.horizontalSlider_x.setEnabled(True)
-        self.horizontalSlider_y.setEnabled(True)
-        self.horizontalSlider_z.setEnabled(True)
+        # self.horizontalSlider_x.setEnabled(True)
+        # self.horizontalSlider_y.setEnabled(True)
+        # self.horizontalSlider_z.setEnabled(True)
         self.gradOffset_x.setEnabled(True)
         self.gradOffset_y.setEnabled(True)
         self.gradOffset_z.setEnabled(True)
+        self.gradOffset_z2.setEnabled(True)
         self.acquireButton.setEnabled(True)
         self.saveShimButton.setEnabled(True)
         self.loadShimButton.setEnabled(True)
@@ -171,12 +179,13 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.applyFreqButton.setEnabled(False)
-        self.horizontalSlider_x.setEnabled(False)
-        self.horizontalSlider_y.setEnabled(False)
-        self.horizontalSlider_z.setEnabled(False)
+        # self.horizontalSlider_x.setEnabled(False)
+        # self.horizontalSlider_y.setEnabled(False)
+        # self.horizontalSlider_z.setEnabled(False)
         self.gradOffset_x.setEnabled(False)
         self.gradOffset_y.setEnabled(False)
         self.gradOffset_z.setEnabled(False)
+        self.gradOffset_z2.setEnabled(False)
         self.acquireButton.setEnabled(False)
         self.saveShimButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
@@ -189,25 +198,32 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
 
     def set_freq(self, freq):
-        print("CMD: Setting frequency")
+        print("\tSetting frequency.")
         parameters.set_freq(freq)
         gsocket.write(struct.pack('<I', 1 << 28 | int(1.0e6 * freq)))
         # 2^28 = 268,435,456 for frequency setting
         if not self.idle:
-            print("\tAcquiring data")
-
+            print("\tAcquiring data.")
 
     def apply_center_freq(self):
         # print(self.center_freq)
         if self.center_freq != 0 :
             self.freqValue.setValue(self.center_freq)
+            print("\tCenter frequency applied.")
 
 
     def acquire(self):
         gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
-        print("CMD: Acquiring data")
+        print("\tAcquiring data.")
 
-
+    def set_at(self, at):
+        print("\tSetting attenuation.")
+        # at = round(at/0.25)*4
+        parameters.set_at(at)
+        gsocket.write(struct.pack('<I', 3 << 28 | int(at/0.25)))
+        if not self.idle:
+            print("\tAquiring data.")
+    '''
     def slider_disp_grad_offset(self, slider):
         if slider.objectName() == 'horizontalSlider_x':
             self.gradOffset_disp_x.setVisible(True)
@@ -222,7 +238,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print('Error: slider_disp_grad_offset')
             return
 
-
     def slider_set_grad_offset(self, slider):
         if slider.objectName() == 'horizontalSlider_x':
             self.gradOffset_disp_x.setVisible(False)
@@ -236,38 +251,51 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         else:
             print('Error: slider_set_grad_offset')
             return
-
+    '''
 
     def set_grad_offset(self, spinBox):
         if spinBox.objectName() == 'gradOffset_x':
-            print("CMD: Setting grad offset x")
+            print("\tSetting grad offset x.")
             offsetX = self.gradOffset_x.value()
-            self.horizontalSlider_x.setValue(offsetX)
+            # self.horizontalSlider_x.setValue(offsetX)
             if offsetX > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 1 << 24 | offsetX))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 1 << 24 | 1 << 20 | -offsetX))
-            print("\tAcquiring data")
+            print("\tAcquiring data.")
+
         elif spinBox.objectName() == 'gradOffset_y':
-            print("CMD: Setting grad offset y")
+            print("\tSetting grad offset y.")
             offsetY = self.gradOffset_y.value()
-            self.horizontalSlider_y.setValue(offsetY)
+            # self.horizontalSlider_y.setValue(offsetY)
             if offsetY > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 2 << 24 | offsetY))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 2 << 24 | 1 << 20 | -offsetY))
-            print("\tAcquiring data")
+            print("\tAcquiring data.")
+
         elif spinBox.objectName() == 'gradOffset_z':
-            print("CMD: Setting grad offset z")
+            print("\tSetting grad offset z.")
             offsetZ = self.gradOffset_z.value()
-            self.horizontalSlider_z.setValue(offsetZ)
+            # self.horizontalSlider_z.setValue(offsetZ)
             if offsetZ > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 3 << 24 | offsetZ))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 3 << 24 | 1 << 20 | -offsetZ))
-            print("\tAcquiring data")
+            print("\tAcquiring data.")
+
+        elif spinBox.objectName() == 'gradOffset_z2':
+            print("\tSetting grad offset z2.")
+            offsetZ2 = self.gradOffset_z2.value()
+
+            if offsetZ2 > 0:
+                gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetZ2))
+            else:
+                gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetZ2))
+            print("\tAcquiring data.")
+
         else:
-            print('Error: set_grad_offset')
+            print('\tError: set_grad_offset.')
             return
 
 
@@ -275,63 +303,86 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         parameters.set_grad_offset_x(self.gradOffset_x.value())
         parameters.set_grad_offset_y(self.gradOffset_y.value())
         parameters.set_grad_offset_z(self.gradOffset_z.value())
+        parameters.set_grad_offset_z2(self.gradOffset_z2.value())
 
 
     def load_shim(self):
-        print("CMD: Loading shim")
+        print("\tLoading shim.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
+        self.gradOffset_z2.valueChanged.disconnect()
         self.gradOffset_x.setValue(parameters.get_grad_offset_x())
         self.gradOffset_y.setValue(parameters.get_grad_offset_y())
         self.gradOffset_z.setValue(parameters.get_grad_offset_z())
-        self.horizontalSlider_x.setValue(parameters.get_grad_offset_x())
-        self.horizontalSlider_y.setValue(parameters.get_grad_offset_y())
-        self.horizontalSlider_z.setValue(parameters.get_grad_offset_z())
+        self.gradOffset_z2.setValue(parameters.get_grad_offset_z2())
+        # self.horizontalSlider_x.setValue(parameters.get_grad_offset_x())
+        # self.horizontalSlider_y.setValue(parameters.get_grad_offset_y())
+        # self.horizontalSlider_z.setValue(parameters.get_grad_offset_z())
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
+        self.gradOffset_z2.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z2))
+
         offsetX = self.gradOffset_x.value()
-        self.horizontalSlider_x.setValue(offsetX)
+
+        # self.horizontalSlider_x.setValue(offsetX)
+
         if offsetX > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetX))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetX))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetX))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetX))
         offsetY = self.gradOffset_y.value()
-        self.horizontalSlider_y.setValue(offsetY)
+
+        # self.horizontalSlider_y.setValue(offsetY)
+
         if offsetY > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetY))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetY))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetY))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetY))
+
         offsetZ = self.gradOffset_z.value()
-        self.horizontalSlider_z.setValue(offsetZ)
+
+        # self.horizontalSlider_z.setValue(offsetZ)
+
         if offsetZ > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetZ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetZ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ))
+
+        offsetZ2 = self.gradOffset_z2.value()
+
+        if offsetZ2 > 0:
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ2))
+        else:
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ2))
+
         if self.idle:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 0<<20 ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 0<<20 ))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1<<20 ))
-            print("\tAcquiring data")
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1<<20 ))
+            print("Acquiring data.")
 
 
     def zero_shim(self):
-        print("CMD: Zero shims")
+        print("\tZero shims.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
+        self.gradOffset_z2.valueChanged.disconnect()
         self.gradOffset_x.setValue(0)
         self.gradOffset_y.setValue(0)
         self.gradOffset_z.setValue(0)
-        self.horizontalSlider_x.setValue(0)
-        self.horizontalSlider_y.setValue(0)
-        self.horizontalSlider_z.setValue(0)
+        self.gradOffset_z2.setValue(0)
+        # self.horizontalSlider_x.setValue(0)
+        # self.horizontalSlider_y.setValue(0)
+        # self.horizontalSlider_z.setValue(0)
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
+        self.gradOffset_z2.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z2))
         gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 ))
-        print("\tAcquiring data")
+        print("\tAcquiring data.")
 
 
     def read_data(self):

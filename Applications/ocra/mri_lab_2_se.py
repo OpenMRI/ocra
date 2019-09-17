@@ -183,24 +183,24 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
         gsocket.readyRead.disconnect()
 
     def set_freq(self, freq):
-        print("\tSetting frequency")
+        print("\tSetting frequency.")
         parameters.set_freq(freq)
         gsocket.write(struct.pack('<I', 1 << 28 | int(1.0e6 * freq)))
         # 2^28 = 268,435,456 for frequency setting
         if not self.idle:
-            print("Acquiring data")
+            print("\tAcquiring data.")
 
     def acquire(self):
         gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
         print("Acquiring data")
 
     def set_at(self, at):
-        print("\tSetting attenuationn")
-        at = round(at/0.25)*4
+        print("\tSetting attenuation.")
+        # at = round(at/0.25)*4
         parameters.set_at(at)
         gsocket.write(struct.pack('<I', 3 << 28 | int(at/0.25)))
         if not self.idle:
-            print("Aquiring data")
+            print("\tAquiring data.")
 
     '''
     def slider_disp_grad_offset(self, slider):
@@ -231,29 +231,30 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
             print('Error: slider_set_grad_offset')
             return
     '''
+
     def set_grad_offset(self, spinBox):
         if spinBox.objectName() == 'gradOffset_x':
-            print("\tSetting grad offset x")
+            print("\tSetting grad offset x.")
             offsetX = self.gradOffset_x.value()
             # self.horizontalSlider_x.setValue(offsetX)
             if offsetX > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 1 << 24 | offsetX))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 1 << 24 | 1 << 20 | -offsetX))
-            print("Acquiring data")
+            print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_y':
-            print("\tSetting grad offset y")
+            print("\tSetting grad offset y.")
             offsetY = self.gradOffset_y.value()
             # self.horizontalSlider_y.setValue(offsetY)
             if offsetY > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 2 << 24 | offsetY))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 2 << 24 | 1 << 20 | -offsetY))
-            print("Acquiring data")
+            print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_z':
-            print("\tSetting grad offset z")
+            print("\tSetting grad offset z.")
             offsetZ = self.gradOffset_z.value()
 
             # self.horizontalSlider_z.setValue(offsetZ)
@@ -262,20 +263,20 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
                 gsocket.write(struct.pack('<I', 2 << 28 | 3 << 24 | offsetZ))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 3 << 24 | 1 << 20 | -offsetZ))
-            print("Acquiring data")
+            print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_z2':
-            print("\tSetting grad offset z2")
+            print("\tSetting grad offset z2.")
             offsetZ2 = self.set_grad_offset_z2.value()
 
             if offsetZ2 > 0:
                 gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetZ2))
             else:
                 gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetZ2))
-            print("Acquiring data")
+            print("\tAcquiring data.")
 
         else:
-            print('Error: set_grad_offset')
+            print('\tError: set_grad_offset.')
             return
 
     def save_shim(self):
@@ -285,7 +286,7 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
         parameters.set_grad_offset_z2(self.gradOffset_z2.value())
 
     def load_shim(self):
-        print("\tLoad grad offsets")
+        print("\tLoad grad offsets.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
@@ -340,10 +341,10 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 0<<20 ))
         else:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1<<20 ))
-            print("Acquiring data")
+            print("Acquiring data.")
 
     def zero_shim(self):
-        print("\tZero grad offsets")
+        print("\tZero grad offsets.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
@@ -360,7 +361,7 @@ class MRI_SE_Widget(MRI_SE_Widget_Base, MRI_SE_Widget_Form):
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
         self.gradOffset_z2.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z2))
         gsocket.write(struct.pack('<I', 2 << 28 | 6 << 24 ))
-        print("Acquiring data")
+        print("\tAcquiring data.")
 
     def read_data(self):
         # wait for enough data and read to self.buffer
