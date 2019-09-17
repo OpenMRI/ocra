@@ -9,7 +9,12 @@
 LD_LIBRARY_PATH =
 
 NAME = ocra_mri
+PART_VARIANT ?= Z20
+ifeq ($(PART_VARIANT),Z20)
 PART = xc7z020clg400-1
+else
+PART = xc7z010clg400-1
+endif
 PROC = ps7_cortexa9_0
 
 CORES = axis_segmented_bram_reader_v1_0 micro_sequencer_v1_0 axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
