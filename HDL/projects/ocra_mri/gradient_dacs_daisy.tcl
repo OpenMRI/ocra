@@ -12,7 +12,7 @@ cell xilinx.com:ip:xlslice:1.0 slice_1 {
 }
 
 # Create dac_spi_sequencer
-cell open-mri:user:axi_dac_spi_sequencer:1.1 spi_sequencer_0 {
+cell pavel-demin:user:axi_dac_daisy_spi_sequencer:1.0 spi_sequencer_0 {
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 11
   CONTINUOUS FALSE
@@ -23,7 +23,6 @@ cell open-mri:user:axi_dac_spi_sequencer:1.1 spi_sequencer_0 {
   aresetn slice_0/Dout
 }
 
-# 09/2019: Make sure this has SEVEN ports
 cell xilinx.com:ip:xlconcat:2.1 spiconcat_0 {
     NUM_PORTS 7
 }
@@ -40,11 +39,9 @@ connect_bd_net [get_bd_pins xlconstant_0/dout] [get_bd_pins spi_sequencer_0/cfg_
 
 # Hookup the SPI stuff
 connect_bd_net [get_bd_pins spiconcat_0/In0] [get_bd_pins spi_sequencer_0/spi_clk]
-#connect_bd_net [get_bd_pins spiconcat_0/In1] [get_bd_pins spi_sequencer_0/spi_clrn]
-connect_bd_net [get_bd_pins spiconcat_0/In1] [get_bd_pins spi_sequencer_0/spi_syncn]
-connect_bd_net [get_bd_pins spiconcat_0/In2] [get_bd_pins spi_sequencer_0/spi_ldacn]
-connect_bd_net [get_bd_pins spiconcat_0/In3] [get_bd_pins spi_sequencer_0/spi_sdox]
-connect_bd_net [get_bd_pins spiconcat_0/In4] [get_bd_pins spi_sequencer_0/spi_sdoy]
-connect_bd_net [get_bd_pins spiconcat_0/In5] [get_bd_pins spi_sequencer_0/spi_sdoz]
-connect_bd_net [get_bd_pins spiconcat_0/In6] [get_bd_pins spi_sequencer_0/spi_sdoz2]
-# Since the sequencer has no z2 yet, lets connect with a constant 0
+connect_bd_net [get_bd_pins spiconcat_0/In1] [get_bd_pins spi_sequencer_0/spi_clrn]
+connect_bd_net [get_bd_pins spiconcat_0/In2] [get_bd_pins spi_sequencer_0/spi_syncn]
+connect_bd_net [get_bd_pins spiconcat_0/In3] [get_bd_pins spi_sequencer_0/spi_ldacn]
+connect_bd_net [get_bd_pins spiconcat_0/In4] [get_bd_pins spi_sequencer_0/spi_sdox]
+connect_bd_net [get_bd_pins spiconcat_0/In5] [get_bd_pins spi_sequencer_0/spi_sdoy]
+connect_bd_net [get_bd_pins spiconcat_0/In6] [get_bd_pins spi_sequencer_0/spi_sdoz]

@@ -40,7 +40,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 writer_0 {
 }
 
 # Create axis_bram_reader
-cell pavel-demin:user:axis_segmented_bram_reader:1.0 reader_0 {
+cell open-mri:user:axis_segmented_bram_reader:1.0 reader_0 {
   AXIS_TDATA_WIDTH 32
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 14
