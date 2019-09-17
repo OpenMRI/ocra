@@ -52,8 +52,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.shim_x.setText(str(parameters.get_grad_offset_x()))
         self.shim_y.setText(str(parameters.get_grad_offset_y()))
         self.shim_z.setText(str(parameters.get_grad_offset_z()))
+        self.shim_z2.setText(str(parameters.get_grad_offset_z2()))
         self.shim_x.setReadOnly(True)
         self.shim_y.setReadOnly(True)
+        self.shim_z.setReadOnly(True)
         self.shim_z.setReadOnly(True)
 
         # setup sequence type
@@ -70,9 +72,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
         # setup imaging parameters
         self.npe.addItems(['4', '8', '16', '32', '64', '128', '256'])
-        self.npe.currentIndexChanged.connect(self.set_readout_size)
-        self.size1.setText(self.npe.currentText())
-        self.size1.setReadOnly(True)
+        # self.npe.currentIndexChanged.connect(self.set_readout_size)
+        # self.size1.setText(self.npe.currentText())
+        # self.size1.setReadOnly(True)
 
         # disable GUI elements at first
         self.startButton.setEnabled(True)
@@ -96,12 +98,13 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
         # Large image view 1 row, 1 column
         self.axes_image = self.figure.add_subplot(111)
+        self.axes_image.axis('off')
 
         self.canvas = FigureCanvas(self.figure) # canvas = image
-        self.plotLayout.addWidget(self.canvas)
+        self.imageLayout.addWidget(self.canvas)
         # create navigation toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
-        self.plotLayout.addWidget(self.toolbar)
+        self.toolbar = NavigationToolbar(self.canvas, self.imageWidget, False)
+        self.imageLayout.addWidget(self.toolbar)
 
         # display 2: real time signals
         self.figure2 = Figure()
@@ -113,10 +116,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.axes_bottom = self.figure2.add_subplot(2, 1, 2)
 
         self.canvas2 = FigureCanvas(self.figure2) # canvas2 = real time
-        self.imageLayout.addWidget(self.canvas2)
+        self.plotLayout.addWidget(self.canvas2)
         # create navigation toolbar
-        # self.toolbar2 = NavigationToolbar(self.canvas2, self.imageWidget, False)
-        # self.imageLayout.addWidget(self.toolbar2)
+        self.toolbar2 = NavigationToolbar(self.canvas2, self.plotWidget, False)
+        self.plotLayout.addWidget(self.toolbar2)
 
         # Acquire image
         self.full_data = np.matrix(np.zeros(np.size(self.data)))
@@ -193,8 +196,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             print("Acquiring data")
 
 
-    def set_readout_size(self):
-        self.size1.setText(self.npe.currentText())
+    # def set_readout_size(self):
+    #     self.size1.setText(self.npe.currentText())
 
 
     def upload_seq(self):
@@ -234,10 +237,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             self.etlLabel.setVisible(True)
             self.etlComboBox.setVisible(True)
         if self.seqType_idx in [5, 6, 7]: # epi or spiral
-            self.size1.setEnabled(False)
+            # self.size1.setEnabled(False)
             self.npe.setEnabled(False)
         else:
-            self.size1.setEnabled(True)
+            # self.size1.setEnabled(True)
             self.npe.setEnabled(True)
 
 
@@ -314,25 +317,36 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.shim_x.setText(str(parameters.get_grad_offset_x()))
         self.shim_y.setText(str(parameters.get_grad_offset_y()))
         self.shim_z.setText(str(parameters.get_grad_offset_z()))
+        self.shim_z2.setText(str(parameters.get_grad_offset_z2()))
+
         offsetX = int(self.shim_x.text())
         if offsetX > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetX))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetX))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetX))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetX))
+
         offsetY = int(self.shim_y.text())
         if offsetY > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetY))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetY))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetY))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetY))
+
         offsetZ = int(self.shim_z.text())
         if offsetZ > 0:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | offsetZ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1 << 20 | -offsetZ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ))
+
+        offsetZ2 = int(self.shim_z2.text())
+        if offsetZ > 0:
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ2))
+        else:
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ2))
+
         if self.idle:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 0<<20 ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 0<<20 ))
         else:
-            gsocket.write(struct.pack('<I', 2 << 28 | 4 << 24 | 1<<20 ))
+            gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1<<20 ))
             print("Acquiring data")
 
 
@@ -341,6 +355,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.shim_x.setText(str(0))
         self.shim_y.setText(str(0))
         self.shim_z.setText(str(0))
+        self.shim_z2.setText(str(0))
         gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 ))
         print("Acquiring data")
 
