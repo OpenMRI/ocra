@@ -92,7 +92,7 @@ proc get_slice_pin {pin_name from to {cell_name ""}} {
 }
 
 
-source projects/$project_name/block_design.tcl
+source projects/$project_name/block_design_Z10.tcl
 
 rename cell {}
 rename module {}
