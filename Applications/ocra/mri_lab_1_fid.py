@@ -52,32 +52,15 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.atValue.setKeyboardTracking(False)
 
         self.freqValue.valueChanged.connect(self.set_freq)
-        self.freqCheckBox = QCheckBox('Zoom')
-        #self.checkBoxLayout.addWidget(self.freqCheckBox)
+        self.atValue.valueChanged.connect(self.set_at)
+        self.freqWindowCheckBox = QCheckBox()
+        self.zoomCheckBox = QCheckBox('Zoom')
+        self.zoomLayout.addWidget(self.zoomCheckBox)
+        self.peakWindowCheckBox = QCheckBox('Peak Window')
+        self.peakWindowLayout.addWidget(self.peakWindowCheckBox)
         self.center_freq = 0
         self.applyFreqButton.clicked.connect(self.apply_center_freq)
 
-        '''
-        # setup gradient offsets related GUI
-        self.gradOffset_disp_x.setVisible(False)
-        self.gradOffset_disp_y.setVisible(False)
-        self.gradOffset_disp_z.setVisible(False)
-        self.gradOffset_disp_z2.setVisible(False)
-
-        # use lambda function and objectName() to distinguish different Q-objects(x,y,z)
-        self.horizontalSlider_x.sliderMoved.connect(
-            lambda: self.slider_disp_grad_offset(self.horizontalSlider_x))
-        self.horizontalSlider_y.sliderMoved.connect(
-            lambda: self.slider_disp_grad_offset(self.horizontalSlider_y))
-        self.horizontalSlider_z.sliderMoved.connect(
-            lambda: self.slider_disp_grad_offset(self.horizontalSlider_z))
-        self.horizontalSlider_x.sliderReleased.connect(
-            lambda: self.slider_set_grad_offset(self.horizontalSlider_x))
-        self.horizontalSlider_y.sliderReleased.connect(
-            lambda: self.slider_set_grad_offset(self.horizontalSlider_y))
-        self.horizontalSlider_z.sliderReleased.connect(
-            lambda: self.slider_set_grad_offset(self.horizontalSlider_z))
-        '''
 		# Don't emit valueChanged signal while typing
         self.gradOffset_x.setKeyboardTracking(False)
         self.gradOffset_y.setKeyboardTracking(False)
@@ -122,15 +105,25 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         # top and bottom axes: 2 rows, 1 column
         self.axes_top = self.figure.add_subplot(2, 1, 1)
         self.axes_bottom = self.figure.add_subplot(2, 1, 2)
+
+        self.axes_top.set_xlabel('frequency [Hz]')
+        self.axes_top.set_ylabel('freq. domain')
+        self.axes_bottom.set_xlabel('time [ms]')
+        self.axes_bottom.set_ylabel('time domain')
+        self.axes_top.grid()
+        self.axes_bottom.grid()
+
+        self.figure.set_tight_layout(True)
+
         self.canvas = FigureCanvas(self.figure)
         self.plotLayout.addWidget(self.canvas)
         # create navigation toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
+        # self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
         # remove subplots action (might be useful in the future)
         # actions = self.toolbar.actions()
         # self.toolbar.removeAction(actions[7])
         # self.newLayout.addWidget(self.canvas)
-        self.plotLayout.addWidget(self.toolbar)
+        # self.plotLayout.addWidget(self.toolbar)
 
 
     def start(self):
@@ -143,9 +136,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self.applyFreqButton.setEnabled(True)
-        # self.horizontalSlider_x.setEnabled(True)
-        # self.horizontalSlider_y.setEnabled(True)
-        # self.horizontalSlider_z.setEnabled(True)
         self.gradOffset_x.setEnabled(True)
         self.gradOffset_y.setEnabled(True)
         self.gradOffset_z.setEnabled(True)
@@ -179,9 +169,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.applyFreqButton.setEnabled(False)
-        # self.horizontalSlider_x.setEnabled(False)
-        # self.horizontalSlider_y.setEnabled(False)
-        # self.horizontalSlider_z.setEnabled(False)
         self.gradOffset_x.setEnabled(False)
         self.gradOffset_y.setEnabled(False)
         self.gradOffset_z.setEnabled(False)
@@ -211,7 +198,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             self.freqValue.setValue(self.center_freq)
             print("\tCenter frequency applied.")
 
-
     def acquire(self):
         gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
         print("\tAcquiring data.")
@@ -223,35 +209,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         gsocket.write(struct.pack('<I', 3 << 28 | int(at/0.25)))
         if not self.idle:
             print("\tAquiring data.")
-    '''
-    def slider_disp_grad_offset(self, slider):
-        if slider.objectName() == 'horizontalSlider_x':
-            self.gradOffset_disp_x.setVisible(True)
-            self.gradOffset_disp_x.setText(str(self.horizontalSlider_x.value()))
-        elif slider.objectName() == 'horizontalSlider_y':
-            self.gradOffset_disp_y.setVisible(True)
-            self.gradOffset_disp_y.setText(str(self.horizontalSlider_y.value()))
-        elif slider.objectName() == 'horizontalSlider_z':
-            self.gradOffset_disp_z.setVisible(True)
-            self.gradOffset_disp_z.setText(str(self.horizontalSlider_z.value()))
-        else:
-            print('Error: slider_disp_grad_offset')
-            return
-
-    def slider_set_grad_offset(self, slider):
-        if slider.objectName() == 'horizontalSlider_x':
-            self.gradOffset_disp_x.setVisible(False)
-            self.gradOffset_x.setValue(self.horizontalSlider_x.value())
-        elif slider.objectName() == 'horizontalSlider_y':
-            self.gradOffset_disp_y.setVisible(False)
-            self.gradOffset_y.setValue(self.horizontalSlider_y.value())
-        elif slider.objectName() == 'horizontalSlider_z':
-            self.gradOffset_disp_z.setVisible(False)
-            self.gradOffset_z.setValue(self.horizontalSlider_z.value())
-        else:
-            print('Error: slider_set_grad_offset')
-            return
-    '''
 
     def set_grad_offset(self, spinBox):
         if spinBox.objectName() == 'gradOffset_x':
@@ -326,15 +283,11 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
         offsetX = self.gradOffset_x.value()
 
-        # self.horizontalSlider_x.setValue(offsetX)
-
         if offsetX > 0:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetX))
         else:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetX))
         offsetY = self.gradOffset_y.value()
-
-        # self.horizontalSlider_y.setValue(offsetY)
 
         if offsetY > 0:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetY))
@@ -342,8 +295,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetY))
 
         offsetZ = self.gradOffset_z.value()
-
-        # self.horizontalSlider_z.setValue(offsetZ)
 
         if offsetZ > 0:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ))
@@ -374,9 +325,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.gradOffset_y.setValue(0)
         self.gradOffset_z.setValue(0)
         self.gradOffset_z2.setValue(0)
-        # self.horizontalSlider_x.setValue(0)
-        # self.horizontalSlider_y.setValue(0)
-        # self.horizontalSlider_z.setValue(0)
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
@@ -405,9 +353,16 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
     def display_data(self):
         # Clear the plots: bottom-time domain, top-frequency domain
         self.axes_bottom.clear()
-        self.axes_bottom.grid()
         self.axes_top.clear()
+
+        self.axes_top.set_xlabel('frequency [Hz]')
+        self.axes_top.set_ylabel('freq. domain')
+        self.axes_bottom.set_xlabel('time [ms]')
+        self.axes_bottom.set_ylabel('time domain')
         self.axes_top.grid()
+        self.axes_bottom.grid()
+
+        self.figure.set_tight_layout(True)
 
         # Get magnitude, real and imaginary part of data
         data = self.data
@@ -422,28 +377,25 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         real_t = real[0:data_idx]
         imag_t = imag[0:data_idx]
         time_axis = np.linspace(0, time, data_idx)
-        self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t)   # blue
-        self.curve_bottom = self.axes_bottom.plot(time_axis, real_t)  # red
-        self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t)  # green
-        self.axes_bottom.set_xlabel('time, ms')
+        self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t, linewidth=1)   # blue
+        self.curve_bottom = self.axes_bottom.plot(time_axis, real_t, linewidth=1)  # red
+        self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t, linewidth=1)  # green
+        self.axes_bottom.set_xlabel('time [ms]')
 
         # Plot the top (frequency domain): use signal from 0.5~20.5ms: first 0.5ms junk
         # update: the junk is already taken care of by the sequence timing
         dclip = data[0:data_idx];
         freqaxis = np.linspace(-125000, 125000, data_idx)  # 5000 points ~ 20ms
         fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(dclip))))
-        if not self.freqCheckBox.isChecked(): # non zoomed
+        if not self.zoomCheckBox.isChecked(): # non zoomed
             self.curve_top = self.axes_top.plot(
                 freqaxis[int(data_idx / 2 - data_idx / 10):int(data_idx / 2 + data_idx / 10)],
-                fft_mag[int(data_idx / 2 - data_idx / 10):int(data_idx / 2 + data_idx / 10)])
+                fft_mag[int(data_idx / 2 - data_idx / 10):int(data_idx / 2 + data_idx / 10)], linewidth=1)
         else: # zoomed
             self.curve_top = self.axes_top.plot(
                 freqaxis[int(data_idx / 2 - data_idx / 100):int(data_idx / 2 + data_idx / 100)],
-                fft_mag[int(data_idx / 2 - data_idx / 100):int(data_idx / 2 + data_idx / 100)])
-        self.axes_top.set_xlabel('frequency, Hz')
-
-        # Update the figure
-        self.canvas.draw()
+                fft_mag[int(data_idx / 2 - data_idx / 100):int(data_idx / 2 + data_idx / 100)], linewidth=1)
+        self.axes_top.set_xlabel('frequency [Hz]')
 
         # Data Analysis
         # Calculate and display properties of the frequency
@@ -453,6 +405,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         max_index = np.argmax(fft_mag)
         bound_high = max_index
         bound_low = max_index
+
         # print(max_index)
         while 1:
           if fft_mag[bound_low] < 0.5 * max_value:
@@ -465,7 +418,36 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         fwhm_value = bound_high - bound_low
         self.fwhm.setText(str(fwhm_value))
 
+        # Calculate the SNR value inside a peak window
+        peak_window = fwhm_value*5
+        noise_bound_low = int(max_index - peak_window/2)
+        noise_bound_high = int(max_index + peak_window/2)
+
+        # Join noise outside peak window, calculate std. dev. and snr = peak/std.dev.
+        noise = np.concatenate((fft_mag[0:noise_bound_low], fft_mag[noise_bound_high:]))
+        snr_value = round(peak_value/np.std(noise),2)
+        # print("snr_value: ", snr_value)
+        self.snr.setText(str(snr_value))
+
+        # Hightlight the peak window
+        if self.peakWindowCheckBox.isChecked():
+
+            print("\tPeak window checked.")
+
+            if int(noise_bound_low) >= int(data_idx / 2 - data_idx / 10) and int(noise_bound_high) <= int(data_idx / 2 + data_idx / 10):
+                print("\tPeak inside the view.")
+                self.curve_top = self.axes_top.plot(freqaxis[noise_bound_low:noise_bound_high], fft_mag[noise_bound_low:noise_bound_high], linewidth=1, linestyle="--")
+            elif max_index < int(data_idx / 2 - data_idx / 10):
+                print("\tPeak outside the view.")
+                self.axes_top.text(freqaxis[int(data_idx/2-data_idx/10)],0.001 ,"<",fontsize=20)
+            elif max_index > int(data_idx / 2 + data_idx / 10):
+                print("\tPeak outside the view.")
+                self.axes_top.text(freqaxis[int(data_idx/2+data_idx/10)],0.001 ,">",fontsize=20)
+
         # Calculate center frequency
         self.center_freq = parameters.get_freq() + ((max_index - 5000/2) * 250000 / 5000 ) / 1.0e6
         # 250000 sampling rate, 5000 number of samples for FFT
         self.centerFreq.setText(str(self.center_freq))
+
+        # Update the figure
+        self.canvas.draw()

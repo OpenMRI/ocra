@@ -64,10 +64,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                                'Turbo Spin Echo',
                                'EPI', 'EPI (grad_y off)',
                                'Spiral'])
-        self.seqType.currentIndexChanged.connect(self.seq_type_customized_display)
-        self.etlComboBox.addItems(['2', '4', '8', '16', '32'])
-        self.etlLabel.setVisible(False)
-        self.etlComboBox.setVisible(False)
+        # self.seqType.currentIndexChanged.connect(self.seq_type_customized_display)
+        # self.etlComboBox.addItems(['2', '4', '8', '16', '32'])
+        # self.etlLabel.setVisible(False)
+        # self.etlComboBox.setVisible(False)
         self.uploadSeqButton.clicked.connect(self.upload_seq)
 
         # setup imaging parameters
@@ -103,8 +103,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.canvas = FigureCanvas(self.figure) # canvas = image
         self.imageLayout.addWidget(self.canvas)
         # create navigation toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self.imageWidget, False)
-        self.imageLayout.addWidget(self.toolbar)
+        # self.toolbar = NavigationToolbar(self.canvas, self.imageWidget, False)
+        # self.imageLayout.addWidget(self.toolbar)
 
         # display 2: real time signals
         self.figure2 = Figure()
@@ -115,11 +115,18 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.axes_top = self.figure2.add_subplot(2, 1, 1)
         self.axes_bottom = self.figure2.add_subplot(2, 1, 2)
 
+        self.axes_top.set_xlabel('frequency [Hz]')
+        self.axes_bottom.set_xlabel('time [ms]')
+        self.axes_top.set_ylabel('freq. domain')
+        self.axes_bottom.set_ylabel('time domain')
+        self.axes_top.grid()
+        self.axes_bottom.grid()
+
         self.canvas2 = FigureCanvas(self.figure2) # canvas2 = real time
         self.plotLayout.addWidget(self.canvas2)
         # create navigation toolbar
-        self.toolbar2 = NavigationToolbar(self.canvas2, self.plotWidget, False)
-        self.plotLayout.addWidget(self.toolbar2)
+        # self.toolbar2 = NavigationToolbar(self.canvas2, self.plotWidget, False)
+        # self.plotLayout.addWidget(self.toolbar2)
 
         # Acquire image
         self.full_data = np.matrix(np.zeros(np.size(self.data)))
@@ -128,8 +135,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.images_received = 0
         self.num_pe = 0
         self.num_TR = 0  # num_TR = num_pe/etl (echo train length)
-        self.etl = 2
-        self.etl_idx = 0
+        # self.etl = 2
+        # self.etl_idx = 0
         self.npe_idx = 0
         self.seqType_idx = 0
         self.img = []
@@ -227,22 +234,22 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         gsocket.write(btye_array)
         print("Sent byte array")
 
-
+    '''
     def seq_type_customized_display(self):
         self.seqType_idx = self.seqType.currentIndex()
         if self.seqType_idx != 4: # not tse
-            self.etlLabel.setVisible(False)
-            self.etlComboBox.setVisible(False)
+            # self.etlLabel.setVisible(False)
+            # self.etlComboBox.setVisible(False)
         else: # tse
-            self.etlLabel.setVisible(True)
-            self.etlComboBox.setVisible(True)
+            # self.etlLabel.setVisible(True)
+            # self.etlComboBox.setVisible(True)
         if self.seqType_idx in [5, 6, 7]: # epi or spiral
             # self.size1.setEnabled(False)
             self.npe.setEnabled(False)
         else:
             # self.size1.setEnabled(True)
             self.npe.setEnabled(True)
-
+    '''
 
     def acquire(self):
         if self.uploadSeq.text() == 'none':
@@ -253,6 +260,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # clear the plots, need to call draw() to update
 
         self.axes_image.clear()
+        self.axes_image.axis('off')
+        self.figure.set_tight_layout(True)
+
         self.canvas.draw()
 
         # Disables k-space representation
@@ -261,6 +271,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
         self.axes_bottom.clear()
         self.axes_top.clear()
+        self.figure2.set_tight_layout(True)
         self.canvas2.draw()
 
         self.progressBar.setValue(0)
@@ -268,13 +279,13 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.num_pe = int(self.npe.currentText())
         self.npe_idx = self.npe.currentIndex()
         self.seqType_idx = self.seqType.currentIndex()
-        self.etl = int(self.etlComboBox.currentText())
-        self.etl_idx = self.etlComboBox.currentIndex()
+        # self.etl = int(self.etlComboBox.currentText())
+        # self.etl_idx = self.etlComboBox.currentIndex()
 
         if self.seqType_idx != 4: # not tse
             self.num_TR = self.num_pe
-        else:  # tse
-            self.num_TR = int(self.num_pe / self.etl)
+        # else:  # tse
+            # self.num_TR = int(self.num_pe / self.etl)
 
         self.kspace_full = np.matrix(np.zeros((self.num_TR, 50000), dtype=np.complex64))
 
@@ -292,18 +303,16 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             gsocket.write(
                 struct.pack('<I', 2 << 28 | 0 << 24 | self.npe_idx << 4 | self.seqType_idx))
             print("Acquiring data = {} x {}".format(self.num_pe, self.num_pe))
+        '''
         else:  # tse
-            gsocket.write(struct.pack('<I',
-                                      2 << 28 | 0 << 24 | self.etl_idx << 8 | self.npe_idx << 4 |
-                                      self.seqType_idx))
-            print("Acquiring data = {} x {} echo train length = {}".format(self.num_pe, self.num_pe,
-                                                                           self.etl))
-
+            gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24 | self.etl_idx << 8 | self.npe_idx << 4 | self.seqType_idx))
+            print("Acquiring data = {} x {} echo train length = {}".format(self.num_pe, self.num_pe, self.etl))
+        '''
         # enable/disable GUI elements
         self.freqValue.setEnabled(False)
         self.seqType.setEnabled(False)
         self.npe.setEnabled(False)
-        self.etlComboBox.setEnabled(False)
+        # self.etlComboBox.setEnabled(False)
         self.startButton.setEnabled(False)
         self.stopButton.setEnabled(False)
         self.uploadSeqButton.setEnabled(False)
@@ -379,10 +388,17 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
     def display_data(self):
         # Clear the plots: bottom-time domain, top-frequency domain
-        self.axes_bottom.clear()
-        self.axes_bottom.grid()
         self.axes_top.clear()
+        self.axes_bottom.clear()
+        # Reset the plots
+        self.axes_top.set_xlabel('frequency [Hz]')
+        self.axes_bottom.set_xlabel('time [ms]')
+        self.axes_top.set_ylabel('freg. domain')
+        self.axes_bottom.set_ylabel('time domain')
         self.axes_top.grid()
+        self.axes_bottom.grid()
+
+        self.figure2.set_tight_layout(True)
 
         # Get magnitude, real and imaginary part of data
         data = self.data
@@ -406,7 +422,6 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t, linewidth=0.5)   # blue
         self.curve_bottom = self.axes_bottom.plot(time_axis, real_t, linewidth=0.5)  # red
         self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t, linewidth=0.5)  # green
-        self.axes_bottom.set_xlabel('time, ms')
 
         # Plot the top (frequency domain)
         if self.seqType_idx in [0, 1]: # SE GRE
@@ -431,7 +446,6 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
         fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(dclip))))
         self.curve_top, = self.axes_top.plot(freqaxis, fft_mag, linewidth=0.5)
-        self.axes_top.set_xlabel('frequency, Hz')
 
         # Update the figure
         self.canvas2.draw()
@@ -481,7 +495,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
 
                 self.img = img
                 self.axes_image.imshow(self.img, cmap='gray')
-                self.axes_image.set_title('image')
+                # self.axes_image.set_title('image')
+
                 self.canvas.draw()
 
             else: # tse
@@ -536,7 +551,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 img = np.abs(Y[:, cntr - int(self.num_pe / 2 - 1):cntr + int(self.num_pe / 2 + 1)])
                 self.img = img
                 self.axes_image.imshow(self.img, cmap='gray')
-                self.axes_image.set_title('image')
+                #self.axes_image.set_title('image')
+
                 self.canvas.draw()
 
         elif self.seqType_idx in [5, 6]:  # epi
@@ -572,7 +588,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             # self.axes_k_pha.set_title('image recon by even lines')
 
             self.axes_image.imshow(img, cmap='gray')
-            self.axes_image.set_title('image recon by all lines')
+            # self.axes_image.set_title('image recon by all lines')
+
             self.canvas.draw()
 
             self.images_received += 1
@@ -621,7 +638,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             self.freqValue.setEnabled(True)
             self.seqType.setEnabled(True)
             self.npe.setEnabled(True)
-            self.etlComboBox.setEnabled(True)
+            # self.etlComboBox.setEnabled(True)
             self.stopButton.setEnabled(True)
             self.uploadSeqButton.setEnabled(True)
             self.acquireButton.setEnabled(True)
