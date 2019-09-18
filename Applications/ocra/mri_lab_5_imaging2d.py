@@ -65,13 +65,13 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                                'EPI', 'EPI (grad_y off)',
                                'Spiral'])
         # self.seqType.currentIndexChanged.connect(self.seq_type_customized_display)
-        # self.etlComboBox.addItems(['2', '4', '8', '16', '32'])
-        # self.etlLabel.setVisible(False)
-        # self.etlComboBox.setVisible(False)
+        self.etlComboBox.addItems(['2', '4', '8', '16', '32'])
+        self.etlLabel.setVisible(False)
+        self.etlComboBox.setVisible(False)
         self.uploadSeqButton.clicked.connect(self.upload_seq)
 
         # setup imaging parameters
-        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256'])
+        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256', '512'])
         # self.npe.currentIndexChanged.connect(self.set_readout_size)
         # self.size1.setText(self.npe.currentText())
         # self.size1.setReadOnly(True)
@@ -135,8 +135,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.images_received = 0
         self.num_pe = 0
         self.num_TR = 0  # num_TR = num_pe/etl (echo train length)
-        # self.etl = 2
-        # self.etl_idx = 0
+        self.etl = 2
+        self.etl_idx = 0
         self.npe_idx = 0
         self.seqType_idx = 0
         self.img = []
@@ -175,7 +175,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
     def stop(self):
         print("Stopping MRI_2DImag_Widget")
 
-        self.uploadSeq.setText('none')
+        # self.uploadSeq.setText('none')
 
         # send 0 as signal to stop MRI_2DImag_Widget
         gsocket.write(struct.pack('<I', 0))
@@ -192,6 +192,17 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         gsocket.readyRead.disconnect()
 
         self.idle = True
+
+        self.axes_image.clear()
+        self.axes_image.axis('off')
+        self.figure.set_tight_layout(True)
+        self.axes_bottom.clear()
+        self.axes_top.clear()
+        self.figure2.set_tight_layout(True)
+        self.canvas.draw()
+        self.canvas2.draw()
+
+        self.progressBar.setValue(0)
 
 
     def set_freq(self, freq):
@@ -234,22 +245,20 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         gsocket.write(btye_array)
         print("Sent byte array")
 
-    '''
     def seq_type_customized_display(self):
         self.seqType_idx = self.seqType.currentIndex()
         if self.seqType_idx != 4: # not tse
-            # self.etlLabel.setVisible(False)
-            # self.etlComboBox.setVisible(False)
+            self.etlLabel.setVisible(False)
+            self.etlComboBox.setVisible(False)
         else: # tse
-            # self.etlLabel.setVisible(True)
-            # self.etlComboBox.setVisible(True)
+            self.etlLabel.setVisible(True)
+            self.etlComboBox.setVisible(True)
         if self.seqType_idx in [5, 6, 7]: # epi or spiral
             # self.size1.setEnabled(False)
             self.npe.setEnabled(False)
         else:
             # self.size1.setEnabled(True)
             self.npe.setEnabled(True)
-    '''
 
     def acquire(self):
         if self.uploadSeq.text() == 'none':
@@ -279,13 +288,13 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.num_pe = int(self.npe.currentText())
         self.npe_idx = self.npe.currentIndex()
         self.seqType_idx = self.seqType.currentIndex()
-        # self.etl = int(self.etlComboBox.currentText())
-        # self.etl_idx = self.etlComboBox.currentIndex()
+        self.etl = int(self.etlComboBox.currentText())
+        self.etl_idx = self.etlComboBox.currentIndex()
 
         if self.seqType_idx != 4: # not tse
             self.num_TR = self.num_pe
-        # else:  # tse
-            # self.num_TR = int(self.num_pe / self.etl)
+        else:  # tse
+            self.num_TR = int(self.num_pe / self.etl)
 
         self.kspace_full = np.matrix(np.zeros((self.num_TR, 50000), dtype=np.complex64))
 
@@ -303,18 +312,18 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             gsocket.write(
                 struct.pack('<I', 2 << 28 | 0 << 24 | self.npe_idx << 4 | self.seqType_idx))
             print("Acquiring data = {} x {}".format(self.num_pe, self.num_pe))
-        '''
+
         else:  # tse
             gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24 | self.etl_idx << 8 | self.npe_idx << 4 | self.seqType_idx))
             print("Acquiring data = {} x {} echo train length = {}".format(self.num_pe, self.num_pe, self.etl))
-        '''
+
         # enable/disable GUI elements
         self.freqValue.setEnabled(False)
         self.seqType.setEnabled(False)
         self.npe.setEnabled(False)
-        # self.etlComboBox.setEnabled(False)
+        self.etlComboBox.setEnabled(False)
         self.startButton.setEnabled(False)
-        self.stopButton.setEnabled(False)
+        self.stopButton.setEnabled(True)
         self.uploadSeqButton.setEnabled(False)
         self.acquireButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
@@ -347,7 +356,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ))
 
         offsetZ2 = int(self.shim_z2.text())
-        if offsetZ > 0:
+        if offsetZ2 > 0:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | offsetZ2))
         else:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1 << 20 | -offsetZ2))
@@ -638,7 +647,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             self.freqValue.setEnabled(True)
             self.seqType.setEnabled(True)
             self.npe.setEnabled(True)
-            # self.etlComboBox.setEnabled(True)
+            self.etlComboBox.setEnabled(True)
             self.stopButton.setEnabled(True)
             self.uploadSeqButton.setEnabled(True)
             self.acquireButton.setEnabled(True)
