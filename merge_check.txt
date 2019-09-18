@@ -1,7 +1,6 @@
 
 --File definitely need to be checked--
-Applications/ocra/server/server_config.h *updated to match mri_lab_tw.c but I have not incorporated it into that file yet*
-HDL/cores/axi_dac_spi_sequencer_v1_1 or axi_dac_spi_sequencer_v1_0
+Applications/ocra/server/server_config.h *updated to match mri_lab_tw.c*
 
 --Files releated to OS/booting (do we want this here?)--
 HDL/patches/devicetree.patch
@@ -25,7 +24,6 @@ HDL/projects/ocra_mri/server-c++/pulsed_nmr_server.cpp
 --Files duplicated for each hardware--
 HDL/cfg/ports.tcl
 HDL/cfg/ports.xdc
---set_property DRIVE ****4 or 8*** [get_ports {led_o[*]}
 HDL/projects/ocra_mri/block_design.tcl ** many differences, not sure if significant **
 HDL/projects/ocra_mri/nco.tcl
 HDL/projects/ocra_mri/rx2.tcl
