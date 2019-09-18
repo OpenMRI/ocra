@@ -14,12 +14,17 @@ ifeq ($(PART_VARIANT),Z20)
 PART = xc7z020clg400-1
 HWNAME = stemlab_sdr
 HWNAME2 = stemlab-sdr
+
+
+CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
+	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
+        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_$(HWNAME)_adc_v1_0 axis_$(HWNAME)_dac_v1_0 \
+        axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
+        axi_sts_register_v1_0
 else
 PART = xc7z010clg400-1
 HWNAME = red_pitaya
 HWNAME2 = red-pitaya
-endif
-PROC = ps7_cortexa9_0
 
 
 CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
@@ -27,6 +32,8 @@ CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
         axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_$(HWNAME)_adc_v2_0 axis_$(HWNAME)_dac_v1_0 \
         axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
+endif
+PROC = ps7_cortexa9_0
 
 CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0
 
