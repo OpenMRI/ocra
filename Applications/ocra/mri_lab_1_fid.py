@@ -26,22 +26,21 @@ from matplotlib.figure import Figure
 from globalsocket import gsocket
 from basicpara import parameters
 from assembler import Assembler
-from flipangleDialog import FlipangleDialog
 
 # load .ui files
 MRI_FID_Widget_Form, MRI_FID_Widget_Base = loadUiType('ui/mri_fid_Widget.ui')
-
+Flipangle_Dialog_Form, Flipangle_Dialog_Base = loadUiType('ui/flipangleDialog.ui')
 
 # MRI Lab widget 1: FID
 class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
-    def __init__(self):
-        super(MRI_FID_Widget, self).__init__()
+    def __init__(self, parent=None):
+        super(MRI_FID_Widget, self).__init__(parent)
         self.setupUi(self)
 
         self.idle = True  # state variable: True-stop, False-start
         self.seq_filename = 'sequence/basic/fid_default.txt'
 
-        self.flipangleDialog = FlipangleDialog()
+        self.flipangleTool = FlipangleDialog(self)
 
 
         # connect basic GUI signals
@@ -98,11 +97,31 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.zeroShimButton.setEnabled(False)
         self.openFlipangletoolBtn.setEnabled(False)
 
+        self.single_acq_flag = False
+
         # setup buffer and offset for incoming data
         self.size = 50000  # total data received (defined by the server code)
         self.buffer = bytearray(8 * self.size)
         self.offset = 0
         self.data = np.frombuffer(self.buffer, np.complex64)
+
+        # Declare global Variables
+        self.data_idx = []
+        self.mag_t = []
+        self.real_t = []
+        self.imag_t = []
+        self.time_axis = []
+        self.dclip = []
+        self.freqaxis = []
+        self.fft_mag = []
+
+        self.peak_value = 0
+        self.max_value = 0
+        self.fwhm_value = 0
+        self.noise_bound_low = 0
+        self.noise_bound_high = 0
+        self.snr_value = 0
+        self.center_freq = 0
 
         # setup display
         self.figure = Figure()
@@ -207,16 +226,11 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
     def open_flipangleDialog(self):
 
-        # gsocket.readyRead.connect(self.read_data)
-        # if gsocket.readyRead():
-        #    print("\tgsocket ready.")
-        # if not gsocket.readyRead():
-        #    print("\tgsocket not ready.")
-
-        self.flipangleDialog.show()
+        self.flipangleTool.show()
 
     def acquire(self):
-        gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
+        # gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
+        self.single_acquisition()
         print("\tAcquiring data.")
 
     def set_at(self, at):
@@ -290,9 +304,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.gradOffset_y.setValue(parameters.get_grad_offset_y())
         self.gradOffset_z.setValue(parameters.get_grad_offset_z())
         self.gradOffset_z2.setValue(parameters.get_grad_offset_z2())
-        # self.horizontalSlider_x.setValue(parameters.get_grad_offset_x())
-        # self.horizontalSlider_y.setValue(parameters.get_grad_offset_y())
-        # self.horizontalSlider_z.setValue(parameters.get_grad_offset_z())
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
@@ -349,7 +360,13 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 ))
         print("\tAcquiring data.")
 
-    # Disconnect auto-read: gsocket.readyRead.disconnect(self.read_data)
+    def single_acquisition(self):
+        print("\tSingle acquisition start.")
+        self.single_acq_flag = True
+        gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
+
+
+    # Disconnect auto-read: gsocket.readyRead.disconnect()
     def read_data(self):
         # wait for enough data and read to self.buffer
         size = gsocket.bytesAvailable()
@@ -364,7 +381,65 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             self.buffer[self.offset:8 * self.size] = gsocket.read(8 * self.size - self.offset)
             self.offset = 0
 
+        self.process_readout()
+        self.analytics()
         self.display_data()
+
+    def process_readout(self):
+        # Get magnitude, real and imaginary part of data
+        data = self.data
+        mag = np.abs(data)
+        real = np.real(data)
+        imag = np.imag(data)
+        time = 20
+
+        self.data_idx = int(time * 250)
+        self.mag_t = mag[0:self.data_idx]
+        self.real_t = real[0:self.data_idx]
+        self.imag_t = imag[0:self.data_idx]
+        self.time_axis = np.linspace(0, time, self.data_idx)
+        self.dclip = data[0:self.data_idx];
+        self.freqaxis = np.linspace(-125000, 125000, self.data_idx)  # 5000 points ~ 20ms
+        self.fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(self.dclip))))
+
+        print("\tReadout processed.")
+
+    def analytics(self):
+
+        self.peak_value = round(np.max(self.fft_mag), 2)
+        self.peak.setText(str(self.peak_value))
+
+        # Calculate fwhm
+        max_value = np.max(self.fft_mag)
+        self.max_index = np.argmax(self.fft_mag)
+        bound_high = self.max_index
+        bound_low = self.max_index
+        while 1:
+            if self.fft_mag[bound_low] < 0.5 * max_value:
+                break
+            bound_low = bound_low - 1
+        while 1:
+            if self.fft_mag[bound_high] < 0.5 * max_value:
+                break
+            bound_high = bound_high + 1
+
+        self.fwhm_value = bound_high - bound_low
+        self.fwhm.setText(str(self.fwhm_value))
+
+        # Calculate the SNR value inside a peak window
+        peak_window = self.fwhm_value*5
+        self.noise_bound_low = int(self.max_index - peak_window/2)
+        self.noise_bound_high = int(self.max_index + peak_window/2)
+        # Join noise outside peak window, calculate std. dev. and snr = peak/std.dev.
+        noise = np.concatenate((self.fft_mag[0:self.noise_bound_low], self.fft_mag[self.noise_bound_high:]))
+        self.snr_value = round(self.peak_value/np.std(noise),2)
+        # print("snr_value: ", snr_value)
+        self.snr.setText(str(self.snr_value))
+
+        # Calculate center frequency
+        self.center_freq = parameters.get_freq() + ((self.max_index - 5000/2) * 250000 / 5000 ) / 1.0e6
+        # 250000 sampling rate, 5000 number of samples for FFT
+        self.centerFreq.setText(str(self.center_freq))
 
     def display_data(self):
         # Clear the plots: bottom-time domain, top-frequency domain
@@ -381,38 +456,46 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.figure.set_tight_layout(True)
 
         # Get magnitude, real and imaginary part of data
+
+
+        '''
         data = self.data
         mag = np.abs(data)
         real = np.real(data)
         imag = np.imag(data)
-
+        '''
         # Plot the bottom (time domain): display time signal from 0~21ms [0~5250]
+        '''
         time = 20
         data_idx = int(time * 250)
         mag_t = mag[0:data_idx]
         real_t = real[0:data_idx]
         imag_t = imag[0:data_idx]
         time_axis = np.linspace(0, time, data_idx)
-        self.curve_bottom = self.axes_bottom.plot(time_axis, mag_t, linewidth=1)   # blue
-        self.curve_bottom = self.axes_bottom.plot(time_axis, real_t, linewidth=1)  # red
-        self.curve_bottom = self.axes_bottom.plot(time_axis, imag_t, linewidth=1)  # green
+        '''
+        self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.mag_t, linewidth=1)   # blue
+        self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.real_t, linewidth=1)  # red
+        self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.imag_t, linewidth=1)  # green
         self.axes_bottom.set_xlabel('time [ms]')
 
         # Plot the top (frequency domain): use signal from 0.5~20.5ms: first 0.5ms junk
         # update: the junk is already taken care of by the sequence timing
+        '''
         dclip = data[0:data_idx];
         freqaxis = np.linspace(-125000, 125000, data_idx)  # 5000 points ~ 20ms
         fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(dclip))))
+        '''
         if not self.zoomCheckBox.isChecked(): # non zoomed
             self.curve_top = self.axes_top.plot(
-                freqaxis[int(data_idx / 2 - data_idx / 10):int(data_idx / 2 + data_idx / 10)],
-                fft_mag[int(data_idx / 2 - data_idx / 10):int(data_idx / 2 + data_idx / 10)], linewidth=1)
+                self.freqaxis[int(self.data_idx/2 - self.data_idx/10):int(self.data_idx/2 + self.data_idx/10)],
+                self.fft_mag[int(self.data_idx/2 - self.data_idx/10):int(self.data_idx/2 + self.data_idx/10)], linewidth=1)
         else: # zoomed
             self.curve_top = self.axes_top.plot(
-                freqaxis[int(data_idx / 2 - data_idx / 100):int(data_idx / 2 + data_idx / 100)],
-                fft_mag[int(data_idx / 2 - data_idx / 100):int(data_idx / 2 + data_idx / 100)], linewidth=1)
+                self.freqaxis[int(self.data_idx/2 - self.data_idx/100):int(self.data_idx/2 + self.data_idx/100)],
+                self.fft_mag[int(self.data_idx/2 - self.data_idx/100):int(self.data_idx/2 + self.data_idx/100)], linewidth=1)
         self.axes_top.set_xlabel('frequency [Hz]')
 
+        '''
         # Data Analysis
         # Calculate and display properties of the frequency
         peak_value = round(np.max(fft_mag), 2)
@@ -444,26 +527,94 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         snr_value = round(peak_value/np.std(noise),2)
         # print("snr_value: ", snr_value)
         self.snr.setText(str(snr_value))
+        '''
 
         # Hightlight the peak window
         if self.peakWindowCheckBox.isChecked():
 
             print("\tPeak window checked.")
 
-            if int(noise_bound_low) >= int(data_idx / 2 - data_idx / 10) and int(noise_bound_high) <= int(data_idx / 2 + data_idx / 10):
+            if int(self.noise_bound_low) >= int(self.data_idx/2 - self.data_idx/10) and int(self.noise_bound_high) <= int(self.data_idx/2 + self.data_idx/10):
                 print("\tPeak inside the view.")
-                self.curve_top = self.axes_top.plot(freqaxis[noise_bound_low:noise_bound_high], fft_mag[noise_bound_low:noise_bound_high], linewidth=1, linestyle="--")
-            elif max_index < int(data_idx / 2 - data_idx / 10):
+                self.curve_top = self.axes_top.plot(self.freqaxis[self.noise_bound_low:self.noise_bound_high], self.fft_mag[self.noise_bound_low:self.noise_bound_high], linewidth=1, linestyle="--")
+            elif self.max_index < int(self.data_idx/2 - self.data_idx/10):
                 print("\tPeak outside the view.")
-                self.axes_top.text(freqaxis[int(data_idx/2-data_idx/10)],0.001 ,"<",fontsize=20)
-            elif max_index > int(data_idx / 2 + data_idx / 10):
+                self.axes_top.text(self.freqaxis[int(self.data_idx/2-self.data_idx/10)],0.001 ,"<",fontsize=20)
+            elif self.max_index > int(self.data_idx/2 + self.data_idx/10):
                 print("\tPeak outside the view.")
-                self.axes_top.text(freqaxis[int(data_idx/2+data_idx/10)],0.001 ,">",fontsize=20)
-
+                self.axes_top.text(self.freqaxis[int(self.data_idx/2+self.data_idx/10)],0.001 ,">",fontsize=20)
+        '''
         # Calculate center frequency
         self.center_freq = parameters.get_freq() + ((max_index - 5000/2) * 250000 / 5000 ) / 1.0e6
         # 250000 sampling rate, 5000 number of samples for FFT
         self.centerFreq.setText(str(self.center_freq))
-
+        '''
         # Update the figure
         self.canvas.draw()
+
+        if self.single_acq_flag == True:
+            self.single_acq_flag = False
+
+
+
+class FlipangleDialog(Flipangle_Dialog_Base, Flipangle_Dialog_Form):
+    def __init__(self, parent=None):
+        super(FlipangleDialog, self).__init__(parent)
+        self.setupUi(self)
+        # setup closeEvent
+        self.ui = loadUi('ui/flipangleDialog.ui')
+        self.ui.closeEvent = self.closeEvent
+
+        self.fid = parent
+
+        # Setup Buttons
+        # self.uploadSeq.clicked.connect(self.upload_pulse)
+        # self.findCenterBtn.clicked.connect(self.find_centerFreq)
+        # self.acceptCenterBtn.clicked.connect(self.confirm_centerFreq)
+        # self.applyAtBtn.clicked.connect(self.apply_AT)
+
+        # Setup line edit for estimated frequency
+        # self.estimationValue.valueChanged(self.setEstFreqValue())
+        # self.estimationValue.setKeyboardTracking(False)
+
+        # Setup line edit as read only
+        self.pulsePath.setReadOnly(True)
+        self.centerFreqValue.setReadOnly(True)
+        self.sigValue.setReadOnly(True)
+        self.atValue.setReadOnly(True)
+
+        # Disable UI elements
+        self.uploadSeq.setEnabled(False)
+        self.estimatedValue.setEnabled(True)
+        self.findCenterBtn.setEnabled(False)
+        self.acceptCenterBtn.setEnabled(False)
+        self.applyAtBtn.setEnabled(False)
+
+        self.estimatedValue.setValue(self.fid.freqValue.value())
+
+        '''
+        def upload_pulse(self):
+            dialog = QFileDialog()
+            fname = dialog.getOpenFileName(None, "Import Pulse Sequence", "", "Text files (*.txt)")
+            print("\tUploading 90 degree flip sequence to server.")
+            try:
+                self.send_pulse(fname[0])
+                self.uploadSeq.setText(fname[0])
+            except IOError as e:
+                print("\tError: required txt file doesn't exist.")
+                return
+                print("\tUploaded successfully to server.")
+
+        def find_centerFreq(self):
+            self.estimationValue.setEnabled(False)
+            parameters.set_freq(self.estimationValue)
+            gsocket.write(struct.pack('<I', 1 << 28 | int(1.0e6 * self.estimationValue)))
+            fid_widget.single_acquisition()
+            print(fid_widget.single_acq_flag)
+            while True:
+                if .single_acq_flag == False:
+                    print("\tSingle acquisition completed.")
+                    self.estimationValue.setEnabled(True)
+                else:
+                    continue
+        '''
