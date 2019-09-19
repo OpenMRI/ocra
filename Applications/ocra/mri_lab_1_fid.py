@@ -26,6 +26,7 @@ from matplotlib.figure import Figure
 from globalsocket import gsocket
 from basicpara import parameters
 from assembler import Assembler
+from flipangleDialog import FlipangleDialog
 
 # load .ui files
 MRI_FID_Widget_Form, MRI_FID_Widget_Base = loadUiType('ui/mri_fid_Widget.ui')
@@ -38,12 +39,15 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.setupUi(self)
 
         self.idle = True  # state variable: True-stop, False-start
-
         self.seq_filename = 'sequence/basic/fid_default.txt'
+
+        self.flipangleDialog = FlipangleDialog()
+
 
         # connect basic GUI signals
         self.startButton.clicked.connect(self.start)
         self.stopButton.clicked.connect(self.stop)
+        self.openFlipangletoolBtn.clicked.connect(self.open_flipangleDialog)
         self.acquireButton.clicked.connect(self.acquire)
 
         # setup frequency related GUI
@@ -92,6 +96,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.saveShimButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
         self.zeroShimButton.setEnabled(False)
+        self.openFlipangletoolBtn.setEnabled(False)
 
         # setup buffer and offset for incoming data
         self.size = 50000  # total data received (defined by the server code)
@@ -144,6 +149,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.saveShimButton.setEnabled(True)
         self.loadShimButton.setEnabled(True)
         self.zeroShimButton.setEnabled(True)
+        self.openFlipangletoolBtn.setEnabled(True)
 
         # setup global socket for receive data
         gsocket.readyRead.connect(self.read_data)
@@ -177,6 +183,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.saveShimButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
         self.zeroShimButton.setEnabled(False)
+        self.openFlipangletoolBtn.setEnabled(False)
 
         # Disconnect global socket
         gsocket.readyRead.disconnect()
@@ -197,6 +204,16 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         if self.center_freq != 0 :
             self.freqValue.setValue(self.center_freq)
             print("\tCenter frequency applied.")
+
+    def open_flipangleDialog(self):
+
+        # gsocket.readyRead.connect(self.read_data)
+        # if gsocket.readyRead():
+        #    print("\tgsocket ready.")
+        # if not gsocket.readyRead():
+        #    print("\tgsocket not ready.")
+
+        self.flipangleDialog.show()
 
     def acquire(self):
         gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
@@ -332,7 +349,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 ))
         print("\tAcquiring data.")
 
-
+    # Disconnect auto-read: gsocket.readyRead.disconnect(self.read_data)
     def read_data(self):
         # wait for enough data and read to self.buffer
         size = gsocket.bytesAvailable()
@@ -348,7 +365,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             self.offset = 0
 
         self.display_data()
-
 
     def display_data(self):
         # Clear the plots: bottom-time domain, top-frequency domain

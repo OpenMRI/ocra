@@ -126,7 +126,7 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="startStopLayout">
         <item>
          <spacer name="horizontalSpacer_6">
           <property name="orientation">
@@ -200,25 +200,15 @@
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="6">
+       <layout class="QGridLayout" name="setupValuesLayout">
+        <item row="0" column="2">
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>MHz</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QLabel" name="freqLabel">
-          <property name="text">
-           <string>Frequency</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3" colspan="3">
+        <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="freqValue">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -251,6 +241,42 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="freqLabel">
+          <property name="text">
+           <string>Frequency</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Flipangle Config</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="enterFlipangleBtn">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Open</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -280,48 +306,8 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="1" column="1">
-         <widget class="QComboBox" name="seqType">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>30</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QPushButton" name="uploadSeqButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>80</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>upload</string>
-          </property>
-         </widget>
-        </item>
+       <layout class="QFormLayout" name="seqTypeLayout">
         <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Type:</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="0">
          <widget class="QLabel" name="uploadSeqLabel">
           <property name="minimumSize">
            <size>
@@ -347,7 +333,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="1" column="1">
          <widget class="QLineEdit" name="uploadSeq">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -375,7 +361,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QComboBox" name="npe">
@@ -411,7 +397,7 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="matSizeLabel">
           <property name="minimumSize">
            <size>
@@ -437,6 +423,64 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Type:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QComboBox" name="seqType">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>50</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="uploadSeqButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>upload</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </item>
       <item>
@@ -453,7 +497,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QGridLayout" name="displayShimLayout">
         <item row="1" column="4">
          <widget class="QLineEdit" name="shim_z2">
           <property name="sizePolicy">
@@ -671,7 +715,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_6">
+       <layout class="QGridLayout" name="interactShimLayout">
         <item row="0" column="3">
          <spacer name="horizontalSpacer_4">
           <property name="orientation">
@@ -739,7 +783,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="progressLayout">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
@@ -831,7 +875,7 @@ color: rgb(0, 0, 0);
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="plotLayout_2">
         <item>
          <widget class="QWidget" name="plotWidget" native="true">
           <property name="sizePolicy">
