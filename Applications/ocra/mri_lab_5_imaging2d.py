@@ -44,6 +44,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.stopButton.clicked.connect(self.stop)
         self.freqValue.valueChanged.connect(self.set_freq)
         self.acquireButton.clicked.connect(self.acquire)
+        # self.enterFlipangleBtn.clicked.connect(self.openFlipangleDialog)
         self.progressBar.setValue(0)
 
         # setup gradient offsets related GUI
@@ -71,7 +72,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.uploadSeqButton.clicked.connect(self.upload_seq)
 
         # setup imaging parameters
-        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256', '512'])
+        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256'])
         # self.npe.currentIndexChanged.connect(self.set_readout_size)
         # self.size1.setText(self.npe.currentText())
         # self.size1.setReadOnly(True)
@@ -83,6 +84,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.acquireButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
         self.zeroShimButton.setEnabled(False)
+        self.enterFlipangleBtn.setEnabled(False)
 
         # setup buffer and offset for incoming data
         self.size = 50000  # total data received (defined by the server code)
@@ -164,6 +166,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.acquireButton.setEnabled(True)
         self.loadShimButton.setEnabled(True)
         self.zeroShimButton.setEnabled(True)
+        # self.enterFlipangleBtn.setEnabled(True)
 
         # setup global socket for receive data
         gsocket.readyRead.connect(self.read_data)
@@ -187,6 +190,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.acquireButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
         self.zeroShimButton.setEnabled(False)
+        self.enterFlipangleBtn.setEnabled(False)
 
         # Disconnect global socket
         gsocket.readyRead.disconnect()
@@ -203,6 +207,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.canvas2.draw()
 
         self.progressBar.setValue(0)
+
+        # Reset buffer
 
 
     def set_freq(self, freq):
@@ -328,6 +334,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.acquireButton.setEnabled(False)
         self.loadShimButton.setEnabled(False)
         self.zeroShimButton.setEnabled(False)
+        self.enterFlipangleBtn.setEnabled(False)
 
 
     def load_shim(self):
@@ -614,6 +621,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             self.acquireButton.setEnabled(True)
             self.loadShimButton.setEnabled(True)
             self.zeroShimButton.setEnabled(True)
+            # self.enterFlipangleBtn.setEnabled(True)
             return
 
         elif self.seqType_idx == 7: # spiral (recon not included)
@@ -630,6 +638,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
             self.acquireButton.setEnabled(True)
             self.loadShimButton.setEnabled(True)
             self.zeroShimButton.setEnabled(True)
+            # self.enterFlipangleBtn.setEnabled(True)
             return
 
 
