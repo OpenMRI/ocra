@@ -125,6 +125,9 @@ devicetree.dtb: tmp/$(NAME).tree/system.dts
 ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
 
+shim_controller.dtbo: tmp/$(NAME).tree/system.dts
+	dtc -O dtb -o tmp/shim_controller.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
+
 tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/core_pavel.tcl -tclargs $* $(PART)

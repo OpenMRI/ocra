@@ -3,7 +3,7 @@
 
 # Create xlslice
 cell xilinx.com:ip:xlslice:1.0 slice_0 {
-  DIN_WIDTH 8 DIN_FROM 2 DIN_TO 2 DOUT_WIDTH 1
+  DIN_WIDTH 32 DIN_FROM 0 DIN_TO 0 DOUT_WIDTH 1
 }
 
 # Create xlslice
@@ -34,9 +34,9 @@ set_property -dict [list CONFIG.CONST_WIDTH {14} CONFIG.CONST_VAL {100}] [get_bd
 connect_bd_net [get_bd_pins xlconstant_0/dout] [get_bd_pins spi_sequencer_0/cfg_data]
 
 # Make a constant setting the gradient DAC offset to 0
-#create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_1
-#set_property -dict [list CONFIG.CONST_WIDTH {14} CONFIG.CONST_VAL {0}] [get_bd_cells xlconstant_1]
-#connect_bd_net [get_bd_pins xlconstant_1/dout] [get_bd_pins spi_sequencer_0/current_offset]
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_1
+set_property -dict [list CONFIG.CONST_WIDTH {14} CONFIG.CONST_VAL {0}] [get_bd_cells xlconstant_1]
+connect_bd_net [get_bd_pins xlconstant_1/dout] [get_bd_pins spi_sequencer_0/current_offset]
 
 # Hookup the SPI stuff
 # For the shim controller we are using this pinout

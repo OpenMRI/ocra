@@ -80,9 +80,26 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE  64K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
 set_property OFFSET 0x40060000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
 
+# Create an AXI bus config register
+# this should not be needed at all, but makes it easy right now to provide some
+# triggers
+cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
+  CFG_DATA_WIDTH 32
+  AXI_ADDR_WIDTH 32
+  AXI_DATA_WIDTH 32
+}
+
+# Create all required interconnections
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins cfg_0/S_AXI]
+
+set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
+set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 
 # the gradient DAC trigger pulse
-# connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins shim_dac_0/slice_0/Din]
+connect_bd_net [get_bd_pins cfg_0/cfg_data] [get_bd_pins shim_dac_0/slice_0/Din]
 
 # The RAM for the gradients should not have wait states?
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memory_0]
@@ -113,4 +130,5 @@ create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 
 # connect to pins
 connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]
-
+# make a copy on the positive port as well for scoping (09/24/2019 TW)
+connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]

@@ -521,56 +521,61 @@ module axi_four_ltc2656_spi #
    
    assign gradient_update_clock = (gradient_update_clock_counter == 16'd1430);
 
+   reg lclk_reg;
+   reg [7:0] aclk_counter;
+
+   wire      lclk;
+   
+   assign lclk = lclk_reg;
+   
+   always @(posedge aclk)
+     begin
+	if(~aresetn)
+	  begin
+	     lclk_reg <= 0;
+	     aclk_counter <= 8'd0;
+	  end
+	else
+	  begin
+	     if(aclk_counter == 10)
+	       begin
+		  lclk_reg <= ~lclk_reg;
+		  aclk_counter <= 0;
+	       end
+	     else
+	       begin
+		  aclk_counter <= aclk_counter + 8'd1;
+	       end
+	  end // else: !if(~aresetn)
+     end // always @ (posedge aclk)
+   
    // this block just deals with the SPI data transfer out (serializer)
    always @(posedge aclk)
      begin
 	if(~aresetn)
 	  begin
 	     spi_data_regx <= 24'd0;
-	     spi_data_regy <= 24'd0;
-	     spi_data_regz <= 24'd0;
-	     spi_data_regz2 <= 24'd0;
-	     
 	     spi_transfer_out_regx <= 1'b0;
-	     spi_transfer_out_regy <= 1'b0;
-	     spi_transfer_out_regz <= 1'b0;
-	     spi_transfer_out_regz2 <= 1'b0;
 	  end
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
 	       3'd1:
 		 begin
-		    // For 18 bit go with
-		    // spi_data_reg <= {4'b0001,spi_data_val[17:0],2'b00};
-		    
-		    //spi_data_regx <= {4'b0001,16'h5555,4'b0000};
 		    spi_data_regx <= bram_port0_rddata[23:0];
-		    //spi_data_regy <= bram_porty_rddata[23:0];
-		    //spi_data_regz <= bram_portz_rddata[23:0];
-		    //spi_data_regz2 <= bram_portz2_rddata[23:0];
-		    
 		    spi_transfer_out_regx <= 1'b0;
-		    spi_transfer_out_regy <= 1'b0;
-		    spi_transfer_out_regz <= 1'b0;
-		    spi_transfer_out_regz2 <= 1'b0;
 		 end // case: 3'd1
 	       
 	       3'd2:
 		 begin
-		    if(serial_clock_counter == 4'd3)
+		    if(serial_clock_counter == 4'd0) // update before clock rises
 		      begin
 			 // update on a rising clock only
 			 if(serial_clock_reg == 0)
 			   begin
 			      spi_transfer_out_regx <= spi_data_regx[23];
 			      spi_data_regx <= {spi_data_regx[22:0],1'b0};
-			      spi_transfer_out_regy <= spi_data_regy[23];
-			      spi_data_regy <= {spi_data_regy[22:0],1'b0};
-			      spi_transfer_out_regz <= spi_data_regz[23];
-			      spi_data_regz <= {spi_data_regz[22:0],1'b0};
-			      spi_transfer_out_regz2 <= spi_data_regz2[23];
-			      spi_data_regz2 <= {spi_data_regz2[22:0],1'b0};
+		       
 			   end
 			 else
 			   begin
@@ -594,7 +599,7 @@ module axi_four_ltc2656_spi #
 			 spi_data_regz <= spi_data_regz;
 			 spi_transfer_out_regz2 <= spi_transfer_out_regz2;
 			 spi_data_regz2 <= spi_data_regz2;
-		      end // if (serial_clock_counter == 4'd3)
+		      end // if (serial_clock_counter == 4'd1)
 		 end
 	       
 	       default:
@@ -711,15 +716,14 @@ module axi_four_ltc2656_spi #
 		    spi_first_cmd_reg <= 1'b0;
 		    syncn_reg <= 1'b1;
 		    ldacn_reg <= 1'b1;
-		    // start with a sign change
 		    serial_clock_reg <= 1'b0;
-		    serial_clock_counter <= 4'd3;
+		    serial_clock_counter <= 4'd0; // start with clock low
 		    serial_fe_counter <= 6'd0;
 		    spi_transfer_counter_reg <= 8'd0;
 		 end
 	       3'd2:
 		 begin
-		    if(spi_transfer_counter_reg == 8'd192)
+		    if(spi_transfer_counter_reg == 8'd193) // this is a hack to sneak in 7ns more
 		      begin
 			 spi_sequencer_state_reg <= 3'd3;
 			 spi_transfer_counter_reg <= 8'd0;
@@ -748,7 +752,7 @@ module axi_four_ltc2656_spi #
 			 spi_sequencer_state_reg <= 3'd2;
 		      
 			 // serial clock generation in this state
-			 if(serial_clock_counter == 4'd3)
+			 if(serial_clock_counter == 4'd1)
 			   begin
 			      serial_clock_counter <= 4'd0;
 			      serial_clock_reg <= ~serial_clock_reg;
@@ -773,7 +777,6 @@ module axi_four_ltc2656_spi #
 	       3'd3:
 		 begin
 		    // deal with the wait for ldac      
-		    //if(gradient_update_clock_counter == 40'd3571428) //16'd1430)
 		    if(gradient_update_clock_counter == 16'd1430)
 		       begin
 			 ldacn_reg <= 1'b0;
