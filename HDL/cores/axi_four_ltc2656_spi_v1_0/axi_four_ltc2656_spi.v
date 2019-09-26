@@ -723,7 +723,9 @@ module axi_four_ltc2656_spi #
 		 end
 	       3'd2:
 		 begin
-		    if(spi_transfer_counter_reg == 8'd193) // this is a hack to sneak in 7ns more
+		    // Just like in the next comment block, counting the transfer counter and the serial_fe_counter
+		    // separately is nothing but trouble, and should be removed asap.
+		    if(spi_transfer_counter_reg == 8'd96)
 		      begin
 			 spi_sequencer_state_reg <= 3'd3;
 			 spi_transfer_counter_reg <= 8'd0;
