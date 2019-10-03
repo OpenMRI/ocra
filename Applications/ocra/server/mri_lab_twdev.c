@@ -2234,7 +2234,8 @@ int main(int argc, char *argv[])
 	gradient_memory_x = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40002000);
 	gradient_memory_y = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40004000);
 	gradient_memory_z = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40006000);
-
+	gradient_memory_z2 = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40008000);
+	
 	printf("Setup standard memory maps !\n"); fflush(stdout);
  
 	//rx_rst = ((uint8_t *)(cfg + 0));
@@ -2391,7 +2392,12 @@ int main(int argc, char *argv[])
       continue;       
     }
 
-    switch( command & 0x0000ffff ) {
+    unsigned int ui_index = command & 0x0000ffff;
+    
+    printf("Entering UI: %d\n", ui_index);
+
+    
+    switch(ui_index) {
     case 1: 
       /* GUI 1 */
       /********************* FID with frequency modification and shimming *********************/
