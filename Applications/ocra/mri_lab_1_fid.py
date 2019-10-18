@@ -3,6 +3,7 @@
 # import general packages
 import sys
 import struct
+import time
 
 # import PyQt5 packages
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
@@ -15,6 +16,7 @@ from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 # import calculation and plot packages
 import numpy as np
 import scipy.io as sp
+from scipy.optimize import curve_fit
 import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
@@ -41,7 +43,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.seq_filename = 'sequence/basic/fid_default.txt'
 
         self.flipangleTool = FlipangleDialog(self)
-
 
         # connect basic GUI signals
         self.startButton.clicked.connect(self.start)
@@ -84,9 +85,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.applyFreqButton.setEnabled(False)
-        # self.horizontalSlider_x.setEnabled(False)
-        # self.horizontalSlider_y.setEnabled(False)
-        # self.horizontalSlider_z.setEnabled(False)
         self.gradOffset_x.setEnabled(False)
         self.gradOffset_y.setEnabled(False)
         self.gradOffset_z.setEnabled(False)
@@ -97,11 +95,9 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.zeroShimButton.setEnabled(False)
         self.openFlipangletoolBtn.setEnabled(False)
 
-        self.single_acq_flag = False
-
         # setup buffer and offset for incoming data
         self.size = 50000  # total data received (defined by the server code)
-        self.buffer = bytearray(8 * self.size)
+        self.buffer = bytearray(8*self.size)
         self.offset = 0
         self.data = np.frombuffer(self.buffer, np.complex64)
 
@@ -141,14 +137,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
         self.canvas = FigureCanvas(self.figure)
         self.plotLayout.addWidget(self.canvas)
-        # create navigation toolbar
-        # self.toolbar = NavigationToolbar(self.canvas, self.plotWidget, False)
-        # remove subplots action (might be useful in the future)
-        # actions = self.toolbar.actions()
-        # self.toolbar.removeAction(actions[7])
-        # self.newLayout.addWidget(self.canvas)
-        # self.plotLayout.addWidget(self.toolbar)
-
 
     def start(self):
         print("Starting MRI_FID_Widget")
@@ -171,6 +159,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.openFlipangletoolBtn.setEnabled(True)
 
         # setup global socket for receive data
+        gsocket.setReadBufferSize(8*self.size)
         gsocket.readyRead.connect(self.read_data)
 
         # send the sequence to the backend
@@ -205,13 +194,13 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.openFlipangletoolBtn.setEnabled(False)
 
         # Disconnect global socket
-        gsocket.readyRead.disconnect()
+        # gsocket.readyRead.disconnect()
 
         self.idle = True
 
-
     def set_freq(self, freq):
-        print("\tSetting frequency.")
+        # Setting frequency without triggering aquisition: parameters.set_freq
+        print("Setting frequency.")
         parameters.set_freq(freq)
         gsocket.write(struct.pack('<I', 1 << 28 | int(1.0e6 * freq)))
         # 2^28 = 268,435,456 for frequency setting
@@ -225,25 +214,24 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print("\tCenter frequency applied.")
 
     def open_flipangleDialog(self):
-
         self.flipangleTool.show()
 
     def acquire(self):
-        # gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
-        self.single_acquisition()
+        gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
         print("\tAcquiring data.")
 
     def set_at(self, at):
-        print("\tSetting attenuation.")
+        # Setting attenuation without triggering aquisition: parameters.set_at
+        print("Setting attenuation.")
         # at = round(at/0.25)*4
         parameters.set_at(at)
         gsocket.write(struct.pack('<I', 3 << 28 | int(at/0.25)))
         if not self.idle:
-            print("\tAquiring data.")
+             print("\tAquiring data.")
 
     def set_grad_offset(self, spinBox):
         if spinBox.objectName() == 'gradOffset_x':
-            print("\tSetting grad offset x.")
+            print("Setting grad offset x.")
             offsetX = self.gradOffset_x.value()
             # self.horizontalSlider_x.setValue(offsetX)
             if offsetX > 0:
@@ -253,7 +241,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_y':
-            print("\tSetting grad offset y.")
+            print("Setting grad offset y.")
             offsetY = self.gradOffset_y.value()
             # self.horizontalSlider_y.setValue(offsetY)
             if offsetY > 0:
@@ -263,7 +251,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_z':
-            print("\tSetting grad offset z.")
+            print("Setting grad offset z.")
             offsetZ = self.gradOffset_z.value()
             # self.horizontalSlider_z.setValue(offsetZ)
             if offsetZ > 0:
@@ -273,7 +261,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print("\tAcquiring data.")
 
         elif spinBox.objectName() == 'gradOffset_z2':
-            print("\tSetting grad offset z2.")
+            print("Setting grad offset z2.")
             offsetZ2 = self.gradOffset_z2.value()
 
             if offsetZ2 > 0:
@@ -283,7 +271,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             print("\tAcquiring data.")
 
         else:
-            print('\tError: set_grad_offset.')
+            print('Error: set_grad_offset.')
             return
 
 
@@ -295,7 +283,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
 
     def load_shim(self):
-        print("\tLoading shim.")
+        print("Loading shim.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
@@ -340,11 +328,11 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 0<<20 ))
         else:
             gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 | 1<<20 ))
-            print("Acquiring data.")
+            print("\tAcquiring data.")
 
 
     def zero_shim(self):
-        print("\tZero shims.")
+        print("Zero shims.")
         self.gradOffset_x.valueChanged.disconnect()
         self.gradOffset_y.valueChanged.disconnect()
         self.gradOffset_z.valueChanged.disconnect()
@@ -360,16 +348,27 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         gsocket.write(struct.pack('<I', 2 << 28 | 5 << 24 ))
         print("\tAcquiring data.")
 
-    def single_acquisition(self):
-        print("\tSingle acquisition start.")
-        self.single_acq_flag = True
-        gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
-
-
-    # Disconnect auto-read: gsocket.readyRead.disconnect()
     def read_data(self):
+        '''
+        size = gsocket.bytesAvailable()
+        if size == self.size:
+            self.buffer = gsocket.read(8*self.size)
+            print(len(self.buffer))
+
+            print("Start processing readout.")
+            self.process_readout()
+            print("Start analyzing data.")
+            self.analytics()
+            print("Display data.")
+            self.display_data()
+
+        '''
+        # Test if buffer can be filled by one line (see code above)
+        # print("Reading...")
+
         # wait for enough data and read to self.buffer
         size = gsocket.bytesAvailable()
+        print(size)
         if size <= 0:
             return
         elif self.offset + size < 8 * self.size:
@@ -378,12 +377,28 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             # if the buffer is not complete, return and wait for more
             return
         else:
+            print("Finished Readout.")
             self.buffer[self.offset:8 * self.size] = gsocket.read(8 * self.size - self.offset)
             self.offset = 0
+            # print("\tBuffer size: ", len(self.buffer))
 
+        print("Start processing readout.")
         self.process_readout()
+        print("Start analyzing data.")
         self.analytics()
+        print("Display data.")
         self.display_data()
+
+        if self.flipangleTool.acqCount > 0 and self.flipangleTool.centeringFlag == True:
+            print(time.ctime())
+            time.sleep(self.flipangleTool.acqTimeout)
+            print(time.ctime())
+            self.flipangleTool.find_Ceter()
+        elif self.flipangleTool.acqCount > 0 and self.flipangleTool.attenuationFlag == True:
+            print(time.ctime())
+            time.sleep(self.flipangleTool.acqTimeout)
+            print(time.ctime())
+            self.flipangleTool.find_At()
 
     def process_readout(self):
         # Get magnitude, real and imaginary part of data
@@ -391,6 +406,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         mag = np.abs(data)
         real = np.real(data)
         imag = np.imag(data)
+
         time = 20
 
         self.data_idx = int(time * 250)
@@ -414,6 +430,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.max_index = np.argmax(self.fft_mag)
         bound_high = self.max_index
         bound_low = self.max_index
+
         while 1:
             if self.fft_mag[bound_low] < 0.5 * max_value:
                 break
@@ -424,7 +441,8 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             bound_high = bound_high + 1
 
         self.fwhm_value = bound_high - bound_low
-        self.fwhm.setText(str(self.fwhm_value))
+        freq_span = abs(np.min(self.freqaxis))+abs(np.max(self.freqaxis))
+        self.fwhm.setText(str(round(self.fwhm_value*freq_span/self.data_idx))+" Hz")
 
         # Calculate the SNR value inside a peak window
         peak_window = self.fwhm_value*5
@@ -439,7 +457,9 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         # Calculate center frequency
         self.center_freq = parameters.get_freq() + ((self.max_index - 5000/2) * 250000 / 5000 ) / 1.0e6
         # 250000 sampling rate, 5000 number of samples for FFT
-        self.centerFreq.setText(str(self.center_freq))
+        self.centerFreq.setText(str(round(self.center_freq, 5)))
+
+        print("\tData analysed.")
 
     def display_data(self):
         # Clear the plots: bottom-time domain, top-frequency domain
@@ -455,24 +475,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
         self.figure.set_tight_layout(True)
 
-        # Get magnitude, real and imaginary part of data
-
-
-        '''
-        data = self.data
-        mag = np.abs(data)
-        real = np.real(data)
-        imag = np.imag(data)
-        '''
         # Plot the bottom (time domain): display time signal from 0~21ms [0~5250]
-        '''
-        time = 20
-        data_idx = int(time * 250)
-        mag_t = mag[0:data_idx]
-        real_t = real[0:data_idx]
-        imag_t = imag[0:data_idx]
-        time_axis = np.linspace(0, time, data_idx)
-        '''
         self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.mag_t, linewidth=1)   # blue
         self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.real_t, linewidth=1)  # red
         self.curve_bottom = self.axes_bottom.plot(self.time_axis, self.imag_t, linewidth=1)  # green
@@ -480,11 +483,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
 
         # Plot the top (frequency domain): use signal from 0.5~20.5ms: first 0.5ms junk
         # update: the junk is already taken care of by the sequence timing
-        '''
-        dclip = data[0:data_idx];
-        freqaxis = np.linspace(-125000, 125000, data_idx)  # 5000 points ~ 20ms
-        fft_mag = abs(np.fft.fftshift(np.fft.fft(np.fft.fftshift(dclip))))
-        '''
         if not self.zoomCheckBox.isChecked(): # non zoomed
             self.curve_top = self.axes_top.plot(
                 self.freqaxis[int(self.data_idx/2 - self.data_idx/10):int(self.data_idx/2 + self.data_idx/10)],
@@ -494,40 +492,6 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
                 self.freqaxis[int(self.data_idx/2 - self.data_idx/100):int(self.data_idx/2 + self.data_idx/100)],
                 self.fft_mag[int(self.data_idx/2 - self.data_idx/100):int(self.data_idx/2 + self.data_idx/100)], linewidth=1)
         self.axes_top.set_xlabel('frequency [Hz]')
-
-        '''
-        # Data Analysis
-        # Calculate and display properties of the frequency
-        peak_value = round(np.max(fft_mag), 2)
-        self.peak.setText(str(peak_value))
-        max_value = np.max(fft_mag)
-        max_index = np.argmax(fft_mag)
-        bound_high = max_index
-        bound_low = max_index
-
-        # print(max_index)
-        while 1:
-          if fft_mag[bound_low] < 0.5 * max_value:
-            break
-          bound_low = bound_low - 1
-        while 1:
-          if fft_mag[bound_high] < 0.5 * max_value:
-            break
-          bound_high = bound_high + 1
-        fwhm_value = bound_high - bound_low
-        self.fwhm.setText(str(fwhm_value))
-
-        # Calculate the SNR value inside a peak window
-        peak_window = fwhm_value*5
-        noise_bound_low = int(max_index - peak_window/2)
-        noise_bound_high = int(max_index + peak_window/2)
-
-        # Join noise outside peak window, calculate std. dev. and snr = peak/std.dev.
-        noise = np.concatenate((fft_mag[0:noise_bound_low], fft_mag[noise_bound_high:]))
-        snr_value = round(peak_value/np.std(noise),2)
-        # print("snr_value: ", snr_value)
-        self.snr.setText(str(snr_value))
-        '''
 
         # Hightlight the peak window
         if self.peakWindowCheckBox.isChecked():
@@ -543,78 +507,251 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
             elif self.max_index > int(self.data_idx/2 + self.data_idx/10):
                 print("\tPeak outside the view.")
                 self.axes_top.text(self.freqaxis[int(self.data_idx/2+self.data_idx/10)],0.001 ,">",fontsize=20)
-        '''
-        # Calculate center frequency
-        self.center_freq = parameters.get_freq() + ((max_index - 5000/2) * 250000 / 5000 ) / 1.0e6
-        # 250000 sampling rate, 5000 number of samples for FFT
-        self.centerFreq.setText(str(self.center_freq))
-        '''
+
         # Update the figure
         self.canvas.draw()
+        print("\tData plot updated.")
 
-        if self.single_acq_flag == True:
-            self.single_acq_flag = False
-
-
+#-------------------------------------------------------------------------------
 
 class FlipangleDialog(Flipangle_Dialog_Base, Flipangle_Dialog_Form):
     def __init__(self, parent=None):
+
+        # split tools for finding center frequency and flipangle
+
         super(FlipangleDialog, self).__init__(parent)
         self.setupUi(self)
         # setup closeEvent
         self.ui = loadUi('ui/flipangleDialog.ui')
         self.ui.closeEvent = self.closeEvent
 
-        self.fid = parent
-
         # Setup Buttons
         # self.uploadSeq.clicked.connect(self.upload_pulse)
-        # self.findCenterBtn.clicked.connect(self.find_centerFreq)
-        # self.acceptCenterBtn.clicked.connect(self.confirm_centerFreq)
-        # self.applyAtBtn.clicked.connect(self.apply_AT)
+        # self.findCenterBtn.clicked.connect(self.start_find_Center)
+        # self.findAtBtn.clicked.connect(self.start_find_At)
+        self.startCenterBtn.clicked.connect(self.start_find_Center)
+        self.startAtBtn.clicked.connect(self.start_find_At)
+        self.confirmAtBtn.clicked.connect(self.at_confirmed)
 
         # Setup line edit for estimated frequency
-        # self.estimationValue.valueChanged(self.setEstFreqValue())
-        # self.estimationValue.setKeyboardTracking(False)
+        # self.freqEstimation.valueChanged(self.setEstFreqValue())
+        self.freqEstimation.setKeyboardTracking(False)
 
         # Setup line edit as read only
         self.pulsePath.setReadOnly(True)
         self.centerFreqValue.setReadOnly(True)
-        self.sigValue.setReadOnly(True)
-        self.atValue.setReadOnly(True)
+        self.at90Value.setReadOnly(True)
+        self.at180Value.setReadOnly(True)
+        self.at180Value.setEnabled(False)
 
-        # Disable UI elements
+        # Disable/Enable UI elements
         self.uploadSeq.setEnabled(False)
-        self.estimatedValue.setEnabled(True)
-        self.findCenterBtn.setEnabled(False)
-        self.acceptCenterBtn.setEnabled(False)
-        self.applyAtBtn.setEnabled(False)
+        self.freqEstimation.setEnabled(True)
+        self.freqSpan.setEnabled(True)
+        self.freqSteps.setEnabled(True)
+        self.atStart.setEnabled(True)
+        self.atStop.setEnabled(True)
+        self.atSteps.setEnabled(True)
+        self.timeoutValue.setEnabled(True)
 
-        self.estimatedValue.setValue(self.fid.freqValue.value())
+        self.startCenterBtn.setEnabled(True)
+        self.startAtBtn.setEnabled(True)
+        self.confirmAtBtn.setEnabled(False)
 
-        '''
-        def upload_pulse(self):
+        self.init_var()
+
+        # self.at_values = [15.0, 17.5, 20.0, 22.5, 25.0]
+        # self.at_results = []
+
+        self.figure = Figure()
+        self.figure.set_facecolor('none')
+        self.axes = self.figure.add_subplot()
+        self.axes.set_xlabel('Attenuation')
+        self.axes.set_ylabel('Peak')
+        self.axes.grid()
+        self.figure.set_tight_layout(True)
+        self.plotWidget = FigureCanvas(self.figure)
+        self.plotLayout.addWidget(self.plotWidget)
+
+        self.fid = parent
+
+    '''
+    def upload_pulse(self):
             dialog = QFileDialog()
             fname = dialog.getOpenFileName(None, "Import Pulse Sequence", "", "Text files (*.txt)")
             print("\tUploading 90 degree flip sequence to server.")
-            try:
-                self.send_pulse(fname[0])
-                self.uploadSeq.setText(fname[0])
-            except IOError as e:
-                print("\tError: required txt file doesn't exist.")
-                return
-                print("\tUploaded successfully to server.")
+        try:
+            self.send_pulse(fname[0])
+            self.uploadSeq.setText(fname[0])
+        except IOError as e:
+            print("\tError: required txt file doesn't exist.")
+            return                print("\tUploaded successfully to server.")
+    '''
+    def init_var(self):
+        self.centeringFlag = False
+        self.attenuationFlag = False
 
-        def find_centerFreq(self):
-            self.estimationValue.setEnabled(False)
-            parameters.set_freq(self.estimationValue)
-            gsocket.write(struct.pack('<I', 1 << 28 | int(1.0e6 * self.estimationValue)))
-            fid_widget.single_acquisition()
-            print(fid_widget.single_acq_flag)
-            while True:
-                if .single_acq_flag == False:
-                    print("\tSingle acquisition completed.")
-                    self.estimationValue.setEnabled(True)
-                else:
-                    continue
-        '''
+        self.acqTimeout = self.timeoutValue.value()/1000
+        self.acqCount= 0
+
+        self.centerFreq = 0
+        self.centerPeak = 0
+
+        self.at_results = []
+
+        self.freqEstimation.setValue(parameters.get_freq())
+        self.freqSpan.setValue(0.60)
+        self.freqSteps.setValue(6)
+        self.atStart.setValue(16)
+        self.atStop.setValue(24)
+        self.atSteps.setValue(8)
+
+    def freq_search_init(self):
+        center = self.freqEstimation.value()
+        span = self.freqSpan.value()
+        steps = self.freqSteps.value()
+        self.acqTimeout = self.timeoutValue.value()/1000
+
+        self.search_space = np.arange(center-span/2, center+span/2, span/steps)
+
+    def flip_calib_init(self):
+        start = self.atStart.value()
+        stop = self.atStop.value()
+        steps = self.atSteps.value()
+        self.acqTimeout = self.timeoutValue.value()/1000
+
+        self.at_values = np.arange(start, stop, (stop-start)/steps)
+        self.at_results = []
+
+    def start_find_Center(self):
+
+        self.freqEstimation.setEnabled(False)
+        self.freqSpan.setEnabled(False)
+        self.freqSteps.setEnabled(False)
+        self.startCenterBtn.setEnabled(False)
+        self.timeoutValue.setEnabled(False)
+        self.startAtBtn.setEnabled(False)
+        self.resetFigure()
+
+        self.freq_search_init()
+        self.at_results = []
+
+        self.acqCount = 0
+        self.centeringFlag = True
+        self.find_Ceter()
+
+    def find_Ceter(self):
+        if self.fid.peak_value > self.centerPeak:
+            # Change peak and center frequency value
+            self.centerPeak = self.fid.peak_value
+            self.centerFreq = round(self.fid.center_freq, 5)
+            # Set up text edit
+            self.centerFreqValue.setText(str(round(self.centerFreq,4)))
+        if self.acqCount <= len(self.search_space)-1:
+            # Continue until all frequencies are aquired
+            print("\nAcquisition counter: ", self.acqCount+1,"/",len(self.search_space),":")
+            self.centerFreqValue.setText(str(round(self.search_space[self.acqCount],5)))
+            self.fid.set_freq(round(self.search_space[self.acqCount],5))
+            self.acqCount += 1
+        else:
+            # Acquisition finished
+            self.acqCount = 0
+            self.centerFreqValue.setText(str(round(self.centerFreq,4)))
+            print("Acquisition for confirmation:")
+            self.fid.set_freq(self.centerFreq)
+
+            # Disable/Enable GUI elements
+            self.freqEstimation.setEnabled(True)
+            self.freqSpan.setEnabled(True)
+            self.freqSteps.setEnabled(True)
+            self.timeoutValue.setEnabled(True)
+
+            self.startCenterBtn.setEnabled(True)
+            self.startAtBtn.setEnabled(True)
+
+            self.centeringFlag = False
+
+    def start_find_At(self):
+        print("Center frequency confirmed.")
+
+        self.resetFigure()
+
+        # Disable/Enable GUI elements
+
+        self.atStart.setEnabled(False)
+        self.atStop.setEnabled(False)
+        self.atSteps.setEnabled(False)
+        self.timeoutValue.setEnabled(False)
+
+        self.startCenterBtn.setEnabled(False)
+        self.startAtBtn.setEnabled(False)
+
+        self.flip_calib_init()
+
+        self.acqCount = 0
+        self.attenuationFlag = True
+        self.fid.set_at(self.at_values[self.acqCount])
+
+        self.find_At()
+
+    def find_At(self):
+        if self.acqCount > 0:
+            self.at_results.append(round(self.fid.peak_value, 2))
+
+            self.axes.plot(self.at_values[self.acqCount-1],self.at_results[self.acqCount-1],'x',color='red')
+            self.plotWidget.draw()
+
+        if self.acqCount < len(self.at_values):
+            # Continue until all AT values are aquired
+            print("Acquisition counter: ", self.acqCount+1,"/",len(self.at_values),":")
+            self.fid.set_at(self.at_values[self.acqCount])
+            self.acqCount += 1
+        else:
+            # Disable/Enable GUI elements
+
+            self.atStart.setEnabled(True)
+            self.atStop.setEnabled(True)
+            self.atSteps.setEnabled(True)
+            self.confirmAtBtn.setEnabled(True)
+            self.timeoutValue.setEnabled(True)
+
+            self.startCenterBtn.setEnabled(True)
+            self.startAtBtn.setEnabled(True)
+
+            self.attenuationFlag = False
+            self.acqCount = 0
+
+            # init optional
+            # init = [np.max(self.at_results), 1/(self.at_values[-1]-self.at_values[0]), np.min(self.at_results)]
+            init = [np.max(self.at_results), 1/15, np.min(self.at_results)]
+
+            try:
+                self.fit_x, self.fit_at = self.fit_At(init)
+                self.axes.plot(self.fit_x, self.fit_at, linewidth=1, color='red')
+                self.plotWidget.draw()
+            except:
+                print('ERROR: No fit found.')
+
+            self.at90Value.setText(str(np.max(self.at_results)))
+
+    def fit_At(self, init):
+        # parameters = sol(func, x, y, init, method)
+        params, params_covariance = curve_fit(self.at_func, self.at_values, self.at_results, init, method='lm')
+        x = np.arange(self.at_values[0], self.at_values[-1]+1, 0.1)
+        fit = self.at_func(x, params[0], params[1], params[2])
+        return x, fit
+
+    # Function model for sinus fitting
+    def at_func(self, x, a, b, c):
+        return abs(a * np.sin(b * x) + c)
+
+    def at_confirmed(self):
+        return
+
+    def resetFigure(self):
+        # Reset Plot
+        self.axes.clear()
+        self.axes.set_xlabel('Attenuation')
+        self.axes.set_ylabel('Peak')
+        self.axes.grid()
+        self.figure.set_tight_layout(True)

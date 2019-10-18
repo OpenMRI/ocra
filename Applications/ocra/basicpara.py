@@ -11,7 +11,10 @@ class BasicParameters:
         self.freq = 15.673000
 
         # initial attenuation (dB)
-        self.at = 17.50
+        self.at = 20
+
+        # initial host address
+        self.addr = '172.20.125.186'
 
     def set_grad_offsets(self, offset_list):
         self.gradient_offsets = offset_list
@@ -55,6 +58,12 @@ class BasicParameters:
 
     def get_at(self):
         return self.at
+
+    def set_hostaddr(self, str):
+        self.addr = str
+
+    def get_hostaddr(self):
+        return self.addr
 
 # record basic parameters
 parameters = BasicParameters()
