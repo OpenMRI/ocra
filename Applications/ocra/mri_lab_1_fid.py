@@ -194,7 +194,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.openFlipangletoolBtn.setEnabled(False)
 
         # Disconnect global socket
-        # gsocket.readyRead.disconnect()
+        gsocket.readyRead.disconnect()
 
         self.idle = True
 
