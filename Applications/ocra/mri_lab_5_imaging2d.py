@@ -72,7 +72,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.uploadSeqButton.clicked.connect(self.upload_seq)
 
         # setup imaging parameters
-        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256'])
+        self.npe.addItems(['4', '8', '16', '32', '64', '128', '256', '384', '512', '640', '768', '1024'])
         # self.npe.currentIndexChanged.connect(self.set_readout_size)
         # self.size1.setText(self.npe.currentText())
         # self.size1.setReadOnly(True)
