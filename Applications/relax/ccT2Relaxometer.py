@@ -26,7 +26,7 @@ from math import pi
 
 from globalsocket import gsocket
 from parameters import params
-from dataprocessing import data
+from dataHandler import data
 
 CC_RelaxT2_Form, CC_RelaxT2_Base = loadUiType('ui/ccRelaxometerT2.ui')
 

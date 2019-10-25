@@ -25,7 +25,8 @@ from cycler import cycler
 
 from globalsocket import gsocket
 from parameters import params
-from dataprocessing import data
+from dataHandler import data
+from dataLogger import logger
 
 CC_Spec_Form, CC_Spec_Base = loadUiType('ui/ccSpectrometer.ui')
 
@@ -107,6 +108,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         params.autoSpan = self.freqSpan_input.value()
         params.autoStep = self.freqSteps_input.value()
         params.autoTimeout = self.freqTimeout_input.value()
+        logger.add('AUC')
 
         self.freqSpace = np.arange(params.freq-params.autoSpan/2, params.freq+params.autoSpan/2,\
             params.autoSpan/params.autoStep)
@@ -147,6 +149,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         params.flipEnd = self.atEnd_input.value()
         params.flipStep = self.atSteps_input.value()
         params.flipTimeout = self.atTimeout_input.value()
+        logger.add('FLA')
 
         self.data.set_freq(params.freq)
         step = (params.flipEnd-params.flipStart)/params.flipStep
@@ -163,6 +166,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
             self.fig.clear()#; self.fig.set_facecolor("None")
             self.ax1 = self.fig.add_subplot(2,1,1)
             self.ax2 = self.fig.add_subplot(2,1,2)
+
         def three_ax(self):
             self.fig.clear()#; self.fig.set_facecolor("None")
             self.ax1 = self.fig.add_subplot(3,1,1)
@@ -230,6 +234,12 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.load_params()
         self.set_output(params.freq, params.at, self.data.center_freq,
             self.data.peak_value, self.data.fwhm_value, self.data.snr)
+        if self.seq_selector.currentIndex()==0: logger.add('ACQ', seq='FID',\
+            peak=self.data.peak_value, fwhm=self.data.fwhm_value, snr=self.data.snr)
+        if self.seq_selector.currentIndex()==1: logger.add('ACQ', seq='SE',\
+            peak=self.data.peak_value, fwhm=self.data.fwhm_value, snr=self.data.snr)
+        if self.seq_selector.currentIndex()==2: logger.add('ACQ', seq='IR',\
+            peak=self.data.peak_value, fwhm=self.data.fwhm_value, snr=self.data.snr)
 
         if self.manualAvg_enable.isChecked(): # Handel averaging and manual trigger
             self.fft_mag_avg = np.add(self.fft_mag_avg, self.data.fft_mag)
@@ -376,6 +386,11 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.ax2.plot(self.data.time_axis, mag_t, label='Magnitude')
         self.ax2.plot(self.data.time_axis, real_t, label='Real')
         self.ax2.plot(self.data.time_axis, imag_t, label='Imaginary')
+        self.ax1.set_ylabel('RX amplitude []')
+        self.ax1.set_xlabel('frequency [Hz]')
+        self.ax2.set_ylabel('RX signal [mV]')
+        self.ax2.set_xlabel('time [ms]')
+        self.ax2.legend()
 
         self.fig_canvas.draw()
         print("Data plotted.")
@@ -383,11 +398,15 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
     def autocenter_plot(self):
         self.two_ax_plot()
         self.ax3.plot(self.data.center_freq, self.data.peak_value,'x', color='#33A4DF')
+        self.ax3.set_xlabel('center frequency [MHz]')
+        self.ax3.set_ylabel('RX signal peak []')
         self.fig_canvas.draw()
 
     def flipangle_plot(self):
         self.two_ax_plot()
         self.ax3.plot(abs(self.at_values[self.acqCount-1]),self.at_results[self.acqCount-1], 'x', color='#33A4DF')
+        self.ax3.set_xlabel('attenuation [dB]')
+        self.ax3.set_ylabel('RX signal peak []')
         self.fig_canvas.draw()
 #_______________________________________________________________________________
 #   Functions to Disable and enable control elements like buttons, spinboxes, etc.

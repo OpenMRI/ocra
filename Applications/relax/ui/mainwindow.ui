@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1067</width>
-    <height>856</height>
+    <height>1010</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -288,7 +288,7 @@
          <widget class="QWidget" name="verticalWidget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
-            <number>0</number>
+            <number>5</number>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -313,13 +313,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>150</height>
+               <height>300</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>200</height>
+               <height>300</height>
               </size>
              </property>
              <property name="font">
@@ -327,7 +327,7 @@
                <pointsize>10</pointsize>
               </font>
              </property>
-             <layout class="QHBoxLayout" name="ccProtocolLayout">
+             <layout class="QHBoxLayout" name="protocolLayout">
               <property name="spacing">
                <number>0</number>
               </property>
@@ -524,7 +524,7 @@
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="toolbar">
    <property name="minimumSize">
     <size>
      <width>0</width>
@@ -559,13 +559,22 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="actionExport"/>
-   <addaction name="actionImport_Settinng"/>
+   <addaction name="action_exportParams"/>
+   <addaction name="action_importParams"/>
    <addaction name="separator"/>
-   <addaction name="actionExport_Data"/>
-   <addaction name="actionScreenshot"/>
+   <addaction name="action_exportData"/>
+   <addaction name="action_saveFig"/>
+   <addaction name="separator"/>
+   <addaction name="action_saveLog"/>
+   <addaction name="action_clearLog"/>
   </widget>
-  <action name="actionExport">
+  <action name="action_exportParams">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/export_setting_normal.png</normaloff>
+     <activeon>icons/export_setting_active.png</activeon>
+     <selectedon>icons/export_setting_active.png</selectedon>icons/export_setting_normal.png</iconset>
+   </property>
    <property name="text">
     <string>Export Settings</string>
    </property>
@@ -576,19 +585,63 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionImport_Settinng">
+  <action name="action_importParams">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/upload_setting_normal.png</normaloff>
+     <normalon>icons/upload_setting_active.png</normalon>icons/upload_setting_normal.png</iconset>
+   </property>
    <property name="text">
     <string>Import Setting</string>
    </property>
   </action>
-  <action name="actionExport_Data">
+  <action name="action_exportData">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/save_data_normal.png</normaloff>
+     <normalon>icons/save_data_active.png</normalon>icons/save_data_normal.png</iconset>
+   </property>
    <property name="text">
     <string>Export Data</string>
    </property>
   </action>
-  <action name="actionScreenshot">
+  <action name="action_saveFig">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/save_fig_normal.png</normaloff>
+     <normalon>icons/save_fig_active.png</normalon>icons/save_fig_normal.png</iconset>
+   </property>
    <property name="text">
-    <string>Screenshot</string>
+    <string>Save Figure</string>
+   </property>
+   <property name="toolTip">
+    <string>Saves the actual figure</string>
+   </property>
+  </action>
+  <action name="action_saveLog">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/save_log_normal.png</normaloff>
+     <normalon>icons/save_log_active.png</normalon>icons/save_log_normal.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Logfile</string>
+   </property>
+   <property name="toolTip">
+    <string>Saves the logged information</string>
+   </property>
+  </action>
+  <action name="action_clearLog">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/clear_log_normal.png</normaloff>
+     <normalon>icons/clear_log_active.png</normalon>icons/clear_log_normal.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear Log</string>
+   </property>
+   <property name="toolTip">
+    <string>action_clearLog</string>
    </property>
   </action>
  </widget>

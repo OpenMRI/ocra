@@ -2,6 +2,7 @@
 import sys
 import struct
 import time
+from datetime import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -217,6 +218,7 @@ class data(QObject):
         # Max. data index and crop data
         self.data_idx = int(self.time * 250)
         self.dclip = self.data[0:self.data_idx]*1000; # Multiply by 1000 to obtain mV
+        timestamp = datetime.now()
 
         # Time domain data
         self.mag_t = np.abs(self.dclip)
@@ -229,6 +231,11 @@ class data(QObject):
         self.freqaxis = np.linspace(-self.freq_range/2, self.freq_range/2, self.data_idx)   # 5000 points ~ 20ms
         self.fft = np.fft.fftshift(np.fft.fft(np.fft.fftshift(self.dclip), n=self.data_idx, norm='ortho'))   # Normalization through 1/sqrt(n)
         self.fft_mag = abs(self.fft)
+
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        params.data = self.dclip
+        params.freqaxis = self.freqaxis
+        params.fft = self.fft_mag
 
         # Ampltiude and phase plot
         #fig, ax = plt.subplots(2,1)

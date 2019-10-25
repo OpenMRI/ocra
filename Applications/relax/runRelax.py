@@ -4,12 +4,13 @@
 import matplotlib.pyplot as plt
 import sys
 import struct
+import csv
 
 # import PyQt5 packages
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
     QLabel, QMessageBox, QCheckBox, QFileDialog, QShortcut
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, pyqtSlot, QStandardPaths
 from PyQt5.QtGui import QIcon, QRegExpValidator, QKeySequence
 from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 
@@ -22,12 +23,13 @@ from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 from ccSpectrometer import CCSpecWidget
 from ccT2Relaxometer import CCRelaxT2Widget
 from ccT1Relaxometer import CCRelaxT1Widget
-from ccProtocol import CCProtocolWidget
+from protocol import ProtocolWidget, CCProtocolWidget
 
 from globalsocket import gsocket
 from parameters import params
 from assembler import Assembler
-from dataprocessing import data
+from dataHandler import data
+from dataLogger import logger
 
 plt.rc('axes', prop_cycle=params.cycler)
 plt.rcParams['lines.linewidth'] = 1
@@ -35,11 +37,8 @@ plt.rcParams['axes.grid'] = True
 plt.rcParams['figure.autolayout'] = True
 plt.rcParams['figure.dpi'] = 75
 
-
-# load .ui files for different pages
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
 
-# main window
 class MainWindow(Main_Window_Base, Main_Window_Form):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -59,10 +58,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         #self.quit = QShortcut(QKeySequence("Ctrl+Q"), self)
         #self.quit.activated.connect(self.quick_quit)
 
+        self.action_exportData.triggered.connect(self.save_data_csv)
+        self.action_saveFig.triggered.connect(self.save_figure)
+        self.action_saveLog.triggered.connect(self.save_log)
+        self.action_clearLog.triggered.connect(self.clear_log)
+
+        logger.init()
+
         self.plotTabWidget.setCurrentIndex(0)
         self.plotTabWidget.currentChanged.connect(self.switchView)
 
         self.switchView()
+#_______________________________________________________________________________
+#   Setup Main Window
 
     def switchView(self):
 
@@ -119,13 +127,15 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def setupProtocol(self):
         print("\n---Measurement Protocol---\n")
 
-        self.resetLayout(self.spectrometerLayout)
-        self.environment = CCProtocolWidget()
-        #self.output = ... set output parameters on right side (CCLayout)
+        self.resetLayout(self.protocolLayout)
+        self.resetLayout(self.protocolPlotLayout)
 
-        self.ccProtocolLayout.addWidget(self.environment)
+        self.protocol_env = ProtocolWidget()
+        self.environment = CCProtocolWidget()
+
+        self.protocolLayout.addWidget(self.protocol_env)
         self.protocolPlotLayout.addWidget(self.environment.fig_canvas)
-        #self.ccLayout.addWidget(self.environment.CCoutput)
+        self.ccLayout.addWidget(self.environment)
 
     def setupLogbook(self):
         print("\n---Logbook---\n")
@@ -139,8 +149,47 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.data.exit_host()
             event.accept()
         else: event.ignore()
+#_______________________________________________________________________________
+#   Save Files: Data, Settings, Log
 
-# run
+    def save_data_csv(self):
+        path = QFileDialog.getSaveFileName(self, 'Save Acquisitiondata', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'csv (*.csv)')
+        if not path[0] == '':
+            with open(path[0], mode='w', newline='') as file:
+                writer = csv.writer(file, delimiter=',')
+                writer.writerow([params.dataTimestamp])
+                writer.writerow(['Center frequency', params.freq])
+                writer.writerow([''])
+                writer.writerow(['freq', 'cplx data','fft centered'])
+                for n in range(len(params.freqaxis)):
+                    writer.writerow([params.freqaxis[n], params.data[n], params.fft[n]])
+            print("\nAcquisitiondata saved.")
+
+    def save_figure(self):
+        path = QFileDialog.getSaveFileName(self, 'Save Figure',\
+            QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation),\
+            "JPEG Image (*.jpg);;PNG Image (*.png);;PDF Format (*.pdf)")
+        if not path[0] == '':
+            self.environment.fig.savefig(path[0], dpi=600, orientation='portrait', papertype=None, format=None, transparent=True,\
+                bbox_inches=None, pad_inches=0.1, frameon=None, metadata=None)
+            print("\nFigure saved.")
+
+    def save_log(self):
+        path = QFileDialog.getSaveFileName(self, 'Save Logfile', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'Textfile (*.txt)')
+        if not path[0] == '':
+            file = open(path[0], 'w')
+            for line in logger.log:
+                file.write(str(line))
+            file.close()
+            print("\nLogfile saved.")
+
+    def clear_log(self):
+        logger.init()
+        print("\nLog cleared.")
+
+#_______________________________________________________________________________
+#   Run Application
+
 def run():
 
     print("\n________________________________________________________\n",\
@@ -153,7 +202,8 @@ def run():
     gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())
+#_______________________________________________________________________________
+#   Main Function
 
-# main function
 if __name__ == '__main__':
     run()
