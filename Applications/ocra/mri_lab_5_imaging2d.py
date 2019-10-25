@@ -96,10 +96,14 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # display 1: image
         self.figure = Figure()
         self.figure.set_facecolor('whitesmoke')
-        # top and bottom axes: 2 rows, 1 column
-        self.axes_top = self.figure.add_subplot(1, 1, 1)
-        self.canvas = FigureCanvas(self.figure)
-        self.plotLayout.addWidget(self.canvas)
+        self.figure.set_tight_layout(True)
+
+        # Large image view 1 row, 1 column
+        self.axes_image = self.figure.add_subplot(111)
+        self.axes_image.axis('off')
+
+        self.canvas = FigureCanvas(self.figure) # canvas = image
+        self.imageLayout.addWidget(self.canvas)
         # create navigation toolbar
         # self.toolbar = NavigationToolbar(self.canvas, self.imageWidget, False)
         # self.imageLayout.addWidget(self.toolbar)
@@ -107,15 +111,21 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # display 2: real time signals
         self.figure2 = Figure()
         self.figure2.set_facecolor('none')
+        self.figure2.set_tight_layout(True)
 
-        #self.axes_k_amp = self.figure2.add_subplot(3, 1, 1)
-        #self.axes_k_pha = self.figure2.add_subplot(3, 1, 2)
+        # Real time signal view with 2 rows, 1 column
+        self.axes_top = self.figure2.add_subplot(2, 1, 1)
+        self.axes_bottom = self.figure2.add_subplot(2, 1, 2)
 
-        self.axes_image = self.figure2.add_subplot(2, 1, 1)
-        self.axes_image = self.figure2.add_subplot(2, 1, 2)
+        self.axes_top.set_xlabel('frequency [Hz]')
+        self.axes_bottom.set_xlabel('time [ms]')
+        self.axes_top.set_ylabel('freq. domain')
+        self.axes_bottom.set_ylabel('time domain')
+        self.axes_top.grid()
+        self.axes_bottom.grid()
 
-        self.canvas2 = FigureCanvas(self.figure2)
-        self.imageLayout.addWidget(self.canvas2)
+        self.canvas2 = FigureCanvas(self.figure2) # canvas2 = real time
+        self.plotLayout.addWidget(self.canvas2)
         # create navigation toolbar
         # self.toolbar2 = NavigationToolbar(self.canvas2, self.plotWidget, False)
         # self.plotLayout.addWidget(self.toolbar2)
