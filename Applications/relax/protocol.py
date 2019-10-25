@@ -38,7 +38,11 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
     def init_meas_list(self):
 
         self.meas_type = []
-        self.measures_list.addItems(['T1 Measurement', 'T2 Measurement', 'Set Temperature', 'Pause'])
+        self.measures_list.addItems(['T1 Measurement',\
+            'T2 Measurement',\
+            'Set Temperature',\
+            'Pause',\
+            'Change Sample'])
         self.measures_list.itemDoubleClicked.connect(self.add_measurement)
 
     def add_measurement(self):
@@ -83,6 +87,8 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
             self.meas_type.append("Pause")
             self.protocol.setItem(row, 0, QTableWidgetItem('Duration [s] :'))
             self.protocol.setItem(row, 1, QTableWidgetItem(str(60)))
+        def sample(self):
+            self.meas_type.append("Change Sample")
 
         try: idx = self.measures_list.currentRow()
         except: return
@@ -90,7 +96,8 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
             0: t1,
             1: t2,
             2: temp,
-            3: pause
+            3: pause,
+            4: sample
         }
         measures[idx](self)
         self.protocol.resizeColumnsToContents()
