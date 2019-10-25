@@ -13,14 +13,16 @@ class Parameters:
         file = QFile(":/light.qss")
         file.open(QFile.ReadOnly | QFile.Text)
         stream = QTextStream(file)
-        self.stylesheet = stream.readAll()
 
+        self.stylesheet = stream.readAll()
         self.cycler = cycler(color=['#33A4DF', '#4260FF', '#001529'])
 
     def var_init(self): # Init internal GUI parameter with defaults
+        print("Setting default parameters.")
         self.host = '172.20.125.186'
         self.freq = 20.10000
         self.at = 22
+        self.avgFlag = False
         self.avgCyc = 5
         self.te = 10
         self.ti = 200
@@ -41,6 +43,11 @@ class Parameters:
         self.t1Step = 10
         self.t1Recovery = 200
         self.t1Cyc = 5
+        self.temp = float('nan')
+        self.freqaxis = []
+        self.data = []
+        self.fft = []
+        self.dataTimestamp = ''
 
         # Add parameters: Last tool index, last tab widget index, (maybe) last aquired data/axes, averaging enabled
 
@@ -49,6 +56,7 @@ class Parameters:
             pickle.dump([self.host,\
                 self.freq,\
                 self.at,\
+                self.avgFlag,\
                 self.avgCyc,\
                 self.te,\
                 self.ti,\
@@ -68,7 +76,12 @@ class Parameters:
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc], file)
+                self.t1Cyc,\
+                self.temp,\
+                self.freqaxis,\
+                self.data,\
+                self.fft,\
+                self.dataTimestamp], file)
         print("Parameter saved.")
         #self.dispVars()
 
@@ -78,6 +91,7 @@ class Parameters:
                 self.host,\
                 self.freq,\
                 self.at,\
+                self.avgFlag,\
                 self.avgCyc,\
                 self.te,\
                 self.ti,\
@@ -97,7 +111,12 @@ class Parameters:
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc = pickle.load(file)
+                self.t1Cyc,\
+                self.temp,\
+                self.freqaxis,\
+                self.data,\
+                self.fft,\
+                self.dataTimestamp = pickle.load(file)
                 print("Internal GUI parameter successfully restored from file.")
                 #self.dispVars()
         except:
@@ -129,8 +148,7 @@ class Parameters:
         print("t1 steps:\t", self.t1Step)
         print("t1 recovery:\t", self.t1Recovery, "\tms")
         print("t1 cycles:\t", self.t1Cyc)
+        print("Temperature:\t", self.temp, "\t°C")
         print("\n")
 
-
-# record basic parameters
 params = Parameters()

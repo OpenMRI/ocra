@@ -26,7 +26,8 @@ from math import pi
 
 from globalsocket import gsocket
 from parameters import params
-from dataprocessing import data
+from dataHandler import data
+from dataLogger import logger
 
 CC_RelaxT1_Form, CC_RelaxT1_Base = loadUiType('ui/ccRelaxometerT1.ui')
 
@@ -65,7 +66,11 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.meas_progress.setValue(0)
         self.average = [0] * self.t1Cycles_input.value()
         self.results = []
+
         self.ax1.clear(); self.ax2.clear()
+        self.ax1.set_ylabel('RX signal [mV]')
+        self.ax2.set_ylabel('RX signal peak [mV]')
+        self.ax2.set_xlabel('time of inversion (TI) [ms]')
 
         # Get values from controlcenter
         self.update_params()
@@ -101,6 +106,7 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
             self.data.acquire()
             self.acqCount += 1
         else:
+
             self.plot_fit()
             self.activeMeas_flag = False
             self.MeasParamWidget.setEnabled(True)
@@ -158,7 +164,8 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         params, cov = curve_fit(self.fit_function, self.TI_values, self.results)
         #x_fit = np.linspace(self.TI_values[0], self.TI_values[-1], 1000)
         x_fit = np.linspace(0, int(1.2*self.TI_values[-1]), 1000)
-        self.ax2.plot(x_fit, self.fit_function(x_fit, *params))
+        self.ax2.plot(x_fit, self.fit_function(x_fit, *params), color='#001529', label='fit')
+        self.ax2.legend()
         self.fig_canvas.draw()
         print("Data plotted.")
         def func(x):
@@ -172,3 +179,4 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         R2 = 1-(ss_res/ss_tot)
 
         self.r2_output.setText(str(round(R2,5)))
+        logger.add('T1', res=T1, err=R2, val=self.TI_values)
