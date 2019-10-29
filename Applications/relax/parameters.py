@@ -19,7 +19,7 @@ class Parameters:
 
     def var_init(self): # Init internal GUI parameter with defaults
         print("Setting default parameters.")
-        self.host = '172.20.125.188'
+        self.host = '172.20.125.186'
         self.freq = 20.10000
         self.at = 22
         self.avgFlag = False
@@ -42,8 +42,7 @@ class Parameters:
         self.t1End = 5000
         self.t1Step = 10
         self.t1Recovery = 200
-        self.t1avgM = 2
-        self.t1avgP = 3
+        self.t1Cyc = 5
         self.temp = float('nan')
         self.freqaxis = []
         self.data = []
@@ -77,8 +76,7 @@ class Parameters:
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1avgM,\
-                self.t1avgP,\
+                self.t1Cyc,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -113,8 +111,7 @@ class Parameters:
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1avgM,\
-                self.t1avgP,\
+                self.t1Cyc,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -150,8 +147,7 @@ class Parameters:
         print("TI last valie:\t", self.t1End, "\tms")
         print("t1 steps:\t", self.t1Step)
         print("t1 recovery:\t", self.t1Recovery, "\tms")
-        print("t1 averages/meas:\t", self.t1avgM)
-        print("t1 averages/data:\t", self.t1avgP)
+        print("t1 cycles:\t", self.t1Cyc)
         print("Temperature:\t", self.temp, "\t°C")
         print("\n")
 

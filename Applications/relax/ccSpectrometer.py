@@ -68,7 +68,6 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.manualAt_input.valueChanged.connect(self.data.set_at)
         self.manualAcquire_btn.clicked.connect(self.start_manual)
         self.manualCenter_btn.clicked.connect(self.manual_center)
-        self.manualAvg_input.setEnabled(False)
         self.manualAvg_enable.clicked.connect(self.manualAvg_input.setEnabled)
         self.manualTE_input.setKeyboardTracking(False)
         self.manualTE_input.valueChanged.connect(self.data.set_SE)

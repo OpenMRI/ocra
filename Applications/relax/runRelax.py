@@ -36,7 +36,6 @@ plt.rcParams['lines.linewidth'] = 1
 plt.rcParams['axes.grid'] = True
 plt.rcParams['figure.autolayout'] = True
 plt.rcParams['figure.dpi'] = 75
-plt.rcParams['legend.loc'] = "upper right"
 
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
 
