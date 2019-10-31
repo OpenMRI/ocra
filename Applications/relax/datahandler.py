@@ -206,7 +206,7 @@ class data(QObject):
 
         # Max. data index and crop data
         self.data_idx = int(self.time * 250)
-        self.dclip = self.data[0:self.data_idx]*1000; # Multiply by 1000 to obtain mV
+        self.dclip = self.data[0:self.data_idx]; # Multiply by 1000 to obtain mV
         timestamp = datetime.now()
 
         # Time domain data

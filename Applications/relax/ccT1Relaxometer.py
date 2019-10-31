@@ -56,6 +56,8 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
 
     def measureT1(self):
 
+        print("Start T1")
+
         self.ax1.clear(); self.ax2.clear(); self.ax3.clear()
         self.ax1.set_ylabel('acquired RX signals [mV]'), self.ax1.set_xlabel('time [ms]')
         self.ax2.set_ylabel('RX signal peak [mV]'), self.ax2.set_xlabel('time of inversion (TI) [ms]')
