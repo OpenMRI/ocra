@@ -86,8 +86,8 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
             avgP = avgPoint, avgM = avgMeas)
         logger.add('T1', res=t1, err=r2, val=self.TI_values, avgP = avgPoint, avgM = avgMeas)
 
-        self.t1_output.setText(str(t1))
-        self.r2_output.setText(str(r2))
+        self.t1_output.setText(str(round(t1,2)))
+        self.r2_output.setText(str(round(r2,4)))
 
     def update_dataplot(self):
         print(">> Update plot.")
@@ -100,12 +100,12 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.ax2.plot(self.data.ti, self.data.peaks[-1], 'x', color='#33A4DF')
 
         self.fig_canvas.draw()
-        self.fig_canvas.flush_events()
+        QApplication.processEvents()
 
     def update_fit(self):
 
-        if self.data.idxM == 0: self.fits = pd.DataFrame(self.data.y_fit, columns=['fit '+str(self.data.idxM+1)], index=self.data.x_fit)
-        else: self.fits['fit'+str(self.data.idxM+1)] = self.data.y_fit
+        if self.data.idxM == 0: self.fits = pd.DataFrame(self.data.y_fit, columns=['TI fit '+str(self.data.idxM+1)], index=self.data.x_fit)
+        else: self.fits['TI fit '+str(self.data.idxM+1)] = self.data.y_fit
 
         if self.measAvg_enable.isChecked() and self.data.idxM+1 < self.measAvg_input.value():
             self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
@@ -114,6 +114,7 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.ax3.clear(); self.ax3.set_xlabel('time of inversion (TI) [ms]')
         self.fits.plot(ax=self.ax3)
         self.fig_canvas.draw()
+        QApplication.processEvents()
 #_______________________________________________________________________________
 #   Update Output Parameters
 

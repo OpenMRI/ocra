@@ -1,12 +1,14 @@
 # import general packages
 import sys
 import struct
+import time
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QProgressDialog
 from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
 
 # import calculation and plot packages
 import numpy as np
@@ -123,10 +125,26 @@ class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
         self.init_figure()
         self.data = data()
 
+        self.start_btn.clicked.connect(self.popup)
+
+
     def init_figure(self):
         self.fig = Figure()
         self.fig.set_facecolor("None")
         self.fig_canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(111)
+
+    def popup(self):
+        timeValue = 5000
+        label = 'Pause'
+        status = QProgressDialog('Status', 'Cancel', 0, timeValue, self)
+        status.setLabelText(label)
+        status.setWindowModality(Qt.ApplicationModal)
+        status.show()
+        for i in range(10):
+            time.sleep((timeValue/10)/1000)
+            status.setValue((i+1)*timeValue/10)
+
+
 
     # Function to start Acquisition, load/save protocol and output parameters

@@ -2,12 +2,13 @@
 import sys
 import struct
 import time
+import csv
 
 # import PyQt5 packages
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
     QLabel, QMessageBox, QCheckBox, QFileDialog
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp#, QObject, pyqtSignal
+from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, QStandardPaths
 from PyQt5.QtGui import QIcon, QRegExpValidator
 from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 
@@ -23,7 +24,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 from cycler import cycler
 
-from globalsocket import gsocket
 from parameters import params
 from dataHandler import data
 from dataLogger import logger
@@ -38,6 +38,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
         self.data = data()
         self.data.readout_finished.connect(self.acq_handler)
+        self.data.uploaded.connect(self.sequence_uploaded)
 
         self.fig = Figure()
         self.fig.set_facecolor("None")
@@ -57,13 +58,15 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.toolBox.setCurrentIndex(0)
         self.switchPlot()
         # Sequence selector
-        self.seq_selector.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery'])
+        self.seq_selector.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery', 'Custom Sequence'])
         self.seq_selector.currentIndexChanged.connect(self.set_sequence)
         self.seq_selector.setCurrentIndex(0)
         self.set_sequence(0)
         # Manual acquisition toolbox
-        #self.manualFreq_input.setKeyboardTracking(False)
-        #self.manualAt_input.setKeyboardTracking(False)
+        self.uploadSeq_btn.clicked.connect(self.upload_sequence)
+        self.uploadSeq_confirm.setEnabled(False)
+        self.manualFreq_input.setKeyboardTracking(False)
+        self.manualAt_input.setKeyboardTracking(False)
         self.manualFreq_input.valueChanged.connect(self.data.set_freq)
         self.manualAt_input.valueChanged.connect(self.data.set_at)
         self.manualAcquire_btn.clicked.connect(self.start_manual)
@@ -80,8 +83,12 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.manualTILabel.setVisible(False)
         # Autocenter tool
         self.autoCenter_btn.clicked.connect(self.init_autocenter)
+        self.autoCenter_save_btn.clicked.connect(self.save_autocenter)
+        self.autoCenter_save_btn.setEnabled(False)
         # Flipangle tool
         self.flipangle_btn.clicked.connect(self.init_flipangle)
+        self.flipangle_save_btn.clicked.connect(self.save_flipangle)
+        self.flipangle_save_btn.setEnabled(False)
         # Output parameters
         self.freq_output.setReadOnly(True)
         self.at_output.setReadOnly(True)
@@ -94,6 +101,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         # Initialization of values for autocenter and flipangle tool
         self.autocenter_flag = False
         self.flipangle_flag = False
+        self.freqsweep_flag = False
         self.peakValue = 0
         self.centerValue = 0
         self.acqCount = 0
@@ -104,6 +112,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.ax1.clear(); self.ax2.clear(); self.ax3.clear();
         self.progressBar.setValue(0)
         self.autocenter_flag = True
+        self.peaks = []
 
         # Read input values
         params.autoSpan = self.freqSpan_input.value()
@@ -111,8 +120,10 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         params.autoTimeout = self.freqTimeout_input.value()
         logger.add('AUC')
 
-        self.freqSpace = np.arange(params.freq-params.autoSpan/2, params.freq+params.autoSpan/2,\
-            params.autoSpan/params.autoStep)
+        self.freqSpace = np.linspace(params.freq-params.autoSpan/2, params.freq+params.autoSpan/2,\
+            params.autoStep)
+
+        print("Frequency space : ", self.freqSpace)
 
         # Disable controls and start
         self.disable_controls()
@@ -120,9 +131,10 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
     def init_averaging(self):
         # Initialization of variables and arrays to sum data
-        self.acqCount = 0
+        self.init_vars()
         self.timeout = 5 # Default timeout for averaging (5s)
         self.freqsweep_flag = True
+        self.autoCenter_save_btn.setEnabled(False)
 
         self.fft_mag_avg = [0] * self.data.data_idx
         self.t_mag_avg = [0] * self.data.data_idx
@@ -143,6 +155,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.at_results = []
         self.ax1.clear(); self.ax2.clear(); self.ax3.clear();
         self.progressBar.setValue(0)
+        self.flipangle_save_btn.setEnabled(False)
         self.flipangle_flag = True
 
         # Read input parameters and
@@ -153,8 +166,8 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         logger.add('FLA')
 
         self.data.set_freq(params.freq)
-        step = (params.flipEnd-params.flipStart)/params.flipStep
-        self.at_values = np.arange(params.flipStart, params.flipEnd+step, step)
+        self.at_values = np.linspace(params.flipStart, params.flipEnd, params.flipStep)
+        print("Attenuation values : ", self.at_values)
 
         # Disable controls and start
         self.disable_controls()
@@ -175,6 +188,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
             self.ax3 = self.fig.add_subplot(3,1,3)
 
         self.progressBar_container.setVisible(True)
+
         self.update_params()
         params.saveFile()
         idx = self.toolBox.currentIndex()
@@ -203,13 +217,15 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.manualTILabel.setVisible(False)
         self.manualTE_input.setVisible(False)
         self.manualTELabel.setVisible(False)
+        self.uploadSeq_btn.setVisible(False)
+        self.uploadSeq_confirm.setVisible(False)
 
         seq = {
             0: self.data.set_FID,
             1: self.data.set_SE,
-            2: self.data.set_IR
+            2: self.data.set_IR,
+            3: self.customSeq
         }
-        seq[idx]()
 
         if idx == 1:
             self.manualTE_input.setVisible(True)
@@ -217,6 +233,23 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         elif idx == 2:
             self.manualTI_input.setVisible(True)
             self.manualTILabel.setVisible(True)
+
+        seq[idx]()
+
+    def customSeq(self):
+        self.uploadSeq_btn.setVisible(True)
+        self.uploadSeq_confirm.setVisible(True)
+        self.uploadSeq_confirm.setChecked(False)
+        self.disable_controls()
+
+    def upload_sequence(self):
+        print("Upload Sequence")
+        sequence = QFileDialog.getOpenFileName(self, 'Upload Custom Sequence', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'Textfile (*.txt)')
+        self.data.set_uploaded_seq(sequence[0])
+
+    def sequence_uploaded(self):
+        self.uploadSeq_confirm.setChecked(True)
+        self.enable_controls()
 
     def start_manual(self):
         if self.manualAvg_enable.isChecked(): self.init_averaging()
@@ -233,8 +266,9 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
         # Set CC output parameters
         self.load_params()
-        self.set_output(params.freq, params.at, self.data.center_freq,
+        self.set_output(params.freq, params.at, self.data.center_freq,\
             self.data.peak_value, self.data.fwhm_value, self.data.snr)
+
         if self.seq_selector.currentIndex()==0: logger.add('ACQ', seq='FID',\
             peak=self.data.peak_value, fwhm=self.data.fwhm_value, snr=self.data.snr)
         if self.seq_selector.currentIndex()==1: logger.add('ACQ', seq='SE',\
@@ -252,23 +286,23 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
             self.freqsweep_run()
             return
 
-        if self.autocenter_flag: # Handel autocenter acquisition
+        if self.autocenter_flag == True: # Handel autocenter acquisition
+            self.peaks.append(self.data.peak_value)
             if self.data.peak_value > self.peakValue and self.acqCount>0:
                 # Change peak and center frequency value
                 self.peakValue = self.data.peak_value
                 self.centerValue = self.data.center_freq
                 self.autocenter_output.setText(str(round(self.centerValue,4)))
-            self.autocenter_plot()
+            self.autocenter_plot() # calls 2-axis plot as well
             time.sleep(params.autoTimeout/1000)
             # Set progress and continue
             self.progressBar.setValue(self.acqCount/(len(self.freqSpace)-1)*100)
-            self.data.set_freq(self.freqSpace[self.acqCount])
             self.freqsweep_run()
 
-        if self.flipangle_flag: # Handel flipangle tool acquisition
+        if self.flipangle_flag == True: # Handel flipangle tool acquisition
             if self.acqCount > 0:
                 self.at_results.append(round(self.data.peak_value, 2))
-            self.flipangle_plot()
+            self.flipangle_plot() # calls 2-axis plot as well
             time.sleep(params.flipTimeout/1000)
             # Set progress and continue
             self.progressBar.setValue(self.acqCount/len(self.at_values)*100)
@@ -276,33 +310,41 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
         else: self.two_ax_plot(); # Calls two axis plot for manual trigger
 
+
     def freqsweep_run(self): # Function for performing multiple freq acquisitions
-        if self.acqCount < len(self.freqSpace)-1:
+        if self.acqCount < len(self.freqSpace):
             params.freq = self.freqSpace[self.acqCount]
             print("\nAcquisition counter: ", self.acqCount+1,"/",len(self.freqSpace),":")
+            self.acqCount += 1
             self.data.set_freq(round(params.freq, 5))
             self.data.acquire()
-            self.acqCount += 1
         else:
-            if self.autocenter_flag:
+            print("autocenter finished.")
+            if self.autocenter_flag == True:
                 params.freq = self.centerValue
                 self.manualFreq_input.setValue(params.freq)
-            self.autocenter_flag = False
+                self.autoCenter_save_btn.setEnabled(True)
+                self.autocenter_flag = False
+                print("set peak frequency: ", self.centerValue)
+                self.data.set_freq(self.centerValue)
+                self.data.acquire()
             self.enable_controls()
 
     def flipangle_run(self): # Function for performing multiple AT acquisitions
         if self.acqCount < len(self.at_values):
             params.at = self.at_values[self.acqCount]
             print("\nAcquisition counter: ", self.acqCount+1,"/",len(self.at_values),":")
+            self.acqCount += 1
             self.data.set_at(params.at)
             self.data.acquire()
-            self.acqCount += 1
         else:
             self.flipangle_flag = False
             self.enable_controls()
             # init optional
             # init = [np.max(self.at_results), 1/(self.at_values[-1]-self.at_values[0]), np.min(self.at_results)]
             init = [np.max(self.at_results), 1/15, np.min(self.at_results)]
+
+            self.flipangle_save_btn.setEnabled(True)
 
             try:
                 self.fit_x, self.fit_at = self.fit_At(init)
@@ -394,21 +436,45 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.ax2.legend()
 
         self.fig_canvas.draw()
-        print("Data plotted.")
+        QApplication.processEvents()
 
     def autocenter_plot(self):
-        self.two_ax_plot()
         self.ax3.plot(self.data.center_freq, self.data.peak_value,'x', color='#33A4DF')
         self.ax3.set_xlabel('center frequency [MHz]')
         self.ax3.set_ylabel('RX signal peak []')
-        self.fig_canvas.draw()
+        self.two_ax_plot()
 
     def flipangle_plot(self):
-        self.two_ax_plot()
         self.ax3.plot(abs(self.at_values[self.acqCount-1]),self.at_results[self.acqCount-1], 'x', color='#33A4DF')
         self.ax3.set_xlabel('attenuation [dB]')
         self.ax3.set_ylabel('RX signal peak []')
-        self.fig_canvas.draw()
+        self.two_ax_plot()
+#_______________________________________________________________________________
+#   Save Data
+
+    def save_flipangle(self):
+        path = QFileDialog.getSaveFileName(self, 'Save Flipangle Data', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'csv (*.csv)')
+        if not path[0] == '':
+            with open(path[0], mode='w', newline='') as file:
+                writer = csv.writer(file, delimiter=',')
+                writer.writerow(['Flipangletool Data', params.dataTimestamp])
+                writer.writerow([''])
+                writer.writerow(['attenuation [dB]', 'fft peak magnitude'])
+                for n in range(len(self.at_values)):
+                    writer.writerow([self.at_values[n], self.at_results[n]])
+            print("\nFlipangledata saved.")
+
+    def save_autocenter(self):
+        path = QFileDialog.getSaveFileName(self, 'Save Flipangle Data', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'csv (*.csv)')
+        if not path[0] == '':
+            with open(path[0], mode='w', newline='') as file:
+                writer = csv.writer(file, delimiter=',')
+                writer.writerow(['Autocenter Data', params.dataTimestamp])
+                writer.writerow([''])
+                writer.writerow(['frequency [MHz]', 'fft peak magnitude'])
+                for n in range(len(self.freqSpace)):
+                    writer.writerow([round(self.freqSpace[n],5), self.peaks[n]])
+            print("\nAutosavedata saved.")
 #_______________________________________________________________________________
 #   Functions to Disable and enable control elements like buttons, spinboxes, etc.
 

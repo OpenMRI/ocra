@@ -88,13 +88,13 @@ A[0x1c]	pulseq_memory[56] = 0x0
 A[0x1d]	pulseq_memory[58] = 0x0 
 	pulseq_memory[59] = 0x20000000
 
-A[0x1e]	pulseq_memory[60] = 0x42f6 
-	pulseq_memory[61] = 0x74000b00
+A[0x1e]	pulseq_memory[60] = 0x6f9b 
+	pulseq_memory[61] = 0x74000300
 
 A[0x1f]	pulseq_memory[62] = 0x42f6 
 	pulseq_memory[63] = 0x74000500
 
-A[0x20]	pulseq_memory[64] = 0xdf36 
+A[0x20]	pulseq_memory[64] = 0xe4cb 
 	pulseq_memory[65] = 0x74000300
 
 A[0x21]	pulseq_memory[66] = 0x1b3f724 
