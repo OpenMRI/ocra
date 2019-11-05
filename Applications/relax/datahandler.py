@@ -7,6 +7,7 @@ from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
+import pandas as pd
 from scipy.optimize import curve_fit, brentq
 # just for debugging calculations:
 import matplotlib.pyplot as plt
@@ -227,6 +228,7 @@ class data(QObject):
         self.mag_t = np.abs(self.dclip)
         self.imag_t = np.imag(self.dclip)
         self.real_t = np.real(self.dclip)
+        self.mag_con = np.convolve(self.mag_t, np.ones((50,))/50, mode='same')
         self.real_con = np.convolve(self.real_t, np.ones((50,))/50, mode='same')
         self.time_axis = np.linspace(0, self.time, self.data_idx)
 
@@ -303,12 +305,12 @@ class data(QObject):
         avgPoint = kwargs.get('avgP', 1)
         avgMeas = kwargs.get('avgM', 1)
         self.idxM = 0; self.idxP = 0
-        T1 = []; R2 = []; measurement = []
-
+        self.T1 = []; self.R2 = []
         self.set_freq(freq)
 
         while self.idxM < avgMeas:
             print("Measurement : ", self.idxM+1, "/", avgMeas)
+            self.measurement = []
 
             for self.ti in values:
                 self.peaks = []
@@ -316,8 +318,8 @@ class data(QObject):
 
                 while self.idxP < avgPoint:
                     print("Datapoint : ", self.idxP+1, "/", avgPoint)
+                    time.sleep(recovery/1000)
                     gsocket.write(struct.pack('<I', 1 << 28))
-
 
                     while True:
                         gsocket.waitForReadyRead()
@@ -334,37 +336,100 @@ class data(QObject):
                     self.process_readout()
                     print("Start analyzing IR data.")
                     self.analytics()
-                    time_peak = np.argmax(abs(self.real_con))
-                    self.peaks.append(self.real_con[time_peak])
+                    print("Max. mag : ", np.max(self.mag_con))
+                    print("sign real : ", np.sign(self.real_con[np.argmax(abs(self.real_con))]))
+                    self.peaks.append(np.max(self.mag_con)*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
                     self.readout_finished.emit()
-
-                    time.sleep(recovery/1000)
                     self.idxP += 1
 
-                measurement.append(np.mean(self.peaks))
+                self.measurement.append(np.mean(self.peaks))
                 self.idxP = 0
 
             # Calculate T1 value and error
             try:
-                p, cov = curve_fit(self.fit_function, values, measurement)
+                p, cov = curve_fit(self.T1_fit, values, self.measurement)
                 def func(x):
                     return p[0] - p[1] * np.exp(-p[2]*x)
-                T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
-                R2.append(round(1-(np.sum((measurement - self.fit_function(values, *p))**2)/(np.sum((measurement-np.mean(measurement))**2))),5))
+                self.T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
+                self.R2.append(round(1-(np.sum((self.measurement - self.T1_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
                 self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
-                self.y_fit = self.fit_function(self.x_fit, *p)
+                self.y_fit = self.T1_fit(self.x_fit, *p)
+                self.fit_params = p
             except:
-                T1.append(float('nan'))
-                R2.append(float('nan'))
+                self.T1.append(float('nan'))
+                self.R2.append(float('nan'))
+                self.x_fit = float('nan')
+                self.y_fit = float('nan')
 
             self.t1_finished.emit()
-            measurement = []
             self.idxM += 1
 
-        return np.nanmean(T1), np.nanmean(R2)
+        return np.nanmean(self.T1), np.nanmean(self.R2)
 
-    def fit_function(self, x, A, B, C):
+    def T1_fit(self, x, A, B, C):
         return A - B * np.exp(-C * x)
 
 #_______________________________________________________________________________
 #   T2 Measurement
+
+    def T2_measurement(self, values, freq, recovery, **kwargs):
+        print('T1 Measurement')
+
+        avgPoint = kwargs.get('avgP', 1)
+        avgMeas = kwargs.get('avgM', 1)
+        self.idxM = 0; self.idxP = 0
+        self.T2 = []; self.R2 = []; self.measurement = []
+
+        self.set_freq(freq)
+
+        while self.idxM < avgMeas:
+            print("Measurement : ", self.idxM+1, "/", avgMeas)
+            self.measurement = []
+
+            for self.te in values:
+                self.peaks = []
+                self.set_SE(self.te)
+
+                while self.idxP < avgPoint:
+                    print("Datapoint : ", self.idxP+1, "/", avgPoint)
+                    time.sleep(recovery/1000)
+                    gsocket.write(struct.pack('<I', 1 << 28))
+
+                    while True:
+                        gsocket.waitForReadyRead()
+                        datasize = gsocket.bytesAvailable()
+                        print(datasize)
+                        time.sleep(0.1)
+                        if datasize == 8*self.size:
+                            print("IR readout finished : ", datasize)
+                            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                            break
+                        else: continue
+
+                    print("Start processing SE readout.")
+                    self.process_readout()
+                    print("Start analyzing SE data.")
+                    self.analytics()
+                    self.peaks.append(np.max(self.mag_con))
+
+                    self.readout_finished.emit()
+                    self.idxP += 1
+
+                self.measurement.append(np.mean(self.peaks))
+                self.idxP = 0
+
+            # Calculate T2 value and error
+            p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
+            # Calculation of T2: M(T2) = 0.37*(func(0)) = 0.37(A+B), T2 = -1/C * ln((M(T2)-A)/B)
+            self.T2.append(round(-(1/p[2])*np.log(((0.37*(p[0]+p[1]))-p[0])/p[1]), 5))
+            self.R2.append(round(1-(np.sum((self.measurement - self.T2_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
+            self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
+            self.y_fit = self.T2_fit(self.x_fit, *p)
+            self.fit_params = p
+            self.t2_finished.emit()
+            self.idxM += 1
+
+        return np.nanmean(self.T2), np.nanmean(self.R2)
+
+    def T2_fit(self, x, A, B, C):
+        return A + B * np.exp(-C * x)
