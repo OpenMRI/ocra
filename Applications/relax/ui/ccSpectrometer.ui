@@ -87,7 +87,45 @@
       </property>
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="0">
+        <item row="2" column="1">
+         <widget class="QComboBox" name="seq_selector">
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+          <property name="maxVisibleItems">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="seqLabel">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Sequence:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -103,43 +141,58 @@
           </property>
          </spacer>
         </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="seq_selector">
-          <property name="currentIndex">
-           <number>-1</number>
-          </property>
-          <property name="maxVisibleItems">
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLabel" name="seqLabel">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Sequence:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>10</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+        <item row="3" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="uploadSeq_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Upload Sequence</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="uploadSeq_confirm">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>2</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Uploaded</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -180,7 +233,7 @@
          <number>0</number>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <property name="tabSpacing">
          <number>15</number>
@@ -194,7 +247,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>299</height>
+           <height>277</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -684,7 +737,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>299</height>
+           <height>262</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -1066,6 +1119,36 @@
               </property>
              </widget>
             </item>
+            <item row="6" column="1">
+             <widget class="QPushButton" name="autoCenter_save_btn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Save Data</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -1092,7 +1175,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>305</height>
+           <height>265</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -1595,6 +1678,36 @@
               </property>
              </widget>
             </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="flipangle_save_btn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Save Data</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -1621,7 +1734,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>299</height>
+           <height>262</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -1654,7 +1767,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Implementation of shimming tool.</string>
+             <string>Implementation of B0 shimming tool.</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

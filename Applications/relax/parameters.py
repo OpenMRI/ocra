@@ -19,7 +19,7 @@ class Parameters:
 
     def var_init(self): # Init internal GUI parameter with defaults
         print("Setting default parameters.")
-        self.host = '172.20.125.186'
+        self.host = '172.20.125.188'
         self.freq = 20.10000
         self.at = 22
         self.avgFlag = False
@@ -37,12 +37,14 @@ class Parameters:
         self.t2End = 100
         self.t2Step = 10
         self.t2Recovery = 10
-        self.t2Cyc = 5
+        self.t2avgM = 2
+        self.t2avgP = 3
         self.t1Start = 50
         self.t1End = 5000
         self.t1Step = 10
         self.t1Recovery = 200
-        self.t1Cyc = 5
+        self.t1avgM = 2
+        self.t1avgP = 3
         self.temp = float('nan')
         self.freqaxis = []
         self.data = []
@@ -71,12 +73,14 @@ class Parameters:
                 self.t2End,\
                 self.t2Step,\
                 self.t2Recovery,\
-                self.t2Cyc,\
+                self.t2avgM,\
+                self.t2avgP,\
                 self.t1Start,\
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc,\
+                self.t1avgM,\
+                self.t1avgP,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -106,12 +110,14 @@ class Parameters:
                 self.t2End,\
                 self.t2Step,\
                 self.t2Recovery,\
-                self.t2Cyc,\
+                self.t2avgM,\
+                self.t2avgP,\
                 self.t1Start,\
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc,\
+                self.t1avgM,\
+                self.t1avgP,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -142,12 +148,14 @@ class Parameters:
         print("TE last value:\t", self.t2End, "\tms")
         print("t2 steps:\t", self.t2Step)
         print("t2 recovery:\t", self.t2Recovery, "\ts")
-        print("t2 cycles:\t", self.t2Cyc)
-        print("TI start valie:\t", self.t1Start, "\tms")
-        print("TI last valie:\t", self.t1End, "\tms")
+        print("t2 averages/meas:\t", self.t2avgM)
+        print("t2 averages/data:\t", self.t2avgP)
+        print("TI start value:\t", self.t1Start, "\tms")
+        print("TI last value:\t", self.t1End, "\tms")
         print("t1 steps:\t", self.t1Step)
         print("t1 recovery:\t", self.t1Recovery, "\tms")
-        print("t1 cycles:\t", self.t1Cyc)
+        print("t1 averages/meas:\t", self.t1avgM)
+        print("t1 averages/data:\t", self.t1avgP)
         print("Temperature:\t", self.temp, "\t°C")
         print("\n")
 

@@ -8,9 +8,10 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
 import pandas as pd
-import scipy.io as sp
+from scipy.optimize import curve_fit, brentq
 # just for debugging calculations:
 import matplotlib.pyplot as plt
+
 
 from globalsocket import gsocket
 from parameters import params
@@ -20,6 +21,9 @@ class data(QObject):
 
     # Init signal thats emitted when readout is processed
     readout_finished = pyqtSignal()
+    t1_finished = pyqtSignal()
+    t2_finished = pyqtSignal()
+    uploaded = pyqtSignal(bool)
 
     def __init__(self):
         super(data, self).__init__()
@@ -44,7 +48,6 @@ class data(QObject):
     def exit_host(self): # Reset called whenever opening a controlcenter
         gsocket.write(struct.pack('<I', 5))
         try:
-            gsocket.readyRead.disconnect()
             gsocket.disconnect()
             print("gsocket readyRead disconnected.")
         except:
@@ -78,9 +81,6 @@ class data(QObject):
 
     def set_FID(self): # Function to init and set FID -- only acquire call is necessary afterwards
 
-        try: gsocket.readyRead.disconnect()
-        except: print("gsocket not (dis-)connected.")
-
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_fid)
         gsocket.write(struct.pack('<I', 4 << 28))
@@ -91,21 +91,16 @@ class data(QObject):
                 break
 
         gsocket.setReadBufferSize(8*self.size)
-        gsocket.readyRead.connect(self.readData)
         self.ir_flag = False
         self.se_flag = False
         self.fid_flag = True
         print("\nFID sequence uploaded.")
 
-    def set_SE(self, TE=-1): # Function to modify SE -- call whenever acquiring a SE
-
-        try: gsocket.readyRead.disconnect()
-        except: print("gsocket still connected.")
+    def set_SE(self, TE=10): # Function to modify SE -- call whenever acquiring a SE
 
         # Change TE in sequence and push to server
-        if TE == -1: TE = params.te
-        else: params.te = TE
-        self.change_TE(params.te)
+        params.te = TE
+        self.change_TE(params.te)#, REC)
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_se)
@@ -117,7 +112,6 @@ class data(QObject):
                 break
 
         gsocket.setReadBufferSize(8*self.size)
-        gsocket.readyRead.connect(self.readData)
         self.ir_flag = False
         self.se_flag = True
         self.fid_flag = False
@@ -136,15 +130,10 @@ class data(QObject):
             for line in lines:
                 out_file.write(line)
 
-    def set_IR(self, TI=-1):#, REC=100): # Function to modify SE -- call whenever acquiring a SE
-        # Defaults: TI = 50ms (time of inversion), REC = 100ms (equilibrium recovery time)
-        try: gsocket.readyRead.disconnect()
-        except: print("gsocket still connected.")
+    def set_IR(self, TI=15):#, REC=1000): # Function to modify SE -- call whenever acquiring a SE
 
-        # Change TI and REC in sequence and push to server
-        if TI == -1: TI = params.te
-        else: params.ti = TI
-        self.change_IR(params.ti)#,REC)
+        params.ti = TI
+        self.change_IR(params.ti)#, REC)
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_ir)
@@ -156,7 +145,6 @@ class data(QObject):
                 break
 
         gsocket.setReadBufferSize(8*self.size)
-        gsocket.readyRead.connect(self.readData)
         self.ir_flag = True
         self.se_flag = False
         self.fid_flag = False
@@ -169,18 +157,53 @@ class data(QObject):
         # Modify TI time in the 8th last line
         lines[-14] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
         # Modify REC time in the 11th last line
-        #lines[-11] = 'PR 4, ' + str(int(REC*1000)) + '\t// wait&r\n'
+        #lines[-18] = 'PR 3, ' + str(int(REC*1000)) + '\t// wait&r\n'
         # Close and write/save modified sequence
         f.close()
         with open(self.seq_ir, "w") as out_file:
             for line in lines:
                 out_file.write(line)
 
-    def acquire(self): # Trigger an acquisition
-        # gsocket.write(struct.pack('<I', 2 << 28 | 0 << 24))
+    def set_uploaded_seq(self, seq):
+        print("Set uploaded Sequence.")
+        self.assembler = Assembler()
+        byte_array = self.assembler.assemble(seq)
+        gsocket.write(struct.pack('<I', 4 << 28))
+        gsocket.write(byte_array)
+
+        while(True): # Wait until bytes written
+            if not gsocket.waitForBytesWritten():
+                break
+
+        # Multiple function calls
+        gsocket.setReadBufferSize(8*self.size)
+        print(byte_array)
+        print("Sequence uploaded to server.")
+        self.uploaded.emit(True)
+
+    def acquire(self): # Trigger acquisition and read data
+        t0 = time.time() # calculate time for acquisition
         gsocket.write(struct.pack('<I', 1 << 28))
-        self.t0 = time.time()
-        print("\nAcquiring data.")
+
+        while True: # Read data
+            gsocket.waitForReadyRead()
+            datasize = gsocket.bytesAvailable()
+            print(datasize)
+            time.sleep(0.01)
+            if datasize == 8*self.size:
+                print("Readout finished : ", datasize)
+                self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                t1 = time.time() # calculate time for acquisition
+                break
+            else: continue
+
+        print("Start processing readout.")
+        self.process_readout()
+        print("Start analyzing data.")
+        self.analytics()
+        print('Finished acquisition in {:.3f} ms'.format((t1-t0)*1000.0))
+        # Emit signal, when data was read
+        self.readout_finished.emit()
 
     def set_freq(self, freq): # Sets parameter and triggers acquisition
         params.freq = freq
@@ -192,38 +215,20 @@ class data(QObject):
         gsocket.write(struct.pack('<I', 3 << 28 | int(abs(at)/0.25)))
         print("Set attenuation!")
 #_______________________________________________________________________________
-#   Read and process acquired data from host
-
-    def readData(self): # Read data from server
-
-        # wait for enough data and read to self.buffer
-        size = gsocket.bytesAvailable()
-        if size == 8*self.size:
-            print("Reading data... ", size)
-            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
-            print(len(self.buffer))
-            self.t1 = time.time()
-        else: return
-
-        print("Start processing readout.")
-        self.process_readout()
-        print("Start analyzing data.")
-        self.analytics()
-        # Emit signal, when data was read
-        self.readout_finished.emit()
-        print('Finished acquisition in {:.3f} ms'.format((self.t1-self.t0)*1000.0))
+#   Process and analyse acquired data
 
     def process_readout(self): # Read buffer part of interest and perform FFT
 
         # Max. data index and crop data
         self.data_idx = int(self.time * 250)
-        self.dclip = self.data[0:self.data_idx]*1000; # Multiply by 1000 to obtain mV
+        self.dclip = self.data[0:self.data_idx]*1000.0*40.0; # Multiply by 1000 to obtain mV?
         timestamp = datetime.now()
 
         # Time domain data
         self.mag_t = np.abs(self.dclip)
         self.imag_t = np.imag(self.dclip)
         self.real_t = np.real(self.dclip)
+        self.mag_con = np.convolve(self.mag_t, np.ones((50,))/50, mode='same')
         self.real_con = np.convolve(self.real_t, np.ones((50,))/50, mode='same')
         self.time_axis = np.linspace(0, self.time, self.data_idx)
 
@@ -253,7 +258,7 @@ class data(QObject):
         self.peak_value = round(np.max(self.fft_mag), 2)
         self.max_index = np.argmax(self.fft_mag)
 
-        if self.peak_value > 5: # Peak threshold
+        if self.peak_value > 0.5: # Peak threshold
             # Declarations
             win = int(self.data_idx/20)
             N = 50
@@ -290,3 +295,141 @@ class data(QObject):
             self.snr = float('nan')
 
         print("\tData analysed.")
+
+#_______________________________________________________________________________
+#   T1 Measurement
+
+    def T1_measurement(self, values, freq, recovery, **kwargs):
+        print('T1 Measurement')
+
+        avgPoint = kwargs.get('avgP', 1)
+        avgMeas = kwargs.get('avgM', 1)
+        self.idxM = 0; self.idxP = 0
+        self.T1 = []; self.R2 = []
+        self.set_freq(freq)
+
+        while self.idxM < avgMeas:
+            print("Measurement : ", self.idxM+1, "/", avgMeas)
+            self.measurement = []
+
+            for self.ti in values:
+                self.peaks = []
+                self.set_IR(self.ti)
+
+                while self.idxP < avgPoint:
+                    print("Datapoint : ", self.idxP+1, "/", avgPoint)
+                    time.sleep(recovery/1000)
+                    gsocket.write(struct.pack('<I', 1 << 28))
+
+                    while True:
+                        gsocket.waitForReadyRead()
+                        datasize = gsocket.bytesAvailable()
+                        print(datasize)
+                        time.sleep(0.1)
+                        if datasize == 8*self.size:
+                            print("IR readout finished : ", datasize)
+                            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                            break
+                        else: continue
+
+                    print("Start processing IR readout.")
+                    self.process_readout()
+                    print("Start analyzing IR data.")
+                    self.analytics()
+                    print("Max. mag : ", np.max(self.mag_con))
+                    print("sign real : ", np.sign(self.real_con[np.argmax(abs(self.real_con))]))
+                    self.peaks.append(np.max(self.mag_con)*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
+                    self.readout_finished.emit()
+                    self.idxP += 1
+
+                self.measurement.append(np.mean(self.peaks))
+                self.idxP = 0
+
+            # Calculate T1 value and error
+            try:
+                p, cov = curve_fit(self.T1_fit, values, self.measurement)
+                def func(x):
+                    return p[0] - p[1] * np.exp(-p[2]*x)
+                self.T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
+                self.R2.append(round(1-(np.sum((self.measurement - self.T1_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
+                self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
+                self.y_fit = self.T1_fit(self.x_fit, *p)
+                self.fit_params = p
+            except:
+                self.T1.append(float('nan'))
+                self.R2.append(float('nan'))
+                self.x_fit = float('nan')
+                self.y_fit = float('nan')
+
+            self.t1_finished.emit()
+            self.idxM += 1
+
+        return np.nanmean(self.T1), np.nanmean(self.R2)
+
+    def T1_fit(self, x, A, B, C):
+        return A - B * np.exp(-C * x)
+
+#_______________________________________________________________________________
+#   T2 Measurement
+
+    def T2_measurement(self, values, freq, recovery, **kwargs):
+        print('T1 Measurement')
+
+        avgPoint = kwargs.get('avgP', 1)
+        avgMeas = kwargs.get('avgM', 1)
+        self.idxM = 0; self.idxP = 0
+        self.T2 = []; self.R2 = []; self.measurement = []
+
+        self.set_freq(freq)
+
+        while self.idxM < avgMeas:
+            print("Measurement : ", self.idxM+1, "/", avgMeas)
+            self.measurement = []
+
+            for self.te in values:
+                self.peaks = []
+                self.set_SE(self.te)
+
+                while self.idxP < avgPoint:
+                    print("Datapoint : ", self.idxP+1, "/", avgPoint)
+                    time.sleep(recovery/1000)
+                    gsocket.write(struct.pack('<I', 1 << 28))
+
+                    while True:
+                        gsocket.waitForReadyRead()
+                        datasize = gsocket.bytesAvailable()
+                        print(datasize)
+                        time.sleep(0.1)
+                        if datasize == 8*self.size:
+                            print("IR readout finished : ", datasize)
+                            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                            break
+                        else: continue
+
+                    print("Start processing SE readout.")
+                    self.process_readout()
+                    print("Start analyzing SE data.")
+                    self.analytics()
+                    self.peaks.append(np.max(self.mag_con))
+
+                    self.readout_finished.emit()
+                    self.idxP += 1
+
+                self.measurement.append(np.mean(self.peaks))
+                self.idxP = 0
+
+            # Calculate T2 value and error
+            p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
+            # Calculation of T2: M(T2) = 0.37*(func(0)) = 0.37(A+B), T2 = -1/C * ln((M(T2)-A)/B)
+            self.T2.append(round(-(1/p[2])*np.log(((0.37*(p[0]+p[1]))-p[0])/p[1]), 5))
+            self.R2.append(round(1-(np.sum((self.measurement - self.T2_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
+            self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
+            self.y_fit = self.T2_fit(self.x_fit, *p)
+            self.fit_params = p
+            self.t2_finished.emit()
+            self.idxM += 1
+
+        return np.nanmean(self.T2), np.nanmean(self.R2)
+
+    def T2_fit(self, x, A, B, C):
+        return A + B * np.exp(-C * x)

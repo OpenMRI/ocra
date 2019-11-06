@@ -36,6 +36,7 @@ plt.rcParams['lines.linewidth'] = 1
 plt.rcParams['axes.grid'] = True
 plt.rcParams['figure.autolayout'] = True
 plt.rcParams['figure.dpi'] = 75
+plt.rcParams['legend.loc'] = "upper right"
 
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
 
@@ -155,14 +156,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def save_data_csv(self):
         path = QFileDialog.getSaveFileName(self, 'Save Acquisitiondata', QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation), 'csv (*.csv)')
         if not path[0] == '':
-            with open(path[0], mode='w', newline='') as file:
-                writer = csv.writer(file, delimiter=',')
-                writer.writerow([params.dataTimestamp])
-                writer.writerow(['Center frequency', params.freq])
-                writer.writerow([''])
-                writer.writerow(['freq', 'cplx data','fft centered'])
-                for n in range(len(params.freqaxis)):
-                    writer.writerow([params.freqaxis[n], params.data[n], params.fft[n]])
+            tab_idx = self.plotTabWidget.currentIndex()
+            if tab_idx == 2 or tab_idx == 1:
+                try: self.environment.saveData(path[0])
+                except: return
+            else:
+                with open(path[0], mode='w', newline='') as file:
+                    writer = csv.writer(file, delimiter=',')
+                    writer.writerow([params.dataTimestamp])
+                    writer.writerow(['Center frequency', params.freq])
+                    writer.writerow([''])
+                    writer.writerow(['freq', 'cplx data','fft centered'])
+                    for n in range(len(params.freqaxis)):
+                        writer.writerow([params.freqaxis[n], params.data[n], params.fft[n]])
             print("\nAcquisitiondata saved.")
 
     def save_figure(self):
