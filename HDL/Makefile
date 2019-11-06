@@ -35,7 +35,7 @@ CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 endif
 PROC = ps7_cortexa9_0
 
-CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0
+CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = hsi -nolog -nojournal -mode batch
@@ -141,6 +141,9 @@ devicetree.dtb: tmp/$(NAME).tree/system.dts
 
 ocra_mri.dtbo: tmp/$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/ocra_mri.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
+
+shim_controller.dtbo: tmp/$(NAME).tree/system.dts
+	dtc -O dtb -o tmp/shim_controller.dtbo -b 0 -@ tmp/$(NAME).tree/pl.dtsi
 
 tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
 	mkdir -p $(@D)

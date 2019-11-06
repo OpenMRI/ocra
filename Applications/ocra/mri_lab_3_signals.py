@@ -41,10 +41,10 @@ class MRI_Sig_Widget(MRI_Sig_Widget_Base, MRI_Sig_Widget_Form):
 
         self.startButton.clicked.connect(self.start)
         self.stopButton.clicked.connect(self.stop)
-		
+
 		# don't emit valueChanged signal while typing
         self.freqValue.setKeyboardTracking(False)
-        
+
         self.freqValue.valueChanged.connect(self.set_freq)
         self.freqCheckBox = QCheckBox('Zoom')
         self.checkBoxLayout.addWidget(self.freqCheckBox)
@@ -67,12 +67,12 @@ class MRI_Sig_Widget(MRI_Sig_Widget_Base, MRI_Sig_Widget_Form):
             lambda: self.slider_set_grad_offset(self.horizontalSlider_y))
         self.horizontalSlider_z.sliderReleased.connect(
             lambda: self.slider_set_grad_offset(self.horizontalSlider_z))
-			
+
 		# Don't emit valueChanged signal while typing
         self.gradOffset_x.setKeyboardTracking(False)
         self.gradOffset_y.setKeyboardTracking(False)
         self.gradOffset_z.setKeyboardTracking(False)
-		
+
         self.gradOffset_x.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_x))
         self.gradOffset_y.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_y))
         self.gradOffset_z.valueChanged.connect(lambda: self.set_grad_offset(self.gradOffset_z))
@@ -495,7 +495,7 @@ class MRI_Sig_Widget(MRI_Sig_Widget_Base, MRI_Sig_Widget_Form):
         bound_high = max_index
         bound_low = max_index
         # print(max_index)
-		
+
 		# TW: Wow, this isn't really code to find the line-width, but hey sometimes this could work (not cool)
         while 1:
           if fft_mag[bound_low] < 0.5 * max_value:

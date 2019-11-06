@@ -21,10 +21,10 @@ import struct
 
 # import PyQt5 packages
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
-    QLabel, QMessageBox, QCheckBox, QFileDialog
+    QLabel, QMessageBox, QCheckBox, QFileDialog, QLayout
 from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtCore import QCoreApplication, QRegExp
-from PyQt5.QtGui import QIcon, QRegExpValidator
+from PyQt5.QtGui import QIcon, QRegExpValidator, QPixmap
 from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 
 # import calculation and plot packages
@@ -40,21 +40,21 @@ matplotlib.use('Qt5Agg')
 
 # load .ui files for different pages
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainWindow.ui')
-Welcome_Widget_Form, Welcome_Widget_Base = loadUiType('ui/welcomeWidget.ui')
 Config_Dialog_Form, Config_Dialog_Base = loadUiType('ui/configDialog.ui')
-
-# # create global TCP socket
-# gsocket = QTcpSocket()
-
 
 # main window
 class MainWindow(Main_Window_Base, Main_Window_Form):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+
+        self.config = ConfigDialog(self)
+        self.config.show()
+
         self.init_menu()
         self.stacked_widget = QStackedWidget()
         self.init_stacked_widget()
+
         self.setWindowTitle('MRI Tabletop')
         self.setWindowIcon(QIcon('ui/image/icon.png'))
         # setup close event
@@ -63,7 +63,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
     def init_menu(self):
         # File menu
-        self.actionConfig.triggered.connect(self.config)
+        self.actionConfig.triggered.connect(self.open_config)
         self.actionQuit.triggered.connect(self.quit_application)
 
         # MRI Lab menu
@@ -89,12 +89,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.actionSequence_Design.setShortcut('Ctrl+8')
 
     def init_stacked_widget(self):
+
         layout = QVBoxLayout()
         layout.addWidget(self.stacked_widget)
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-        self.welcomeWidget = WelcomeWidget()
+
         self.mriFidWidget = MRI_FID_Widget()
         self.mriSeWidget = MRI_SE_Widget()
         self.mriSigWidget = MRI_Sig_Widget()
@@ -104,7 +105,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.mriRtWidget = MRI_Rt_Widget()
         self.mriSdWidget = MRI_SD_Widget()
         self.mriDesignWidget = MRI_SD_Widget()
-        self.stacked_widget.addWidget(self.welcomeWidget)
+
         self.stacked_widget.addWidget(self.mriFidWidget)
         self.stacked_widget.addWidget(self.mriSeWidget)
         self.stacked_widget.addWidget(self.mriSigWidget)
@@ -116,28 +117,22 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.stacked_widget.addWidget(QLabel("Not developed"))
         self.stacked_widget.addWidget(QLabel("Not developed"))
 
-    def config(self):
-        self.welcomeWidget.popConfigDialog.show()
+    def open_config(self):
+        try:
+            self.config.show()
+        except:
+            return
 
     def quit_application(self):
-        quit_choice = QMessageBox.question(self, 'Confirm', 'Do you want to quit?',
-                                           QMessageBox.Yes | QMessageBox.No)
+        quit_choice = QMessageBox.question(self, 'Confirm', 'Do you want to quit?', QMessageBox.Yes | QMessageBox.No)
         if quit_choice == QMessageBox.Yes:
             sys.exit()
             # QCoreApplication.instance().quit() # same function
         else:
             pass
 
-    def closeEvent(self, event):
-        quit_choice = QMessageBox.question(self, 'Confirm', 'Do you want to quit?',
-                                           QMessageBox.Yes | QMessageBox.No)
-        if quit_choice == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
-
     def stop_all(self):
-        ''' Call stop functions of all widgets before opening a new one'''
+        # Call stop functions of all widgets before opening a new one
         print("Stopping all acquisation!")
         if not self.mriFidWidget.idle:
             self.mriFidWidget.stop()
@@ -157,78 +152,91 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     # start MRI Lab GUIs:
     def open_mri_fid(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(0)
         # update frequency to server
         self.mriFidWidget.set_freq(parameters.get_freq())
         self.mriFidWidget.freqValue.setValue(
             parameters.get_freq())  # maybe put this in lower funcs
         self.setWindowTitle('MRI tabletop - FID GUI')
 
+        # self.configuration.close_config()
+
     def open_mri_se(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(2)
+        self.stacked_widget.setCurrentIndex(1)
         self.mriSeWidget.set_freq(parameters.get_freq())
-        self.mriSeWidget.set_at(parameters.get_at())
         self.mriSeWidget.freqValue.setValue(parameters.get_freq())
-        self.mriSeWidget.atValue.setValue(parameters.get_at())
+        # self.mriSeWidget.atValue.setValue(parameters.get_at())
         self.setWindowTitle('MRI tabletop - SE GUI')
 
     def open_mri_sig(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(3)
+        self.stacked_widget.setCurrentIndex(2)
         self.mriSigWidget.set_freq(parameters.get_freq())
         self.mriSigWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - Signals GUI')
 
     def open_mri_proj(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(4)
+        self.stacked_widget.setCurrentIndex(3)
         self.mriProjWidget.set_freq(parameters.get_freq())
         self.mriProjWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - 1D Projection GUI')
 
     def open_mri_2dimag(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(5)
+        self.stacked_widget.setCurrentIndex(4)
         self.mri2DImagWidget.set_freq(parameters.get_freq())
         self.mri2DImagWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - 2D Image GUI')
 
     def open_mri_3dimag(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(6)
+        self.stacked_widget.setCurrentIndex(5)
         self.mri3DImagWidget.set_freq(parameters.get_freq())
         self.mri3DImagWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - 3D Image GUI')
 
     def open_mri_rt(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(7)
+        self.stacked_widget.setCurrentIndex(6)
         self.mriRtWidget.set_freq(parameters.get_freq())
         self.mriRtWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - Real-time Update GUI')
 
     def open_mri_sd(self):
         self.stop_all()
-        self.stacked_widget.setCurrentIndex(8)
+        self.stacked_widget.setCurrentIndex(7)
         self.mriRtWidget.set_freq(parameters.get_freq())
         self.mriRtWidget.freqValue.setValue(parameters.get_freq())
         self.setWindowTitle('MRI tabletop - Sequence Design GUI')
 
+#-------------------------------------------------------------------------------
 
 # configuration dialog
 class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
-    def __init__(self):
-        super(ConfigDialog, self).__init__()
+    def __init__(self, parent=None):
+        super(ConfigDialog, self).__init__(parent)
         self.setupUi(self)
+
         # setup closeEvent
         self.ui = loadUi('ui/configDialog.ui')
         self.ui.closeEvent = self.closeEvent
-        # setup connection to red-pitaya
-        self.connectedLabel.setVisible(False)
+
+        self.setWindowTitle('Configuration')
+        self.setWindowIcon(QIcon('ui/image/icon.png'))
+
+        self.ocra_logo = QPixmap('ui/image/ocra_200.png')
+        self.logo1_label.setPixmap(self.ocra_logo)
+
+        self.ocraRef_label.setText('OCRA ver. 1.0, Sep. 2019')
+
+        # Setup connection to red-pitaya
+        self.connected_label.setVisible(False)
         self.connectButton.clicked.connect(self.socket_connect)
         gsocket.connected.connect(self.socket_connected)
         gsocket.error.connect(self.socket_error)
+
         # IP address validator
         IP_validator = QRegExp(
             '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)'
@@ -236,15 +244,26 @@ class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
         self.addrValue.setValidator(
             QRegExpValidator(IP_validator, self.addrValue))
 
+        # Write host address to parameters
+        parameters.set_hostaddr(self.addrValue.text())
+
+        self.mainWindow = parent
+
     def socket_connect(self):
         print('Connecting...')
         self.connectButton.setEnabled(False)
         gsocket.connectToHost(self.addrValue.text(), 1001)
 
+
+        # Add timeout for connection
+
     def socket_connected(self):
         print("Connected!")
         self.connectButton.setEnabled(True)
-        self.connectedLabel.setVisible(True)
+        self.connected_label.setVisible(True)
+        self.mainWindow.show()
+        self.close()
+
 
     def socket_error(self, socketError):
         if socketError == QAbstractSocket.RemoteHostClosedError:
@@ -254,31 +273,22 @@ class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
                 self, 'PulsedNMR', 'Error: %s.' % gsocket.errorString())
         self.connectButton.setEnabled(True)
 
+    def close_config(self):
+        if not self.idle:
+            self.stop()
+
     def closeEvent(self, event):
         pass
         # self.connectButton.setEnabled(True)
         # this still cannot solve the waiting problem
 
+#-------------------------------------------------------------------------------
 
-# welcome widget
-class WelcomeWidget(Welcome_Widget_Base, Welcome_Widget_Form):
-    def __init__(self):
-        super(WelcomeWidget, self).__init__()
-        self.setupUi(self)
-        self.popConfigDialog = ConfigDialog()
-        self.configButton.clicked.connect(self.config)
-
-    def config(self):
-        self.popConfigDialog.show()
-
-
-# run
 def run():
     app = QApplication(sys.argv)
     MRILab = MainWindow()
-    MRILab.show()
+    # MRILab.show()
     sys.exit(app.exec_())
-
 
 # main function
 if __name__ == '__main__':
