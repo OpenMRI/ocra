@@ -141,6 +141,9 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.datapoints_te = []; self.datapoints_peaks = []
         self.time_ax = []; self.acq_data = []
 
+        self.t2_output.setText(str(round(self.data.T2[-1],2)))
+        self.r2_output.setText(str(round(self.data.R2[-1],4)))
+
         self.fits_frame.plot(ax=self.ax2, color='#4260FF', legend=False); self.fig_canvas.draw()
 
         if self.measAvg_enable.isChecked() and self.data.idxM+1 < self.measAvg_input.value():

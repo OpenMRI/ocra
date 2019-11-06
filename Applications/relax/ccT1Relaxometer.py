@@ -90,10 +90,6 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
             avgP = avgPoint, avgM = avgMeas)
         logger.add('T1', res=t1, err=r2, val=self.TI_values, avgP = avgPoint, avgM = avgMeas)
 
-        # Setup results and call interactive plot tool if necessary
-        self.t1_output.setText(str(round(t1,2)))
-        self.r2_output.setText(str(round(r2,4)))
-
         if avgMeas > 1: self.interactive_plot()
         self.controls.setEnabled(True)
 #_______________________________________________________________________________
@@ -135,6 +131,9 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
 
         self.datapoints_ti = []; self.datapoints_peaks = []
         self.time_ax = []; self.acq_data = []
+
+        self.t1_output.setText(str(round(self.data.T1[-1],2)))
+        self.r2_output.setText(str(round(self.data.R2[-1],4)))
 
         self.fits_frame.plot(ax=self.ax2, color='#4260FF', legend=False); self.fig_canvas.draw()
         QApplication.processEvents()
