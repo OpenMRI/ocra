@@ -355,8 +355,8 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
                 self.ax3.plot(abs(self.at_values), self.at_results)
                 self.fig_canvas.draw()
 
-            self.atPeak_output.setText(str(np.max(self.at_results)))
-            self.atMax_output.setText(str(self.at_values[np.argmax(self.at_results)]))
+            self.atPeak_output.setText(str(round(np.max(self.at_results), 2)))
+            self.atMax_output.setText(str(round(self.at_values[np.argmax(self.at_results)], 2)))
             self.manualAt_input.setValue(self.at_values[np.argmax(self.at_results)])
 
     def fit_At(self, init): # Function that is optimizing the fit
