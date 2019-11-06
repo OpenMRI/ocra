@@ -12,7 +12,6 @@ from scipy.optimize import curve_fit, brentq
 # just for debugging calculations:
 import matplotlib.pyplot as plt
 
-
 from globalsocket import gsocket
 from parameters import params
 from assembler import Assembler
