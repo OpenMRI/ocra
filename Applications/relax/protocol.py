@@ -68,7 +68,7 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
             self.protocol.setItem(row, 9, QTableWidgetItem(str(5)))
         def t2(self):
             self.meas_type.append("T2 Measurement")
-            self.protocol.setItem(row, 0, items.start)
+            self.protocol.setItem(row, 0, items.start())
             self.protocol.setItem(row, 1, QTableWidgetItem(str(10)))
             self.protocol.setItem(row, 2, items.stop())
             self.protocol.setItem(row, 3, QTableWidgetItem(str(600)))
