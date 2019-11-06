@@ -65,6 +65,13 @@
         <height>0</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="contextMenuPolicy">
        <enum>Qt::DefaultContextMenu</enum>
       </property>
@@ -72,11 +79,7 @@
        <enum>Qt::LeftToRight</enum>
       </property>
       <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border:0.5
-</string>
+       <bool>true</bool>
       </property>
       <property name="tabPosition">
        <enum>QTabWidget::West</enum>
@@ -85,7 +88,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <property name="iconSize">
        <size>
@@ -288,7 +291,7 @@
          <widget class="QWidget" name="verticalWidget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -325,6 +328,8 @@
              <property name="font">
               <font>
                <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
               </font>
              </property>
              <layout class="QHBoxLayout" name="protocolLayout">

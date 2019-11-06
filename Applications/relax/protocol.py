@@ -6,9 +6,7 @@ import time
 # import PyQt5 packages
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QProgressDialog
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 
 # import calculation and plot packages
 import numpy as np
@@ -17,7 +15,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from globalsocket import gsocket
 from parameters import params
 from dataHandler import data
 
@@ -91,8 +88,11 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
         def sample(self):
             self.meas_type.append("Change Sample")
 
-        try: idx = self.measures_list.currentRow()
+        try:
+            idx = self.measures_list.currentRow()
+            if idx == -1: idx = 0
         except: return
+
         measures = {
             0: t1,
             1: t2,
@@ -111,12 +111,16 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
             self.protocol.removeRow(row)
         except: return
 
+
     # Function for value changed:
         # update column linewidth
         # save value
     # Start Button
 
+
+
 class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
+
     def __init__(self):
         super(CCProtocolWidget, self).__init__()
         self.setupUi(self)
@@ -124,7 +128,11 @@ class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
         self.init_figure()
         self.data = data()
 
-        #self.start_btn.clicked.connect(self.start_protocol)
+        self.protocol = ProtocolWidget()
+        self.ctrl = 0
+        #self.start_btn.clicked.connect(self.run_protocol)
+        self.save_btn.clicked.connect(self.save_protocol)
+        self.load_btn.clicked.connect(self.load_protocol)
 
         ### Idee: ###
         # Emit signal, when start button clicked -> save table to parameters-class
@@ -147,9 +155,24 @@ class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
             t += 1000
             status.setValue(t*100/dur)
 
-    def start_protocol(self):
-        cycle = 0
-        #exec = protocol.rowCount()
+    def save_protocol(self):
+        print("Controls off.")
+        self.protocol.add_btn.setEnabled(False)
+        self.protocol.remove_btn.setEnabled(True)
+
+    def load_protocol(self):
+        print("Controls on.")
+        self.protocol.add_btn.setEnabled(True)
+        self.protocol.remove_btn.setEnabled(True)
+
+    def run_protocol(self):
+        print('run.')
+
+        #for cmd_nb in range(self.protocol.rowCount()):
+        #    cmd = widget
+
+
+
 
 class items:
 
