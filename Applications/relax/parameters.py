@@ -1,5 +1,6 @@
 import sys
 import pickle
+
 from PyQt5.QtCore import QFile, QTextStream
 from cycler import cycler
 
@@ -17,9 +18,11 @@ class Parameters:
         self.stylesheet = stream.readAll()
         self.cycler = cycler(color=['#33A4DF', '#4260FF', '#001529'])
 
+        self.ip = []
+
     def var_init(self): # Init internal GUI parameter with defaults
         print("Setting default parameters.")
-        self.host = '172.20.125.188'
+        self.hosts = ['172.20.125.84']
         self.freq = 20.10000
         self.at = 22
         self.avgFlag = False
@@ -55,7 +58,7 @@ class Parameters:
 
     def saveFile(self): # Save internal GUI parameter to pickle-file
         with open('parameters.pkl', 'wb') as file:
-            pickle.dump([self.host,\
+            pickle.dump([self.hosts,\
                 self.freq,\
                 self.at,\
                 self.avgFlag,\
@@ -92,7 +95,7 @@ class Parameters:
     def loadParam(self): # Load internal GUI parameter from pickle-file
         try:
             with open('parameters.pkl', 'rb') as file:
-                self.host,\
+                self.hosts,\
                 self.freq,\
                 self.at,\
                 self.avgFlag,\

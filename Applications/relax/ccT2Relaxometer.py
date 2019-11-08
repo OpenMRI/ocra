@@ -23,7 +23,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from globalsocket import gsocket
 from parameters import params
 from dataHandler import data
 from dataLogger import logger

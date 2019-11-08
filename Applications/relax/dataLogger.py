@@ -7,7 +7,8 @@ class DataLogger:
     def init(self):
         self.log = ['Relax-Log\n']
         self.log.append(datetime.now().strftime('%m/%d/%Y, %H:%M:%S')+'\n\n')
-        self.log.append('IP-address of host: '+params.host+'\n')
+        try: self.log.append('IP-address of host: '+params.ip+'\n')
+        except: self.log.append('Devlog\n')
 
     def acquisition(self, seq, peak, fwhm, snr):
         self.log.append('\n____________________________\n')

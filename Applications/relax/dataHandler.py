@@ -2,6 +2,8 @@
 import sys
 import struct
 import time
+import paramiko
+
 from datetime import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -12,7 +14,7 @@ from scipy.optimize import curve_fit, brentq
 # just for debugging calculations:
 import matplotlib.pyplot as plt
 
-from globalsocket import gsocket
+from TCPsocket import socket, connected, unconnected
 from parameters import params
 from assembler import Assembler
 
@@ -35,22 +37,32 @@ class data(QObject):
 #_______________________________________________________________________________
 #   Establish host connection and disconnection
 
-    def connectToHost(self): # Only called once in main class
-        try:
-            gsocket.connectToHost(params.host, 1001)
-            print("Connection to host esteblished.")
-            self.set_at(params.at)
-            self.set_freq(params.freq)
-        except:
-            print("Conncection to host failed.")
+    def establish_conn(self, ip): # Only called once in main class
 
-    def exit_host(self): # Reset called whenever opening a controlcenter
-        gsocket.write(struct.pack('<I', 5))
-        try:
-            gsocket.disconnect()
-            print("gsocket readyRead disconnected.")
-        except:
-            return
+        socket.connectToHost(ip, 1001)
+        socket.waitForConnected(1000)
+
+        if socket.state() == connected :
+            print("Connection to host esteblished.")
+        elif socket.state() == unconnected:
+            print("Conncection to host failed.")
+            return False
+        else:
+            print("TCP socket in state : ", socket.state())
+            return socket.state()
+
+        self.set_at(params.at)
+        self.set_freq(params.freq)
+
+        return True
+
+    def exit_host(self):
+        socket.write(struct.pack('<I', 5 << 28))
+        while(True): # Wait until bytes written
+            if not socket.waitForBytesWritten():
+                break
+        print("Disconnected from server.")
+
 #_______________________________________________________________________________
 #   Functions for initialization of variables
 
@@ -82,14 +94,14 @@ class data(QObject):
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_fid)
-        gsocket.write(struct.pack('<I', 4 << 28))
-        gsocket.write(byte_array)
+        socket.write(struct.pack('<I', 4 << 28))
+        socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not gsocket.waitForBytesWritten():
+            if not socket.waitForBytesWritten():
                 break
 
-        gsocket.setReadBufferSize(8*self.size)
+        socket.setReadBufferSize(8*self.size)
         self.ir_flag = False
         self.se_flag = False
         self.fid_flag = True
@@ -103,14 +115,14 @@ class data(QObject):
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_se)
-        gsocket.write(struct.pack('<I', 4 << 28))
-        gsocket.write(byte_array)
+        socket.write(struct.pack('<I', 4 << 28))
+        socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not gsocket.waitForBytesWritten():
+            if not socket.waitForBytesWritten():
                 break
 
-        gsocket.setReadBufferSize(8*self.size)
+        socket.setReadBufferSize(8*self.size)
         self.ir_flag = False
         self.se_flag = True
         self.fid_flag = False
@@ -136,14 +148,14 @@ class data(QObject):
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_ir)
-        gsocket.write(struct.pack('<I', 4 << 28))
-        gsocket.write(byte_array)
+        socket.write(struct.pack('<I', 4 << 28))
+        socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not gsocket.waitForBytesWritten():
+            if not socket.waitForBytesWritten():
                 break
 
-        gsocket.setReadBufferSize(8*self.size)
+        socket.setReadBufferSize(8*self.size)
         self.ir_flag = True
         self.se_flag = False
         self.fid_flag = False
@@ -167,31 +179,31 @@ class data(QObject):
         print("Set uploaded Sequence.")
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(seq)
-        gsocket.write(struct.pack('<I', 4 << 28))
-        gsocket.write(byte_array)
+        socket.write(struct.pack('<I', 4 << 28))
+        socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not gsocket.waitForBytesWritten():
+            if not socket.waitForBytesWritten():
                 break
 
         # Multiple function calls
-        gsocket.setReadBufferSize(8*self.size)
+        socket.setReadBufferSize(8*self.size)
         print(byte_array)
         print("Sequence uploaded to server.")
         self.uploaded.emit(True)
 
     def acquire(self): # Trigger acquisition and read data
         t0 = time.time() # calculate time for acquisition
-        gsocket.write(struct.pack('<I', 1 << 28))
+        socket.write(struct.pack('<I', 1 << 28))
 
         while True: # Read data
-            gsocket.waitForReadyRead()
-            datasize = gsocket.bytesAvailable()
+            socket.waitForReadyRead()
+            datasize = socket.bytesAvailable()
             print(datasize)
             time.sleep(0.01)
             if datasize == 8*self.size:
                 print("Readout finished : ", datasize)
-                self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                self.buffer[0:8*self.size] = socket.read(8*self.size)
                 t1 = time.time() # calculate time for acquisition
                 break
             else: continue
@@ -206,12 +218,12 @@ class data(QObject):
 
     def set_freq(self, freq): # Sets parameter and triggers acquisition
         params.freq = freq
-        gsocket.write(struct.pack('<I', 2 << 28| int(1.0e6 * freq)))
+        socket.write(struct.pack('<I', 2 << 28| int(1.0e6 * freq)))
         print("Set frequency!")
 
     def set_at(self, at): # Sets parameter and triggers acquisition
         params.at = at
-        gsocket.write(struct.pack('<I', 3 << 28 | int(abs(at)/0.25)))
+        socket.write(struct.pack('<I', 3 << 28 | int(abs(at)/0.25)))
         print("Set attenuation!")
 #_______________________________________________________________________________
 #   Process and analyse acquired data
@@ -318,16 +330,16 @@ class data(QObject):
                 while self.idxP < avgPoint:
                     print("Datapoint : ", self.idxP+1, "/", avgPoint)
                     time.sleep(recovery/1000)
-                    gsocket.write(struct.pack('<I', 1 << 28))
+                    socket.write(struct.pack('<I', 1 << 28))
 
                     while True:
-                        gsocket.waitForReadyRead()
-                        datasize = gsocket.bytesAvailable()
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
                         print(datasize)
                         time.sleep(0.1)
                         if datasize == 8*self.size:
                             print("IR readout finished : ", datasize)
-                            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                            self.buffer[0:8*self.size] = socket.read(8*self.size)
                             break
                         else: continue
 
@@ -392,16 +404,16 @@ class data(QObject):
                 while self.idxP < avgPoint:
                     print("Datapoint : ", self.idxP+1, "/", avgPoint)
                     time.sleep(recovery/1000)
-                    gsocket.write(struct.pack('<I', 1 << 28))
+                    socket.write(struct.pack('<I', 1 << 28))
 
                     while True:
-                        gsocket.waitForReadyRead()
-                        datasize = gsocket.bytesAvailable()
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
                         print(datasize)
                         time.sleep(0.1)
                         if datasize == 8*self.size:
                             print("IR readout finished : ", datasize)
-                            self.buffer[0:8*self.size] = gsocket.read(8*self.size)
+                            self.buffer[0:8*self.size] = socket.read(8*self.size)
                             break
                         else: continue
 

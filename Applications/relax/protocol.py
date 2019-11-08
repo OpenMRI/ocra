@@ -27,11 +27,14 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
         self.setupUi(self)
 
         self.data = data()
+        self.prot_ctrl = CCProtocolWidget()
 
         self.add_btn.clicked.connect(self.add_measurement)
         self.remove_btn.clicked.connect(self.remove_measurement)
 
         self.init_meas_list()
+
+        self.prot_ctrl.execute.connect(self.start_meas)
 
     def init_meas_list(self):
 
@@ -42,6 +45,8 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
             'Pause',\
             'Change Sample'])
         self.measures_list.itemDoubleClicked.connect(self.add_measurement)
+#_______________________________________________________________________________
+#   Add/Remove a command to the protocol
 
     def add_measurement(self):
 
@@ -104,22 +109,53 @@ class ProtocolWidget(Protocol_Base, Protocol_Form):
         self.protocol.resizeColumnsToContents()
         self.protocol.setVerticalHeaderLabels(self.meas_type)
 
+        print(self.meas_type)
+
     def remove_measurement(self):
         try:
             row = self.protocol.currentRow()
             del self.meas_type[row]
             self.protocol.removeRow(row)
         except: return
+#_______________________________________________________________________________
+#   Handle execution of commands
 
+    def start_meas(self):
+        self.disable_prot()
+        print('Start Measurement.')
+        while self.meas_type != []:
+            print(self.measures_list.item(0).text())
+            if self.meas_type[0] == self.measures_list.item(0).text():
+                print(self.meas_type[0])
+            if self.meas_type[0] == self.measures_list.item(0).text():
+                print(self.meas_type[0])
+            QApplication.processEvents()
+            del self.meas_type[0]
+            self.protocol.removeRow(0)
+            QApplication.processEvents()
+            time.sleep(3)
+
+        self.enable_prot()
+
+    def disable_prot(self):
+        self.add_btn.setEnabled(False)
+        self.remove_btn.setEnabled(False)
+
+    def enable_prot(self):
+        self.add_btn.setEnabled(True)
+        self.remove_btn.setEnabled(True)
 
     # Function for value changed:
         # update column linewidth
         # save value
     # Start Button
 
-
+#_______________________________________________________________________________
+#   Protocol control widget: emit signals for protocol execution
 
 class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
+
+    execute = pyqtSignal()
 
     def __init__(self):
         super(CCProtocolWidget, self).__init__()
@@ -128,15 +164,9 @@ class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
         self.init_figure()
         self.data = data()
 
-        self.protocol = ProtocolWidget()
-        self.ctrl = 0
-        #self.start_btn.clicked.connect(self.run_protocol)
+        self.start_btn.clicked.connect(self.run_protocol)
         self.save_btn.clicked.connect(self.save_protocol)
         self.load_btn.clicked.connect(self.load_protocol)
-
-        ### Idee: ###
-        # Emit signal, when start button clicked -> save table to parameters-class
-        # Excess table parameters from parameters-class
 
     def init_figure(self):
         self.fig = Figure()
@@ -156,23 +186,19 @@ class CCProtocolWidget(CC_Protocol_Base, CC_Protocol_Form):
             status.setValue(t*100/dur)
 
     def save_protocol(self):
-        print("Controls off.")
-        self.protocol.add_btn.setEnabled(False)
-        self.protocol.remove_btn.setEnabled(True)
+        print("Save protocol.")
+        # Implementation...
 
     def load_protocol(self):
-        print("Controls on.")
-        self.protocol.add_btn.setEnabled(True)
-        self.protocol.remove_btn.setEnabled(True)
+        print("Load protocol.")
+        # Implementation...
 
     def run_protocol(self):
-        print('run.')
+        print('Run.')
+        self.execute.emit()
 
-        #for cmd_nb in range(self.protocol.rowCount()):
-        #    cmd = widget
-
-
-
+#_______________________________________________________________________________
+#   Protocol item class
 
 class items:
 
