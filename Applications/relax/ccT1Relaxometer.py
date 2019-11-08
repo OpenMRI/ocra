@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from globalsocket import gsocket
 from parameters import params
 from dataHandler import data
 from dataLogger import logger
