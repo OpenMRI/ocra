@@ -2,6 +2,8 @@
 import sys
 import struct
 import time
+import paramiko
+
 from datetime import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -35,9 +37,23 @@ class data(QObject):
 #_______________________________________________________________________________
 #   Establish host connection and disconnection
 
+    def startSshCom(self):
+        print("Trying to connect to ", params.host, '\n')
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        time.sleep(0.1)
+        # implement routine to do a couple of connection attempts
+        ssh.connect(hostname=params.host, port=22, username='root', password='')
+        print("Connected to ", params.host)
+        _, stdout, stderr = ssh.exec_command(chr(3)) # chr(3) = CTRL+C
+        _, stdout, stderr = ssh.exec_command("./relax_server 150 32200 10")
+        response = stdout.read()
+        print(response.decode('utf-8'))
+        time.sleep(0.5)
+
     def connectToHost(self): # Only called once in main class
         try:
-            gsocket.connectToHost(params.host, 1001)
+            gsocket.connectToHost(params.ip, 1001)
             print("Connection to host esteblished.")
             self.set_at(params.at)
             self.set_freq(params.freq)

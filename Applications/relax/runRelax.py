@@ -1,6 +1,5 @@
 
-#from matplotlib.figure import Figure
-#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 import matplotlib.pyplot as plt
 import sys
 import struct
@@ -13,12 +12,6 @@ from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, pyqtSlot, QStandardPaths
 from PyQt5.QtGui import QIcon, QRegExpValidator, QKeySequence
 from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
-
-# import calculation and plot packages
-#import scipy.io as sp
-#import matplotlib
-#from math import pi
-#matplotlib.use('Qt5Agg')
 
 from ccSpectrometer import CCSpecWidget
 from ccT2Relaxometer import CCRelaxT2Widget
@@ -39,25 +32,39 @@ plt.rcParams['figure.dpi'] = 75
 plt.rcParams['legend.loc'] = "upper right"
 
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
+Conn_Dialog_Form, Conn_Dialog_Base = loadUiType('ui/connDialog.ui')
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, parent = None):
+        super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+
+        # Setup
         self.ui = loadUi('ui/mainWindow.ui')
         self.setWindowTitle('Relax')
-
-        params.loadParam()
-        params.dispVars()
-
         self.setStyleSheet(params.stylesheet)
         self.plotTabWidget.setStyleSheet("border: 0.5px solid #BAB9B8; ")
 
-        self.data = data()
-        self.data.connectToHost()
+        # Load GUI parameter
+        params.loadParam()
+        params.dispVars()
 
-        #self.quit = QShortcut(QKeySequence("Ctrl+Q"), self)
-        #self.quit.activated.connect(self.quick_quit)
+        # Establish connection
+        self.establish_conn()
+
+#_______________________________________________________________________________
+#   Establish connection to server and start communication
+
+    def establish_conn(self):
+        self.dialog = ConnectionDialog(self)
+        self.dialog.show()
+        self.dialog.connected.connect(self.start_com)
+
+    def start_com(self):
+        # Set default view
+        self.plotTabWidget.setCurrentIndex(0)
+        self.plotTabWidget.currentChanged.connect(self.switchView)
+        self.switchView()
 
         self.action_exportData.triggered.connect(self.save_data_csv)
         self.action_saveFig.triggered.connect(self.save_figure)
@@ -66,10 +73,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         logger.init()
 
-        self.plotTabWidget.setCurrentIndex(0)
-        self.plotTabWidget.currentChanged.connect(self.switchView)
-
-        self.switchView()
 #_______________________________________________________________________________
 #   Setup Main Window
 
@@ -150,6 +153,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.data.exit_host()
             event.accept()
         else: event.ignore()
+
 #_______________________________________________________________________________
 #   Save Files: Data, Settings, Log
 
@@ -194,6 +198,63 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         print("\nLog cleared.")
 
 #_______________________________________________________________________________
+#   Connection Dialog Class
+
+class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(ConnectionDialog, self).__init__(parent)
+        self.setupUi(self)
+
+        # setup closeEvent
+        self.ui = loadUi('ui/connDialog.ui')
+        self.ui.closeEvent = self.closeEvent
+        self.data = data()
+
+        # connect interface signals
+        self.conn_btn.clicked.connect(self.connect_event)
+        self.addIP_btn.clicked.connect(self.add_IP)
+        self.rmIP_btn.clicked.connect(self.remove_IP)
+
+        IPvalidator = QRegExp(
+            '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)'
+            '{3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$')
+        self.ip_box.setValidator(QRegExpValidator(IPvalidator, self))
+        for item in params.hosts: self.ip_box.addItem(item)
+
+        self.mainwindow = parent
+
+    def connect_event(self):
+        params.ip = self.ip_box.currentText()
+        params.saveFile()
+
+        #self.data.startSshCom()
+        self.data.connectToHost()
+
+        self.connected.emit()
+        self.mainwindow.show()
+        self.close()
+
+    def add_IP(self):
+        print("Add ip address.")
+        ip = self.ip_box.currentText()
+        if not ip in params.hosts: self.ip_box.addItem(ip)
+        else: return
+
+        params.hosts = [self.ip_box.itemText(i) for i in range(self.ip_box.count())]
+        print(params.hosts)
+
+    def remove_IP(self):
+        idx = self.ip_box.currentIndex()
+        try:
+            del params.hosts[idx]
+            self.ip_box.removeItem(idx)
+        except: pass
+        print(params.hosts)
+
+#_______________________________________________________________________________
 #   Run Application
 
 def run():
@@ -206,8 +267,8 @@ def run():
 
     app = QApplication(sys.argv)
     gui = MainWindow()
-    gui.show()
     sys.exit(app.exec_())
+
 #_______________________________________________________________________________
 #   Main Function
 
