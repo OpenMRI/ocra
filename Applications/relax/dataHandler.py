@@ -413,7 +413,7 @@ class data(QObject):
                     time.sleep(recovery/1000)
                     socket.write(struct.pack('<I', 1 << 28))
 
-                    while True:
+                    while True: # Readout data
                         socket.waitForReadyRead()
                         datasize = socket.bytesAvailable()
                         print(datasize)
@@ -439,21 +439,24 @@ class data(QObject):
                 self.idxP = 0
 
             # Calculate T1 value and error
-            try:
-                p, cov = curve_fit(self.T1_fit, values, self.measurement)
-                def func(x):
-                    return p[0] - p[1] * np.exp(-p[2]*x)
-                self.T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
-                self.R2.append(round(1-(np.sum((self.measurement - self.T1_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
-                self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
-                self.y_fit = self.T1_fit(self.x_fit, *p)
-                self.fit_params = p
-            except:
+            try: p, cov = curve_fit(self.T1_fit, values, self.measurement)
+            except: # in case no fit found
                 self.T1.append(float('nan'))
                 self.R2.append(float('nan'))
                 self.x_fit = float('nan')
                 self.y_fit = float('nan')
+                self.fit_params = float('nan')
+                self.t1_finished.emit()
+                self.idxM += 1
+                continue
 
+            def func(x):
+                return p[0] - p[1] * np.exp(-p[2]*x)
+            self.T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
+            self.R2.append(round(1-(np.sum((self.measurement - self.T1_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
+            self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
+            self.y_fit = self.T1_fit(self.x_fit, *p)
+            self.fit_params = p
             self.t1_finished.emit()
             self.idxM += 1
 
@@ -514,7 +517,16 @@ class data(QObject):
                 self.idxP = 0
 
             # Calculate T2 value and error
-            p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
+            try: p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
+            except:
+                self.T2.append(float('nan'))
+                self.R2.append(float('nan'))
+                self.x_fit = float('nan')
+                self.y_fit = float('nan')
+                self.fit_params = float('nan')
+                self.t2_finished.emit()
+                self.idxM += 1
+                continue
             # Calculation of T2: M(T2) = 0.37*(func(0)) = 0.37(A+B), T2 = -1/C * ln((M(T2)-A)/B)
             self.T2.append(round(-(1/p[2])*np.log(((0.37*(p[0]+p[1]))-p[0])/p[1]), 5))
             self.R2.append(round(1-(np.sum((self.measurement - self.T2_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))

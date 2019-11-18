@@ -1,5 +1,3 @@
-
-
 import matplotlib.pyplot as plt
 import sys
 import struct
@@ -18,7 +16,6 @@ from ccSpectrometer import CCSpecWidget
 from ccT2Relaxometer import CCRelaxT2Widget
 from ccT1Relaxometer import CCRelaxT1Widget
 from protocol import ProtocolWidget, CCProtocolWidget
-from cc2DImaging import CC2DImagWidget
 
 from parameters import params
 from assembler import Assembler
@@ -98,8 +95,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             0: self.setupSpectrometer,
             1: self.setupT1Relaxometer,
             2: self.setupT2Relaxometer,
-            3: self.setupProtocol,
-            4: self.setup2DImag
+            3: self.setupProtocol
         }
         views[self.idx]()
 
@@ -154,17 +150,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.protocolLayout.addWidget(self.protocol_env)
         self.protocolPlotLayout.addWidget(self.environment.fig_canvas)
         self.ccLayout.addWidget(self.environment)
-
-    def setup2DImag(self):
-        print("\n---2D Imaging---\n")
-
-        self.resetLayout(self.imagingLayout)
-        self.environment = CC2DImagWidget()
-        self.updateGUIsignal = self.environment.call_update
-
-        self.imagingLayout.addWidget(self.environment.fig_canvas)
-        self.ccLayout.addWidget(self.environment)
-
 
     def update_gui(self):
 

@@ -56,6 +56,8 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.fig_canvas = FigureCanvas(self.fig)
         self.ax1 = self.fig.add_subplot(2,1,1)
         self.ax2 = self.fig.add_subplot(2,1,2)
+        self.ax1 = self.fig.add_subplot(2,1,1); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
+        self.ax2 = self.fig.add_subplot(2,1,2); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('echo time (TE) [ms]')
         self.plotNav_widget.setVisible(False)
         self.prevPlot_btn.clicked.connect(self.prevPlot)
         self.nextPlot_btn.clicked.connect(self.nextPlot)
@@ -67,7 +69,8 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         print("Start T2")
 
         # Setup and update parameters
-        self.ax1.clear(); self.ax2.clear()
+        self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
+        self.ax2.clear(); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('echo time (TE) [ms]')
         self.controls.setEnabled(False)
         self.plotNav_widget.setVisible(False)
         self.time_ax = []; self.acq_data = []

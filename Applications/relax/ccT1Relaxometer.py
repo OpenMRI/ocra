@@ -78,7 +78,8 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         print("Start T1")
 
         # Setup and update parameters
-        self.ax1.clear(); self.ax2.clear()
+        self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
+        self.ax2.clear(); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('time of inversion (TI) [ms]')
         self.controls.setEnabled(False)
         self.plotNav_widget.setVisible(False)
         self.time_ax = []; self.acq_data = []
@@ -109,7 +110,8 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         # Call T1 function from dataHandler
         t1, r2 = self.data.T1_measurement(self.TI_values, params.freq, params.t1Recovery,\
             avgP = avgPoint, avgM = avgMeas, seqType = self.seq)
-        logger.add('T1', res=t1, err=r2, val=self.TI_values, avgP = avgPoint, avgM = avgMeas)
+        print("AVGP: {}, AVGM: {}".format(avgPoint, avgMeas))
+        logger.add('T1', res=t1, err=r2, val=self.TI_values, seq=self.seq, avgP = avgPoint, avgM = avgMeas)
 
         if avgMeas > 1: self.interactive_plot()
         self.controls.setEnabled(True)

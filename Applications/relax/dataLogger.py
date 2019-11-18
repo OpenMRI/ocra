@@ -50,7 +50,7 @@ class DataLogger:
         self.log.append('Steps:\t'+str(params.autoStep)+'\n')
         self.log.append('Timeout [ms]:\t'+str(params.autoTimeout)+'\n')
 
-    def t1(self, result, error, values, avgM, avgP):
+    def t1(self, result, error, values, seq, avgM, avgP):
         self.log.append('\n____________________________\n')
         self.log.append(datetime.now().strftime("%H:%M:%S")+'\n')
         self.log.append('Measurement: T1 Relaxometry\n\n')
@@ -59,6 +59,7 @@ class DataLogger:
         self.log.append('Frequency [MHz]:\t'+str(params.freq)+'\n')
         self.log.append('Attenuation [dB]:\t'+str(params.at)+'\n')
         self.log.append('TI values [ms]:\t'+str(values)+'\n')
+        self.log.append('Sequence:\t'+seq+'\n')
         self.log.append('Averages/datapoint:\t'+str(avgP)+'\n')
         self.log.append('Averages/measurement:\t'+str(avgM)+'\n')
 
@@ -103,17 +104,15 @@ class DataLogger:
         res = kwargs.get('res', None)
         err = kwargs.get('err', None)
         avgM = kwargs.get('avgM', None)
-        avgP = kwargs.get('acgP', None)
+        avgP = kwargs.get('avgP', None)
 
         if log_type == 'ACQ': self.acquisition(seq, peak, fwhm, snr)
         elif log_type == 'FLA': self.flipangle()
         elif log_type == 'AUC': self.autocenter()
-        elif log_type == 'T1': self.t1(res, err, val, avgM, avgP)
+        elif log_type == 'T1': self.t1(res, err, val, seq, avgM, avgP)
         elif log_type == 'T2': self.t2(res, err, val, avgM, avgP)
         elif log_type == 'TEMP': self.temp()
         elif log_type == 'PAUSE': self.pause(dur)
         else: return
-
-
 
 logger = DataLogger()

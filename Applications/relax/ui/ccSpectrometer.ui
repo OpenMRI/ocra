@@ -262,7 +262,7 @@
          <number>0</number>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <property name="tabSpacing">
          <number>10</number>
@@ -319,7 +319,7 @@
              <number>10</number>
             </property>
             <property name="rightMargin">
-             <number>10</number>
+             <number>20</number>
             </property>
             <item row="0" column="0">
              <widget class="QLabel" name="manualFreqLabel">
@@ -819,7 +819,7 @@
            <number>10</number>
           </property>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <layout class="QFormLayout" name="formLayout_2">
              <property name="sizeConstraint">
               <enum>QLayout::SetDefaultConstraint</enum>
@@ -843,7 +843,7 @@
               <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>10</number>
+              <number>20</number>
              </property>
              <property name="bottomMargin">
               <number>5</number>
@@ -1238,7 +1238,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>259</height>
+           <height>245</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -1288,7 +1288,7 @@
               <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>10</number>
+              <number>20</number>
              </property>
              <property name="bottomMargin">
               <number>5</number>
@@ -1792,7 +1792,7 @@
            <x>0</x>
            <y>0</y>
            <width>274</width>
-           <height>226</height>
+           <height>241</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -1818,7 +1818,7 @@
            <number>10</number>
           </property>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <layout class="QFormLayout" name="formLayout">
              <property name="fieldGrowthPolicy">
               <enum>QFormLayout::ExpandingFieldsGrow</enum>
@@ -1836,7 +1836,7 @@
               <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>10</number>
+              <number>20</number>
              </property>
              <property name="bottomMargin">
               <number>5</number>
