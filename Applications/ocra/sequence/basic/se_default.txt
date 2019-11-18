@@ -29,13 +29,13 @@ NOP   // A[1B] UNUSED
 NOP   // A[1C] UNUSED
 TXOFFSET 0 							// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
 GRADOFFSET 0 						// A[1E] GRADOFFSET 0
-PR 11, 200  		// TX GATE ON for 200 us         // A[1F]  				
+PR 11, 200  		// TX GATE ON for 200 us         // A[1F]
 PR 5, 120		// RF 90        	        // A[20] PR R[5] (issue CMD5) and unblank for 120 us
 PR 3, 4855		// wait				// A[21] PR R[3] (issue CMD3) and last for 4855 us (5000-145)
 TXOFFSET 1000						// A[22] TXOFFSET 1000: RF 180x+
 PR 11, 200		// TX GATE ON for 200 us        // A[23]
 PR 5, 180		// RF 180			// A[24] PR R[5] (issue CMD5) and unblank for 180 us
-PR 7, 1400		// wait&grad			// A[25] PR R[3] (issue CMD3) and last for 1400 us
+PR 7, 420		// wait&grad			// A[25] PR R[3] (issue CMD3) and last for 1400 us
 PR 8, 200000	// readout				// A[26] PR R[9] (issue CMD9) and last for 200 ms (50,000 samples)
 PR 4, 0  		// stop				// A[27] PR R[4] (issue CMD4) stop
 DEC 2 										// A[28] DEC R[2]

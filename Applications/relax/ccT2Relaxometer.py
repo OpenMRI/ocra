@@ -30,6 +30,9 @@ from dataLogger import logger
 CC_RelaxT2_Form, CC_RelaxT2_Base = loadUiType('ui/ccRelaxometerT2.ui')
 
 class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
+
+    call_update = pyqtSignal()
+
     def __init__(self):
         super(CCRelaxT2Widget, self).__init__()
         self.setupUi(self)
@@ -56,6 +59,7 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.plotNav_widget.setVisible(False)
         self.prevPlot_btn.clicked.connect(self.prevPlot)
         self.nextPlot_btn.clicked.connect(self.nextPlot)
+        self.call_update.emit()
 #_______________________________________________________________________________
 #   Control Acquisition and Data Processing
 
@@ -89,6 +93,8 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         duration = round((params.t2Recovery + sum(self.TE_values))*self.n_acq/1000,2)
         self.dur_output.setText(str(duration))
 
+        self.call_update.emit()
+
         # Call T2 function from dataHandler
         t2, r2 = self.data.T2_measurement(self.TE_values, params.freq, params.t2Recovery,\
             avgP = avgPoint, avgM = avgMeas)
@@ -114,13 +120,14 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.acq_data.extend(self.data.mag_con)
 
         self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'), self.ax1.set_xlabel('time [ms]')
-        self.ax1.plot(self.time_ax, self.acq_data, color='#33A4DF'); self.fig_canvas.draw()
-        self.ax2.plot(self.data.te, self.data.peaks[-1], 'x', color='#33A4DF'); self.fig_canvas.draw()
+        self.ax1.plot(self.time_ax, self.acq_data, color='#33A4DF')
+        self.ax2.plot(self.data.te, self.data.peaks[-1], 'x', color='#33A4DF')
+        self.fig_canvas.draw(); self.call_update.emit()
 
         self.datapoints_te.append(self.data.te)
         self.datapoints_peaks.append(self.data.peaks[-1])
 
-        self.fig_canvas.flush_events()
+        self.call_update.emit()
 
     def update_fit(self):
 
@@ -150,7 +157,7 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
             self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
             self.ax2.clear(); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('echo time (TE) [ms]')
 
-        QApplication.processEvents()
+        self.call_update.emit()
 #_______________________________________________________________________________
 #   Interactive Plot (post acquisition)
 
@@ -160,6 +167,7 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.plot_frame(self.plot_index)
         self.plotNav_widget.setVisible(True)
         self.fig_canvas.draw()
+        self.call_update.emit()
 
     def nextPlot(self):
         if self.plot_index < len(self.fits_frame.columns)-1:
@@ -182,6 +190,7 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.peak_frame.iloc[:,idx].plot(style='x', ax=self.ax2, legend='True')
         self.fits_frame.iloc[:,idx].plot(ax=self.ax2, color='#4260FF', legend=True)
         self.fig_canvas.draw()
+        self.call_update.emit()
 #_______________________________________________________________________________
 #   Update Output Parameters
 
