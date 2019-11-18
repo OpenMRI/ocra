@@ -277,12 +277,16 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         self.axes_image.clear()
         self.axes_image.axis('off')
         self.figure.set_tight_layout(True)
-
         self.canvas.draw()
 
         # Disables k-space representation
         # self.axes_k_amp.clear()
         # self.axes_k_pha.clear()
+
+        # ---- display k-space ---- #
+        plt.show()
+        self.kspace_ax = plt.gca()
+
 
         self.axes_bottom.clear()
         self.axes_top.clear()
@@ -476,7 +480,7 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 self.k_amp[self.buffers_received, :] = mag[self.kspace_center - self.num_pe
                                                            : self.kspace_center + self.num_pe]
                 self.k_pha[self.buffers_received, :] = pha[self.kspace_center - self.num_pe
-                                                           : (self.kspace_center + self.num_pe)]
+                                                           : self.kspace_center + self.num_pe]
                 k_amp_1og10 = np.log10(self.k_amp)
 
                 # Disabled k-space representation:
@@ -489,6 +493,10 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 # self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
                 # self.axes_k_pha.set_title('k-space phase')
                 # self.canvas2.draw()
+
+                self.kspace_ax.imshow(k_amp_1og10, cmap='plasma')
+                plt.draw()
+                plt.pause(0.0000001)
 
                 # display image
                 crop_size = int(self.num_pe / 64 * self.crop_factor)
@@ -543,7 +551,6 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 # self.axes_k_pha.set_title('k-space amplitude')
                 # self.axes_k_pha.imshow(self.k_pha, cmap='plasma')
                 # self.axes_k_pha.set_title('k-space phase')
-
                 # self.canvas2.draw()
 
                 # display image

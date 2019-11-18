@@ -18,6 +18,15 @@ from TCPsocket import socket, connected, unconnected
 from parameters import params
 from assembler import Assembler
 
+#   Trigger table on server when sending byte << 28:
+#       0:  no trigger
+#       1:  transmit
+#       2:  set frequency
+#       3:  set attenuation
+#       4:  upload sequence
+#       5:  set gradient offsets
+#       6:  acquire 2D SE image
+
 class data(QObject):
 
     # Init signal thats emitted when readout is processed
@@ -34,18 +43,25 @@ class data(QObject):
         self.seq_fid = 'sequence/FID.txt'
         self.seq_se = 'sequence/SE_te.txt'
         self.seq_ir = 'sequence/IR_ti.txt'
+        self.seq_sir = 'sequence/SIR_ti.txt'
+
+        # Define Gradients
+        self.GR_x = 0
+        self.GR_y = 1
+        self.GR_z = 2
+        self.GR_z2 = 3
 #_______________________________________________________________________________
 #   Establish host connection and disconnection
 
-    def establish_conn(self, ip): # Only called once in main class
+    def conn_client(self, ip):
 
         socket.connectToHost(ip, 1001)
         socket.waitForConnected(1000)
 
         if socket.state() == connected :
-            print("Connection to host esteblished.")
+            print("Connection to server esteblished.")
         elif socket.state() == unconnected:
-            print("Conncection to host failed.")
+            print("Conncection to server failed.")
             return False
         else:
             print("TCP socket in state : ", socket.state())
@@ -56,12 +72,13 @@ class data(QObject):
 
         return True
 
-    def exit_host(self):
-        socket.write(struct.pack('<I', 5 << 28))
-        while(True): # Wait until bytes written
-            if not socket.waitForBytesWritten():
-                break
-        print("Disconnected from server.")
+    def disconn_client(self):
+        try:
+            socket.disconnectFromHost()
+        except: pass
+        if socket.state() == unconnected :
+            print("Disconnected from server.")
+        else: print("Connection to server still established.")
 
 #_______________________________________________________________________________
 #   Functions for initialization of variables
@@ -81,15 +98,9 @@ class data(QObject):
         self.time = 20
         self.freq_range = 250000
 #_______________________________________________________________________________
-#   Functions for controlling of host
+#   Functions for Setting up sequence
 
-#   Trigger bits:
-#       0:  no trigger
-#       1:  transmit
-#       2:  set frequency
-#       3:  set attenuation
-#       4:  upload sequence
-
+    # Function to set default FID sequence
     def set_FID(self): # Function to init and set FID -- only acquire call is necessary afterwards
 
         self.assembler = Assembler()
@@ -107,6 +118,7 @@ class data(QObject):
         self.fid_flag = True
         print("\nFID sequence uploaded.")
 
+    # Function to set default SE sequence
     def set_SE(self, TE=10): # Function to modify SE -- call whenever acquiring a SE
 
         # Change TE in sequence and push to server
@@ -119,8 +131,7 @@ class data(QObject):
         socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not socket.waitForBytesWritten():
-                break
+            if not socket.waitForBytesWritten(): break
 
         socket.setReadBufferSize(8*self.size)
         self.ir_flag = False
@@ -128,6 +139,7 @@ class data(QObject):
         self.fid_flag = False
         print("\nSE sequence uploaded with TE = ", TE, " ms.")
 
+    # Function to change TE in sequence
     def change_TE(self, TE): # Function for changing TE value in sequence -- called inside set_SE
         # Open sequence and read lines
         f = open(self.seq_se, 'r+')
@@ -141,10 +153,11 @@ class data(QObject):
             for line in lines:
                 out_file.write(line)
 
+    # Function to set default IR sequence
     def set_IR(self, TI=15):#, REC=1000): # Function to modify SE -- call whenever acquiring a SE
 
         params.ti = TI
-        self.change_IR(params.ti)#, REC)
+        self.change_IR(params.ti, self.seq_ir)#, REC)
 
         self.assembler = Assembler()
         byte_array = self.assembler.assemble(self.seq_ir)
@@ -152,8 +165,7 @@ class data(QObject):
         socket.write(byte_array)
 
         while(True): # Wait until bytes written
-            if not socket.waitForBytesWritten():
-                break
+            if not socket.waitForBytesWritten(): break
 
         socket.setReadBufferSize(8*self.size)
         self.ir_flag = True
@@ -161,20 +173,49 @@ class data(QObject):
         self.fid_flag = False
         print("\nIR sequence uploaded with TI = ", TI, " ms.")#" and REC = ", REC, " ms.")
 
-    def change_IR(self, TI):#, REC):
-        # Open sequence and read lines
-        f = open(self.seq_ir, 'r+')
+    # Function to change TI in IR sequence
+    def change_IR(self, TI, seq):
+        f = open(seq, 'r+') # Open sequence and read lines
         lines = f.readlines()
         # Modify TI time in the 8th last line
         lines[-14] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
-        # Modify REC time in the 11th last line
-        #lines[-18] = 'PR 3, ' + str(int(REC*1000)) + '\t// wait&r\n'
-        # Close and write/save modified sequence
-        f.close()
-        with open(self.seq_ir, "w") as out_file:
+        f.close() # Close and write/save modified sequence
+        with open(seq, "w") as out_file:
             for line in lines:
                 out_file.write(line)
 
+    # Function to set default SIR sequence
+    def set_SIR(self, TI=15):
+
+        params.ti = TI
+        self.change_SIR(params.ti, self.seq_sir)
+
+        self.assembler = Assembler()
+        byte_array = self.assembler.assemble(self.seq_sir)
+        socket.write(struct.pack('<I', 4 << 28))
+        socket.write(byte_array)
+
+        while(True): # Wait until bytes written
+            if not socket.waitForBytesWritten(): break
+
+        socket.setReadBufferSize(8*self.size)
+        print("\nSIR sequence uploaded with TI = ", TI, " ms.")#" and REC = ", REC, " ms.")
+
+    # Function to change TI in SIR sequence
+    def change_SIR(self, TI, seq):
+        f = open(seq, 'r+') # Open sequence and read lines
+        lines = f.readlines()
+        # Modify TI time in the 8th last line
+        #ines[-14] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
+        #lines[-18] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
+        lines[-9] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
+        lines[-13] = 'PR 3, ' + str(int(TI * 1000 - 198)) + '\t// wait&r\n'
+        f.close() # Close and write/save modified sequence
+        with open(seq, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+
+    # Set uploaded sequence
     def set_uploaded_seq(self, seq):
         print("Set uploaded Sequence.")
         self.assembler = Assembler()
@@ -192,7 +233,11 @@ class data(QObject):
         print("Sequence uploaded to server.")
         self.uploaded.emit(True)
 
-    def acquire(self): # Trigger acquisition and read data
+#_______________________________________________________________________________
+#   Functions to Control Console
+
+    # Function to triffer acquisition and perform single readout
+    def acquire(self):
         t0 = time.time() # calculate time for acquisition
         socket.write(struct.pack('<I', 1 << 28))
 
@@ -216,18 +261,47 @@ class data(QObject):
         # Emit signal, when data was read
         self.readout_finished.emit()
 
-    def set_freq(self, freq): # Sets parameter and triggers acquisition
+    # Function to set frequency
+    def set_freq(self, freq):
         params.freq = freq
         socket.write(struct.pack('<I', 2 << 28| int(1.0e6 * freq)))
         print("Set frequency!")
 
-    def set_at(self, at): # Sets parameter and triggers acquisition
+    # Function to set attenuation
+    def set_at(self, at):
         params.at = at
         socket.write(struct.pack('<I', 3 << 28 | int(abs(at)/0.25)))
         print("Set attenuation!")
+
+    # Function to set gradient offsets
+    def set_gradients(self, gx=None, gy=None, gz=None, gz2=None):
+
+        if not gx == None:
+            if np.sign(gx) < 0: sign = 1
+            else: sign = 0
+            socket.write(struct.pack('<I', 5 << 28 | self.GR_x << 24 | sign << 20 | abs(gx)))
+        if not gy == None:
+            if np.sign(gy) < 0: sign = 1
+            else: sign = 0
+            socket.write(struct.pack('<I', 5 << 28 | self.GR_y << 24 | sign << 20 | abs(gy)))
+        if not gz == None:
+            if np.sign(gz) < 0: sign = 1
+            else: sign = 0
+            socket.write(struct.pack('<I', 5 << 28 | self.GR_z << 24 | sign << 20 | abs(gz)))
+        if not gz2 == None:
+            if np.sign(gz2) < 0: sign = 1
+            else: sign = 0
+            #socket.write(struct.pack('<I', 5 << 28 | self.GR_z2 << 24 | sign << 20 | abs(gz2)))
+
+        while(True): # Wait until bytes written
+            if not socket.waitForBytesWritten():
+                break
+
+        self.acquire()
 #_______________________________________________________________________________
 #   Process and analyse acquired data
 
+    # Function to process the readout: extract spectrum, real, imag and magnitude data
     def process_readout(self): # Read buffer part of interest and perform FFT
 
         # Max. data index and crop data
@@ -263,6 +337,7 @@ class data(QObject):
 
         print("\tReadout processed.")
 
+    # Function to calculate parameter like snr and peak values
     def analytics(self): # calculate output parameters
 
         # Determine peak/maximum value:
@@ -310,11 +385,14 @@ class data(QObject):
 #_______________________________________________________________________________
 #   T1 Measurement
 
+    # Acquires one or multiple T1 values through multiple IR's
     def T1_measurement(self, values, freq, recovery, **kwargs):
         print('T1 Measurement')
 
         avgPoint = kwargs.get('avgP', 1)
         avgMeas = kwargs.get('avgM', 1)
+        seq_type = kwargs.get('seqType', 1)
+
         self.idxM = 0; self.idxP = 0
         self.T1 = []; self.R2 = []
         self.set_freq(freq)
@@ -325,7 +403,10 @@ class data(QObject):
 
             for self.ti in values:
                 self.peaks = []
-                self.set_IR(self.ti)
+
+                if seq_type == 'sir':
+                    self.set_SIR(self.ti)
+                else: self.set_IR(self.ti)
 
                 while self.idxP < avgPoint:
                     print("Datapoint : ", self.idxP+1, "/", avgPoint)
@@ -350,6 +431,7 @@ class data(QObject):
                     print("Max. mag : ", np.max(self.mag_con))
                     print("sign real : ", np.sign(self.real_con[np.argmax(abs(self.real_con))]))
                     self.peaks.append(np.max(self.mag_con)*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
+                    #self.peaks.append(self.peak_value*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
                     self.readout_finished.emit()
                     self.idxP += 1
 
@@ -377,12 +459,14 @@ class data(QObject):
 
         return np.nanmean(self.T1), np.nanmean(self.R2)
 
+    # Calculates fit for multiple IR's to determine t0
     def T1_fit(self, x, A, B, C):
         return A - B * np.exp(-C * x)
 
 #_______________________________________________________________________________
 #   T2 Measurement
 
+    # Acquires one or multiple T2 values through multiple SE's
     def T2_measurement(self, values, freq, recovery, **kwargs):
         print('T1 Measurement')
 
@@ -442,5 +526,9 @@ class data(QObject):
 
         return np.nanmean(self.T2), np.nanmean(self.R2)
 
+    # Calculates fit for multiple SE's to determine drop of Mxy
     def T2_fit(self, x, A, B, C):
         return A + B * np.exp(-C * x)
+
+#_______________________________________________________________________________
+#   2D Image Acquisition

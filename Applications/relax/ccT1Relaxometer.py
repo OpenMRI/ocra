@@ -26,6 +26,9 @@ from dataLogger import logger
 CC_RelaxT1_Form, CC_RelaxT1_Base = loadUiType('ui/ccRelaxometerT1.ui')
 
 class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
+
+    call_update = pyqtSignal()
+
     def __init__(self):
         super(CCRelaxT1Widget, self).__init__()
         self.setupUi(self)
@@ -37,6 +40,11 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.data.t1_finished.connect(self.update_fit)
 
         self.t1Start_btn.clicked.connect(self.measureT1)
+
+        self.seq_selector.addItems(['Inversion Recovery', 'Saturation Inversionn Recovery'])
+        self.seq_selector.currentIndexChanged.connect(self.set_sequence)
+        self.seq_selector.setCurrentIndex(0)
+        self.seq = 'ir'
 
         self.init_figure()
 #_______________________________________________________________________________
@@ -51,6 +59,18 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.plotNav_widget.setVisible(False)
         self.prevPlot_btn.clicked.connect(self.prevPlot)
         self.nextPlot_btn.clicked.connect(self.nextPlot)
+        self.call_update.emit()
+
+    def set_sequence(self, idx): # Function to switch current sequence
+        seq = {
+            0: self.data.set_IR,
+            1: self.data.set_SIR
+        }
+        if idx == 1: self.seq = 'sir'
+        else: self.seq = 'ir'
+        seq[idx]()
+        try: print(self.seq)
+        except: pass
 #_______________________________________________________________________________
 #   Control Acquisition and Data Processing
 
@@ -84,9 +104,11 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         duration = round((params.t1Recovery+sum(self.TI_values))*self.n_acq/1000,2)
         self.dur_output.setText(str(duration))
 
+        self.call_update.emit()
+
         # Call T1 function from dataHandler
         t1, r2 = self.data.T1_measurement(self.TI_values, params.freq, params.t1Recovery,\
-            avgP = avgPoint, avgM = avgMeas)
+            avgP = avgPoint, avgM = avgMeas, seqType = self.seq)
         logger.add('T1', res=t1, err=r2, val=self.TI_values, avgP = avgPoint, avgM = avgMeas)
 
         if avgMeas > 1: self.interactive_plot()
@@ -105,13 +127,14 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.acq_data.extend(self.data.mag_con)
 
         self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'), self.ax1.set_xlabel('time [ms]')
-        self.ax1.plot(self.time_ax, self.acq_data, color='#33A4DF'); self.fig_canvas.draw()
-        self.ax2.plot(self.data.ti, self.data.peaks[-1], 'x', color='#33A4DF'); self.fig_canvas.draw()
+        self.ax1.plot(self.time_ax, self.acq_data, color='#33A4DF')
+        self.ax2.plot(self.data.ti, self.data.peaks[-1], 'x', color='#33A4DF')
+        self.fig_canvas.draw(); self.call_update.emit()
 
         self.datapoints_ti.append(self.data.ti)
         self.datapoints_peaks.append(self.data.peaks[-1])
 
-        self.fig_canvas.flush_events()
+        self.call_update.emit()
 
     def update_fit(self):
 
@@ -135,13 +158,13 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.r2_output.setText(str(round(self.data.R2[-1],4)))
 
         self.fits_frame.plot(ax=self.ax2, color='#4260FF', legend=False); self.fig_canvas.draw()
-        QApplication.processEvents()
+        self.call_update.emit()
 
         if self.measAvg_enable.isChecked() and self.data.idxM+1 < self.measAvg_input.value():
             # time.sleep(5)
             self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
             self.ax2.clear(); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('time of inversion (TI) [ms]')
-
+            self.call_update.emit()
 
 #_______________________________________________________________________________
 #   Interactive Plot (post acquisition)
@@ -152,6 +175,7 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.plot_frame(self.plot_index)
         self.plotNav_widget.setVisible(True)
         self.fig_canvas.draw()
+        self.call_update.emit()
 
     def nextPlot(self):
         if self.plot_index < len(self.fits_frame.columns)-1:
@@ -174,6 +198,7 @@ class CCRelaxT1Widget(CC_RelaxT1_Base, CC_RelaxT1_Form):
         self.peak_frame.iloc[:,idx].plot(style='x', ax=self.ax2, legend='True')
         self.fits_frame.iloc[:,idx].plot(ax=self.ax2, color='#4260FF', legend=True)
         self.fig_canvas.draw()
+        self.call_update.emit()
 #_______________________________________________________________________________
 #   Update Output Parameters
 

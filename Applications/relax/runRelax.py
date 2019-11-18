@@ -18,6 +18,7 @@ from ccSpectrometer import CCSpecWidget
 from ccT2Relaxometer import CCRelaxT2Widget
 from ccT1Relaxometer import CCRelaxT1Widget
 from protocol import ProtocolWidget, CCProtocolWidget
+from cc2DImaging import CC2DImagWidget
 
 from parameters import params
 from assembler import Assembler
@@ -52,10 +53,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.data = data()
 
         # Establish connection
-        #self.establish_conn()
+        self.establish_conn()
 
         ## Skip connection to server for development
-        params.ip = 0; self.start_com()
+        #params.ip = 0; self.start_com()
 
 #_______________________________________________________________________________
 #   Establish connection to server and start communication
@@ -82,24 +83,28 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 #   Setup Main Window
 
     def switchView(self):
-
+        try: self.updateGUIsignal.disconnect
+        except: print("Could not disconnect update gui signal.")
         try: self.environment.update_params
         except: print("Could not update params.")
         try: self.environment.data.readout_finished.disconnect
-        except: print("Finished readout signal not disconnected.")
+        except: print("Could not disconnect finished readout signal.")
 
         params.saveFile()
         self.resetLayout(self.ccLayout)
 
-        idx = self.plotTabWidget.currentIndex()
+        self.idx = self.plotTabWidget.currentIndex()
         views = {
             0: self.setupSpectrometer,
             1: self.setupT1Relaxometer,
             2: self.setupT2Relaxometer,
             3: self.setupProtocol,
-            4: self.setupLogbook
+            4: self.setup2DImag
         }
-        views[idx]()
+        views[self.idx]()
+
+        try: self.updateGUIsignal.connect(self.update_gui)
+        except: pass
 
     def resetLayout(self, layout):
         for i in range(layout.count()):
@@ -111,6 +116,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.resetLayout(self.spectrometerLayout)
         self.environment = CCSpecWidget()
+        self.updateGUIsignal = self.environment.call_update
 
         self.spectrometerLayout.addWidget(self.environment.fig_canvas)
         self.ccLayout.addWidget(self.environment)
@@ -120,6 +126,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.resetLayout(self.T1relaxLayout)
         self.environment = CCRelaxT1Widget()
+        self.updateGUIsignal = self.environment.call_update
 
         self.T1relaxLayout.addWidget(self.environment.fig_canvas)
         self.ccLayout.addWidget(self.environment)
@@ -129,6 +136,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.resetLayout(self.T2relaxLayout)
         self.environment = CCRelaxT2Widget()
+        self.updateGUIsignal = self.environment.call_update
 
         self.T2relaxLayout.addWidget(self.environment.fig_canvas)
         self.ccLayout.addWidget(self.environment)
@@ -141,13 +149,28 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.protocol_env = ProtocolWidget()
         self.environment = self.protocol_env.prot_ctrl
+        self.updateGUIsignal = self.protocol_env.call_update
 
         self.protocolLayout.addWidget(self.protocol_env)
         self.protocolPlotLayout.addWidget(self.environment.fig_canvas)
         self.ccLayout.addWidget(self.environment)
 
-    def setupLogbook(self):
-        print("\n---Logbook---\n")
+    def setup2DImag(self):
+        print("\n---2D Imaging---\n")
+
+        self.resetLayout(self.imagingLayout)
+        self.environment = CC2DImagWidget()
+        self.updateGUIsignal = self.environment.call_update
+
+        self.imagingLayout.addWidget(self.environment.fig_canvas)
+        self.ccLayout.addWidget(self.environment)
+
+
+    def update_gui(self):
+
+        #while QApplication.hasPendingEvents():
+        QApplication.processEvents()
+        self.centralwidget.update()
 
     def closeEvent(self, event):
         params.saveFile()
@@ -158,8 +181,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         if choice == QMessageBox.Close:
             params.dispVars()
-            self.data.exit_host()
-
+            self.data.disconn_client()
             event.accept()
         else: event.ignore()
 
@@ -243,7 +265,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         print(params.ip)
         params.saveFile()
 
-        connection = self.data.establish_conn(params.ip)
+        connection = self.data.conn_client(params.ip)
 
         if connection:
             self.status_label.setText('Connected.')
@@ -297,7 +319,7 @@ def run():
     gui = MainWindow()
 
     ## Skip connection to server for development
-    gui.show()
+    # gui.show()
 
     sys.exit(app.exec_())
 

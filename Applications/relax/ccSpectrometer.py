@@ -32,6 +32,8 @@ CC_Spec_Form, CC_Spec_Base = loadUiType('ui/ccSpectrometer.ui')
 
 class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
+    call_update = pyqtSignal()
+
     def __init__(self):
         super(CCSpecWidget, self).__init__()
         self.setupUi(self)
@@ -43,6 +45,9 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.fig = Figure()
         self.fig.set_facecolor("None")
         self.fig_canvas = FigureCanvas(self.fig)
+        self.ax1 = self.fig.add_subplot(3,1,1)
+        self.ax2 = self.fig.add_subplot(3,1,2)
+        self.ax3 = self.fig.add_subplot(3,1,3)
 
         self.init_controlcenter()
         self.init_vars()
@@ -58,7 +63,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.toolBox.setCurrentIndex(0)
         self.switchPlot()
         # Sequence selector
-        self.seq_selector.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery', 'Custom Sequence'])
+        self.seq_selector.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery','Saturation Inversion Recovery', 'Custom Sequence'])
         self.seq_selector.currentIndexChanged.connect(self.set_sequence)
         self.seq_selector.setCurrentIndex(0)
         self.set_sequence(0)
@@ -78,7 +83,6 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.manualTE_input.setVisible(False)
         self.manualTELabel.setVisible(False)
         self.manualTI_input.setKeyboardTracking(False)
-        self.manualTI_input.valueChanged.connect(self.data.set_IR)
         self.manualTI_input.setVisible(False)
         self.manualTILabel.setVisible(False)
         # Autocenter tool
@@ -89,6 +93,8 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.flipangle_btn.clicked.connect(self.init_flipangle)
         self.flipangle_save_btn.clicked.connect(self.save_flipangle)
         self.flipangle_save_btn.setEnabled(False)
+        # Shim tool
+        self.setOffset_btn.clicked.connect(self.set_grad_offsets)
         # Output parameters
         self.freq_output.setReadOnly(True)
         self.at_output.setReadOnly(True)
@@ -96,6 +102,8 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.peak_output.setReadOnly(True)
         self.fwhm_output.setReadOnly(True)
         self.snr_output.setReadOnly(True)
+
+        self.call_update.emit()
 
     def init_vars(self):
         # Initialization of values for autocenter and flipangle tool
@@ -177,15 +185,19 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
     def switchPlot(self):
         def two_ax(self):
+            if len(self.fig.axes) == 2: return
             self.fig.clear()#; self.fig.set_facecolor("None")
             self.ax1 = self.fig.add_subplot(2,1,1)
             self.ax2 = self.fig.add_subplot(2,1,2)
+            #self.fig.delaxes(self.ax3)
 
         def three_ax(self):
+            if len(self.fig.axes) == 3: return
             self.fig.clear()#; self.fig.set_facecolor("None")
             self.ax1 = self.fig.add_subplot(3,1,1)
             self.ax2 = self.fig.add_subplot(3,1,2)
             self.ax3 = self.fig.add_subplot(3,1,3)
+            #self.fig.add_axes(self.ax3)
 
         self.progressBar_container.setVisible(True)
 
@@ -209,6 +221,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
         self.load_params()
         self.fig_canvas.draw()
+        self.call_update.emit()
 #_______________________________________________________________________________
 #   Control Acquisition and Data Processing
 
@@ -224,15 +237,22 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
             0: self.data.set_FID,
             1: self.data.set_SE,
             2: self.data.set_IR,
-            3: self.customSeq
+            3: self.data.set_SIR,
+            4: self.customSeq
         }
 
         if idx == 1:
             self.manualTE_input.setVisible(True)
             self.manualTELabel.setVisible(True)
-        elif idx == 2:
+        elif idx == 2 or idx == 3:
             self.manualTI_input.setVisible(True)
             self.manualTILabel.setVisible(True)
+            if idx == 2:
+                self.manualTI_input.disconnect()
+                self.manualTI_input.valueChanged.connect(self.data.set_IR)
+            else:
+                self.manualTI_input.disconnect()
+                self.manualTI_input.valueChanged.connect(self.data.set_SIR)
 
         seq[idx]()
 
@@ -250,6 +270,15 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
     def sequence_uploaded(self):
         self.uploadSeq_confirm.setChecked(True)
         self.enable_controls()
+
+    def set_grad_offsets(self):
+
+        gx = self.xOffset_input.value()
+        gy = self.yOffset_input.value()
+        gz = self.zOffset_input.value()
+        gz2 = self.z2Offset_input.value()
+
+        self.data.set_gradients(gx, gy, gz, gz2)
 
     def start_manual(self):
         if self.manualAvg_enable.isChecked(): self.init_averaging()
@@ -276,6 +305,8 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         if self.seq_selector.currentIndex()==2: logger.add('ACQ', seq='IR',\
             peak=self.data.peak_value, fwhm=self.data.fwhm_value, snr=self.data.snr)
 
+        # Make log entry
+
         if self.manualAvg_enable.isChecked(): # Handel averaging and manual trigger
             self.fft_mag_avg = np.add(self.fft_mag_avg, self.data.fft_mag)
             self.t_mag_avg = np.add(self.t_mag_avg, self.data.mag_t)
@@ -294,22 +325,23 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
                 self.centerValue = self.data.center_freq
                 self.autocenter_output.setText(str(round(self.centerValue,4)))
             self.autocenter_plot() # calls 2-axis plot as well
+            self.progressBar.setValue(self.acqCount/len(self.freqSpace)*100)
+            self.call_update.emit()
+
             time.sleep(params.autoTimeout/1000)
-            # Set progress and continue
-            self.progressBar.setValue(self.acqCount/(len(self.freqSpace)-1)*100)
             self.freqsweep_run()
 
         if self.flipangle_flag == True: # Handel flipangle tool acquisition
             if self.acqCount > 0:
                 self.at_results.append(round(self.data.peak_value, 2))
             self.flipangle_plot() # calls 2-axis plot as well
-            time.sleep(params.flipTimeout/1000)
-            # Set progress and continue
             self.progressBar.setValue(self.acqCount/len(self.at_values)*100)
+            self.call_update.emit()
+
+            time.sleep(params.flipTimeout/1000)
             self.flipangle_run()
 
         else: self.two_ax_plot(); # Calls two axis plot for manual trigger
-
 
     def freqsweep_run(self): # Function for performing multiple freq acquisitions
         if self.acqCount < len(self.freqSpace):
@@ -434,9 +466,9 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.ax2.set_ylabel('RX signal [mV]')
         self.ax2.set_xlabel('time [ms]')
         self.ax2.legend()
+        self.fig_canvas.draw();
 
-        self.fig_canvas.draw()
-        QApplication.processEvents()
+        self.call_update.emit()
 
     def autocenter_plot(self):
         self.ax3.plot(self.data.center_freq, self.data.peak_value,'x', color='#33A4DF')
