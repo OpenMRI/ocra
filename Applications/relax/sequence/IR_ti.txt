@@ -30,7 +30,7 @@ NOP   // A[1C] UNUSED
 TXOFFSET 1000 							// A[1D]				"JNZ here"
 PR 3, 200      // 200 us blanking lead
 PR 5, 180		// RF 180&r        	// A[1F] PR R[5] (issue CMD5) and unblank for 120 us
-PR 3, 2047802	// wait&r
+PR 3, 499802	// wait&r
 TXOFFSET 0
 PR 3, 200      // 200 us blanking lead
 PR 5, 120		// RF 90			// A[22] PR R[5] (issue CMD5) and unblank for 180 us
