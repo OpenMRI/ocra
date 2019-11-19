@@ -1,16 +1,12 @@
-import matplotlib.pyplot as plt
 import sys
-import struct
 import csv
-import time
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
-    QLabel, QMessageBox, QCheckBox, QFileDialog, QShortcut
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, pyqtSlot, QStandardPaths
-from PyQt5.QtGui import QIcon, QRegExpValidator, QKeySequence, QPixmap
-from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
+from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths
+from PyQt5.QtGui import QRegExpValidator, QPixmap
+import matplotlib.pyplot as plt
 
 from ccSpectrometer import CCSpecWidget
 from ccT2Relaxometer import CCRelaxT2Widget
@@ -35,13 +31,19 @@ Conn_Dialog_Form, Conn_Dialog_Base = loadUiType('ui/connDialog.ui')
 class MainWindow(Main_Window_Base, Main_Window_Form):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
+
+        # Center window on screen
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
+
         self.setupUi(self)
 
         # Setup
         self.ui = loadUi('ui/mainWindow.ui')
         self.setWindowTitle('Relax')
         self.setStyleSheet(params.stylesheet)
-        #self.plotTabWidget.setStyleSheet("border: 0.5px solid #BAB9B8; ")
 
         # Load GUI parameter
         params.loadParam()
@@ -80,6 +82,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 #   Setup Main Window
 
     def switchView(self):
+        try: self.action_exportData.setEnabled(True)
+        except: pass
         try: self.updateGUIsignal.disconnect
         except: print("Could not disconnect update gui signal.")
         try: self.environment.update_params
@@ -140,11 +144,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def setupProtocol(self):
         print("\n---Measurement Protocol---\n")
 
+        self.action_exportData.setEnabled(False)
+
         self.resetLayout(self.protocolLayout)
         self.resetLayout(self.protocolPlotLayout)
 
         self.protocol_env = ProtocolWidget()
-        self.environment = self.protocol_env.prot_ctrl
+        self.environment = self.protocol_env.protocolCC
         self.updateGUIsignal = self.protocol_env.call_update
 
         self.protocolLayout.addWidget(self.protocol_env)
@@ -161,8 +167,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.saveFile()
         choice = QMessageBox.question(self, 'Close Relaxo', 'Are you sure that you want to quit Relax?',\
             QMessageBox.Cancel | QMessageBox.Close, QMessageBox.Cancel)
-
-        print(choice) # debug
 
         if choice == QMessageBox.Close:
             params.dispVars()
@@ -223,6 +227,12 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
     def __init__(self, parent=None):
         super(ConnectionDialog, self).__init__(parent)
         self.setupUi(self)
+
+        # Center window on screen
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
 
         # setup closeEvent
         self.ui = loadUi('ui/connDialog.ui')

@@ -1,20 +1,13 @@
 # import general packages
-import sys
-import struct
 import time
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
-    QLabel, QMessageBox, QCheckBox, QFileDialog
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal
-from PyQt5.QtGui import QIcon, QRegExpValidator
-from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
+from PyQt5.QtCore import pyqtSignal
 
 # import calculation and plot packages
 import numpy as np
 import pandas as pd
-import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure

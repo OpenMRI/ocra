@@ -86,13 +86,23 @@ class DataLogger:
     def temp(self):
         print("Adding temperature setting to log.")
         self.log.append('\n____________________________\n\n')
-        self.log.append('Set temperature\n')
-        self.log.append('Temperatur [°C]:\t'+str(params.temp)+'nan')
+        self.log.append('Temperature changed\n')
+        #self.log.append('Temperatur [°C]:\t'+str(params.temp)+'nan')
 
     def pause(self, dur):
         self.log.append('\n____________________________\n\n')
         self.log.append('Pause\n\n')
         self.log.append('Duration [s]:\t'+str(dur)+'\n')
+
+    def samplechange(self):
+        self.log.append('\n____________________________\n\n')
+        self.log.append('Sample changed\n')
+
+    def calib(self):
+        self.log.append('\n____________________________\n\n')
+        self.log.append('Frequency calibrated\n\n')
+        self.log.append('Center frequency [MHz]:\t'+str(params.freq)+'\n')
+
 
     def add(self, log_type, **kwargs):
         seq = kwargs.get('seq', None)
@@ -113,6 +123,8 @@ class DataLogger:
         elif log_type == 'T2': self.t2(res, err, val, avgM, avgP)
         elif log_type == 'TEMP': self.temp()
         elif log_type == 'PAUSE': self.pause(dur)
+        elif log_type == 'CHNG': self.samplechange()
+        elif log_type == 'CAL': self.calib()
         else: return
 
 logger = DataLogger()

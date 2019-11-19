@@ -198,7 +198,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QListWidget" name="measures_list">
+          <widget class="QListWidget" name="cmd_list">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
