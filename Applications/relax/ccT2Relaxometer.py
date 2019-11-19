@@ -1,26 +1,15 @@
 # import general packages
-import sys
-import struct
 import time
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
-    QLabel, QMessageBox, QCheckBox, QFileDialog
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal
-from PyQt5.QtGui import QIcon, QRegExpValidator
-from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
+from PyQt5.QtCore import pyqtSignal
 
 # import calculation and plot packages
 import numpy as np
 import pandas as pd
-import scipy.io as sp
-import matplotlib
-from matplotlib.widgets import Button
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 from parameters import params
@@ -56,6 +45,8 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         self.fig_canvas = FigureCanvas(self.fig)
         self.ax1 = self.fig.add_subplot(2,1,1)
         self.ax2 = self.fig.add_subplot(2,1,2)
+        self.ax1 = self.fig.add_subplot(2,1,1); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
+        self.ax2 = self.fig.add_subplot(2,1,2); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('echo time (TE) [ms]')
         self.plotNav_widget.setVisible(False)
         self.prevPlot_btn.clicked.connect(self.prevPlot)
         self.nextPlot_btn.clicked.connect(self.nextPlot)
@@ -67,7 +58,8 @@ class CCRelaxT2Widget(CC_RelaxT2_Base, CC_RelaxT2_Form):
         print("Start T2")
 
         # Setup and update parameters
-        self.ax1.clear(); self.ax2.clear()
+        self.ax1.clear(); self.ax1.set_ylabel('acquired RX signals [mV]'); self.ax1.set_xlabel('time [ms]')
+        self.ax2.clear(); self.ax2.set_ylabel('RX signal peak [mV]'); self.ax2.set_xlabel('echo time (TE) [ms]')
         self.controls.setEnabled(False)
         self.plotNav_widget.setVisible(False)
         self.time_ax = []; self.acq_data = []

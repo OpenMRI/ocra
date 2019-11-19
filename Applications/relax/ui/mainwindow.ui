@@ -88,7 +88,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <property name="iconSize">
        <size>
@@ -377,55 +377,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="logbook">
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <attribute name="title">
-        <string>  2D Imaging  </string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QWidget" name="imagingWidget" native="true">
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <layout class="QVBoxLayout" name="imagingLayout">
-           <property name="spacing">
-            <number>10</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
     <item>
@@ -554,6 +505,12 @@
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
    <property name="toolButtonStyle">
     <enum>Qt::ToolButtonTextUnderIcon</enum>
    </property>
@@ -564,8 +521,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="action_exportParams"/>
-   <addaction name="action_importParams"/>
    <addaction name="separator"/>
    <addaction name="action_exportData"/>
    <addaction name="action_saveFig"/>
@@ -607,7 +562,7 @@
      <normalon>icons/save_data_active.png</normalon>icons/save_data_normal.png</iconset>
    </property>
    <property name="text">
-    <string>Export Data</string>
+    <string>Save Data</string>
    </property>
   </action>
   <action name="action_saveFig">

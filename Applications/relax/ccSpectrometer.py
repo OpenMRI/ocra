@@ -1,28 +1,19 @@
 # import general packages
-import sys
-import struct
 import time
 import csv
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QStackedWidget, \
-    QLabel, QMessageBox, QCheckBox, QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QCoreApplication, QRegExp, QObject, pyqtSignal, QStandardPaths
-from PyQt5.QtGui import QIcon, QRegExpValidator
-from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
+from PyQt5.QtCore import pyqtSignal, QStandardPaths
 
 # import calculation and plot packages
 import numpy as np
 import scipy.io as sp
 from scipy.optimize import curve_fit
-import matplotlib
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from cycler import cycler
 
 from parameters import params
 from dataHandler import data

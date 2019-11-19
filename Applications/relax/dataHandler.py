@@ -2,7 +2,6 @@
 import sys
 import struct
 import time
-import paramiko
 
 from datetime import datetime
 
@@ -344,41 +343,34 @@ class data(QObject):
         self.peak_value = round(np.max(self.fft_mag), 2)
         self.max_index = np.argmax(self.fft_mag)
 
-        if self.peak_value > 0.5: # Peak threshold
-            # Declarations
-            win = int(self.data_idx/20)
-            N = 50
-            p_idx = self.max_index
+        # Declarations
+        win = int(self.data_idx/20)
+        N = 50
+        p_idx = self.max_index
 
-            # Full with half maximum (fwhm):
-            # Determine candidates inside peak window by substruction of half peakValue
-            candidates = np.abs([x-self.peak_value/2 for x in self.fft_mag[p_idx-win:p_idx+win]])
-            # Calculate index difference by findind indices of minima, calculate fwhm in Hz thereafter
-            fwhm_idx = np.argmin(candidates[win:])+win-np.argmin(candidates[:win])
-            self.fwhm_value = fwhm_idx*(abs(np.min(self.freqaxis))+abs(np.max(self.freqaxis)))/self.data_idx
-            # Verification of fwhm calculation
-            #plt.plot(candidates)
-            #plt.show()
+        # Full with half maximum (fwhm):
+        # Determine candidates inside peak window by substruction of half peakValue
+        candidates = np.abs([x-self.peak_value/2 for x in self.fft_mag[p_idx-win:p_idx+win]])
+        # Calculate index difference by findind indices of minima, calculate fwhm in Hz thereafter
+        fwhm_idx = np.argmin(candidates[win:])+win-np.argmin(candidates[:win])
+        self.fwhm_value = fwhm_idx*(abs(np.min(self.freqaxis))+abs(np.max(self.freqaxis)))/self.data_idx
+        # Verification of fwhm calculation
+        #plt.plot(candidates)
+        #plt.show()
 
-            # Signal to noise ratio (SNR):
-            # Determine noise by substruction of moving avg from signal
-            movAvg = np.convolve(self.fft_mag, np.ones((N,))/N, mode='same')
-            noise = np.subtract(self.fft_mag, movAvg)
-            # Calculate sdt. dev. outside a window, that depends on fwhm
-            self.snr = round(self.peak_value/np.std([*noise[:p_idx-win], *noise[p_idx+win:]]),2)
-            # Verification of snr calculation
-            #plt.plot(self.freqaxis, self.fft_mag); plt.plot(self.freqaxis, movAvg);
-            #plt.plot([*noise[:p_idx-win], *noise[p_idx+win:]])
-            #plt.show()
+        # Signal to noise ratio (SNR):
+        # Determine noise by substruction of moving avg from signal
+        movAvg = np.convolve(self.fft_mag, np.ones((N,))/N, mode='same')
+        noise = np.subtract(self.fft_mag, movAvg)
+        # Calculate sdt. dev. outside a window, that depends on fwhm
+        self.snr = round(self.peak_value/np.std([*noise[:p_idx-win], *noise[p_idx+win:]]),2)
+        # Verification of snr calculation
+        #plt.plot(self.freqaxis, self.fft_mag); plt.plot(self.freqaxis, movAvg);
+        #plt.plot([*noise[:p_idx-win], *noise[p_idx+win:]])
+        #plt.show()
 
-            # Center frequency calculation:
-            self.center_freq = params.freq + ((self.max_index - self.data_idx/2) * self.freq_range / self.data_idx ) / 1.0e6
-
-        else:   # In case peak is under the threshold of 0.5
-            self.peak_value = float('nan')
-            self.fwhm_value = float('nan')
-            self.center_freq = float('nan')
-            self.snr = float('nan')
+        # Center frequency calculation:
+        self.center_freq = round(params.freq + ((self.max_index - self.data_idx/2) * self.freq_range / self.data_idx ) / 1.0e6, 6)
 
         print("\tData analysed.")
 
@@ -413,7 +405,7 @@ class data(QObject):
                     time.sleep(recovery/1000)
                     socket.write(struct.pack('<I', 1 << 28))
 
-                    while True:
+                    while True: # Readout data
                         socket.waitForReadyRead()
                         datasize = socket.bytesAvailable()
                         print(datasize)
@@ -428,8 +420,6 @@ class data(QObject):
                     self.process_readout()
                     print("Start analyzing IR data.")
                     self.analytics()
-                    print("Max. mag : ", np.max(self.mag_con))
-                    print("sign real : ", np.sign(self.real_con[np.argmax(abs(self.real_con))]))
                     self.peaks.append(np.max(self.mag_con)*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
                     #self.peaks.append(self.peak_value*np.sign(self.real_con[np.argmin(self.real_con[0:50])]))
                     self.readout_finished.emit()
@@ -438,24 +428,29 @@ class data(QObject):
                 self.measurement.append(np.mean(self.peaks))
                 self.idxP = 0
 
-            # Calculate T1 value and error
+            def func(x):
+                return p[0] - p[1] * np.exp(-p[2]*x)
+
+
             try:
                 p, cov = curve_fit(self.T1_fit, values, self.measurement)
-                def func(x):
-                    return p[0] - p[1] * np.exp(-p[2]*x)
+                # Calculate T1 value and error
                 self.T1.append(round(1.44*brentq(func, values[0], values[-1]),2))
                 self.R2.append(round(1-(np.sum((self.measurement - self.T1_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
                 self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
                 self.y_fit = self.T1_fit(self.x_fit, *p)
                 self.fit_params = p
-            except:
+            except: # in case no fit found
                 self.T1.append(float('nan'))
                 self.R2.append(float('nan'))
                 self.x_fit = float('nan')
                 self.y_fit = float('nan')
-
+                self.fit_params = float('nan')
             self.t1_finished.emit()
             self.idxM += 1
+
+
+
 
         return np.nanmean(self.T1), np.nanmean(self.R2)
 
@@ -514,15 +509,26 @@ class data(QObject):
                 self.idxP = 0
 
             # Calculate T2 value and error
-            p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
-            # Calculation of T2: M(T2) = 0.37*(func(0)) = 0.37(A+B), T2 = -1/C * ln((M(T2)-A)/B)
-            self.T2.append(round(-(1/p[2])*np.log(((0.37*(p[0]+p[1]))-p[0])/p[1]), 5))
-            self.R2.append(round(1-(np.sum((self.measurement - self.T2_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
-            self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
-            self.y_fit = self.T2_fit(self.x_fit, *p)
-            self.fit_params = p
-            self.t2_finished.emit()
-            self.idxM += 1
+            try:
+                p, cov = curve_fit(self.T2_fit, values, self.measurement, bounds=([0, self.measurement[0], 0], [10, 10000, 2]))
+                # Calculation of T2: M(T2) = 0.37*(func(0)) = 0.37(A+B), T2 = -1/C * ln((M(T2)-A)/B)
+                self.T2.append(round(-(1/p[2])*np.log(((0.37*(p[0]+p[1]))-p[0])/p[1]), 5))
+                self.R2.append(round(1-(np.sum((self.measurement - self.T2_fit(values, *p))**2)/(np.sum((self.measurement-np.mean(self.measurement))**2))),5))
+                self.x_fit = np.linspace(0, int(1.2*values[-1]), 1000)
+                self.y_fit = self.T2_fit(self.x_fit, *p)
+                self.fit_params = p
+                self.t2_finished.emit()
+                self.idxM += 1
+            except:
+                self.T2.append(float('nan'))
+                self.R2.append(float('nan'))
+                self.x_fit = float('nan')
+                self.y_fit = float('nan')
+                self.fit_params = float('nan')
+                self.t2_finished.emit()
+                self.idxM += 1
+
+
 
         return np.nanmean(self.T2), np.nanmean(self.R2)
 
