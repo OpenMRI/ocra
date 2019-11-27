@@ -29,17 +29,15 @@ NOP   // A[1B] UNUSED
 NOP   // A[1C] UNUSED
 TXOFFSET 0 							// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
 GRADOFFSET 0 						// A[1E] GRADOFFSET
-PR 3, 200
+PR 11, 200
 PR 5, 120		// RF 90        	// A[1F] PR R[5] (issue CMD5) and unblank for 120 us
-PR 3, 3655		// wait				// A[20] PR R[3] (issue CMD3) and last for 4855 us (5000-145)
-PR 7, 1200
+PR 3, 4855		// wait				// A[20] PR R[3] (issue CMD3) and last for 4855 us (5000-145)
 TXOFFSET 1000						// A[21] TXOFFSET 1000: RF 180x+
-PR 3, 200
+PR 11, 200
 PR 5, 180		// RF 180			// A[22] PR R[5] (issue CMD5) and unblank for 180 us
-PR 3, 200
+PR 3, 2220
 PR 7, 1200
-PR 3, 3455
-PR 8, 200000	// grad&r			// A[25] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
+PR 4, 200000	// grad&r			// A[25] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
 DEC 2 										// A[27] DEC R[2]
 JNZ 2, 0x1D 								// A[28] JNZ R[2] => `PC=0x1D
 HALT 										// A[29] HALT

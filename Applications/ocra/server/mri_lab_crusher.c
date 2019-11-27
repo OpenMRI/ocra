@@ -197,7 +197,7 @@ void generate_gradient_waveforms_se_proj(volatile uint32_t *gx,volatile uint32_t
   float fROprestep = fROpreamplitude/20.0;
   float fRO = offset_val;
 
-  // Design the X gradient
+  // Design the waveform
   // prephaser 200 us rise time, 3V amplitude
   for(i=2; i<22; i++) {
     fRO += fROprestep;
@@ -459,6 +459,312 @@ void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy,
     ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
     gx[i] = 0x001fffff & (ival | 0x00100000);
     ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // Z,Z2 shim
+  for(int k=2; k<2000; k++)
+  {
+    ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+    gz[k] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    gz2[k] = 0x001fffff & (ival | 0x00100000);
+  }
+
+}
+
+void update_gradient_waveforms_echo_crush(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, gradient_offset_t offset)
+{
+  printf("Designing a gradient waveform -- 2D SE/GRE !\n"); fflush(stdout);
+
+  uint32_t i;
+  int32_t ival;
+  uint32_t delay; // delay has to be < to 1550 in total ?!
+
+  float fLSB = 10.0/((1<<15)-1);
+  printf("fLSB = %g Volts\n",fLSB);
+
+  // enable the gradients with the prescribed offset current
+  ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+  gx[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+  gy[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+  gz[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
+
+  // enable the outputs with 2's completment coding
+  // 24'b0010 0000 0000 0000 0000 0010;
+  gx[1] = 0x00200002;
+  gy[1] = 0x00200002;
+  gz[1] = 0x00200002;
+  gz2[1] = 0x00200002;
+
+  float fROamplitude = ROamp;
+  float fROpreamplitude = ROamp*2;
+  float fROstep = fROamplitude/20.0;
+  float fROprestep = fROpreamplitude/20.0;
+  float fRO = offset.gradient_x;
+  float fCRSHstep = fROprestep/6;
+  float fCRSHx = offset.gradient_x;
+  float fCRSHy = offset.gradient_y;
+
+  // Set waveform base value
+  for(i=2; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+    gz[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+    gz2[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // precrusher
+  for(i=2; i<22; i++) {
+    fCRSHx += fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy += fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=22; i<82; i++) {
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=82; i<102; i++) {
+    fCRSHx -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // delay between crushers
+  delay = 50 + 102;
+  fCRSHx = offset.gradient_x;
+  fCRSHy = offset.gradient_y;
+
+  // postcrusher
+  for(i=delay; i<delay+20; i++) {
+    fCRSHx += fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy += fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+20; i<delay+80; i++) {
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+80; i<delay+100; i++) {
+    fCRSHx -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // delay between crushers
+  delay = delay + 100 + 120;
+
+  // Design the X gradient
+  // prephaser 200 us rise time, 3V amplitude
+  for(i=delay; i<(delay+20); i++) {
+    fRO += fROprestep;
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+20; i<(delay+80); i++) {
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+80; i<(delay+100); i++) {
+    fRO -= fROprestep;
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+100; i<(delay+120); i++) {
+    fRO -= fROstep;
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+120; i<(delay+420); i++) {
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+420; i<(delay+440); i++) {
+    fRO += fROstep;
+    ival = (int32_t)floor(fRO/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // Design the Y gradient
+  // prephaser 200 us rise time, 3V amplitude
+  float fPEamplitude = PEamp;
+  float fPEstep = PEamp/20.0;
+  float fPE = offset.gradient_y;
+
+  for(i=delay; i<delay+20; i++) {
+    fPE += fPEstep;
+    ival = (int32_t)floor(fPE/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+20; i<delay+80; i++) {
+    ival = (int32_t)floor(fPE/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+80; i<delay+100; i++) {
+    fPE -= fPEstep;
+    ival = (int32_t)floor(fPE/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  /*
+  for(i=delay+100; i<delay+440; i++) {
+    ival = (int32_t)floor(fPE/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  */
+  /*
+  // clear the rest of the buffer
+  for(i=delay+442; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  */
+  /*
+  for(i=102; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  */
+
+}
+
+void update_gradient_waveforms_SEstate_crush(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float amp, gradient_offset_t offset)
+{
+  printf("Designing a gradient waveform -- 2D SE/GRE !\n"); fflush(stdout);
+
+  uint32_t i;
+  int32_t ival;
+  uint32_t delay; // delay has to be < to 1550 in total ?!
+
+  float fLSB = 10.0/((1<<15)-1);
+  printf("fLSB = %g Volts\n",fLSB);
+
+  // enable the gradients with the prescribed offset current
+  ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+  gx[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+  gy[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+  gz[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
+
+  // enable the outputs with 2's completment coding
+  // 24'b0010 0000 0000 0000 0000 0010;
+  gx[1] = 0x00200002;
+  gy[1] = 0x00200002;
+  gz[1] = 0x00200002;
+  gz2[1] = 0x00200002;
+
+  /*
+  float fROamplitude = ROamp;
+  float fROpreamplitude = ROamp*2;
+  float fROstep = fROamplitude/20.0;
+  float fROprestep = fROpreamplitude/20.0;
+  float fRO = fROamplitude/20.0;
+  */
+
+  float fCRSHstep = amp/20;
+  float fCRSHx = offset.gradient_x;
+  float fCRSHy = offset.gradient_y;
+
+  // Set waveform base value
+  for(i=2; i<2000; i++) {
+    ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+    ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // precrusher
+  for(i=2; i<22; i++) {
+    fCRSHx += fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy += fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=22; i<82; i++) {
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=82; i<102; i++) {
+    fCRSHx -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+
+  // delay between crushers
+  delay = 50 + 102;
+  fCRSHx = offset.gradient_x;
+  fCRSHy = offset.gradient_y;
+
+  // postcrusher
+  for(i=delay; i<delay+20; i++) {
+    fCRSHx += fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy += fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+20; i<delay+80; i++) {
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
+    gy[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  for(i=delay+80; i<delay+100; i++) {
+    fCRSHx -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHx/fLSB)*16;
+    gx[i] = 0x001fffff & (ival | 0x00100000);
+
+    fCRSHy -= fCRSHstep;
+    ival = (int32_t)floor(fCRSHy/fLSB)*16;
     gy[i] = 0x001fffff & (ival | 0x00100000);
   }
 
@@ -2145,9 +2451,13 @@ int main(int argc, char *argv[])
 	volatile uint32_t *attn_config;
 
   gradient_offset_t gradient_offset;  // these offsets are in Ampere
-  gradient_offset.gradient_x =  0.120;
-  gradient_offset.gradient_y =  0.045;
-  gradient_offset.gradient_z = -0.092;
+
+  //gradient_offset.gradient_x =  0.120;
+  //gradient_offset.gradient_y =  0.045;
+  //gradient_offset.gradient_z = -0.092;
+  gradient_offset.gradient_x = 0;
+  gradient_offset.gradient_y = 0;
+  gradient_offset.gradient_z = 0;
 
   int i, j; // for loop
   int is_gradient_on = 0;  // used in GUI 3, 0:FID/SE/upload seq; 1:GRE
@@ -2165,7 +2475,7 @@ int main(int argc, char *argv[])
   // number of phase encoding and echo train length
   uint32_t npe_idx, npe2_idx, etl_idx;
   int32_t npe, npe2; // npe(2) and npe(2)_list have to signed int(will go into int operations when calculating phase encoding grads)
-  int32_t npe_list[] = {4, 8, 16, 32, 64, 128, 256};
+  int32_t npe_list[] = {4, 8, 16, 32, 64, 128, 256, 1};
   int32_t npe2_list[] = {4, 8, 16, 32};
   uint32_t etl;
   uint32_t etl_list[] = {2, 4, 8, 16, 32};
@@ -2234,6 +2544,7 @@ int main(int argc, char *argv[])
 	gradient_memory_x = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40002000);
 	gradient_memory_y = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40004000);
 	gradient_memory_z = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40006000);
+	gradient_memory_z2 = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40008000);
 
 	printf("Setup standard memory maps !\n"); fflush(stdout);
 
@@ -2391,7 +2702,12 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    switch( command & 0x0000ffff ) {
+    unsigned int ui_index = command & 0x0000ffff;
+
+    printf("Entering UI: %d\n", ui_index);
+
+
+    switch(ui_index) {
     case 1:
       /* GUI 1 */
       /********************* FID with frequency modification and shimming *********************/
@@ -2439,7 +2755,7 @@ int main(int argc, char *argv[])
           }
         }
 
-	else if ( trig == 3 ) { // change attenuator value
+	      else if ( trig == 3 ) { // change attenuator value
 	  unsigned int attn_value = command & 0x000007f;
 	  printf("Setting attenuation to %.2f dB\n", (float)(attn_value)*0.25);
 	  if (attn_value > 127) {
@@ -2473,7 +2789,7 @@ int main(int argc, char *argv[])
             printf("Set gradient offsets Z %d\n", value3);
             gradient_offset.gradient_z = (float)value3/1000.0; // these offsets are in Ampere
             break;
-	  case 4:
+	        case 4:
             printf("Set gradient offsets Z2 %d\n", value3);
             gradient_offset.gradient_z2 = (float)value3/1000.0; // these offsets are in Ampere
             break;
@@ -2491,7 +2807,7 @@ int main(int argc, char *argv[])
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_y = (float)value3/1000.0;
 
-	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+	          if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
             value2 = (command & 0x00ffffff) >> 20;
@@ -2501,7 +2817,7 @@ int main(int argc, char *argv[])
             printf("%s %d %d %d\n", "Received values", value1, value2, value3);
             gradient_offset.gradient_z = (float)value3/1000.0;
 
-	    if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+	          if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
                break;
             }
             value2 = (command & 0x00ffffff) >> 20;
@@ -2525,7 +2841,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
-	    gradient_offset.gradient_z2 = 0.0;
+	          gradient_offset.gradient_z2 = 0.0;
             break;
           default:
             printf("Acquiring\n");
@@ -2712,6 +3028,9 @@ int main(int argc, char *argv[])
 
         // turn on gradients with offset currents
         update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
+        //clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+        //update_gradient_waveforms_SEstate_crush(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, 0.2, gradient_offset);
+
         // take spin-echoes with offset currents enabled
         printf("Aquiring data\n");
         seq_config[0] = 0x00000007;
@@ -3143,6 +3462,7 @@ int main(int argc, char *argv[])
             npe = npe_list[npe_idx];
 
             seqType_idx = (command & 0x0000000f);
+            printf("Sequence Type: %d\n", seqType_idx);
 
             switch(seqType_idx) {
             case 0: // Spin Echo
@@ -3151,13 +3471,17 @@ int main(int argc, char *argv[])
               printf("*** MRI Lab *** -- 2D Imaging Spin Echo -- npe = %d\n", npe);
               usleep(2000000); // sleep 2 second  give enough time to monitor the printout
               printf("Acquiring\n");
-              printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000));
+
               // Phase encoding gradient loop
               pe_step = 2.936/44.53/2; //[A]
               pe = -(npe/2-1)*pe_step;
               ro = 1.865/2;
               clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
-              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+              //update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+              update_gradient_waveforms_echo_crush(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+
+              // Print gradient offsets (after waveforms updated!)
+              printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000));
               for(int reps=0; reps<npe; reps++) {
                 printf("TR[%d]: go!!\n",reps);
                 seq_config[0] = 0x00000007;
@@ -3173,7 +3497,7 @@ int main(int argc, char *argv[])
                 printf("stop !!\n");
                 seq_config[0] = 0x00000000;
                 pe = pe+pe_step;
-                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, gradient_offset);
+                update_gradient_waveforms_echo_crush(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
                 usleep(4000000); // sleep 4 seconds
               }
               printf("*********************************************\n");
@@ -3401,15 +3725,55 @@ int main(int argc, char *argv[])
               printf("*********************************************\n");
               break;
 
+            case 8: // Spin Echo with crusher
+              // update_pulse_sequence(2, pulseq_memory); // Spin echo
+              update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
+              printf("-----SE sequence with crusher pulses-----");
+              printf("number of phase encodes: %d\n", npe);
+              usleep(2000000); // sleep 2 second  give enough time to monitor the printout
+              printf("Acquiring\n");
+
+              // Phase encoding gradient loop
+              pe_step = 2.936/44.53/2; //[A]
+              pe = -(npe/2-1)*pe_step;
+              ro = 1.865/2;
+              clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+              //update_gradient_waveforms_echo_crush(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+              update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+
+
+              // Print gradient offsets (after waveforms updated!)
+              printf("Gradient offsets(mA): X %d, Y %d, Z %d, Z2 %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000));
+              for(int reps=0; reps<npe; reps++) {
+                printf("TR[%d]: go!!\n",reps);
+                seq_config[0] = 0x00000007;
+                usleep(1000000); // sleep 1 second
+                printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
+                // Transfer the data to the client
+                // transfer 10 * 5k = 50k samples
+                for(i = 0; i < 10; ++i) {
+                  while(*rx_cntr < 10000) usleep(500);
+                  for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+                  send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+                }
+                printf("stop !!\n");
+                seq_config[0] = 0x00000000;
+                pe = pe+pe_step;
+                //update_gradient_waveforms_echo_crush(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, gradient_offset);
+                update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro , pe, gradient_offset);
+                usleep(4000000); // sleep 4 seconds
+              }
+              printf("*********************************************\n");
+              break;
+
             default:
               break;
             }
 
-
-            printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000));
+            // printf("Gradient offsets(mA): X %d, Y %d, Z %d mA\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000));
             break;
 
-          case 4:
+          case 4: // set grad offsets
             printf("Load gradient offsets\n");
             gradient_offset.gradient_x = (float)value3/1000.0;
             if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
@@ -3436,7 +3800,7 @@ int main(int argc, char *argv[])
               continue;
             }
             break;
-          case 5:
+          case 5: // grad offset -> 0
             printf("Set gradient offsets to 0 0 0 %d\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;

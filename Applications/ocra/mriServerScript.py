@@ -77,9 +77,12 @@ def readout():
 #_______________________________________________________________________________
 #   Beginn of the Script
 
+## Python script to test server functionalities
+
 #################################
-ip = '172.20.125.80'
-seq = 'sequence/SE_workbench.txt'
+ip = '172.20.125.64'
+#seq = 'sequence/SE_workbench.txt'
+seq = 'sequence/se.txt'
 #################################
 
 npe_idx = 0 # index for number of phase encodings on server
@@ -105,9 +108,9 @@ while(True): # Wait until bytes written
 time.sleep(1)
 
 # Set gradient offset to 0
-socket.write(struct.pack('<I', 2 << 28 | 5 << 24))
-while(True): # Wait until bytes written
-    if not socket.waitForBytesWritten(): break
+#socket.write(struct.pack('<I', 2 << 28 | 5 << 24))
+#while(True): # Wait until bytes written
+#    if not socket.waitForBytesWritten(): break
 
 time.sleep(1)
 
@@ -118,8 +121,6 @@ while(True): # Wait until bytes written
 print("Single line phase encoding SE.")
 
 time.sleep(3)
-
-
 
 # Readout data
 #readout()

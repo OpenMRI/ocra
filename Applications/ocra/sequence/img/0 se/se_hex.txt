@@ -109,21 +109,24 @@ A[0x23]	pulseq_memory[70] = 0x6f9b
 A[0x24]	pulseq_memory[72] = 0x6472 
 	pulseq_memory[73] = 0x74000500
 
-A[0x25]	pulseq_memory[74] = 0x30d40 
-	pulseq_memory[75] = 0x74000700
+A[0x25]	pulseq_memory[74] = 0x4d6d6 
+	pulseq_memory[75] = 0x74000300
 
-A[0x26]	pulseq_memory[76] = 0x1b3f724 
-	pulseq_memory[77] = 0x74000800
+A[0x26]	pulseq_memory[76] = 0x29da4 
+	pulseq_memory[77] = 0x74000700
 
-A[0x27]	pulseq_memory[78] = 0x0 
-	pulseq_memory[79] = 0x74000400
+A[0x27]	pulseq_memory[78] = 0x1b3f724 
+	pulseq_memory[79] = 0x74000800
 
-A[0x28]	pulseq_memory[80] = 0x0 
-	pulseq_memory[81] = 0x4000002
+A[0x28]	pulseq_memory[80] = 0x1b3f724 
+	pulseq_memory[81] = 0x74000400
 
-A[0x29]	pulseq_memory[82] = 0x1d 
-	pulseq_memory[83] = 0x40000002
+A[0x29]	pulseq_memory[82] = 0x0 
+	pulseq_memory[83] = 0x4000002
 
-A[0x2a]	pulseq_memory[84] = 0x0 
-	pulseq_memory[85] = 0x64000000
+A[0x2a]	pulseq_memory[84] = 0x1d 
+	pulseq_memory[85] = 0x40000002
+
+A[0x2b]	pulseq_memory[86] = 0x0 
+	pulseq_memory[87] = 0x64000000
 

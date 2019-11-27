@@ -284,8 +284,8 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
         # self.axes_k_pha.clear()
 
         # ---- display k-space ---- #
-        plt.show()
-        self.kspace_ax = plt.gca()
+        #plt.show()
+        #self.kspace_ax = plt.gca()
 
 
         self.axes_bottom.clear()
@@ -494,9 +494,9 @@ class MRI_2DImag_Widget(MRI_2DImag_Widget_Base, MRI_2DImag_Widget_Form):
                 # self.axes_k_pha.set_title('k-space phase')
                 # self.canvas2.draw()
 
-                self.kspace_ax.imshow(k_amp_1og10, cmap='plasma')
-                plt.draw()
-                plt.pause(0.0000001)
+                #self.kspace_ax.imshow(k_amp_1og10, cmap='plasma')
+                #plt.draw()
+                #plt.pause(0.0000001)
 
                 # display image
                 crop_size = int(self.num_pe / 64 * self.crop_factor)

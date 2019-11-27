@@ -165,7 +165,7 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         logger.add('FLA')
 
         self.data.set_freq(params.freq)
-        self.at_values = np.linspace(params.flipStart, params.flipEnd, params.flipStep)
+        self.at_values = np.around(np.linspace(params.flipStart, params.flipEnd, params.flipStep)*4)/4
         print("Attenuation values : ", self.at_values)
 
         # Disable controls and start
@@ -447,12 +447,12 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
 
         self.ax1.clear()
         self.ax1.plot(self.data.freqaxis[int(self.data.data_idx/2 - self.data.data_idx/10):int(self.data.data_idx/2 + self.data.data_idx/10)],
-            fft_mag[int(self.data.data_idx/2 - self.data.data_idx/10):int(self.data.data_idx/2 + self.data.data_idx/10)])
+            fft_mag[int(self.data.data_idx/2 - self.data.data_idx/10):int(self.data.data_idx/2 + self.data.data_idx/10)]/max(fft_mag))
         self.ax2.clear()
         self.ax2.plot(self.data.time_axis, mag_t, label='Magnitude')
         self.ax2.plot(self.data.time_axis, real_t, label='Real')
         self.ax2.plot(self.data.time_axis, imag_t, label='Imaginary')
-        self.ax1.set_ylabel('RX amplitude []')
+        self.ax1.set_ylabel('relative frequency spectrum')
         self.ax1.set_xlabel('frequency [Hz]')
         self.ax2.set_ylabel('RX signal [mV]')
         self.ax2.set_xlabel('time [ms]')
@@ -462,15 +462,16 @@ class CCSpecWidget(CC_Spec_Base, CC_Spec_Form):
         self.call_update.emit()
 
     def autocenter_plot(self):
-        self.ax3.plot(self.data.center_freq, self.data.peak_value,'x', color='#33A4DF')
+        self.ax3.plot(self.data.center_freq, self.peaks[-1]/max(self.peaks),'x', color='#33A4DF')
         self.ax3.set_xlabel('center frequency [MHz]')
-        self.ax3.set_ylabel('RX signal peak []')
+        self.ax3.set_ylabel('signal maxima')
         self.two_ax_plot()
 
     def flipangle_plot(self):
-        self.ax3.plot(abs(self.at_values[self.acqCount-1]),self.at_results[self.acqCount-1], 'x', color='#33A4DF')
+        self.ax3.clear()
+        self.ax3.plot(abs(self.at_values[0:self.acqCount]),self.at_results/max(self.at_results), 'x', color='#33A4DF')
         self.ax3.set_xlabel('attenuation [dB]')
-        self.ax3.set_ylabel('RX signal peak []')
+        self.ax3.set_ylabel('signal maxima')
         self.two_ax_plot()
 #_______________________________________________________________________________
 #   Save Data

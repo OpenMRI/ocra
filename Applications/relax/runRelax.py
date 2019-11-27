@@ -315,7 +315,7 @@ def run():
     gui = MainWindow()
 
     ## Skip connection to server for development
-    # gui.show()
+    #gui.show()
 
     sys.exit(app.exec_())
 
