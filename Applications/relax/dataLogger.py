@@ -98,11 +98,12 @@ class DataLogger:
         self.log.append('\n____________________________\n\n')
         self.log.append('Sample changed\n')
 
-    def calib(self):
+    def calib(self, status):
         self.log.append('\n____________________________\n\n')
         self.log.append('Frequency calibrated\n\n')
         self.log.append('Center frequency [MHz]:\t'+str(params.freq)+'\n')
-
+        if status==True: self.log.append('System calibration was successful.\n')
+        else: self.log.append('System calibration was NOT successful.\n')
 
     def add(self, log_type, **kwargs):
         seq = kwargs.get('seq', None)
@@ -115,6 +116,7 @@ class DataLogger:
         err = kwargs.get('err', None)
         avgM = kwargs.get('avgM', None)
         avgP = kwargs.get('avgP', None)
+        status = kwargs.get('status', True)
 
         if log_type == 'ACQ': self.acquisition(seq, peak, fwhm, snr)
         elif log_type == 'FLA': self.flipangle()
@@ -124,7 +126,7 @@ class DataLogger:
         elif log_type == 'TEMP': self.temp()
         elif log_type == 'PAUSE': self.pause(dur)
         elif log_type == 'CHNG': self.samplechange()
-        elif log_type == 'CAL': self.calib()
+        elif log_type == 'CAL': self.calib(status)
         else: return
 
 logger = DataLogger()

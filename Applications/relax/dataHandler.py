@@ -240,6 +240,9 @@ class data(QObject):
         t0 = time.time() # calculate time for acquisition
         socket.write(struct.pack('<I', 1 << 28))
 
+        while(True): # Wait until bytes written
+            if not socket.waitForBytesWritten(): break
+
         while True: # Read data
             socket.waitForReadyRead()
             datasize = socket.bytesAvailable()
