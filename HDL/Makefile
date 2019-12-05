@@ -66,7 +66,7 @@ RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/r
 
 .PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin devicetree.dtb tmp/%.bin 
+all: boot.bin devicetree.dtb tmp/$(NAME).bin ocra_mri.dtbo
 
 xpr: tmp/$(NAME).xpr
 
@@ -130,11 +130,12 @@ fw_printenv: $(UBOOT_DIR) tmp/u-boot.elf
 	cp $</tools/env/fw_printenv $@
 
 boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
+# This needs work; doesn't run properly right now!
 	echo "img:{[bootloader] $^}" > tmp/boot.bif
 	bootgen -image tmp/boot.bif -w -o i $@
 
 devicetree.dtb: tmp/$(NAME).tree/system.dts
-	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
+#this additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
 	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
 	dtc -I dts -O dtb -o devicetree.dtb \
 	  -i tmp/$(NAME).tree -@ tmp/$(NAME).tree/system-top.dts.preprocessed
