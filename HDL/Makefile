@@ -45,13 +45,13 @@ UBOOT_TAG = xilinx-v2019.1
 LINUX_TAG = xilinx-v2019.1
 DTREE_TAG = xilinx-v2019.1
 
-UBOOT_DIR = tmp/u-boot-xlnx-$(UBOOT_TAG)
-LINUX_DIR = tmp/linux-xlnx-$(LINUX_TAG)
-DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
+UBOOT_DIR = utils/u-boot-xlnx-$(UBOOT_TAG)
+LINUX_DIR = utils/linux-xlnx-$(LINUX_TAG)
+DTREE_DIR = utils/device-tree-xlnx-$(DTREE_TAG)
 
-UBOOT_TAR = tmp/u-boot-xlnx-$(UBOOT_TAG).tar.gz
-LINUX_TAR = tmp/linux-xlnx-$(LINUX_TAG).tar.gz
-DTREE_TAR = tmp/device-tree-xlnx-$(DTREE_TAG).tar.gz
+UBOOT_TAR = utils/u-boot-xlnx-$(UBOOT_TAG).tar.gz
+LINUX_TAR = utils/linux-xlnx-$(LINUX_TAG).tar.gz
+DTREE_TAR = utils/device-tree-xlnx-$(DTREE_TAG).tar.gz
 
 UBOOT_URL = https://github.com/Xilinx/u-boot-xlnx/archive/$(UBOOT_TAG).tar.gz
 LINUX_URL = https://github.com/Xilinx/linux-xlnx/archive/$(LINUX_TAG).tar.gz
@@ -66,11 +66,14 @@ RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/r
 
 .PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin devicetree.dtb tmp/$(NAME).bin ocra_mri.dtbo
+all: boot.bin devicetree.dtb rp_bit
 
 xpr: tmp/$(NAME).xpr
 
 bit: tmp/$(NAME).bit
+
+rp_bit: tmp/$(NAME).bin ocra_mri.dtbo
+	cp tmp/ocra_mri.dtbo tmp/ocra_mri.bit.bin .
 
 $(UBOOT_TAR):
 	mkdir -p $(@D)
