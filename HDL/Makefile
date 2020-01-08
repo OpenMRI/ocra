@@ -94,7 +94,7 @@ $(RTL_TAR):
 $(UBOOT_DIR): $(UBOOT_TAR)
 	mkdir -p $@
 	tar -zxf $< --strip-components=1 --directory=$@
-	patch -d tmp -p 0 < patches/u-boot-xlnx-$(UBOOT_TAG).patch
+	patch -d utils -p 0 < patches/u-boot-xlnx-$(UBOOT_TAG).patch
 	cp patches/zynq_$(HWNAME)_defconfig $@/configs
 	cp patches/zynq-$(HWNAME2).dts $@/arch/arm/dts
 	cp patches/zynq_$(HWNAME).h $@/include/configs
@@ -104,7 +104,7 @@ $(LINUX_DIR): $(LINUX_TAR) $(RTL_TAR)
 	mkdir -p $@
 	tar -zxf $< --strip-components=1 --directory=$@
 	tar -zxf $(RTL_TAR) --directory=$@/drivers/net/wireless/realtek
-	patch -d tmp -p 0 < patches/linux-xlnx-$(LINUX_TAG).patch
+	patch -d utils -p 0 < patches/linux-xlnx-$(LINUX_TAG).patch
 	cp patches/linux-lantiq.c $@/drivers/net/phy/lantiq.c
 
 $(DTREE_DIR): $(DTREE_TAR)
@@ -132,7 +132,8 @@ fw_printenv: $(UBOOT_DIR) tmp/u-boot.elf
 	  CROSS_COMPILE=arm-linux-gnueabihf- env
 	cp $</tools/env/fw_printenv $@
 
-boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
+# boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit tmp/u-boot.elf
+boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/u-boot.elf
 # This needs work; doesn't run properly right now!
 	echo "img:{[bootloader] $^}" > tmp/boot.bif
 	bootgen -image tmp/boot.bif -w -o i $@
