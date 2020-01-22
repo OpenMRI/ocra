@@ -50,7 +50,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 gradient_writer_0 {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 11
+  BRAM_ADDR_WIDTH 16
 } {
   BRAM_PORTA gradient_memory_0/BRAM_PORTA
 }

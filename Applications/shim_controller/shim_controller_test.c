@@ -59,7 +59,7 @@ typedef struct {
   that it can function. (HW config is as Figure 52 in the datasheet).
 
 */
-void update_shim_waveform_state(volatile uint32_t *shim,gradient_state_t state)
+void update_shim_waveform_state(volatile uint32_t *shim,gradient_state_t state, unsigned int mode)
 { 
   uint32_t i;
   int32_t ival;
@@ -78,19 +78,87 @@ void update_shim_waveform_state(volatile uint32_t *shim,gradient_state_t state)
   case GRAD_OFFSET_ENABLED_OUTPUT:
     ival = (int32_t)12000;
     shim[0] = 0x000f0000;
-    shim[1] = 0x00ffffff & (ival | 0x000f0000);
+    shim[1] = 0x000f0000;
+    shim[2] = 0x000f0000;
+    shim[3] = 0x000f0000;
     break;
   }
+
   
-  for (int k=1; k<2000; k++) {
-    shim[k] = 0x000f0000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5)+16000) & 0x0000ffff); // make a 10101010 pattern
+  /*
+  for (int k=1; k<500; k++) {
+    // DAC A
+    shim[4*k] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5)+16000) & 0x0000ffff);
+    // DAC B
+    shim[4*k+1] = 0x00010000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+M_PI/4.0)+16000) & 0x0000ffff);
+    shim[4*k+2] = 0x00020000;
+    shim[4*k+3] = 0x00030000;
   }
+  */
+
+  if (mode == 0) {
+    for (int k=1; k<500; k++) {
+      // DAC C => scope channel 1
+      shim[4*k] = 0x00020000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5)+16000.0) & 0x0000ffff);
+      // DAC A => scope channel 3
+      shim[4*k+1] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC E => scope channel 4
+      shim[4*k+2] = 0x00040000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+M_PI)+16000.0) & 0x0000ffff);
+      // DAC G => scope channel 2
+      shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
+  } else if (mode == 1) {
+    for (int k=1; k<500; k++) {
+      // DAC C => scope channel 1
+      shim[4*k] = 0x00020000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5)+16000.0) & 0x0000ffff);
+      // DAC A => scope channel 3
+      shim[4*k+1] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC E => scope channel 4
+      shim[4*k+2] = 0x00040000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/18.5+M_PI)+16000.0) & 0x0000ffff);
+      // DAC G => scope channel 2
+      shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/18.5+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
+  } else if (mode == 2) {
+    for (int k=1; k<500; k++) {
+      // DAC C => scope channel 1
+      shim[4*k] = 0x00020000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5)+16000.0) & 0x0000ffff);
+      // DAC A => scope channel 3
+      shim[4*k+1] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/12.5+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC E => scope channel 4
+      shim[4*k+2] = 0x00040000 + ((uint32_t)(16000.0*(float)(k % 100)/100+16000.0) & 0x0000ffff);
+      // DAC G => scope channel 2
+      shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/60+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
+  } else if (mode == 3) {
+    for (int k=1; k<500; k++) {
+      // DAC C => scope channel 1
+      shim[4*k] = 0x00020000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0)+16000.0) & 0x0000ffff);
+      // DAC A => scope channel 3
+      shim[4*k+1] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC E => scope channel 4
+      shim[4*k+2] = 0x00040000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0+M_PI)+16000.0) & 0x0000ffff);
+      // DAC G => scope channel 2
+      shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
+  } else if (mode == 4) {
+    for (int k=1; k<2000; k++) {
+      // DAC C => scope channel 1
+      shim[4*k] = 0x00020000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0)+16000.0) & 0x0000ffff);
+      // DAC A => scope channel 3
+      shim[4*k+1] = 0x00000000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC E => scope channel 4
+      shim[4*k+2] = 0x00040000 + ((uint32_t)(16000.0*(float)(k % 100)/100+16000.0) & 0x0000ffff);
+      // DAC G => scope channel 2
+      shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/60+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
+  }
+  
 }
 
 // Function 2
 void clear_shim_waveforms( volatile uint32_t *shim)
 {
-  for (int k=0; k<2000; k++) {
+  for (int k=0; k<16000; k++) {
     shim[k] = 0x0;
   }	
 }
@@ -113,7 +181,16 @@ int main(int argc, char *argv[])
   int size, yes = 1;
   swappable_int32_t lv,bv;
   volatile uint32_t *shim_memory;
-  
+  unsigned int mode;
+
+  if (argc != 2) {
+    fprintf(stderr,"Usage: %s mode\n The mode is an integer, check the code whats valid.\n",argv[0]);
+    return -1;
+  }
+
+  // not the right conversion tool
+  mode = atoi(argv[1]);
+    
 
   if((fd = open("/dev/mem", O_RDWR)) < 0) {
     perror("open");
@@ -130,7 +207,7 @@ int main(int argc, char *argv[])
     be of type uint32_t. The HDL would have to be changed to an 8-bit interface to support per
     byte transactions
   */
-  shim_memory = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40020000);
+  shim_memory = mmap(NULL, 8*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40020000);
   	
   printf("Setup standard memory maps !\n"); fflush(stdout);
   
@@ -152,12 +229,14 @@ int main(int argc, char *argv[])
   *tx_divider = 0x0;
 
   //sleep(20);
-  printf(".... GO !\n"); fflush(stdout);
-  update_shim_waveform_state(shim_memory,GRAD_OFFSET_ENABLED_OUTPUT);
-  *tx_divider = 0x1;
-
-  sleep(20);
-  *tx_divider = 0x0;
+  while(1) {
+    printf(".... GO !\n"); fflush(stdout);
+    update_shim_waveform_state(shim_memory,GRAD_OFFSET_ENABLED_OUTPUT,mode);
+    *tx_divider = 0x1;
+    sleep(1);
+    *tx_divider = 0x0;
+  }
+  
   //update_shim_waveform_state(shim_memory,GRAD_ZERO_DISABLED_OUTPUT);
   //*tx_divider = 0x1;
 

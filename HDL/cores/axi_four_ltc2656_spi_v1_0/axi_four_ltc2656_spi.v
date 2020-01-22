@@ -33,7 +33,7 @@ module axi_four_ltc2656_spi #
  parameter integer C_S_AXI_DATA_WIDTH = 32,
  parameter integer C_S_AXI_ADDR_WIDTH = 16,
  parameter integer BRAM_DATA_WIDTH = 32,
- parameter integer BRAM_ADDR_WIDTH = 14,
+ parameter integer BRAM_ADDR_WIDTH = 16,
  parameter CONTINUOUS = "FALSE"
 )
 (
@@ -135,6 +135,8 @@ module axi_four_ltc2656_spi #
    wire 			    gradient_update_clock;
    reg [39:0] 			    gradient_update_clock_counter;
 
+   reg [3:0] 			    cmd_word_counter;
+ 			    
    reg [23:0] 			    test_data;
 
    reg                              enable_transfer;
@@ -563,6 +565,10 @@ module axi_four_ltc2656_spi #
 	       3'd1:
 		 begin
 		    spi_data_regx <= bram_port0_rddata[23:0];
+		    // TW: 01/22/2020 clone the data
+		    spi_data_regy <= bram_port0_rddata[23:0];
+		    spi_data_regz <= bram_port0_rddata[23:0];
+		    spi_data_regz2 <= bram_port0_rddata[23:0];
 		    spi_transfer_out_regx <= 1'b0;
 		 end // case: 3'd1
 	       
@@ -575,7 +581,16 @@ module axi_four_ltc2656_spi #
 			   begin
 			      spi_transfer_out_regx <= spi_data_regx[23];
 			      spi_data_regx <= {spi_data_regx[22:0],1'b0};
-		       
+			      
+			      spi_transfer_out_regy <= spi_data_regy[23];
+                              spi_data_regy <= {spi_data_regy[22:0],1'b0};
+			      
+			      spi_transfer_out_regz <= spi_data_regz[23];
+                              spi_data_regz <= {spi_data_regz[22:0],1'b0};
+			      
+			      spi_transfer_out_regz2 <= spi_data_regz2[23];
+                              spi_data_regz2 <= {spi_data_regz2[22:0],1'b0};
+			      
 			   end
 			 else
 			   begin
@@ -631,7 +646,7 @@ module axi_four_ltc2656_spi #
 	     case(spi_sequencer_state_reg)
 	        3'd0:
 		  begin
-		     if(gradient_sample_count_reg == 16'd1999)
+		     if(gradient_sample_count_reg == 16'd7999)
 		       begin
 			  // after 200 samples wrap around
 			  //bram_addr_reg <= {(BRAM_ADDR_WIDTH){1'b0}};
@@ -676,15 +691,18 @@ module axi_four_ltc2656_spi #
 	     spi_second_cmd_reg <= 1'b0;
 	     
 	     gradient_sample_count_reg <= 16'd0;
+
+	     cmd_word_counter <= 4'd0;
+	     
 	  end
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
 	       3'd0:
 		 begin
-		    if(gradient_sample_count_reg == 16'd1999)
+		    if(gradient_sample_count_reg == 16'd7999)
 		      begin
-			 // after 2000 samples stop
+			 // after 16000 samples stop
 			 gradient_sample_count_reg <= 16'd0;
 			 spi_sequencer_state_reg <= 3'd5;
 		      end
@@ -711,6 +729,8 @@ module axi_four_ltc2656_spi #
 	       3'd1:
 		 begin		    
 		    gradient_sample_count_reg <= gradient_sample_count_reg + 1;
+		    // increase cmd_word_counter
+		    cmd_word_counter <= cmd_word_counter + 1;
 		    
 		    spi_sequencer_state_reg <= 3'd2;
 		    spi_first_cmd_reg <= 1'b0;
@@ -727,7 +747,15 @@ module axi_four_ltc2656_spi #
 		    // separately is nothing but trouble, and should be removed asap.
 		    if(spi_transfer_counter_reg == 8'd96)
 		      begin
-			 spi_sequencer_state_reg <= 3'd3;
+			 if(cmd_word_counter <= 4'd4)
+			   begin
+			      spi_sequencer_state_reg <= 3'd0;
+			   end
+			 else
+			   begin
+			      cmd_word_counter <= 4'd0;
+			      spi_sequencer_state_reg <= 3'd3;
+			   end
 			 spi_transfer_counter_reg <= 8'd0;
 			 spi_clock_enable_reg <= 1'b0;
 			 syncn_reg <= 1'b1;
@@ -779,7 +807,7 @@ module axi_four_ltc2656_spi #
 	       3'd3:
 		 begin
 		    // deal with the wait for ldac      
-		    if(gradient_update_clock_counter == 16'd1430)
+		    if(gradient_update_clock_counter == 16'd715) //1430)
 		       begin
 			 ldacn_reg <= 1'b0;
 			 spi_sequencer_state_reg <= 3'd4;
@@ -824,7 +852,7 @@ module axi_four_ltc2656_spi #
 	     // gradient update clock
 	     //if(gradient_update_clock_counter == 16'd1430)
 	     //if(gradient_update_clock_counter == 40'd285714286)
-	      if(gradient_update_clock_counter == 16'd1430) // 40 per second
+	      if(gradient_update_clock_counter == 16'd715) // 40 per second
 		begin
 		  gradient_update_clock_counter <= 40'd0;
 	       end
