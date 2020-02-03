@@ -13,7 +13,7 @@
 // local includes
 #include "server_config.h"
 
-#define PI 3.14159265
+#define PI (3.1415926536)
 
 typedef union {
   int32_t le_value;
@@ -2092,7 +2092,7 @@ int main(int argc, char *argv[])
   int i, j; // for loop
   int is_gradient_on = 0;  // used in GUI 3, 0:FID/SE/upload seq; 1:GRE
   uint32_t default_frequency = 15670000; // 15.67MHz
-  float pi = 3.14159;
+  float pi = PI;
   float pe, pe2, pe_step, pe_step2, ro, amp_x, amp_y; // related to gradient amplitude
   float a0, w0; // for spiral
   char pAxis; // projection axis: x/y/z
