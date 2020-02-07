@@ -95,7 +95,7 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 # Removed this connection from rx:
 # slice_0/Din rst_slice_0/Dout
 module rx_0 {
-  source projects/ocra_mri/rx2.tcl
+  source projects/ocra_mri/rx3.tcl
 } {
   rate_slice/Din cfg_slice_0/Dout
   fifo_0/S_AXIS adc_0/M_AXIS
