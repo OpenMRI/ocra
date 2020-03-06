@@ -53,6 +53,11 @@ typedef struct {
 /* generate a gradient waveform that just changes a state 
 
    events like this need a 30us gate time in the sequence
+
+   Notes about the DAC control:
+   In the present OCRA hardware configuration of the AD5781 DAC, the RBUF bit must always be set so
+   that it can function. (HW config is as Figure 52 in the datasheet).
+
 */
 void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz,gradient_state_t state, gradient_offset_t offset)
 { 
@@ -69,10 +74,11 @@ void update_gradient_waveform_state(volatile uint32_t *gx,volatile uint32_t *gy,
 		gy[0] = 0x001fffff & (0 | 0x00100000);
 		gz[0] = 0x001fffff & (0 | 0x00100000);
 		// disable the outputs with 2's completment coding
-		// 24'b0010 0000 0000 0000 0000 0000;
-		gx[1] = 0x00200000;
-		gy[1] = 0x00200000;
-		gz[1] = 0x00200000;
+		// 24'b0010 0000 0000 0000 0000 1110;
+		gx[1] = 0x0020000e;
+		gy[1] = 0x0020000e;
+		gz[1] = 0x0020000e;
+		// gz2[1] = 0x0020000e; // TODO gradient z2
 		break;
 	case GRAD_ZERO_ENABLED_OUTPUT:
 		gx[0] = 0x001fffff & (0 | 0x00100000);
@@ -436,6 +442,16 @@ void update_gradient_waveforms_echo(volatile uint32_t *gx,volatile uint32_t *gy,
 		ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
 		gy[i] = 0x001fffff & (ival | 0x00100000);
 	}
+
+	// Z,Z2 shim
+	for(int k=2; k<2000; k++)
+	{
+		ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+		gz[k] = 0x001fffff & (ival | 0x00100000);
+		// ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+		// gz2[k] = 0x001fffff & (ival | 0x00100000);
+	}
+  
 }
 
 // Function 4.1.1
@@ -2207,44 +2223,57 @@ int main(int argc, char *argv[])
 	int32_t RF_amp; //7*2300 = 16100 
 	RF_amp = atoi(argv[2]);
 
-	// RF Pulse 0: RF:90x+ offset 0, start with 50 us lead-in
-	for(i = 64; i <= 64+duration; i=i+2) {
+	// this divider makes the sample duration a convenient 1us
+	*tx_divider = 125;
+
+	// RF sample duration is
+	float txsample_duration_us = 1.0/125.0*(float)(*tx_divider);
+
+	printf("Transmit sample duration is %g us\n",txsample_duration_us);
+
+	unsigned int ntxsamples_needed = (float)(duration)/txsample_duration_us;
+	printf("A %d us pulse would need %d samples !\n",duration,ntxsamples_needed);
+  
+	// RF Pulse 0: RF:90x+ offset 0
+	for(i = 0; i <= 2*ntxsamples_needed; i=i+2) {
 		pulse[i] = RF_amp;
 	}
 
-	// RF Pulse 1: RF:180x+ offset 1000 in 32 bit space, start with 50 us lead-in
-	for(i = 1*memory_gap+64; i <= 1*memory_gap+64+duration*2; i=i+2) {
+	// RF Pulse 1: RF:180x+ offset 1000 in 32 bit space
+	// this is a hard pulse with double the duration of the hard 90
+	for(i = 1*memory_gap; i <= 1*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
 		pulse[i] = RF_amp;
 	}
 
-	// RF Pulse 2: RF:180y+ offset 2000 in 32 bit space, start with 50 us lead-in
-	for(i = 2*memory_gap+64; i <= 2*memory_gap+64+duration*2; i=i+2) {
+	// RF Pulse 2: RF:180y+ offset 2000 in 32 bit space
+	for(i = 2*memory_gap; i <= 2*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
 		pulse[i+1] = RF_amp;
 	}
 
-	// RF Pulse 3: RF:180y- offset 3000 in 32 bit space, start with 50 us lead-in
-	for(i = 3*memory_gap+64; i <= 3*memory_gap+64+duration*2; i=i+2) {
+	// RF Pulse 3: RF:180y- offset 3000 in 32 bit space
+	for(i = 3*memory_gap; i <= 3*memory_gap+(2*ntxsamples_needed)*2; i=i+2) {
 		pulse[i+1] = -RF_amp;
 	}
 
-	// RF Pulse 4: RF:180x+ offset 4000 in 32 bit space, start with 50 us lead-in
-	for(i = 4*memory_gap+64; i <= 4*memory_gap+64+duration; i=i+2) {
+	// RF Pulse 4: RF:180x+ offset 4000 in 32 bit space
+	// this is a hard 180 created by doubling the amplitude of the hard 90
+	for(i = 4*memory_gap; i <= 4*memory_gap+(2*ntxsamples_needed); i=i+2) {
 		pulse[i] = 2*RF_amp;
 	}
 
 	// RF Pulse 5: SINC PULSE
-	for(i = 5*memory_gap+64; i <= 5*memory_gap+576; i=i+2) {
+	for(i = 5*memory_gap; i <= 5*memory_gap+512; i=i+2) {
 		j = (int)((i - (5*memory_gap+64)) / 2) - 128;
 		pulse[i] = (int16_t) floor(48*RF_amp*(0.54 + 0.46*(cos((pi*j)/(2*48)))) * sin((pi*j)/(48))/(pi*j)); 
 	}
 	pulse[5*memory_gap+64+256] = RF_amp;
 
 	// RF Pulse 6: SIN PULSE
-	for(i = 6*memory_gap+64; i <= 6*memory_gap+576; i=i+2) {
+	for(i = 6*memory_gap; i <= 6*memory_gap+512; i=i+2) {
 		pulse[i] = (int16_t) floor(RF_amp * sin((pi*i)/(128)));
 	}
 
-	*tx_divider = 200;
+	
 
 	size = 32768-1;
 	*tx_size = size;
@@ -2300,7 +2329,12 @@ int main(int argc, char *argv[])
 			continue;       
 		}
 
-		switch( command & 0x0000ffff ) {
+		unsigned int ui_index = command & 0x0000ffff;
+    
+		printf("Entering UI: %d\n", ui_index);
+
+    
+		switch(ui_index) {
 		case 1: 
 			/* GUI 1 */
 			/********************* FID with frequency modification and shimming *********************/
@@ -2371,7 +2405,12 @@ int main(int argc, char *argv[])
 						printf("Set gradient offsets Z %d\n", value3);
 						gradient_offset.gradient_z = (float)value3/1000.0; // these offsets are in Ampere
 						break;
-					case 4:
+					case 4: 
+						printf("Set gradient offsets Z2 %d\n", value3);
+						// gradient_offset.gradient_z2 = (float)value3/1000.0; // these offsets are in Ampere // TODO gradient z2
+						break;
+	    
+					case 5:
 						printf("Load gradient offsets\n");
 						gradient_offset.gradient_x = (float)value3/1000.0;
 						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
@@ -2392,6 +2431,18 @@ int main(int argc, char *argv[])
 							value3 = -value3;
 						printf("%s %d %d %d\n", "Received values", value1, value2, value3);
 						gradient_offset.gradient_z = (float)value3/1000.0;
+
+						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+							break;
+						}
+						value2 = (command & 0x00ffffff) >> 20;
+						value3 = (int)(command & 0x000fffff);
+						if (value2)
+							value3 = -value3;
+						printf("%s %d %d %d\n", "Received values", value1, value2, value3);
+						// gradient_offset.gradient_z2 = (float)value3/1000.0; TODO gradient z2
+	    
+						// WTF??
 						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
 							break;
 						}
@@ -2400,8 +2451,8 @@ int main(int argc, char *argv[])
 							continue;
 						}
 						break;
-					case 5:
-						printf("Set gradient offsets to 0 0 0 %d\n");
+					case 6:
+						printf("Set gradient offsets to 0 0 0 0\n");
 						gradient_offset.gradient_x = 0.0;
 						gradient_offset.gradient_y = 0.0;
 						gradient_offset.gradient_z = 0.0;
@@ -2487,7 +2538,20 @@ int main(int argc, char *argv[])
 						printf("Frequency value out of range\n");
 						continue;
 					}          
-				} else if ( trig == 2 ) { // Acquisition: Acquire when triggered, change gradient offset, load/zero shims
+				}
+
+				else if ( trig == 3 ) { // change attenuator value
+					unsigned int attn_value = command & 0x000007f;
+					printf("Setting attenuation to %.2f dB\n", (float)(attn_value)*0.25);
+					if (attn_value > 127) {
+						printf("Attenuator setting out of range, clipping at 31.75 dB\n");
+						attn_value = 127;
+					}
+					/* set the attenuation value */
+					// attn_config[0] = attn_value; // TODO gradient z2
+				}
+	
+				else if ( trig == 2 ) { // Acquisition: Acquire when triggered, change gradient offset, load/zero shims
 					value1 = (command & 0x0fffffff) >> 24;  
 					value2 = (command & 0x00ffffff) >> 20 ; 
 					value3 = (int)(command & 0x000fffff);   
@@ -2510,8 +2574,14 @@ int main(int argc, char *argv[])
 						gradient_offset.gradient_z = (float)value3/1000.0; // these offsets are in Ampere
 						break;
 					case 4:
+						printf("Set gradient offsets Z2 %d\n", value3);
+						// gradient_offset.gradient_z2 = (float)value3/1000.0; // these offsets are in Ampere // TODO gradient z2
+						break;
+					case 5:
 						printf("Load gradient offsets\n");
 						gradient_offset.gradient_x = (float)value3/1000.0;
+
+						// read another value
 						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
 							break;
 						}
@@ -2521,6 +2591,8 @@ int main(int argc, char *argv[])
 							value3 = -value3;
 						printf("%s %d %d %d\n", "Received values", value1, value2, value3);
 						gradient_offset.gradient_y = (float)value3/1000.0;
+
+						// read another value
 						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
 							break;
 						}
@@ -2530,6 +2602,19 @@ int main(int argc, char *argv[])
 							value3 = -value3;
 						printf("%s %d %d %d\n", "Received values", value1, value2, value3);
 						gradient_offset.gradient_z = (float)value3/1000.0;
+
+						// read another value
+						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
+							break;
+						}
+						value2 = (command & 0x00ffffff) >> 20;
+						value3 = (int)(command & 0x000fffff);
+						if (value2)
+							value3 = -value3;
+						printf("%s %d %d %d\n", "Received values", value1, value2, value3);
+						// gradient_offset.gradient_z2 = (float)value3/1000.0; // TODO gradient z2
+	    
+						// read a terminator and do what with it???
 						if(recv(sock_client, (char *)&command, 4, MSG_WAITALL) <= 0) {
 							break;
 						}
@@ -2538,8 +2623,8 @@ int main(int argc, char *argv[])
 							continue;
 						}
 						break;
-					case 5:
-						printf("Set gradient offsets to 0 0 0 %d\n");
+					case 6:
+						printf("Set gradient offsets to 0 0 0 0\n");
 						gradient_offset.gradient_x = 0.0;
 						gradient_offset.gradient_y = 0.0;
 						gradient_offset.gradient_z = 0.0;
@@ -3018,7 +3103,7 @@ int main(int argc, char *argv[])
 								seq_config[0] = 0x00000000;
 								pe = pe+pe_step;
 								update_gradient_waveforms_echo(gradient_memory_x,gradient_memory_y,gradient_memory_z, ro, pe, gradient_offset);
-								usleep(500000);
+								usleep(4000000); // sleep 4 seconds
 							}
 							printf("*********************************************\n");
 							break;
