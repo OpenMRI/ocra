@@ -72,6 +72,8 @@ xpr: tmp/$(NAME).xpr
 
 bit: tmp/$(NAME).bit
 
+hdf: tmp/$(NAME).hdf
+
 rp_bit: tmp/$(NAME).bin ocra_mri.dtbo
 	cp tmp/ocra_mri.dtbo tmp/ocra_mri.bit.bin .
 
@@ -165,6 +167,7 @@ tmp/%.xpr: projects/% $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix 
 tmp/%.hdf: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $*
+	cp tmp/ocra_mri.xsa tmp/ocra_mri.hdf
 
 tmp/%.bit: tmp/%.xpr
 	mkdir -p $(@D)
