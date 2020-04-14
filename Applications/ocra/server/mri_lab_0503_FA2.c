@@ -1703,7 +1703,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -1811,7 +1811,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -1920,7 +1920,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2080,7 +2080,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2222,7 +2222,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2319,7 +2319,7 @@ int main(int argc, char *argv[])
             gradient_offset.gradient_z = (float)value3/1000.0;
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;

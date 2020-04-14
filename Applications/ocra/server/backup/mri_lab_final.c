@@ -2270,7 +2270,7 @@ int main(int argc, char *argv[])
             // ###0516
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2416,7 +2416,7 @@ int main(int argc, char *argv[])
             // ###0516
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2536,7 +2536,7 @@ int main(int argc, char *argv[])
             //update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -2699,7 +2699,7 @@ int main(int argc, char *argv[])
             // ###0516
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -3198,7 +3198,7 @@ int main(int argc, char *argv[])
             // ###0516
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
@@ -3348,7 +3348,7 @@ int main(int argc, char *argv[])
             // ###0516
             break;
           case 5:
-            printf("Set gradient offsets to 0 0 0 %d\n");
+            printf("Set gradient offsets to 0 0 0\n");
             gradient_offset.gradient_x = 0.0;
             gradient_offset.gradient_y = 0.0;
             gradient_offset.gradient_z = 0.0;
