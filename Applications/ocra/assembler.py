@@ -114,9 +114,8 @@ class Assembler:
 
 		# Format A
 		elif self.opcode_table[opcode][1] == 'A':
-			reg_addr = format(int(line[1], 10), 'b').zfill(5)
-			print(reg_addr)
 			if opcode == 'LD64' or opcode == 'JNZ': # Reg and addr specified
+				reg_addr = format(int(line[1], 10), 'b').zfill(5)
 				if line[2] in self.var_table.keys():
 					addr = self.var_table[line[2]] # Look up address of variable
 					print(self.var_table)
@@ -132,6 +131,7 @@ class Assembler:
 				dir_addr = format(int(addr), 'b').zfill(32)
 
 			elif opcode == 'DEC' or opcode == 'INC': # Reg specified
+				reg_addr = format(int(line[1], 10), 'b').zfill(5)
 				dir_addr = '0'.zfill(32)
 
 			else: # Addr specified
