@@ -32,13 +32,12 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_n adc_clk_n_i
 }
 
-# Create Memory for 8 channels of gradient waveform
-# 2000 samples per channel
+# create a block of memory of 256KB, which would consume 56 of the 60 36Kbit memory blocks available in the Z7010
 cell xilinx.com:ip:blk_mem_gen:8.4 gradient_memory_0 {
   MEMORY_TYPE Simple_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 16000
+  WRITE_DEPTH_A 65536
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -62,8 +61,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 } [get_bd_intf_pins gradient_writer_0/S_AXI]
 
 
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_gradient_writer_0_reg0]
-set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writer_0_reg0]
+set_property RANGE 256K [get_bd_addr_segs ps_0/Data/SEG_gradient_writer_0_reg0]
+set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writer_0_reg0]
 
 module shim_dac_0 {
     source projects/shim_controller/shim_dacs.tcl
@@ -77,8 +76,8 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins shim_dac_0/spi_sequencer_0/S_AXI]
 
-set_property RANGE  64K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
-set_property OFFSET 0x40060000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property RANGE  4K [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
+set_property OFFSET 0x40201000 [get_bd_addr_segs ps_0/Data/SEG_spi_sequencer_0_reg0]
 
 # Create an AXI bus config register
 # this should not be needed at all, but makes it easy right now to provide some
@@ -96,7 +95,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 } [get_bd_intf_pins cfg_0/S_AXI]
 
 set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
-set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
+set_property OFFSET 0x40200000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 
 # the gradient DAC trigger pulse
 connect_bd_net [get_bd_pins cfg_0/cfg_data] [get_bd_pins shim_dac_0/slice_0/Din]
