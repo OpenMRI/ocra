@@ -124,8 +124,13 @@ module axi_four_ltc2656_spi #
  // accept the read data and response information.
   input wire 				    S_AXI_RREADY
 );
+   // current address of BRAM
    reg [BRAM_ADDR_WIDTH-1:0] 	    bram_addr_reg;
-
+   // current base address of BRAM
+   reg [BRAM_ADDR_WIDTH-1:0] 	    bram_addr_reg_base;
+   // offset of each board from base address
+   reg [31:0] 			    board_addr_offset;
+ 			    
    wire [BRAM_ADDR_WIDTH-1:0] 	    sum_cntr_wire;
    wire 			    int_comp_wire, int_tlast_wire;
    
@@ -150,16 +155,16 @@ module axi_four_ltc2656_spi #
    reg [3:0] 			    post_ldac_count;
    
    reg 				    spi_clock_enable_reg;
-   reg [2:0] 			    spi_sequencer_state_reg;
+   reg [7:0] 			    spi_sequencer_state_reg;
    reg [7:0] 			    spi_transfer_counter_reg;
-   reg [23:0] 			    spi_data_regx;
-   reg [23:0] 			    spi_data_regy;
-   reg [23:0] 			    spi_data_regz;
-   reg [23:0] 			    spi_data_regz2;
-   reg 				    spi_transfer_out_regx;
-   reg 				    spi_transfer_out_regy;
-   reg 				    spi_transfer_out_regz;
-   reg 				    spi_transfer_out_regz2;
+   reg [23:0] 			    spi_data_reg_bd0;
+   reg [23:0] 			    spi_data_reg_bd1;
+   reg [23:0] 			    spi_data_reg_bd2;
+   reg [23:0] 			    spi_data_reg_bd3;
+   reg 				    spi_transfer_out_reg_bd0;
+   reg 				    spi_transfer_out_reg_bd1;
+   reg 				    spi_transfer_out_reg_bd2;
+   reg 				    spi_transfer_out_reg_bd3;
    
    reg                              spi_first_cmd_reg;
    reg 				    spi_second_cmd_reg;
@@ -341,7 +346,7 @@ module axi_four_ltc2656_spi #
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 1
-			 //slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+			/slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
 		  2'h2:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
@@ -514,10 +519,10 @@ module axi_four_ltc2656_spi #
    
    assign spi_cs = syncn_reg;      
    assign spi_ldacn = ldacn_reg;
-   assign spi_bank0 = spi_transfer_out_regx;
-   assign spi_bank1 = spi_transfer_out_regy;
-   assign spi_bank2 = spi_transfer_out_regz;
-   assign spi_bank3 = spi_transfer_out_regz2;
+   assign spi_bank0 = spi_transfer_out_reg_bd0;
+   assign spi_bank1 = spi_transfer_out_reg_bd1;
+   assign spi_bank2 = spi_transfer_out_reg_bd2;
+   assign spi_bank3 = spi_transfer_out_reg_bd3;
    // generate the gradient update clock, which should also be done by a different core at some point
    // For a 143 MHz FPGA clock, we would divide by 1430 to get a 100 kHz clock
    
@@ -556,78 +561,96 @@ module axi_four_ltc2656_spi #
      begin
 	if(~aresetn)
 	  begin
-	     spi_data_regx <= 24'd0;
-	     spi_transfer_out_regx <= 1'b0;
+	     spi_data_reg_bd0 <= 24'd0;
+	     spi_data_reg_bd1 <= 24'd0;
+	     spi_data_reg_bd2 <= 24'd0;
+	     spi_data_reg_bd3 <= 24'd0;
+	     
+	     spi_transfer_out_reg_bd0 <= 1'b0;
+	     spi_transfer_out_reg_bd1 <= 1'b0;
+	     spi_transfer_out_reg_bd2 <= 1'b0;
+	     spi_transfer_out_reg_bd3 <= 1'b0;
 	  end
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
-	       3'd1:
+	       8'd1:
 		 begin
-		    spi_data_regx <= bram_port0_rddata[23:0];
+		    spi_data_reg_bd0 <= bram_port0_rddata[23:0];
 		    // TW: 01/22/2020 clone the data
-		    spi_data_regy <= bram_port0_rddata[23:0];
-		    spi_data_regz <= bram_port0_rddata[23:0];
-		    spi_data_regz2 <= bram_port0_rddata[23:0];
-		    spi_transfer_out_regx <= 1'b0;
-		 end // case: 3'd1
-	       
-	       3'd2:
+		    spi_transfer_out_reg_bd0 <= 1'b0;
+		    spi_transfer_out_reg_bd1 <= 1'b0;
+		    spi_transfer_out_reg_bd2 <= 1'b0;
+		    spi_transfer_out_reg_bd3 <= 1'b0;
+		 end // case: 8'd1
+	       8'd11: // Yes, I know its weird
+		 begin
+		    spi_data_reg_bd1 <= bram_port0_rddata[23:0];
+		 end
+	       8'd20:
+		 begin
+		    spi_data_reg_bd2 <= bram_port0_rddata[23:0];
+		 end
+	       8'd30:
+		 begin
+		    spi_data_reg_bd3 <= bram_port0_rddata[23:0];
+		 end
+	       8'd2:
 		 begin
 		    if(serial_clock_counter == 4'd0) // update before clock rises
 		      begin
 			 // update on a rising clock only
 			 if(serial_clock_reg == 0)
 			   begin
-			      spi_transfer_out_regx <= spi_data_regx[23];
-			      spi_data_regx <= {spi_data_regx[22:0],1'b0};
+			      spi_transfer_out_reg_bd0 <= spi_data_reg_bd0[23];
+			      spi_data_reg_bd0 <= {spi_data_reg_bd0[22:0],1'b0};
 			      
-			      spi_transfer_out_regy <= spi_data_regy[23];
-                              spi_data_regy <= {spi_data_regy[22:0],1'b0};
+			      spi_transfer_out_reg_bd1 <= spi_data_reg_bd1[23];
+                              spi_data_reg_bd1 <= {spi_data_reg_bd1[22:0],1'b0};
 			      
-			      spi_transfer_out_regz <= spi_data_regz[23];
-                              spi_data_regz <= {spi_data_regz[22:0],1'b0};
+			      spi_transfer_out_reg_bd2 <= spi_data_reg_bd2[23];
+                              spi_data_reg_bd2 <= {spi_data_reg_bd2[22:0],1'b0};
 			      
-			      spi_transfer_out_regz2 <= spi_data_regz2[23];
-                              spi_data_regz2 <= {spi_data_regz2[22:0],1'b0};
+			      spi_transfer_out_reg_bd3 <= spi_data_reg_bd3[23];
+                              spi_data_reg_bd3 <= {spi_data_reg_bd3[22:0],1'b0};
 			      
 			   end
 			 else
 			   begin
-			      spi_transfer_out_regx <= spi_transfer_out_regx;
-			      spi_data_regx <= spi_data_regx;
-			      spi_transfer_out_regy <= spi_transfer_out_regy;
-			      spi_data_regy <= spi_data_regy;
-			      spi_transfer_out_regz <= spi_transfer_out_regz;
-			      spi_data_regz <= spi_data_regz;
-			      spi_transfer_out_regz2 <= spi_transfer_out_regz2;
-			      spi_data_regz2 <= spi_data_regz2;
+			      spi_transfer_out_reg_bd0 <= spi_transfer_out_reg_bd0;
+			      spi_data_reg_bd0 <= spi_data_reg_bd0;
+			      spi_transfer_out_reg_bd1 <= spi_transfer_out_reg_bd1;
+			      spi_data_reg_bd1 <= spi_data_reg_bd1;
+			      spi_transfer_out_reg_bd2 <= spi_transfer_out_reg_bd2;
+			      spi_data_reg_bd2 <= spi_data_reg_bd2;
+			      spi_transfer_out_reg_bd3 <= spi_transfer_out_reg_bd3;
+			      spi_data_reg_bd3 <= spi_data_reg_bd3;
 			   end // else: !if(serial_clock_reg == 0)
 		      end
 		    else
 		      begin
-			 spi_transfer_out_regx <= spi_transfer_out_regx;
-			 spi_data_regx <= spi_data_regx;
-			 spi_transfer_out_regy <= spi_transfer_out_regy;
-			 spi_data_regy <= spi_data_regy;
-			 spi_transfer_out_regz <= spi_transfer_out_regz;
-			 spi_data_regz <= spi_data_regz;
-			 spi_transfer_out_regz2 <= spi_transfer_out_regz2;
-			 spi_data_regz2 <= spi_data_regz2;
+			 spi_transfer_out_reg_bd0 <= spi_transfer_out_reg_bd0;
+			 spi_data_reg_bd0 <= spi_data_reg_bd0;
+			 spi_transfer_out_reg_bd1 <= spi_transfer_out_reg_bd1;
+			 spi_data_reg_bd1 <= spi_data_reg_bd1;
+			 spi_transfer_out_reg_bd2 <= spi_transfer_out_reg_bd2;
+			 spi_data_reg_bd2 <= spi_data_reg_bd2;
+			 spi_transfer_out_reg_bd3 <= spi_transfer_out_reg_bd3;
+			 spi_data_reg_bd3 <= spi_data_reg_bd3;
 		      end // if (serial_clock_counter == 4'd1)
 		 end
 	       
 	       default:
 		 begin
-		    spi_data_regx <= 24'd0;
-		    spi_data_regy <= 24'd0;
-		    spi_data_regz <= 24'd0;
-		    spi_data_regz2 <= 24'd0;
+		    spi_data_reg_bd0 <= 24'd0;
+		    spi_data_reg_bd1 <= 24'd0;
+		    spi_data_reg_bd2 <= 24'd0;
+		    spi_data_reg_bd3 <= 24'd0;
 		    
-		    spi_transfer_out_regx <= 1'b0;
-		    spi_transfer_out_regy <= 1'b0;
-		    spi_transfer_out_regz <= 1'b0;
-		    spi_transfer_out_regz2 <= 1'b0;
+		    spi_transfer_out_reg_bd0 <= 1'b0;
+		    spi_transfer_out_reg_bd1 <= 1'b0;
+		    spi_transfer_out_reg_bd2 <= 1'b0;
+		    spi_transfer_out_reg_bd3 <= 1'b0;
 		 end
 	     endcase
 	  end // else: !if(~aresetn)
@@ -640,11 +663,12 @@ module axi_four_ltc2656_spi #
 	  begin
 	     //bram_addr_reg <= {(BRAM_ADDR_WIDTH){1'b0}};
 	     bram_addr_reg <= current_offset; // set the start offset
+	     bram_addr_reg_base <= current_offset;
 	  end
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
-	        3'd0:
+	        8'd0:
 		  begin
 		     if(gradient_sample_count_reg == 16'd7999)
 		       begin
@@ -656,9 +680,22 @@ module axi_four_ltc2656_spi #
 			  bram_addr_reg <= bram_addr_reg;
 		       end
 		  end // case: 3'd0
-	       3'd1:
+	       8'd8:
+		 begin
+		    bram_addr_reg <= bram_addr_reg + board_addr_offset;
+		 end
+	       8'd12:
+		 begin
+		    bram_addr_reg <= bram_addr_reg + board_addr_offset;
+		 end
+	       8'd21:
+		 begin
+		    bram_addr_reg <= bram_addr_reg + board_addr_offset;
+		 end
+	       8'd1:
 		 begin		    
-		    bram_addr_reg <= bram_addr_reg + 1;
+		    bram_addr_reg <= bram_addr_reg_base + 1;
+		    bram_addr_reg_base <= bram_addr_reg_base + 1;
 		 end
 	       default:
 		 begin
@@ -679,7 +716,7 @@ module axi_four_ltc2656_spi #
 	     spi_clock_enable_reg <= 1'b0;
 	     syncn_reg <= 1'b1;
 	     ldacn_reg <= 1'b1;
-	     spi_sequencer_state_reg <= 3'd0;
+	     spi_sequencer_state_reg <= 8'd0;
 	     spi_transfer_counter_reg <= 8'd0;
 	     gradient_update_clock_counter <= 40'd0;
 	     serial_clock_counter <= 4'd0;
@@ -698,41 +735,114 @@ module axi_four_ltc2656_spi #
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
-	       3'd0:
+	       8'd0:
 		 begin
+		    // set address for board 0
 		    if(gradient_sample_count_reg == 16'd7999)
 		      begin
 			 // after 16000 samples stop
 			 gradient_sample_count_reg <= 16'd0;
-			 spi_sequencer_state_reg <= 3'd5;
+			 spi_sequencer_state_reg <= 8'd5;
 		      end
 		    else
 		      begin
-			 spi_sequencer_state_reg <= 3'd6;
+			 spi_sequencer_state_reg <= 8'd6;
 		      end
 		    syncn_reg <= 1'b1;
 		    ldacn_reg <= 1'b1;
 		    serial_clock_counter <= 4'd0;
 		 end // case: 3'd0
-	       3'd6:
+	       8'd6:
 		 begin
 		    // wait for RAM
-		    spi_sequencer_state_reg <= 3'd7;
+		    spi_sequencer_state_reg <= 8'd7;
 		    serial_clock_counter <= 4'd0;
 		 end
-	       3'd7:
+	       8'd7:
 		 begin
 		    // wait for RAM
-		    spi_sequencer_state_reg <= 3'd1;
+		    spi_sequencer_state_reg <= 8'd8;
 		    serial_clock_counter <= 4'd0;
 		 end
-	       3'd1:
+	       8'd8:
+		 begin
+		    // set address for board 1
+		    spi_sequencer_state_reg <= 8'd9;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd9:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd10;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd10:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd11;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd11:
+		 begin
+		    // copy data for board 1
+		    spi_sequencer_state_reg <= 8'd12;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd12:
+		 begin
+		    // set address for board 2
+		    spi_sequencer_state_reg <= 8'd13;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd13:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd14;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd14:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd20;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd20:
+		 begin
+		    // copy data for board 2
+		    spi_sequencer_state_reg <= 8'd21;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd21:
+		 begin
+		    // set address for board 3
+		    spi_sequencer_state_reg <= 8'd22;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd22:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd23;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd23:
+		 begin
+		    // wait for RAM
+		    spi_sequencer_state_reg <= 8'd30;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd30:
+		 begin
+		    // copy data for board 3
+		    spi_sequencer_state_reg <= 8'd1;
+		    serial_clock_counter <= 4'd0;
+		 end
+	       8'd1:
 		 begin		    
 		    gradient_sample_count_reg <= gradient_sample_count_reg + 1;
 		    // increase cmd_word_counter
 		    cmd_word_counter <= cmd_word_counter + 1;
 		    
-		    spi_sequencer_state_reg <= 3'd2;
+		    spi_sequencer_state_reg <= 8'd2;
 		    spi_first_cmd_reg <= 1'b0;
 		    syncn_reg <= 1'b1;
 		    ldacn_reg <= 1'b1;
@@ -741,7 +851,7 @@ module axi_four_ltc2656_spi #
 		    serial_fe_counter <= 6'd0;
 		    spi_transfer_counter_reg <= 8'd0;
 		 end
-	       3'd2:
+	       8'd2:
 		 begin
 		    // Just like in the next comment block, counting the transfer counter and the serial_fe_counter
 		    // separately is nothing but trouble, and should be removed asap.
@@ -749,12 +859,12 @@ module axi_four_ltc2656_spi #
 		      begin
 			 if(cmd_word_counter <= 4'd4)
 			   begin
-			      spi_sequencer_state_reg <= 3'd0;
+			      spi_sequencer_state_reg <= 8'd0;
 			   end
 			 else
 			   begin
 			      cmd_word_counter <= 4'd0;
-			      spi_sequencer_state_reg <= 3'd3;
+			      spi_sequencer_state_reg <= 8'd3;
 			   end
 			 spi_transfer_counter_reg <= 8'd0;
 			 spi_clock_enable_reg <= 1'b0;
@@ -779,7 +889,7 @@ module axi_four_ltc2656_spi #
 			      spi_clock_enable_reg <= 1'b1;
 			   end
 			 
-			 spi_sequencer_state_reg <= 3'd2;
+			 spi_sequencer_state_reg <= 8'd2;
 		      
 			 // serial clock generation in this state
 			 if(serial_clock_counter == 4'd1)
@@ -804,18 +914,18 @@ module axi_four_ltc2656_spi #
 		      end // else: !if(spi_transfer_counter_reg == 8'd192)
 		    ldacn_reg <= 1'b1;
 		 end // case: 3'd2
-	       3'd3:
+	       8'd3:
 		 begin
 		    // deal with the wait for ldac      
 		    if(gradient_update_clock_counter == 16'd715) //1430)
 		       begin
 			 ldacn_reg <= 1'b0;
-			 spi_sequencer_state_reg <= 3'd4;
+			 spi_sequencer_state_reg <= 8'd4;
 		      end
 		    else
 		      begin
 			 ldacn_reg <= 1'b1;
-			 spi_sequencer_state_reg <= 3'd3;
+			 spi_sequencer_state_reg <= 8'd3;
 		      end
 		    syncn_reg <= 1'b1;
 		    spi_transfer_counter_reg <= 8'd0;
@@ -823,14 +933,14 @@ module axi_four_ltc2656_spi #
 		    serial_clock_reg <= 1'b0;
 		 end // case: 3'd3
 	      
-	       3'd4:
+	       8'd4:
 		 begin
 		    if(post_ldac_count == 3'd2)
 		      begin
 			 post_ldac_count <= 3'd0;
 			 // make ldac the proper length
 			 ldacn_reg <= 1'b1;
-			 spi_sequencer_state_reg <= 3'd0;
+			 spi_sequencer_state_reg <= 8'd0;
 			 spi_transfer_counter_reg <= 8'd0;
 			 serial_clock_counter <= 4'd0;
 			 serial_clock_reg <= 1'b0;
@@ -838,14 +948,14 @@ module axi_four_ltc2656_spi #
 		    else
 		      begin
 			 post_ldac_count <= post_ldac_count + 1;
-			 spi_sequencer_state_reg <= 3'd4;
+			 spi_sequencer_state_reg <= 8'd4;
 		      end // else: !if(post_ldac_count == 3'd2)
 		    syncn_reg <= 1'b1;
 		    spi_transfer_counter_reg <= 8'd0;
 		 end // case: 3'd4
-	       3'd5:
+	       8'd5:
 		 begin
-		    spi_sequencer_state_reg <= 3'd5;
+		    spi_sequencer_state_reg <= 8'd5;
 		 end
 	     endcase // case (spi_sequencer_state_reg)
 
@@ -870,15 +980,4 @@ module axi_four_ltc2656_spi #
    assign bram_port0_rst = ~aresetn;
    assign bram_port0_addr = bram_addr_reg;
 
-   //assign bram_porty_clk = aclk;
-   //assign bram_porty_rst = ~aresetn;
-   //assign bram_porty_addr = bram_addr_reg;
-
-   //assign bram_portz_clk = aclk;
-   //assign bram_portz_rst = ~aresetn;
-   //assign bram_portz_addr = bram_addr_reg;
-
-   //assign bram_portz2_clk = aclk;
-   //assign bram_portz2_rst = ~aresetn;
-   //assign bram_portz2_addr = bram_addr_reg;
 endmodule
