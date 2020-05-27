@@ -151,6 +151,17 @@ void update_shim_waveform_state(volatile uint32_t *shim,gradient_state_t state, 
       // DAC G => scope channel 2
       shim[4*k+3] = 0x00060000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/60+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
     }
+  } else if (mode == 5) {
+    for (int k=1; k<2000; k++) {
+      // DAC B 
+      shim[4*k] = 0x00010000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0)+16000.0) & 0x0000ffff);
+      // DAC D
+      shim[4*k+1] = 0x00030000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/25.0+M_PI/2.0)+16000.0) & 0x0000ffff);
+      // DAC F
+      shim[4*k+2] = 0x00050000 + ((uint32_t)(16000.0*(float)(k % 100)/100+16000.0) & 0x0000ffff);
+      // DAC H
+      shim[4*k+3] = 0x00070000 + ((uint32_t)(16000.0*sin((float)(k)*M_PI/60+3.0*M_PI/2.0)+16000.0) & 0x0000ffff);
+    }
   }
   
 }
