@@ -219,7 +219,14 @@ int main(int argc, char *argv[])
 
   printf("FPGA version = %08lX\n",*dac_version);
 
-  exit(0);
+  if(*dac_version != 0xffff0002) {
+    printf("This tool only supports FPGA software version 2 or newer!!\n");
+    exit(0);
+ 
+  }
+
+  *dac_nsamples = 2000;
+  *dac_board_offset = 0;
   
   while(1) {
     printf(".... GO !\n"); fflush(stdout);
