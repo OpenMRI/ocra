@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 {
   int fd;
   void *cfg;
-  volatile uint32_t *slcr,*dac_ctrl,*tx_divider,*shim_memory;
+  volatile uint32_t *slcr,*dac_ctrl,*tx_divider,*shim_memory,*dac_nsamples,*dac_board_offset,*dac_version;
   unsigned int mode;
 
   if (argc != 2) {
@@ -201,14 +201,26 @@ int main(int argc, char *argv[])
   printf("Setup standard memory maps !\n"); fflush(stdout);
 
   tx_divider = ((uint32_t *)(cfg + 0));
- 
+  
   printf("Setting FPGA clock to 143 MHz !\n"); fflush(stdout);
   /* set FPGA clock to 143 MHz */
   slcr[2] = 0xDF0D;
   slcr[92] = (slcr[92] & ~0x03F03F30) | 0x00100700;  
   printf(".... Done !\n"); fflush(stdout);
 
+
   *tx_divider = 0x0;
+
+
+  // Check version etc
+  dac_nsamples = ((uint32_t *)(dac_ctrl+0));
+  dac_board_offset = ((uint32_t *)(dac_ctrl+1));
+  dac_version = ((uint32_t *)(dac_ctrl+10));
+
+  printf("FPGA version = %08lX\n",*dac_version);
+
+  exit(0);
+  
   while(1) {
     printf(".... GO !\n"); fflush(stdout);
     update_shim_waveform_state(shim_memory,GRAD_OFFSET_ENABLED_OUTPUT,mode);
