@@ -170,7 +170,8 @@ module axi_four_ltc2656_spi #
    reg 				    spi_second_cmd_reg;
 	
    reg [15:0] 			    gradient_sample_count_reg;
-
+   reg [15:0] 			    gradient_nsamples_reg;
+ 			    
    // DECODER assignment, maybe move somehwere else
    //assign formatAa = bram_porta_rddata[36:32];      // register address for format A
    //assign formatBa = bram_porta_rddata[44:40];      // register address for format B
@@ -664,22 +665,12 @@ module axi_four_ltc2656_spi #
 	     //bram_addr_reg <= {(BRAM_ADDR_WIDTH){1'b0}};
 	     bram_addr_reg <= current_offset; // set the start offset
 	     bram_addr_reg_base <= current_offset;
+	     board_addr_offset <= (slv_reg1 & 16'hffff); // board offset in words
+	     
 	  end
 	else
 	  begin
 	     case(spi_sequencer_state_reg)
-	        8'd0:
-		  begin
-		     if(gradient_sample_count_reg == 16'd7999)
-		       begin
-			  // after 200 samples wrap around
-			  //bram_addr_reg <= {(BRAM_ADDR_WIDTH){1'b0}};
-		       end
-		     else
-		       begin
-			  bram_addr_reg <= bram_addr_reg;
-		       end
-		  end // case: 3'd0
 	       8'd8:
 		 begin
 		    bram_addr_reg <= bram_addr_reg + board_addr_offset;
@@ -730,6 +721,12 @@ module axi_four_ltc2656_spi #
 	     gradient_sample_count_reg <= 16'd0;
 
 	     cmd_word_counter <= 4'd0;
+
+	     // set the last sample index;
+	     gradient_nsamples_reg <= (slv_reg0 & 16'hffff) - 1;
+	     
+	     // set a version number
+	     slv_reg10 <= 32'hffff0002;
 	     
 	  end
 	else
@@ -738,9 +735,8 @@ module axi_four_ltc2656_spi #
 	       8'd0:
 		 begin
 		    // set address for board 0
-		    if(gradient_sample_count_reg == 16'd7999)
+		    if(gradient_sample_count_reg == gradient_nsamples_reg)
 		      begin
-			 // after 16000 samples stop
 			 gradient_sample_count_reg <= 16'd0;
 			 spi_sequencer_state_reg <= 8'd5;
 		      end
