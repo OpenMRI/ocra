@@ -3,14 +3,13 @@ device=$1
 boot_dir=`mktemp -d /tmp/BOOT.XXXXXXXXXX`
 root_dir=`mktemp -d /tmp/ROOT.XXXXXXXXXX`
 
-linux_dir=tmp/linux-4.14
-linux_ver=4.14.122-xilinx
-
 # Choose mirror automatically, depending the geographic and network location
-mirror=http://deb.debian.org/debian
+mirror=http://httpredir.debian.org/debian
 
-distro=stretch
+distro=jessie
 arch=armhf
+
+hostapd_url=https://www.dropbox.com/sh/5fy49wae6xwxa8a/AAAQHa5NkpLYFocaOrrnft-Pa/rtl8192cu/hostapd-armhf?dl=1
 
 passwd=changeme
 timezone=Europe/Brussels
@@ -18,11 +17,11 @@ timezone=Europe/Brussels
 # Create partitions
 
 parted -s $device mklabel msdos
-parted -s $device mkpart primary fat16 4MiB 16MiB
-parted -s $device mkpart primary ext4 16MiB 100%
+parted -s $device mkpart primary fat16 4MB 16MB
+parted -s $device mkpart primary ext4 16MB 100%
 
-boot_dev=/dev/`lsblk -ln -o NAME -x NAME $device | sed '2!d'`
-root_dev=/dev/`lsblk -ln -o NAME -x NAME $device | sed '3!d'`
+boot_dev=/dev/`lsblk -lno NAME $device | sed '2!d'`
+root_dev=/dev/`lsblk -lno NAME $device | sed '3!d'`
 
 # Create file systems
 
@@ -36,35 +35,40 @@ mount $root_dev $root_dir
 
 # Copy files to the boot file system
 
-cp boot.bin devicetree.dtb uImage $boot_dir
-cp uEnv-ext4.txt $boot_dir/uEnv.txt
+cp boot.bin devicetree.dtb uImage uEnv.txt $boot_dir
 
 # Install Debian base system to the root file system
 
 debootstrap --foreign --arch $arch $distro $root_dir $mirror
-
-# Install Linux modules
-
-modules_dir=$root_dir/lib/modules/$linux_ver
-
-mkdir -p $modules_dir/kernel
-
-find $linux_dir -name \*.ko -printf '%P\0' | tar --directory=$linux_dir --owner=0 --group=0 --null --files-from=- -zcf - | tar -zxf - --directory=$modules_dir/kernel
-
-cp $linux_dir/modules.order $linux_dir/modules.builtin $modules_dir/
-
-depmod -a -b $root_dir $linux_ver
 
 # Add missing configuration files and packages
 
 cp /etc/resolv.conf $root_dir/etc/
 cp /usr/bin/qemu-arm-static $root_dir/usr/bin/
 
+cp patches/fw_env.config $root_dir/etc/
+
+mkdir -p $root_dir/usr/local/bin
+cp fw_printenv $root_dir/usr/local/bin/fw_printenv
+cp fw_printenv $root_dir/usr/local/bin/fw_setenv
+
+mkdir -p $root_dir/usr/local/sbin
+curl -L $hostapd_url -o $root_dir/usr/local/sbin/hostapd
+chmod +x $root_dir/usr/local/sbin/hostapd
+
+mkdir -p $root_dir/root/gnuradio
+cp projects/sdr_transceiver_emb/gnuradio/* $root_dir/root/gnuradio/
+
 chroot $root_dir <<- EOF_CHROOT
 export LANG=C
 export LC_ALL=C
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Add missing paths
+
+echo :$PATH: | grep -q :/sbin: || export PATH=$PATH:/sbin
+echo :$PATH: | grep -q :/bin: || export PATH=$PATH:/bin
+echo :$PATH: | grep -q :/usr/sbin: || export PATH=$PATH:/usr/sbin
+echo :$PATH: | grep -q :/usr/bin: || export PATH=$PATH:/usr/bin
 
 /debootstrap/debootstrap --second-stage
 
@@ -106,7 +110,7 @@ sed -i "/^# en_US.UTF-8 UTF-8$/s/^# //" etc/locale.gen
 locale-gen
 update-locale LANG=en_US.UTF-8
 
-ln -sf /usr/share/zoneinfo/$timezone etc/localtime
+echo $timezone > etc/timezone
 dpkg-reconfigure --frontend=noninteractive tzdata
 
 apt-get -y install openssh-server ca-certificates ntp ntpdate fake-hwclock \
@@ -114,11 +118,11 @@ apt-get -y install openssh-server ca-certificates ntp ntpdate fake-hwclock \
   iw firmware-realtek firmware-ralink firmware-atheros firmware-brcm80211 \
   build-essential libasound2-dev libconfig-dev libfftw3-dev subversion git \
   alsa-utils gnuradio python-numpy python-gtk2 python-urwid python-serial \
-  python-alsaaudio xauth xterm parallel ifplugd ntfs-3g net-tools less
+  python-alsaaudio xauth xterm parallel ifplugd ntfs-3g
 
-sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' etc/ssh/sshd_config
+sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' etc/ssh/sshd_config
 
-touch etc/udev/rules.d/80-net-setup-link.rules
+touch etc/udev/rules.d/75-persistent-net-generator.rules
 
 cat <<- EOF_CAT > etc/network/interfaces.d/eth0
 iface eth0 inet dhcp
@@ -162,10 +166,23 @@ EOF_CAT
 
 cat <<- EOF_CAT > etc/default/hostapd
 DAEMON_CONF=/etc/hostapd/hostapd.conf
-EOF_CAT
 
-cat <<- EOF_CAT > etc/default/isc-dhcp-server
-INTERFACESv4=wlan0
+if [ "\\\$1" = "start" ]
+then
+  iw wlan0 info > /dev/null 2>&1
+  if [ \\\$? -eq 0 ]
+  then
+    sed -i '/^driver/s/=.*/=nl80211/' /etc/hostapd/hostapd.conf
+    DAEMON_SBIN=/usr/sbin/hostapd
+  else
+    sed -i '/^driver/s/=.*/=rtl871xdrv/' /etc/hostapd/hostapd.conf
+    DAEMON_SBIN=/usr/local/sbin/hostapd
+  fi
+  echo \\\$DAEMON_SBIN > /run/hostapd.which
+elif [ "\\\$1" = "stop" ]
+then
+  DAEMON_SBIN=\\\$(cat /run/hostapd.which)
+fi
 EOF_CAT
 
 cat <<- EOF_CAT > etc/dhcp/dhcpd.conf

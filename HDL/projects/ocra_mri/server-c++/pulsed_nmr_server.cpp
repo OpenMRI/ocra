@@ -10,8 +10,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-static const double sample_freq_Hz = 122.88e6;
-
 typedef union {
   int32_t le_value;
   unsigned char b[4];
@@ -1090,15 +1088,15 @@ int main(int argc, char *argv[])
   printf("... Done !\n"); fflush(stdout);
   
   /* set default rx phase increment */
-  //*rx_freq = (uint32_t)floor(19000000 / sample_freq_Hz * (1<<30) + 0.5);
+  //*rx_freq = (uint32_t)floor(19000000 / 125.0e6 * (1<<30) + 0.5);
 
   // set the NCO to 17.62 MHz
-  //*rx_freq = (uint32_t)floor(17620000 / sample_freq_Hz * (1<<30) + 0.5);
+  //*rx_freq = (uint32_t)floor(17620000 / 125.0e6 * (1<<30) + 0.5);
   printf("setting frequency to %.4f MHz\n",atoi(argv[1])/1e6f);
-  *rx_freq = (uint32_t)floor(atoi(argv[1]) / sample_freq_Hz * (1<<30) + 0.5);
+  *rx_freq = (uint32_t)floor(atoi(argv[1]) / 125.0e6 * (1<<30) + 0.5);
 
   // set the NCO to 5 MHz
-  //*rx_freq = (uint32_t)floor(5000000 / sample_freq_Hz * (1<<30) + 0.5);
+  //*rx_freq = (uint32_t)floor(5000000 / 125.0e6 * (1<<30) + 0.5);
 
   /* set default rx sample rate */
   *rx_rate = 250;
@@ -1118,20 +1116,20 @@ int main(int argc, char *argv[])
   //for(i = 64; i <= 128; i=i+2)
   for(i = 64; i <= 96; i=i+2)
   {
-    pulse[i] = 7*2300; //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / sample_freq_Hz) + 0.5);
+    pulse[i] = 7*2300; //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / 125.0e6) + 0.5);
   }
 
   // offset 100 in 32 bit space, start with 50 us lead-in
   //for(i = 264; i <= 392; i=i+2)
   for(i = 264; i <= 296; i=i+2)
   {
-    pulse[i] = 14*2300; //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / sample_freq_Hz) + 0.5);
+    pulse[i] = 14*2300; //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / 125.0e6) + 0.5);
   }
 
   /*
   for(i = 16; i < 30; i=i+2)
   {
-    pulse[i] = (int16_t)(14*1600-(i-14)*1600); //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / sample_freq_Hz) + 0.5);
+    pulse[i] = (int16_t)(14*1600-(i-14)*1600); //(int16_t)floor(8000.0 * sin(i * 2.0 * M_PI * tx_freq / 125.0e6) + 0.5);
   }
   
   // Make a second RF pulse at offset 50 (in 32 bit space)
