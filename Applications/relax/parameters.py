@@ -1,5 +1,6 @@
 import sys
 import pickle
+
 from PyQt5.QtCore import QFile, QTextStream
 from cycler import cycler
 
@@ -17,32 +18,36 @@ class Parameters:
         self.stylesheet = stream.readAll()
         self.cycler = cycler(color=['#33A4DF', '#4260FF', '#001529'])
 
+        self.ip = []
+
     def var_init(self): # Init internal GUI parameter with defaults
         print("Setting default parameters.")
-        self.host = '172.20.125.186'
+        self.hosts = ['172.20.125.84']
         self.freq = 20.10000
         self.at = 22
         self.avgFlag = False
         self.avgCyc = 5
         self.te = 10
         self.ti = 200
-        self.autoSpan = 0.4
-        self.autoStep = 6
-        self.autoTimeout = 2000
+        self.autoSpan = 0.1
+        self.autoStep = 5
+        self.autoTimeout = 1000
         self.flipStart = 1
         self.flipEnd = 31
         self.flipStep = 15
-        self.flipTimeout = 4000
-        self.t2Start = 10
-        self.t2End = 100
-        self.t2Step = 10
-        self.t2Recovery = 10
-        self.t2Cyc = 5
-        self.t1Start = 50
-        self.t1End = 5000
-        self.t1Step = 10
-        self.t1Recovery = 200
-        self.t1Cyc = 5
+        self.flipTimeout = 1000
+        self.t2Start = 5
+        self.t2End = 250
+        self.t2Step = 5
+        self.t2Recovery = 1000
+        self.t2avgM = 2
+        self.t2avgP = 2
+        self.t1Start = 5
+        self.t1End = 500
+        self.t1Step = 5
+        self.t1Recovery = 1000
+        self.t1avgM = 2
+        self.t1avgP = 2
         self.temp = float('nan')
         self.freqaxis = []
         self.data = []
@@ -53,7 +58,7 @@ class Parameters:
 
     def saveFile(self): # Save internal GUI parameter to pickle-file
         with open('parameters.pkl', 'wb') as file:
-            pickle.dump([self.host,\
+            pickle.dump([self.hosts,\
                 self.freq,\
                 self.at,\
                 self.avgFlag,\
@@ -71,12 +76,14 @@ class Parameters:
                 self.t2End,\
                 self.t2Step,\
                 self.t2Recovery,\
-                self.t2Cyc,\
+                self.t2avgM,\
+                self.t2avgP,\
                 self.t1Start,\
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc,\
+                self.t1avgM,\
+                self.t1avgP,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -88,7 +95,7 @@ class Parameters:
     def loadParam(self): # Load internal GUI parameter from pickle-file
         try:
             with open('parameters.pkl', 'rb') as file:
-                self.host,\
+                self.hosts,\
                 self.freq,\
                 self.at,\
                 self.avgFlag,\
@@ -106,12 +113,14 @@ class Parameters:
                 self.t2End,\
                 self.t2Step,\
                 self.t2Recovery,\
-                self.t2Cyc,\
+                self.t2avgM,\
+                self.t2avgP,\
                 self.t1Start,\
                 self.t1End,\
                 self.t1Step,\
                 self.t1Recovery,\
-                self.t1Cyc,\
+                self.t1avgM,\
+                self.t1avgP,\
                 self.temp,\
                 self.freqaxis,\
                 self.data,\
@@ -142,12 +151,14 @@ class Parameters:
         print("TE last value:\t", self.t2End, "\tms")
         print("t2 steps:\t", self.t2Step)
         print("t2 recovery:\t", self.t2Recovery, "\ts")
-        print("t2 cycles:\t", self.t2Cyc)
-        print("TI start valie:\t", self.t1Start, "\tms")
-        print("TI last valie:\t", self.t1End, "\tms")
+        print("t2 averages/meas:\t", self.t2avgM)
+        print("t2 averages/data:\t", self.t2avgP)
+        print("TI start value:\t", self.t1Start, "\tms")
+        print("TI last value:\t", self.t1End, "\tms")
         print("t1 steps:\t", self.t1Step)
         print("t1 recovery:\t", self.t1Recovery, "\tms")
-        print("t1 cycles:\t", self.t1Cyc)
+        print("t1 averages/meas:\t", self.t1avgM)
+        print("t1 averages/data:\t", self.t1avgP)
         print("Temperature:\t", self.temp, "\t°C")
         print("\n")
 

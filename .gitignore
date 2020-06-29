@@ -7,3 +7,13 @@ Applications/ocra/acq_data_1
 Applications/ocra/acq_data_2
 Applications/ocra/assembler.log
 Applications/ocra/assembler.log
+
+Applications/relax/parameters.pkl
+
+Applications/relax/sequence/FID_hex.txt
+
+Applications/relax/assembler.log
+
+Applications/relax/sequence/IR_ti_hex.txt
+
+Applications/relax/sequence/SE_te_hex.txt

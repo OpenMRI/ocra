@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>main_window</class>
+ <widget class="QMainWindow" name="main_window">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -65,6 +65,13 @@
         <height>0</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="contextMenuPolicy">
        <enum>Qt::DefaultContextMenu</enum>
       </property>
@@ -72,11 +79,7 @@
        <enum>Qt::LeftToRight</enum>
       </property>
       <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border:0.5
-</string>
+       <bool>true</bool>
       </property>
       <property name="tabPosition">
        <enum>QTabWidget::West</enum>
@@ -288,7 +291,7 @@
          <widget class="QWidget" name="verticalWidget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -325,6 +328,8 @@
              <property name="font">
               <font>
                <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
               </font>
              </property>
              <layout class="QHBoxLayout" name="protocolLayout">
@@ -367,55 +372,6 @@
              </layout>
             </widget>
            </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="logbook">
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <attribute name="title">
-        <string>  Logbook  </string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QWidget" name="logbookWidget" native="true">
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <property name="spacing">
-            <number>10</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
           </layout>
          </widget>
         </item>
@@ -549,6 +505,12 @@
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
    <property name="toolButtonStyle">
     <enum>Qt::ToolButtonTextUnderIcon</enum>
    </property>
@@ -559,8 +521,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="action_exportParams"/>
-   <addaction name="action_importParams"/>
    <addaction name="separator"/>
    <addaction name="action_exportData"/>
    <addaction name="action_saveFig"/>
@@ -602,7 +562,7 @@
      <normalon>icons/save_data_active.png</normalon>icons/save_data_normal.png</iconset>
    </property>
    <property name="text">
-    <string>Export Data</string>
+    <string>Save Data</string>
    </property>
   </action>
   <action name="action_saveFig">

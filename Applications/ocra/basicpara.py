@@ -10,6 +10,8 @@ class BasicParameters:
         # central frequency (MHz)
         self.freq = 15.673000
 
+        self.host_addr = '172.20.125.80'
+
         # initial attenuation (dB)
         self.at = 17.50
 
@@ -55,6 +57,12 @@ class BasicParameters:
 
     def get_at(self):
         return self.at
+
+    def set_hostaddr(self, addr):
+        self.host_addr = addr
+
+    def get_hostaddr(self):
+        return self.host_addr
 
 # record basic parameters
 parameters = BasicParameters()
