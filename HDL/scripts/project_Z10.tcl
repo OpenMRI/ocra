@@ -13,7 +13,7 @@ set bd_path tmp/$project_name.srcs/sources_1/bd/system
 
 create_bd_design system
 
-source cfg/ports.tcl
+source cfg/ports_Z10.tcl
 
 proc cell {cell_vlnv cell_name {cell_props {}} {cell_ports {}}} {
   set cell [create_bd_cell -type ip -vlnv $cell_vlnv $cell_name]
