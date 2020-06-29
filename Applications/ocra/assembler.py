@@ -37,9 +37,9 @@ class Assembler:
 			'PR' : ['011101', 'B', 'DELAY']
 		}
 		bit_table = {
-	    'TX_PULSE': '0x01',
-	    'RX_PULSE': '0x02',
-	    'GRAD_PULSE': '0x04',
+            'TX_PULSE': '0x01',
+            'RX_PULSE': '0x02',
+            'GRAD_PULSE': '0x04',
 			'TX_GATE': '0x10',
 			'RX_GATE': '0x20',
 			#'GRAD_GATE': '0x06'
@@ -101,7 +101,7 @@ class Assembler:
 		opcode = line[0] # Get the opcode
 
 		# Error checking
-		if opcode not in self.opcode_table.keys():				  
+		if opcode not in self.opcode_table.keys():
 			logging.error("Unknown opcode {}".format(opcode), stack_info=True)
 			raise ValueError("Unknown opcode {} on line {}".format(opcode, line))
 
@@ -121,7 +121,7 @@ class Assembler:
 					addr = self.var_table[line[2]] # Look up address of variable
 					print(self.var_table)
 					print(addr)
-					
+                                        
 				else:
 					try:
 						addr = int(line[2], 16) # Must be in hex
@@ -142,7 +142,7 @@ class Assembler:
 			remaining_bits = 64 - len(opcode_bin) - len(reg_addr) - len(dir_addr) # Remaining bits
 			remainder = '0'.zfill(remaining_bits) 
 			cmd = opcode_bin + remainder + reg_addr + dir_addr
-			self.pc += 1 # Increment pc by 1	
+			self.pc += 1 # Increment pc by 1 	
 
 		# Format B
 		elif self.opcode_table[opcode][1] == 'B':
@@ -182,16 +182,14 @@ class Assembler:
 		self.logger.info("Opening file")
 		lines = f.readlines()
 
-	# Parse the lines 
+    	# Parse the lines 
 		cmds = []
 		hex_cmds = []
 		line_ctr = 1
 		for line in lines:
-			if line[:2] == "//":
-				continue
 			line_stripped = self.strip_lines(line)
 			self.logger.info("Line {0} stripped = {1}".format(line_ctr, line_stripped))
-		# If line contains '=', call the var parser
+    		# If line contains '=', call the var parser
 			if '=' in line_stripped:
 				cmd = self.var_parser(line_stripped)
 			else:
@@ -238,11 +236,11 @@ class Assembler:
 
 		# # Binary file
 		# with open('out_bin.txt', "w") as out_file:
-		#	[out_file.write("{}\n".format(cmd)) for cmd in cmds]
-	#
+		# 	[out_file.write("{}\n".format(cmd)) for cmd in cmds]
+        #
 		# # Hex file
 		# with open('out_hex.txt', "w") as out_file:
-		#	[out_file.write("{}\n".format(hex_cmd)) for hex_cmd in hex_cmds]
+		# 	[out_file.write("{}\n".format(hex_cmd)) for hex_cmd in hex_cmds]
 		# self.logger.info('Done')
 
 		# Machine code file
@@ -252,9 +250,9 @@ class Assembler:
 			for hex_cmd in hex_cmds:
 				# # for generating only machine cmd
 				# if idx%2: # odd idx, even row num
-				#	out_file.write("pulseq_memory[{}] = {};\n\n".format(idx, hex_cmd))
+				# 	out_file.write("pulseq_memory[{}] = {};\n\n".format(idx, hex_cmd))
 				# else: # even idx, odd row num
-				#	out_file.write("pulseq_memory[{}] = {}; \n".format( idx, hex_cmd))
+				# 	out_file.write("pulseq_memory[{}] = {}; \n".format( idx, hex_cmd))
 
 				# for generating readable machine code
 				if idx%2: # odd idx, even row num

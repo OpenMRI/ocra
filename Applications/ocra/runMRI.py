@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 # import general packages
@@ -30,7 +31,7 @@ from PyQt5.QtNetwork import QAbstractSocket, QTcpSocket
 import numpy as np
 import scipy.io as sp
 import matplotlib
-# matplotlib.use('Qt5Agg')
+matplotlib.use('Qt5Agg')
 
 # import GUI classes
 
@@ -244,8 +245,7 @@ class ConfigDialog(Config_Dialog_Base, Config_Dialog_Form):
             QRegExpValidator(IP_validator, self.addrValue))
 
         # Write host address to parameters
-        # import pdb;pdb.set_trace()
-        # parameters.set_hostaddr(self.addrValue.text())
+        parameters.set_hostaddr(self.addrValue.text())
 
         self.mainWindow = parent
 

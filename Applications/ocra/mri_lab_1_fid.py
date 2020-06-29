@@ -41,8 +41,7 @@ class MRI_FID_Widget(MRI_FID_Widget_Base, MRI_FID_Widget_Form):
         self.setupUi(self)
 
         self.idle = True  # state variable: True-stop, False-start
-        # self.seq_filename = 'sequence/basic/fid_default.txt'
-        self.seq_filename = 'sequence/basic/fid_testing.txt'
+        self.seq_filename = 'sequence/basic/fid_default.txt'
 
         self.flipangleTool = FlipangleDialog(self)
 
