@@ -1,5 +1,6 @@
-boot.bin
-uImage
-devicetree.dtb
+ocra_mri.bit.bin
+ocra_mri.dtbo
+ocra_mri.hdf
 *~
 tmp/
+utils/
