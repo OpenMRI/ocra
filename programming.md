@@ -24,26 +24,26 @@ Instruction | Opcode | Format | Description |
 `LITR delay` | 0b000011 | B | Indicate end of TR, followed by 40-bit `delay` |
 `RASTCSYNC clkmask` | 0b00101 | C | Reset raster clocks indicated in `clkmask` |
 
-### NOP
+#### NOP
 This instruction literally does nothing
 
-### HALT
+#### HALT
 This instruction ends the pulse sequence.
 
-### LD64
+#### LD64
 
-### PR
+#### PR
 
-### J and JNZ
+#### J and JNZ
 
-### DEC and INC
+#### DEC and INC
 
-### RASTCSYNC
+#### RASTCSYNC
 This instruction resets the raster clock of the clock indicated in the mask to start with the current clock cycle. All raster clocks in the OCRA are derived directly from the master clock of the FPGA by a divider, and are therefore ALWAYS synchronous. In order to start a raster clock cycle with a TR for example, the phase of the raster clock needs to reset with the beginning of the TR. This is accomplished by using this instruction at the beginning of the TR.
 
-### GRADOFFSET and TXOFFSET
+#### GRADOFFSET and TXOFFSET
 
-### LITR
+#### LITR
 
 ## Tutorial
 
