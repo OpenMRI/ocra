@@ -30,6 +30,7 @@ Format B:
 Format C:
 Need a figure, but it is identical to format B, with no register argument
 
+Table of all instructions:
 
 Instruction | Opcode | Format | Description |
 | ---- |:------:| :-----:| -----|
@@ -40,7 +41,7 @@ Instruction | Opcode | Format | Description |
 `LD64 Rx, addr` | 0b000100 | A | Load 64-bit integer from address `addr` to `Rx` | 
 `JNZ Rx, addr` | 0b010000 | A | jump to `addr` if `Rx` != 0 |
 `J addr` | 0b010111 | A | Unconditional jump to `addr` |
-`PR Rx, delay` | 0b011101 | B | Pulse register `Rx` followed by 40-bit `delay` in clock cycles |
+`PR Rx, delay` | 0b011101 | B | Pulse register `Rx` followed by a 40-bit `delay` in clock cycles |
 `TXOFFSET offset` | 0b001000 | B | Set offset of Tx (RF) pulse to `offset` |
 `GRADOFFSET offset` | 0b001001 | B | Set offset of gradient pulse to `offset` |  
 `LITR delay` | 0b000011 | B | Indicate end of TR, followed by 40-bit `delay` |
