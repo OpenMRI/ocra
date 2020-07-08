@@ -7,7 +7,7 @@ set hard_path tmp/$project_name.hard
 set fsbl_path tmp/$project_name.fsbl
 
 file mkdir $hard_path
-file copy -force tmp/$project_name.hwdef $hard_path/$project_name.hdf
+file copy -force tmp/$project_name.hdf $hard_path/$project_name.hdf
 
 open_hw_design $hard_path/$project_name.hdf
 create_sw_design -proc $proc_name -os standalone fsbl
