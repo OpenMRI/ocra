@@ -13,8 +13,8 @@ Instruction | Opcode | Format | Description |
 | ---- |:------:| :-----:| -----|
 `NOP` | 0b000000 | -- | Do nothing |
 `HALT` | 0b011001 | -- | Halt the sequence |
-`DEC Rx` | 0b000001 | A | Decrement register value by 1 |
-`INC Rx` | 0b000010 | A | Increment register value by 1 |
+`DEC Rx` | 0b000001 | A | Decrement register value of `Rx` by 1 |
+`INC Rx` | 0b000010 | A | Increment register value of `Rx` by 1 |
 `LD64 Rx, addr` | 0b000100 | A | Load 64-bit integer from address `addr` to `Rx` | 
 `JNZ Rx, addr` | 0b010000 | A | jump to `addr` if `Rx` != 0 |
 `J addr` | 0b010111 | A | Unconditional jump to `addr` |
@@ -22,7 +22,28 @@ Instruction | Opcode | Format | Description |
 `TXOFFSET offset` | 0b001000 | B | Set offset of Tx (RF) pulse to `offset` |
 `GRADOFFSET offset` | 0b001001 | B | Set offset of gradient pulse to `offset` |  
 `LITR delay` | 0b000011 | B | Indicate end of TR, followed by 40-bit `delay` |
-`RASTCSYNC clkmask` | 0b00101 | C | Reset raster clock |
+`RASTCSYNC clkmask` | 0b00101 | C | Reset raster clocks indicated in `clkmask` |
+
+### NOP
+This instruction literally does nothing
+
+### HALT
+This instruction ends the pulse sequence.
+
+### LD64
+
+### PR
+
+### J and JNZ
+
+### DEC and INC
+
+### RASTCSYNC
+This instruction resets the raster clock of the clock indicated in the mask to start with the current clock cycle. All raster clocks in the OCRA are derived directly from the master clock of the FPGA by a divider, and are therefore ALWAYS synchronous. In order to start a raster clock cycle with a TR for example, the phase of the raster clock needs to reset with the beginning of the TR. This is accomplished by using this instruction at the beginning of the TR.
+
+### GRADOFFSET and TXOFFSET
+
+### LITR
 
 ## Tutorial
 
