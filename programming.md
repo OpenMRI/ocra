@@ -11,16 +11,18 @@ This is a basic table of all the instructions available, and the opcodes associa
 
 Instruction | Opcode | Format | Description |
 | ---- |:------:| :-----:| -----|
-NOP | 0b000000 | -- | Do nothing |
-HALT | 0b011001 | -- | Halt the sequence |
-DEC Rx | 0b000001 | A | Decrement register value by 1 |
-INC Rx | 0b000010 | A | Increment register value by 1 |
-LD64 Rx, Addr | 0b000100 | A | Load 64-bit integer from address Addr to Rx | 
-JNZ Rx, Addr | 0b010000 | A | Jump to Addr if Rx! = 0 |
-J Addr | 0b010111 | A | Jump to Addr |
-PR Rx, Delay | 0b011101 | B | Pulse register Rx followed by 40-bit Delay |
-TXOFFSET Offset | 0b001000 | B | Set offset of Tx (RF) pulse to Offset |
-GRADOFFSET Offset | 0b001001 | B | Set offset of gradient pulse to Offset |  
+`NOP` | 0b000000 | -- | Do nothing |
+`HALT` | 0b011001 | -- | Halt the sequence |
+`DEC Rx` | 0b000001 | A | Decrement register value by 1 |
+`INC Rx` | 0b000010 | A | Increment register value by 1 |
+`LD64 Rx, addr` | 0b000100 | A | Load 64-bit integer from address `addr` to `Rx` | 
+`JNZ Rx, addr` | 0b010000 | A | jump to `addr` if `Rx` != 0 |
+`J addr` | 0b010111 | A | Unconditional jump to `addr` |
+`PR Rx, delay` | 0b011101 | B | Pulse register `Rx` followed by 40-bit `delay` in clock cycles |
+`TXOFFSET offset` | 0b001000 | B | Set offset of Tx (RF) pulse to `offset` |
+`GRADOFFSET offset` | 0b001001 | B | Set offset of gradient pulse to `offset` |  
+`LITR delay` | 0b000011 | B | Indicate end of TR, followed by 40-bit `delay` |
+`RASTCSYNC clkmask` | 0b00101 | C | Reset raster clock |
 
 ## Tutorial
 
