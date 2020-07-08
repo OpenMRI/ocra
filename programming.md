@@ -4,7 +4,7 @@ tagline: OCRA MRI
 description: Programming pulse sequences
 ---
 ## Overview
-The core of the OCRA project is the microsequencer, a softcore processor implemented in the FPGA to ensure real-time execution. This processor supports a very small instruction set that allows the convenient construction of real-time event tables and basic looping over the tables. An event-table describes the time at which an event is to happen inside the program. The most common such event is the production of a pulse waveform, such as a RF pulse or a gradient pulse, and the gating of the signal receiver. As result, the totality of these event tables is also called a "pulse sequence", as it describes the precise timing and sequence of the pulses being played out by OCRA as part of a NMR/MRI experiment.
+The core of the OCRA project is the microsequencer, a softcore processor implemented in the FPGA to ensure real-time execution. This processor supports a very small instruction set that allows the convenient construction of real-time event tables and basic looping over the tables. An event-table describes the time at which an event is to happen inside the program. The most common such event is the production of a pulse waveform, such as a RF pulse or a gradient pulse, and the gating of the signal receiver. As result, the totality of these event tables is also called a __pulse sequence__, as it describes the precise timing and sequence of the pulses being played out by OCRA as part of a NMR/MRI experiment.
 
 At the lowest level, the microsequencer can be programmed in a compact assembly-like language describing these tables. This language is designed to be machine generated, assuming there would always be either a UI-based or higher-level language generating the micro-sequencer instructions, but for very simple experiements, even basic imaging, these can be easily human written. The biggest down-side of human written microsequencer code is that the timing isn't easily parameterizable, as the microsequencer has no math capabilities, and the python assembler as of now cannot evaluate literal math expressions (anyone interested in implementing that, please contact me).
 
@@ -12,6 +12,23 @@ The microsequencer reads its instructions from a memory block (more details in t
 The events the sequencer controls are expressed by a 64-bit register, "pulse register", where each bit is connected to a particular hardware event. A description of the available events for the OCRA can be found below. The pulse sequence is responsible for maintaining the __state__ of that pulse register. The command `PR` copies the contents of a 64-bit register in the microsequencer to the pulse register, therefore updating the __state__ of it immediately. This means, the pulse sequence code must maintain the state of all events at all times. Commands that allow updating individual bits by OR operation on the state, or XOR operation on state have not yet been implemented, but might make useful additions in the future.
 
 ## Microsequencer Instructions
+All instructions for the microsequencer are 64-bit wide, with a 6-bit opcode identifying the instruction in the most significant bit. The microsequencer features 16 general purpose 64-bit wide registers, denoted `R0...R15` that can be
+used as parameters to some of the instructions. When an instruction takes a register index as argument, its usually denoted as `Rx` in the manual.
+
+Some instructions have a `delay` argument, which is a literal constant denoting the time to the next event in clock cycles. For OCRA, one clock cycle is exactly 8 nanoseconds (FPGA clock set to 125MHz). The `delay` argument is 40-bit wide. If longer delays are needed, the instruction can be repeated creating another delay.
+
+When instructions have a `addr` argument, this refers to __word address__ in the pulse sequence memory, and a microsequncer word is 64-bit wide. The microsequencer __cannot__ address bytes, and it doesn't need to.
+
+There is several formats these instructions come in:
+
+Format A:  
+<img src="{{ site.github.url }}/assets/images/gui/format_a.png" alt="format_a" width="700px"/>  
+
+Format B:  
+<img src="{{ site.github.url }}/assets/images/gui/format_b.png" alt="format_b" width="700px"/>  
+
+Format C:
+Need a figure, but it is identical to format B, with no register argument
 
 
 Instruction | Opcode | Format | Description |
@@ -27,7 +44,7 @@ Instruction | Opcode | Format | Description |
 `TXOFFSET offset` | 0b001000 | B | Set offset of Tx (RF) pulse to `offset` |
 `GRADOFFSET offset` | 0b001001 | B | Set offset of gradient pulse to `offset` |  
 `LITR delay` | 0b000011 | B | Indicate end of TR, followed by 40-bit `delay` |
-`RASTCSYNC clkmask` | 0b00101 | C | Reset raster clocks indicated in `clkmask` |
+`RASTCSYNC clkmask` | 0b000101 | C | Reset raster clocks indicated in `clkmask` |
 
 #### NOP
 This instruction literally does nothing
@@ -47,7 +64,7 @@ This instruction ends the pulse sequence.
 This instruction resets the raster clock of the clock indicated in the mask to start with the current clock cycle. All raster clocks in the OCRA are derived directly from the master clock of the FPGA by a divider, and are therefore ALWAYS synchronous. In order to start a raster clock cycle with a TR for example, the phase of the raster clock needs to reset with the beginning of the TR. This is accomplished by using this instruction at the beginning of the TR.
 
 #### GRADOFFSET and TXOFFSET
-
+ 
 #### LITR
 
 ## Tutorial
