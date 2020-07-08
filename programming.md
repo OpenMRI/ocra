@@ -5,7 +5,10 @@ description: Programming pulse sequences
 ---
 ## Overview
 This is a basic overview
+
 ## Instructions
+This is a basic table of all the instructions available, and the opcodes associated with it.
+
 Instruction | Opcode | Format | Description |
 | ---- |:------:| :-----:| -----|
 NOP | 0b000000 | -- | Do nothing |
