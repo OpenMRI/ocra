@@ -4,10 +4,15 @@ tagline: OCRA MRI
 description: Programming pulse sequences
 ---
 ## Overview
-This is a basic overview
+The core of the OCRA project is the microsequencer, a softcore processor implemented in the FPGA to ensure real-time execution. This processor supports a very small instruction set that allows the convenient construction of real-time event tables and basic looping over the tables. An event-table describes the time at which an event is to happen inside the program. The most common such event is the production of a pulse waveform, such as a RF pulse or a gradient pulse, and the gating of the signal receiver. As result, the totality of these event tables is also called a "pulse sequence", as it describes the precise timing and sequence of the pulses being played out by OCRA as part of a NMR/MRI experiment.
 
-## Instructions
-This is a basic table of all the instructions available, and the opcodes associated with it.
+At the lowest level, the microsequencer can be programmed in a compact assembly-like language describing these tables. This language is designed to be machine generated, assuming there would always be either a UI-based or higher-level language generating the micro-sequencer instructions, but for very simple experiements, even basic imaging, these can be easily human written. The biggest down-side of human written microsequencer code is that the timing isn't easily parameterizable, as the microsequencer has no math capabilities, and the python assembler as of now cannot evaluate literal math expressions (anyone interested in implementing that, please contact me).
+
+The microsequencer reads its instructions from a memory block (more details in the PS interface description below), and its execution state can be controlled from the ARM over a set of control registeres described in the PS interface section below.
+The events the sequencer controls are expressed by a 64-bit register, "pulse register", where each bit is connected to a particular hardware event. A description of the available events for the OCRA can be found below. The pulse sequence is responsible for maintaining the __state__ of that pulse register. The command `PR` copies the contents of a 64-bit register in the microsequencer to the pulse register, therefore updating the __state__ of it immediately. This means, the pulse sequence code must maintain the state of all events at all times. Commands that allow updating individual bits by OR operation on the state, or XOR operation on state have not yet been implemented, but might make useful additions in the future.
+
+## Microsequencer Instructions
+
 
 Instruction | Opcode | Format | Description |
 | ---- |:------:| :-----:| -----|
@@ -47,7 +52,9 @@ This instruction resets the raster clock of the clock indicated in the mask to s
 
 ## Tutorial
 
-## Old
+## Microsequencer PS interface
+
+# Old section, please ignore everything below
 
 ## Sequence Programming  
 Pulse sequences are written in an Assembly-like language. Fundamentally, the language specifies events (e.g. turning on an amplifier gating signal) by writing to and reading from registers. At the lowest level, the FPGA determines the event type by an 8-bit number written to a register, where event is specified by one bit. The pulse bits are described in the table below:
