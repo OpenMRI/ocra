@@ -21,7 +21,7 @@
 
    ". /opt/Xilinx/Vivado/2019.2/settings64.sh"
    "export PATH=/opt/Xilinx/Scout/2019.1/bin:$PATH"
-   "make -j4"
+   "make"
 
    After completion (15 minutes - 2 hours, depending on your PC), you should have a HDL/tmp folder, containing the files ocra_mri.bit.bin, ocra_mri.dtbo, and ocra_mri.hdf .
    The first two are for loading the Red Pitaya/StemLAB FPGA bitstream, and the third is the hardware description file used for generating the Yocto Linux image.
