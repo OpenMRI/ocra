@@ -40,7 +40,9 @@ module axi_four_ltc2656_spi #
   // System signals
   input wire 				    aclk,
   input wire 				    aresetn,
-
+  // allow an external SPI reference clock
+  input wire 				    spi_ref_clk,
+ 
   input wire [BRAM_ADDR_WIDTH-1:0] 	    cfg_data,
   output wire [BRAM_ADDR_WIDTH-1:0] 	    sts_data,
   input wire [BRAM_ADDR_WIDTH-1:0] 	    current_offset,
@@ -161,10 +163,20 @@ module axi_four_ltc2656_spi #
    reg [23:0] 			    spi_data_reg_bd1;
    reg [23:0] 			    spi_data_reg_bd2;
    reg [23:0] 			    spi_data_reg_bd3;
+   reg [23:0] 			    spi_data_reg_async_bd0;
+   reg [23:0] 			    spi_data_reg_async_bd1;
+   reg [23:0] 			    spi_data_reg_async_bd2;
+   reg [23:0] 			    spi_data_reg_async_bd3;
+   reg [7:0] 			    state32_wait_counter;
+ 			    
    reg 				    spi_transfer_out_reg_bd0;
    reg 				    spi_transfer_out_reg_bd1;
    reg 				    spi_transfer_out_reg_bd2;
    reg 				    spi_transfer_out_reg_bd3;
+   reg                              spi_transfer_out_reg_async_bd0;
+   reg                              spi_transfer_out_reg_async_bd1;
+   reg                              spi_transfer_out_reg_async_bd2;
+   reg                              spi_transfer_out_reg_async_bd3;
    
    reg                              spi_first_cmd_reg;
    reg 				    spi_second_cmd_reg;
@@ -354,7 +366,7 @@ module axi_four_ltc2656_spi #
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 2
-			 //slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+			 slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
 		  2'h3:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
@@ -511,19 +523,23 @@ module axi_four_ltc2656_spi #
      end    
    
    // Add user logic here
-   
+   // assign the flags and parameters
+   assign use_ext_spiclk = slv_reg2[0];
+
    // assign the outputs
    assign spi_clrn = 1'b1;              // don't clear ever
 
    // multiplex the spi_clk output, this could be done simpler
-   assign spi_clk = serial_clock_reg & spi_clock_enable_reg;
-   
+   assign spi_clk = use_ext_spiclk ? (spi_ref_clk & spi_clock_enable_reg) : (serial_clock_reg & spi_clock_enable_reg);
+     
    assign spi_cs = syncn_reg;      
    assign spi_ldacn = ldacn_reg;
-   assign spi_bank0 = spi_transfer_out_reg_bd0;
-   assign spi_bank1 = spi_transfer_out_reg_bd1;
-   assign spi_bank2 = spi_transfer_out_reg_bd2;
-   assign spi_bank3 = spi_transfer_out_reg_bd3;
+   
+   assign spi_bank0 = use_ext_spiclk ? spi_transfer_out_reg_async_bd0 : spi_transfer_out_reg_bd0;
+   assign spi_bank1 = use_ext_spiclk ? spi_transfer_out_reg_async_bd1 : spi_transfer_out_reg_bd1;
+   assign spi_bank2 = use_ext_spiclk ? spi_transfer_out_reg_async_bd2 : spi_transfer_out_reg_bd2;
+   assign spi_bank3 = use_ext_spiclk ? spi_transfer_out_reg_async_bd3 : spi_transfer_out_reg_bd3;
+   
    // generate the gradient update clock, which should also be done by a different core at some point
    // For a 143 MHz FPGA clock, we would divide by 1430 to get a 100 kHz clock
    
@@ -556,6 +572,49 @@ module axi_four_ltc2656_spi #
 	       end
 	  end // else: !if(~aresetn)
      end // always @ (posedge aclk)
+
+   // special block 07/10/2020
+   always @(negedge spi_ref_clk)
+     begin
+	if(~aresetn)
+	  begin
+	     spi_data_reg_bd0 <= 24'd0;
+	     spi_data_reg_bd1 <= 24'd0;
+	     spi_data_reg_bd2 <= 24'd0;
+	     spi_data_reg_bd3 <= 24'd0;
+	     
+	     spi_transfer_out_reg_bd0 <= 1'b0;
+	     spi_transfer_out_reg_bd1 <= 1'b0;
+	     spi_transfer_out_reg_bd2 <= 1'b0;
+	     spi_transfer_out_reg_bd3 <= 1'b0;
+	  end
+	else
+	  begin
+	     case(spi_sequencer_state_reg)
+	       8'd31:
+		 begin
+		    spi_data_reg_async_bd0 <= spi_data_reg_bd0;
+		    spi_data_reg_async_bd1 <= spi_data_reg_bd1;
+		    spi_data_reg_async_bd2 <= spi_data_reg_bd2;
+		    spi_data_reg_async_bd3 <= spi_data_reg_bd3;
+		 end
+	       8'd2:
+		 begin
+		    spi_transfer_out_reg_async_bd0 <= spi_data_reg_async_bd0[23];
+		    spi_data_reg_async_bd0 <= {spi_data_reg_async_bd0[22:0],1'b0};
+	       
+		    spi_transfer_out_reg_async_bd1 <= spi_data_reg_async_bd1[23];
+		    spi_data_reg_async_bd1 <= {spi_data_reg_bd1[22:0],1'b0};
+	     
+		    spi_transfer_out_reg_async_bd2 <= spi_data_reg_async_bd2[23];
+		    spi_data_reg_async_bd2 <= {spi_data_reg_bd2[22:0],1'b0};
+	       
+		    spi_transfer_out_reg_async_bd3 <= spi_data_reg_async_bd3[23];
+		    spi_data_reg_async_bd3 <= {spi_data_reg_async_bd3[22:0],1'b0};
+		 end // case: begin...
+	     endcase
+	  end // else: !if(~aresetn)
+     end // always @ (negedge spi_ref_clk)
    
    // this block just deals with the SPI data transfer out (serializer)
    always @(posedge aclk)
@@ -598,23 +657,37 @@ module axi_four_ltc2656_spi #
 		 end
 	       8'd2:
 		 begin
-		    if(serial_clock_counter == 4'd0) // update before clock rises
+		    if(~use_ext_spiclk)
 		      begin
-			 // update on a rising clock only
-			 if(serial_clock_reg == 0)
+			 if(serial_clock_counter == 4'd0) // update before clock rises
 			   begin
-			      spi_transfer_out_reg_bd0 <= spi_data_reg_bd0[23];
-			      spi_data_reg_bd0 <= {spi_data_reg_bd0[22:0],1'b0};
+			      // update on a rising clock only
+			      if(serial_clock_reg == 0)
+				begin
+				   spi_transfer_out_reg_bd0 <= spi_data_reg_bd0[23];
+				   spi_data_reg_bd0 <= {spi_data_reg_bd0[22:0],1'b0};
 			      
-			      spi_transfer_out_reg_bd1 <= spi_data_reg_bd1[23];
-                              spi_data_reg_bd1 <= {spi_data_reg_bd1[22:0],1'b0};
+				   spi_transfer_out_reg_bd1 <= spi_data_reg_bd1[23];
+				   spi_data_reg_bd1 <= {spi_data_reg_bd1[22:0],1'b0};
 			      
-			      spi_transfer_out_reg_bd2 <= spi_data_reg_bd2[23];
-                              spi_data_reg_bd2 <= {spi_data_reg_bd2[22:0],1'b0};
+				   spi_transfer_out_reg_bd2 <= spi_data_reg_bd2[23];
+				   spi_data_reg_bd2 <= {spi_data_reg_bd2[22:0],1'b0};
 			      
-			      spi_transfer_out_reg_bd3 <= spi_data_reg_bd3[23];
-                              spi_data_reg_bd3 <= {spi_data_reg_bd3[22:0],1'b0};
+				   spi_transfer_out_reg_bd3 <= spi_data_reg_bd3[23];
+				   spi_data_reg_bd3 <= {spi_data_reg_bd3[22:0],1'b0};
 			      
+				end
+			      else
+				begin
+				   spi_transfer_out_reg_bd0 <= spi_transfer_out_reg_bd0;
+				   spi_data_reg_bd0 <= spi_data_reg_bd0;
+				   spi_transfer_out_reg_bd1 <= spi_transfer_out_reg_bd1;
+				   spi_data_reg_bd1 <= spi_data_reg_bd1;
+				   spi_transfer_out_reg_bd2 <= spi_transfer_out_reg_bd2;
+				   spi_data_reg_bd2 <= spi_data_reg_bd2;
+				   spi_transfer_out_reg_bd3 <= spi_transfer_out_reg_bd3;
+				   spi_data_reg_bd3 <= spi_data_reg_bd3;
+				end // else: !if(serial_clock_reg == 0)
 			   end
 			 else
 			   begin
@@ -626,33 +699,21 @@ module axi_four_ltc2656_spi #
 			      spi_data_reg_bd2 <= spi_data_reg_bd2;
 			      spi_transfer_out_reg_bd3 <= spi_transfer_out_reg_bd3;
 			      spi_data_reg_bd3 <= spi_data_reg_bd3;
-			   end // else: !if(serial_clock_reg == 0)
+			   end // if (serial_clock_counter == 4'd1)
 		      end
-		    else
+		 end
+		    default:
 		      begin
-			 spi_transfer_out_reg_bd0 <= spi_transfer_out_reg_bd0;
-			 spi_data_reg_bd0 <= spi_data_reg_bd0;
-			 spi_transfer_out_reg_bd1 <= spi_transfer_out_reg_bd1;
-			 spi_data_reg_bd1 <= spi_data_reg_bd1;
-			 spi_transfer_out_reg_bd2 <= spi_transfer_out_reg_bd2;
-			 spi_data_reg_bd2 <= spi_data_reg_bd2;
-			 spi_transfer_out_reg_bd3 <= spi_transfer_out_reg_bd3;
-			 spi_data_reg_bd3 <= spi_data_reg_bd3;
-		      end // if (serial_clock_counter == 4'd1)
-		 end
-	       
-	       default:
-		 begin
-		    spi_data_reg_bd0 <= 24'd0;
-		    spi_data_reg_bd1 <= 24'd0;
-		    spi_data_reg_bd2 <= 24'd0;
-		    spi_data_reg_bd3 <= 24'd0;
-		    
-		    spi_transfer_out_reg_bd0 <= 1'b0;
-		    spi_transfer_out_reg_bd1 <= 1'b0;
-		    spi_transfer_out_reg_bd2 <= 1'b0;
-		    spi_transfer_out_reg_bd3 <= 1'b0;
-		 end
+			 spi_data_reg_bd0 <= 24'd0;
+			 spi_data_reg_bd1 <= 24'd0;
+			 spi_data_reg_bd2 <= 24'd0;
+			 spi_data_reg_bd3 <= 24'd0;
+			 
+			 spi_transfer_out_reg_bd0 <= 1'b0;
+			 spi_transfer_out_reg_bd1 <= 1'b0;
+			 spi_transfer_out_reg_bd2 <= 1'b0;
+			 spi_transfer_out_reg_bd3 <= 1'b0;
+		      end
 	     endcase
 	  end // else: !if(~aresetn)
      end // always @ (posedge aclk)
@@ -726,7 +787,7 @@ module axi_four_ltc2656_spi #
 	     gradient_nsamples_reg <= (slv_reg0 & 16'hffff) - 1;
 	     
 	     // set a version number
-	     slv_reg10 <= 32'hffff0002;
+	     slv_reg10 <= 32'hffff0003;
 	     
 	  end
 	else
@@ -829,9 +890,24 @@ module axi_four_ltc2656_spi #
 	       8'd30:
 		 begin
 		    // copy data for board 3
-		    spi_sequencer_state_reg <= 8'd1;
+		    spi_sequencer_state_reg <= 8'd31;
 		    serial_clock_counter <= 4'd0;
 		 end
+	       8'd31:
+		 begin
+		    // make copies of the shift registers in the ext_spi_clk block
+		    spi_sequencer_state_reg <= 8'd32;
+		    state32_wait_counter <= 0;
+		 end
+	       8'd32:
+		 begin
+		    // wait for asynchronous core to make a copy of the shift registers
+		    if(state32_wait_counter == 8'd8)
+		      spi_sequencer_state_reg <= 8'd1;
+		    else
+		      state32_wait_counter <= state32_wait_counter+1;
+		 end
+	       
 	       8'd1:
 		 begin		    
 		    gradient_sample_count_reg <= gradient_sample_count_reg + 1;
