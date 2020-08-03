@@ -166,8 +166,7 @@ void clear_shim_waveforms( volatile uint32_t *shim)
 int main(int argc, char *argv[])
 {
   int fd;
-  void *cfg;
-  volatile uint32_t *slcr,*dac_ctrl,*dac_enable,*shim_memory,*dac_nsamples,*dac_board_offset,*dac_version;
+  void *cfg;  volatile uint32_t *slcr,*dac_ctrl,*dac_enable,*shim_memory,*dac_nsamples,*dac_board_offset,*dac_version,*dac_control_register;
   unsigned int mode;
 
   if (argc != 2) {
@@ -215,18 +214,21 @@ int main(int argc, char *argv[])
   // Check version etc
   dac_nsamples = ((uint32_t *)(dac_ctrl+0));
   dac_board_offset = ((uint32_t *)(dac_ctrl+1));
+  dac_control_register  = ((uint32_t *)(dac_ctrl+2));
+  
   dac_version = ((uint32_t *)(dac_ctrl+10));
 
   printf("FPGA version = %08lX\n",*dac_version);
 
-  if(*dac_version != 0xffff0002) {
-    printf("This tool only supports FPGA software version 2 or newer!!\n");
+  if(*dac_version != 0xffff0003) {
+    printf("This tool only supports FPGA software version 3 or newer!!\n");
     exit(0);
  
   }
 
   *dac_nsamples = 2000;
   *dac_board_offset = 0;
+  *dac_control_register = 0x1;
   
   while(1) {
     printf(".... GO !\n"); fflush(stdout);
