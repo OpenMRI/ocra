@@ -17,16 +17,17 @@ cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 
 # Create clk_wiz
 cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
-  PRIMITIVE PLL
-  PRIM_IN_FREQ.VALUE_SRC USER
-  PRIM_IN_FREQ 125.0
-  PRIM_SOURCE Differential_clock_capable_pin
-  CLKOUT1_USED true
-  CLKOUT1_REQUESTED_OUT_FREQ 125.0
-  CLKOUT2_USED true
-  CLKOUT2_REQUESTED_OUT_FREQ 250.0
-  CLKOUT2_REQUESTED_PHASE -90.0
-  USE_RESET false
+    PRIMITIVE PLL
+    PRIM_IN_FREQ.VALUE_SRC USER
+    PRIM_IN_FREQ 125.0
+    PRIM_SOURCE Differential_clock_capable_pin
+    CLKOUT1_USED true
+    CLKOUT1_REQUESTED_OUT_FREQ 50.0
+    CLKOUT2_USED false
+    CLKOUT2_REQUESTED_OUT_FREQ 250.0
+    CLKOUT2_REQUESTED_PHASE -90.0
+    USE_RESET false
+    USE_DYN_RECONFIG true
 } {
   clk_in1_p adc_clk_p_i
   clk_in1_n adc_clk_n_i
@@ -97,6 +98,23 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 set_property OFFSET 0x40200000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 
+# Connect the PLL to the PS
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+    Clk_master {/ps_0/FCLK_CLK0 (142 MHz)}
+    Clk_slave {Auto}
+    Clk_xbar {/ps_0/FCLK_CLK0 (142 MHz)}
+    Master {/ps_0/M_AXI_GP0}
+    Slave {/pll_0/s_axi_lite}
+    intc_ip {/ps_0_axi_periph}
+    master_apm {0}
+}  [get_bd_intf_pins pll_0/s_axi_lite]
+
+# seems like by default this is mapped to 0x43c00000/64K
+
+# set the address map for the PLL, note for this interface the basename is "Reg" not "reg0"
+set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_pll_0_Reg]
+set_property OFFSET 0x43C00000 [get_bd_addr_segs ps_0/Data/SEG_pll_0_Reg]
+
 # the gradient DAC trigger pulse
 connect_bd_net [get_bd_pins cfg_0/cfg_data] [get_bd_pins shim_dac_0/slice_0/Din]
 
@@ -131,3 +149,14 @@ create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]
 # make a copy on the positive port as well for scoping (09/24/2019 TW)
 connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]
+
+# the LEDs
+cell xilinx.com:ip:xlconcat:2.1 xled_concat_0 {
+    NUM_PORTS 8
+}
+
+connect_bd_net [get_bd_pins xled_concat_0/In7] [get_bd_pins pll_0/locked]
+connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_concat_0/Dout]
+
+# Hook up the SPI reference clock
+connect_bd_net [get_bd_pins shim_dac_0/spi_sequencer_0/spi_ref_clk] [get_bd_pins pll_0/clk_out1] 
