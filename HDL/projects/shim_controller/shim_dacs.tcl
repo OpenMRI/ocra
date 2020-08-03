@@ -55,4 +55,4 @@ connect_bd_net [get_bd_pins spiconcat_0/In3] [get_bd_pins spi_sequencer_0/spi_ba
 connect_bd_net [get_bd_pins spiconcat_0/In4] [get_bd_pins spi_sequencer_0/spi_bank1]
 connect_bd_net [get_bd_pins spiconcat_0/In5] [get_bd_pins spi_sequencer_0/spi_bank2]
 connect_bd_net [get_bd_pins spiconcat_0/In6] [get_bd_pins spi_sequencer_0/spi_bank3]
-# Since the sequencer has no z2 yet, lets connect with a constant 0
+
