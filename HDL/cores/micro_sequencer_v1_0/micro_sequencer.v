@@ -188,11 +188,11 @@ module micro_sequencer #
    parameter [5:0] 
      NOP= 	6'b000000,	// do nothing
      DEC=       6'b000001,      // decrement value of register by one
-     INC=       6'b000010,      // increment value of regiuster by one
+     INC=       6'b000010,      // increment value of register by one
      LD64=	6'b000100,	// load 64 bit value to register
      TXOFFSET=  6'b001000,      // set the txoffset to a 16 bit value in formatA
      GRADOFFSET=  6'b001001,      // set the txoffset to a 16 bit value in formatA
-     JNZ=       6'b010000,      // jump to immeduate address of register is nonzero
+     JNZ=       6'b010000,      // jump to immeduate address if register is nonzero
      BTR=	6'b010100,	// branch to immediate address if triggered
      J=		6'b010111,	// jump to immediate address
      HALT=	6'b011001,	// halt

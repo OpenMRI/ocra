@@ -9,14 +9,31 @@
 LD_LIBRARY_PATH =
 
 NAME = ocra_mri
-PART = xc7z010clg400-1
-PROC = ps7_cortexa9_0
+PART_VARIANT ?= Z20
+ifeq ($(PART_VARIANT),Z20)
+PART = xc7z020clg400-1
+HWNAME = stemlab_sdr
+HWNAME2 = stemlab-sdr
+
 
 CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
-        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_red_pitaya_adc_v2_0 axis_red_pitaya_dac_v1_0 \
+        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_$(HWNAME)_adc_v1_0 axis_$(HWNAME)_dac_v1_0 \
         axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
+else
+PART = xc7z010clg400-1
+HWNAME = red_pitaya
+HWNAME2 = red-pitaya
+
+
+CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
+	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
+        axis_fifo_v1_0 axis_lfsr_v1_0 axis_ram_writer_v1_0 axis_$(HWNAME)_adc_v2_0 axis_$(HWNAME)_dac_v1_0 \
+        axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
+        axi_sts_register_v1_0
+endif
+PROC = ps7_cortexa9_0
 
 CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0
 
@@ -28,13 +45,13 @@ UBOOT_TAG = xilinx-v2019.1
 LINUX_TAG = xilinx-v2019.1
 DTREE_TAG = xilinx-v2019.1
 
-UBOOT_DIR = tmp/u-boot-xlnx-$(UBOOT_TAG)
-LINUX_DIR = tmp/linux-xlnx-$(LINUX_TAG)
-DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
+UBOOT_DIR = utils/u-boot-xlnx-$(UBOOT_TAG)
+LINUX_DIR = utils/linux-xlnx-$(LINUX_TAG)
+DTREE_DIR = utils/device-tree-xlnx-$(DTREE_TAG)
 
-UBOOT_TAR = tmp/u-boot-xlnx-$(UBOOT_TAG).tar.gz
-LINUX_TAR = tmp/linux-xlnx-$(LINUX_TAG).tar.gz
-DTREE_TAR = tmp/device-tree-xlnx-$(DTREE_TAG).tar.gz
+UBOOT_TAR = utils/u-boot-xlnx-$(UBOOT_TAG).tar.gz
+LINUX_TAR = utils/linux-xlnx-$(LINUX_TAG).tar.gz
+DTREE_TAR = utils/device-tree-xlnx-$(DTREE_TAG).tar.gz
 
 UBOOT_URL = https://github.com/Xilinx/u-boot-xlnx/archive/$(UBOOT_TAG).tar.gz
 LINUX_URL = https://github.com/Xilinx/linux-xlnx/archive/$(LINUX_TAG).tar.gz
@@ -49,11 +66,16 @@ RTL_URL = https://www.dropbox.com/sh/5fy49wae6xwxa8a/AABNwuLz3dPHK06vEDHmG8mfa/r
 
 .PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
 
-all: boot.bin devicetree.dtb tmp/%.bin 
+all: rp_bit boot.bin devicetree.dtb
 
 xpr: tmp/$(NAME).xpr
 
 bit: tmp/$(NAME).bit
+
+hdf: tmp/$(NAME).hdf
+
+rp_bit: tmp/$(NAME).bin ocra_mri.dtbo
+	cp tmp/ocra_mri.dtbo tmp/ocra_mri.bit.bin .
 
 $(UBOOT_TAR):
 	mkdir -p $(@D)
@@ -74,17 +96,17 @@ $(RTL_TAR):
 $(UBOOT_DIR): $(UBOOT_TAR)
 	mkdir -p $@
 	tar -zxf $< --strip-components=1 --directory=$@
-	patch -d tmp -p 0 < patches/u-boot-xlnx-$(UBOOT_TAG).patch
-	cp patches/zynq_red_pitaya_defconfig $@/configs
-	cp patches/zynq-red-pitaya.dts $@/arch/arm/dts
-	cp patches/zynq_red_pitaya.h $@/include/configs
+	patch -d utils -p 0 < patches/u-boot-xlnx-$(UBOOT_TAG).patch
+	cp patches/zynq_$(HWNAME)_defconfig $@/configs
+	cp patches/zynq-$(HWNAME2).dts $@/arch/arm/dts
+	cp patches/zynq_$(HWNAME).h $@/include/configs
 	cp patches/u-boot-lantiq.c $@/drivers/net/phy/lantiq.c
 
 $(LINUX_DIR): $(LINUX_TAR) $(RTL_TAR)
 	mkdir -p $@
 	tar -zxf $< --strip-components=1 --directory=$@
 	tar -zxf $(RTL_TAR) --directory=$@/drivers/net/wireless/realtek
-	patch -d tmp -p 0 < patches/linux-xlnx-$(LINUX_TAG).patch
+	patch -d utils -p 0 < patches/linux-xlnx-$(LINUX_TAG).patch
 	cp patches/linux-lantiq.c $@/drivers/net/phy/lantiq.c
 
 $(DTREE_DIR): $(DTREE_TAR)
@@ -102,7 +124,7 @@ uImage: $(LINUX_DIR)
 tmp/u-boot.elf: $(UBOOT_DIR)
 	mkdir -p $(@D)
 	make -C $< mrproper
-	make -C $< ARCH=arm zynq_red_pitaya_defconfig
+	make -C $< ARCH=arm zynq_$(HWNAME)_defconfig
 	make -C $< ARCH=arm CFLAGS=$(UBOOT_CFLAGS) \
 	  CROSS_COMPILE=arm-linux-gnueabihf- all
 	cp $</u-boot $@
@@ -112,12 +134,14 @@ fw_printenv: $(UBOOT_DIR) tmp/u-boot.elf
 	  CROSS_COMPILE=arm-linux-gnueabihf- env
 	cp $</tools/env/fw_printenv $@
 
-boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit
+# boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/$(NAME).bit tmp/u-boot.elf
+boot.bin: tmp/$(NAME).fsbl/executable.elf tmp/u-boot.elf
+# This needs work; doesn't run properly right now!
 	echo "img:{[bootloader] $^}" > tmp/boot.bif
 	bootgen -image tmp/boot.bif -w -o i $@
 
 devicetree.dtb: tmp/$(NAME).tree/system.dts
-	#this is additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
+#this additional preprocessor call is needed because HSI produces dts files with C style "#include" syntax
 	cpp -nostdinc -I include -I arch  -undef -x assembler-with-cpp tmp/$(NAME).tree/system-top.dts tmp/$(NAME).tree/system-top.dts.preprocessed
 	dtc -I dts -O dtb -o devicetree.dtb \
 	  -i tmp/$(NAME).tree -@ tmp/$(NAME).tree/system-top.dts.preprocessed
@@ -138,11 +162,12 @@ tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
 
 tmp/%.xpr: projects/% $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
 	mkdir -p $(@D)
-	$(VIVADO) -source scripts/project.tcl -tclargs $* $(PART)
+	$(VIVADO) -source scripts/project_$(PART_VARIANT).tcl -tclargs $* $(PART)
 
 tmp/%.hdf: tmp/%.xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $*
+	cp tmp/ocra_mri.xsa tmp/ocra_mri.hdf
 
 tmp/%.bit: tmp/%.xpr
 	mkdir -p $(@D)
@@ -164,5 +189,6 @@ tmp/%.tree/system.dts: tmp/%.hdf $(DTREE_DIR)
 clean:
 	$(RM) uImage fw_printenv boot.bin devicetree.dtb tmp
 	$(RM) .Xil usage_statistics_webtalk.html usage_statistics_webtalk.xml
+	$(RM) apk-tools-static-* alpine-uboot-* linux-firmware-* stemlab-sdr-alpine-*
 	$(RM) vivado*.jou vivado*.log
 	$(RM) webtalk*.jou webtalk*.log

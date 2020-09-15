@@ -13,7 +13,7 @@ set bd_path tmp/$project_name.srcs/sources_1/bd/system
 
 create_bd_design system
 
-source cfg/ports.tcl
+source cfg/ports_Z20.tcl
 
 proc cell {cell_vlnv cell_name {cell_props {}} {cell_ports {}}} {
   set cell [create_bd_cell -type ip -vlnv $cell_vlnv $cell_name]
@@ -92,7 +92,7 @@ proc get_slice_pin {pin_name from to {cell_name ""}} {
 }
 
 
-source projects/$project_name/block_design.tcl
+source projects/$project_name/block_design_Z20.tcl
 
 rename cell {}
 rename module {}
