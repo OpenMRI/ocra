@@ -20,7 +20,7 @@ cell open-mri:user:axi_four_ltc2656_spi:1.0 spi_sequencer_0 {
   C_S_AXI_ADDR_WIDTH 32
 } {
   aclk /ps_0/FCLK_CLK0
-  aresetn slice_0/Dout
+  aresetn /rst_0/peripheral_aresetn
 }
 
 # 09/2019: Make sure this has SEVEN ports

@@ -115,8 +115,26 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_pll_0_Reg]
 set_property OFFSET 0x43C00000 [get_bd_addr_segs ps_0/Data/SEG_pll_0_Reg]
 
+# Create trigger core
+cell open-mri:user:axi_trigger_core:1.0 trigger_core_0 {
+  C_S_AXI_DATA_WIDTH 32
+  C_S_AXI_ADDR_WIDTH 12
+} {
+    aclk /ps_0/FCLK_CLK0
+    aresetn /rst_0/peripheral_aresetn
+}
+
+# Create all required interconnections on AXI bus for trigger core
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins trigger_core_0/S_AXI]
+
+set_property RANGE  4K [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0]
+set_property OFFSET 0x40202000 [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0]
+
 # the gradient DAC trigger pulse
-connect_bd_net [get_bd_pins cfg_0/cfg_data] [get_bd_pins shim_dac_0/slice_0/Din]
+connect_bd_net [get_bd_pins trigger_core_0/trigger_out] [get_bd_pins shim_dac_0/spi_sequencer_0/waveform_trigger]
 
 # The RAM for the gradients should not have wait states?
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells gradient_memory_0]
@@ -129,12 +147,17 @@ delete_bd_objs [get_bd_ports exp_p_tri_io]
 delete_bd_objs [get_bd_ports exp_n_tri_io]
 
 # Create newoutput port
-create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
+create_bd_port -dir I -from 7 -to 0 exp_p_tri_io
 #connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
 
 # Create output port for the SPI stuff
 create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 
+# create a slice to extract the trigger from the input
+# Create xlslice
+cell xilinx.com:ip:xlslice:1.0 trigger_slice {
+  DIN_WIDTH 7 DIN_FROM 0 DIN_TO 0 DOUT_WIDTH 1
+}
 # For the shim controller we are using this pinout
 #
 # DIO0_N CS
@@ -148,7 +171,8 @@ create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 # connect to pins
 connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]
 # make a copy on the positive port as well for scoping (09/24/2019 TW)
-connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins shim_dac_0/spiconcat_0/Dout]
+connect_bd_net [get_bd_pins trigger_slice/Din] [get_bd_pins exp_p_tri_io]
+connect_bd_net [get_bd_pins trigger_slice/Dout] [get_bd_pins trigger_core_0/trigger_in]
 
 # the LEDs
 cell xilinx.com:ip:xlconcat:2.1 xled_concat_0 {
@@ -156,6 +180,8 @@ cell xilinx.com:ip:xlconcat:2.1 xled_concat_0 {
 }
 
 connect_bd_net [get_bd_pins xled_concat_0/In7] [get_bd_pins pll_0/locked]
+connect_bd_net [get_bd_pins xled_concat_0/In0] [get_bd_pins trigger_core_0/stretched_trigger_out]
+
 connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_concat_0/Dout]
 
 # Hook up the SPI reference clock
