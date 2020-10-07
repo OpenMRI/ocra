@@ -199,7 +199,11 @@ int main(int argc, char *argv[])
     
     fprintf(stdout,"%d waveform samples found !\n",line_counter);
     // check if we have enough memory
-
+    if(line_counter * 32 > 65536) {
+      fprintf(stderr,"Not enough block RAM in this FPGA for your file with this software ! Try staying below %d samples.\n", 65536/32);
+      exit(-1);
+    }
+    
     // allocate memory
     waveform_buffer = (int **)malloc(32*sizeof(int *));
     if(waveform_buffer == NULL) {
@@ -236,21 +240,19 @@ int main(int argc, char *argv[])
 	  exit(-1);
 	}
 	linebuffer_p = linebuffer_p + offset;
-	if(lrcounter == 10)
-	  fprintf(stdout,"val[%d] = %d\n",k,val);
-	
 	waveform_buffer[k][lrcounter] = val;
       }
       fprintf(stdout,"."); fflush(stdout);
       lrcounter++;
     } while(1);
     
+    fprintf(stdout,"\n");
+    
     fclose(input_file);
   } else {
     fprintf(stderr,"Cannot open input file %s for reading !\n",filename);
     exit(-1);
   }
-
   
   if((fd = open("/dev/mem", O_RDWR)) < 0) {
     perror("open");
@@ -270,7 +272,7 @@ int main(int argc, char *argv[])
   
   // shim_memory is now a full 256k
   shim_memory = mmap(NULL, 64*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000000);
-  
+  clear_shim_waveforms(shim_memory);
   
   printf("Setup standard memory maps !\n"); fflush(stdout);
 
