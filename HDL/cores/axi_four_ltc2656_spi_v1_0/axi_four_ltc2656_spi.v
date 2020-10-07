@@ -1015,6 +1015,23 @@ module axi_four_ltc2656_spi #
 		 begin
 		    // initialize the number of samples
 		    gradient_nsamples_reg <= (slv_reg0 & 16'hffff) - 1;
+		    // initialize a whole bunch of stuff
+		    spi_clock_enable_reg <= 1'b0;
+		    syncn_reg <= 1'b1;
+		    ldacn_reg <= 1'b1;
+		    spi_transfer_counter_reg <= 8'd0;
+		    gradient_update_clock_counter <= 40'd0;
+		    serial_clock_counter <= 4'd0;
+		    serial_clock_reg <= 1'b0;
+		    serial_fe_counter <= 6'd0;
+		    post_ldac_count <= 3'd0;
+		    
+		    spi_first_cmd_reg <= 1'b1;
+		    spi_second_cmd_reg <= 1'b0;
+	     
+		    gradient_sample_count_reg <= 16'd0;
+		    cmd_word_counter <= 4'd0;
+		    
 		    // on trigger breakout of the spin if enabled, or without trigger with override
 		    if ((waveform_trigger == 1) && (slv_reg3 == 8'd1)) // || slv_reg3 == 8'd3)
 		      begin
