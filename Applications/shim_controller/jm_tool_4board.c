@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #define PI 3.14159265
 
@@ -163,6 +164,19 @@ void clear_shim_waveforms( volatile uint32_t *shim)
   }	
 }
  
+void sigint_handler(int s){
+  fprintf(stderr,"Caught SIGINT signal %d! Shutting down waveform trigger\n",s);
+  int fd;
+  if((fd = open("/dev/mem", O_RDWR)) < 0) {
+    perror("open");
+    exit(1);
+  }
+  volatile uint32_t *dac_ctrl = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40201000);
+  volatile uint32_t *dac_enable = ((uint32_t *)(dac_ctrl+3));
+  
+  *dac_enable = 0x0;
+  exit(1); 
+}
 
 int main(int argc, char *argv[])
 {
@@ -258,6 +272,14 @@ int main(int argc, char *argv[])
     perror("open");
     return EXIT_FAILURE;
   }
+
+  // Install SIGINT handler
+  struct sigaction sigIntHandler;
+  sigIntHandler.sa_handler = sigint_handler;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+  
+  sigaction(SIGINT, &sigIntHandler, NULL);
 
   // set up shared memory (please refer to the memory offset table)
   slcr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0xF8000000);
