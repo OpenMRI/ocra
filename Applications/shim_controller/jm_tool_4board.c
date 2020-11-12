@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 {
   int fd;
   void *cfg;
-  volatile uint32_t *slcr,*dac_ctrl,*dac_enable,*shim_memory,*dac_nsamples,*dac_board_offset,*dac_version,*dac_control_register,*dac_trigger_count,*trigger_ctrl,*tc_trigger_count,*tc_trigger_count_b,*tc_trigger_count_o,*dac_refresh_divider;
+  volatile uint32_t *slcr,*dac_ctrl,*dac_enable,*shim_memory,*dac_nsamples,*dac_board_offset,*dac_version,*dac_control_register,*dac_trigger_count,*trigger_ctrl,*tc_trigger_count,*trigger_lockout_ptr,*trigger_polarity,*dac_refresh_divider,*trigger_enable;
   unsigned int mode;
   
   if (argc != 3) {
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
   }
 
   // not the right conversion tool
-  mode = atoi(argv[1]);
+  //mode = atoi(argv[1]);
   char *filename = argv[2];
   char *linebuffer;
   unsigned int line_length;
@@ -316,8 +316,16 @@ int main(int argc, char *argv[])
   dac_version = ((uint32_t *)(dac_ctrl+10));
   dac_trigger_count = ((uint32_t *)(dac_ctrl+9));
   tc_trigger_count = ((uint32_t *)(trigger_ctrl+4));
-  tc_trigger_count_b = ((uint32_t *)(trigger_ctrl+1));
-  tc_trigger_count_o = ((uint32_t *)(trigger_ctrl+5));
+  trigger_lockout_ptr = ((uint32_t *)(trigger_ctrl + 1));
+  trigger_polarity = ((uint32_t *)(trigger_ctrl+2));
+  trigger_enable = ((uint32_t *)(trigger_ctrl));
+  float lt = atof(argv[1])/7e-6;
+  *trigger_lockout_ptr = (unsigned int)(floor(lt));
+  sleep(1);
+  
+  printf("Lockout = %d (%d) FPGA clockcycles\n",*trigger_lockout_ptr,(unsigned int)(floor(lt)));
+  *trigger_polarity = 1;
+  *trigger_enable = 1;
   
   printf("FPGA version = %08lX\n",*dac_version);
 
@@ -354,10 +362,12 @@ int main(int argc, char *argv[])
   *dac_refresh_divider = 2860;
   
   //update_shim_waveform_state(shim_memory,GRAD_ZERO_ENABLED_OUTPUT,mode);
-  *dac_enable = 0x1;
+  *dac_enable = 0x3;
+  usleep(100);
+  *dac_enable = 0x0;
   
   while(1) {
-    printf(".... trigger count = %d (tc = %d, tc_b = %d, tc_o = %d)!\n",*dac_trigger_count,*tc_trigger_count,*tc_trigger_count_b,*tc_trigger_count_o); fflush(stdout);
+    printf(".... trigger count = %d (tc = %d)!\n",*dac_trigger_count,*tc_trigger_count); fflush(stdout);
     sleep(2);
     
   }
