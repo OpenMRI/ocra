@@ -214,7 +214,7 @@ module axi_trigger_core #
      begin
 	if ( S_AXI_ARESETN == 1'b0 )
 	  begin
-	     //slv_reg0 <= 8'h00;
+	     slv_reg0 <= 8'h00;
 	     //slv_reg1 <= 8'h10;
 	     //slv_reg2 <= 8'h20;
 	     //slv_reg3 <= 8'h30;
@@ -230,33 +230,33 @@ module axi_trigger_core #
 	   if (slv_reg_wren)
 	     begin
 		case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-		  2'h0:
+		  4'h0:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 0
 			 slv_reg0[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
-		  2'h1:
+		  4'h1:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 1
-			 //slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+			 slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
-		  2'h2:
+		  4'h2:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 2
-			 //slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+			 slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
-		  2'h3:
+		  4'h3:
 		    for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 		      if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 			 // Respective byte enables are asserted as per write strobes 
 			 // Slave register 3
-			 //slv_reg3[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+			 slv_reg3[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 		      end  
 		  default : begin
                      //slv_reg0 <= slv_reg0;
@@ -447,7 +447,6 @@ module axi_trigger_core #
 	     stretched_trigger_out_ctr <= 32'd0;
 	     trigger_counter <= 32'd0;
 	     slv_reg4 <= 32'd0;
-	     slv_reg1 <= 32'd0;
 	     slv_reg5 <= 32'd0;
 	     
 	  end
@@ -458,7 +457,7 @@ module axi_trigger_core #
 	     if (trigger_out_reg == 0 && trigger_lockout_reg == 0)
 	       begin
 		  // inverted for now
-		  if (trigger_in_reg2 == 0)
+		  if (trigger_in_reg2 == slv_reg2[0] && slv_reg0[0] == 1'b1)
 		    begin
 		       trigger_out_reg <= 1;
 		       trigger_out_ctr <= 32'd0;
@@ -468,15 +467,13 @@ module axi_trigger_core #
 		       stretched_trigger_out_ctr <= 0;
 		       trigger_counter <= trigger_counter + 32'd1;
 		       slv_reg4 <= slv_reg4 + 32'd1;
-		       slv_reg1 <= slv_reg1 + 32'd1;
-		       
 		    end
 	       end
 
 	     // for now set the lockout to 500us
 	     if (trigger_lockout_reg == 1)
 	       begin
-		  if (trigger_lockout_ctr == 32'd71429)
+		  if (trigger_lockout_ctr == slv_reg1)
 		    begin
 		       trigger_lockout_reg <= 0;
 		       trigger_lockout_ctr <= 32'd0;
