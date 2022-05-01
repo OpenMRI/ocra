@@ -362,10 +362,11 @@ int main(int argc, char *argv[])
   *dac_refresh_divider = 2860;
   
   //update_shim_waveform_state(shim_memory,GRAD_ZERO_ENABLED_OUTPUT,mode);
-  *dac_enable = 0x3;
+  *dac_enable = 0x1;
+  /*
   usleep(100);
   *dac_enable = 0x0;
-  
+  */
   while(1) {
     printf(".... trigger count = %d (tc = %d)!\n",*dac_trigger_count,*tc_trigger_count); fflush(stdout);
     sleep(2);

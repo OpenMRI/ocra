@@ -1033,7 +1033,7 @@ module axi_four_ltc2656_spi #
 		    cmd_word_counter <= 4'd0;
 		    
 		    // on trigger breakout of the spin if enabled, or without trigger with override
-		    if ((waveform_trigger == 1) && (slv_reg3 == 8'd1)) // || slv_reg3 == 8'd3)
+		    if (((waveform_trigger == 1) && (slv_reg3 == 8'd1)) || slv_reg3 == 8'd3)
 		      begin
 			 spi_sequencer_state_reg <= 8'd0;
 			 slv_reg9 <= slv_reg9 + 1;
