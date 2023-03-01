@@ -8,7 +8,7 @@ CMD5 = TX_GATE | TX_PULSE | RX_PULSE    			// A[6] RF
 CMD6 = TX_GATE | TX_PULSE           				// A[7] RF with receiver on
 CMD7 = GRAD_PULSE | RX_PULSE           				// A[8] GRAD
 CMD8 = GRAD_PULSE                   				// A[9] GRAD with receiver on
-             CMD9 = TX_GATE | TX_PULSE | RX_PULSE | GRAD_PULSE	// A[A] RF&GRAD
+CMD9 = TX_GATE | TX_PULSE | RX_PULSE | GRAD_PULSE	// A[A] RF&GRAD
 CMD10 = TX_GATE | TX_PULSE | GRAD_PULSE				// A[B] RF&GRAD with receiver on
 NOP   // A[C] UNUSED
 NOP   // A[D] UNUSED
