@@ -1,0 +1,81 @@
+J 10 										// A[0] J to address 10 x 8 bytes A[B]
+LOOP_CTR = 0x1 								// A[1] LOOP COUNTER (NO repetitions for now)
+CMD1 = TX_GATE | RX_PULSE                         		// A[2] UNUSED
+CMD2 = 0x0                          		// A[3] UNUSED
+CMD3 = 0x2                          				// A[4] all off (note that RX_PULSE use inverted logic)
+CMD4 = 0X0                          				// A[5] only receiver on (all off, but do not reset RX FIFO)
+CMD5 = TX_GATE | TX_PULSE | RX_PULSE    			// A[6] RF
+CMD6 = TX_GATE | TX_PULSE           				// A[7] RF with receiver on
+CMD7 = GRAD_PULSE | RX_PULSE           				// A[8] GRAD
+CMD8 = GRAD_PULSE                   				// A[9] GRAD with receiver on
+CMD9 = TX_GATE | TX_PULSE | RX_PULSE | GRAD_PULSE	// A[A] RF&GRAD
+CMD10 = TX_GATE | TX_PULSE | GRAD_PULSE				// A[B] RF&GRAD with receiver on
+CMD12 = TX_GATE | GRAD_PULSE | RX_PULSE
+NOP   // A[D] UNUSED
+NOP   // A[E] UNUSED
+NOP   // A[F] UNUSED
+LD64 2, LOOP_CTR    						// A[10] Load LOOP_CTR to R[2]		"J here"
+LD64 3, CMD3        						// A[11] Load CMD3 to R[3]
+LD64 4, CMD4        						// A[12] Load CMD4 to R[4]
+LD64 5, CMD5        						// A[13] Load CMD5 to R[5]
+LD64 6, CMD6        						// A[14] Load CMD6 to R[6]
+LD64 7, CMD7        						// A[15] Load CMD7 to R[7]
+LD64 8, CMD8        						// A[16] Load CMD8 to R[8]
+LD64 9, CMD9        						// A[17] Load CMD9 to R[9]
+LD64 10, CMD10      						// A[18] Load CMD10 to R[10]
+LD64 11, CMD1
+LD64 12, CMD12
+NOP   // A[1B] UNUSED
+NOP   // A[1C] UNUSED
+TXOFFSET 1000 					// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
+GRADOFFSET 0
+PR 7, 20
+PR 11, 100
+PR 5, 1600	// 180deg RF Pulse
+PR 11, 10
+PR 3, 0	// Pause
+GRADOFFSET 82						// A[1E] GRADOFFSET
+PR 7, 110
+PR 12, 100
+TXOFFSET 3000
+PR 5, 800	// Flip RF Pulse
+GRADOFFSET 102
+PR 12, 10
+PR 7, 400
+PR 3, 800	// Slice rephaser length
+GRADOFFSET 142
+PR 7, 210
+PR 3, 6150	// Pause
+GRADOFFSET 162
+PR 7, 210
+PR 3, 400	// Crusher length
+GRADOFFSET 182
+PR 7, 110
+PR 12, 100
+TXOFFSET 1000 
+PR 5, 1600	// 180deg RF Pulse
+GRADOFFSET 202
+PR 12, 10
+PR 7, 200
+PR 3, 400	// Crusher length
+GRADOFFSET 222
+PR 7, 210
+PR 3, 0	// Pause
+GRADOFFSET 2
+PR 7, 210
+PR 3, 2350	// Readout prephaser length
+GRADOFFSET 22
+PR 7, 410
+PR 4, 10000	// Sampling window
+GRADOFFSET 62
+PR 8, 210
+PR 4, 0
+GRADOFFSET 242
+PR 8, 210
+PR 4, 1000	// Spoiler length
+GRADOFFSET 262
+PR 8, 210
+PR 4, 200000
+DEC 2 										// A[27] DEC R[2]
+JNZ 2, 0x1D 								// A[28] JNZ R[2] => `PC=0x1D
+HALT 										// A[29] HALT
