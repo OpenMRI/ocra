@@ -132,11 +132,11 @@ tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/core.tcl -tclargs $* $(PART)
 
-tmp/%.xpr: projects/% $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
+tmp/$(BOARD)_$(NAME).xpr: $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $(NAME) $(BOARD) $(PART)
 
-tmp/%.hdf: tmp/%.xpr
+tmp/%.hdf: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $(NAME) $(BOARD)
 
