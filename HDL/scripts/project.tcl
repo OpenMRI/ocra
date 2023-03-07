@@ -1,19 +1,19 @@
 
 set project_name [lindex $argv 0]
+set board_name [lindex $argv 1]
+set part_name [lindex $argv 2]
 
-set part_name [lindex $argv 1]
+file delete -force tmp/${board_name}_${project_name}.cache tmp/${board_name}_${project_name}.hw tmp/${board_name}_${project_name}.srcs tmp/${board_name}_${project_name}.runs tmp/${board_name}_${project_name}.xpr
 
-file delete -force tmp/$project_name.cache tmp/$project_name.hw tmp/$project_name.srcs tmp/$project_name.runs tmp/$project_name.xpr
-
-create_project -part $part_name $project_name tmp
+create_project -part $part_name ${board_name}_${project_name} tmp
 
 set_property IP_REPO_PATHS {tmp/cores tmp/cores_pavel} [current_project]
 
-set bd_path tmp/$project_name.srcs/sources_1/bd/system
+set bd_path tmp/${board_name}_${project_name}.srcs/sources_1/bd/system
 
 create_bd_design system
 
-source cfg/ports.tcl
+source cfg/${board_name}_ports.tcl
 
 proc cell {cell_vlnv cell_name {cell_props {}} {cell_ports {}}} {
   set cell [create_bd_cell -type ip -vlnv $cell_vlnv $cell_name]

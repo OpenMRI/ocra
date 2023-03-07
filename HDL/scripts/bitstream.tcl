@@ -1,7 +1,8 @@
 
 set project_name [lindex $argv 0]
+set board_name [lindex $argv 1]
 
-open_project tmp/$project_name.xpr
+open_project tmp/${board_name}_${project_name}.xpr
 
 if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
   launch_runs impl_1 -to_step route_design
@@ -12,6 +13,6 @@ open_run [get_runs impl_1]
 
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
-write_bitstream -force -file tmp/$project_name.bit
+write_bitstream -force -file tmp/${board_name}_${project_name}.bit
 
 close_project
