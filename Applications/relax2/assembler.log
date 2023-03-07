@@ -1641,3 +1641,253 @@ DEBUG:PyQt5.uic.uiparser:pop widget QWidget gridLayoutWidget
 DEBUG:PyQt5.uic.uiparser:new topwidget Dialog
 DEBUG:PyQt5.uic.uiparser:pop widget QDialog Dialog
 DEBUG:PyQt5.uic.uiparser:new topwidget None
+DEBUG:PyQt5.uic.uiparser:uiname is main_window
+DEBUG:PyQt5.uic.uiparser:toplevel widget is QMainWindow
+DEBUG:PyQt5.uic.properties:setting property geometry
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property windowTitle
+DEBUG:PyQt5.uic.properties:setting property autoFillBackground
+DEBUG:PyQt5.uic.properties:setting property animated
+DEBUG:PyQt5.uic.properties:setting property documentMode
+DEBUG:PyQt5.uic.properties:setting property tabShape
+DEBUG:PyQt5.uic.uiparser:push QMainWindow main_window
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property autoFillBackground
+DEBUG:PyQt5.uic.uiparser:push QWidget centralwidget
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QHBoxLayout horizontalLayout
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property sizeConstraint
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QVBoxLayout verticalLayout
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QGridLayout gridLayout
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Mode_Spectroscopy_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Mode_Spectroscopy_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Mode_T2_Measurement_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Mode_T2_Measurement_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QVBoxLayout verticalLayout_2
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.uiparser:push QComboBox Sequence_comboBox
+DEBUG:PyQt5.uic.uiparser:pop widget QComboBox Sequence_comboBox
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.uiparser:push QLineEdit Datapath_lineEdit
+DEBUG:PyQt5.uic.uiparser:pop widget QLineEdit Datapath_lineEdit
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Parameters_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Parameters_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Acquire_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Acquire_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Data_Process_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Data_Process_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.uiparser:pop layout QVBoxLayout verticalLayout_2
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Mode_T1_Measurement_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Mode_T1_Measurement_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Mode_Projections_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Mode_Projections_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Mode_Imaging_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Mode_Imaging_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.uiparser:push QPushButton Tools_pushButton
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton Tools_pushButton
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f53304f3e20>
+DEBUG:PyQt5.uic.uiparser:pop layout QGridLayout gridLayout
+DEBUG:PyQt5.uic.uiparser:pop layout QVBoxLayout verticalLayout
+DEBUG:PyQt5.uic.uiparser:pop layout QHBoxLayout horizontalLayout
+DEBUG:PyQt5.uic.uiparser:pop widget QWidget centralwidget
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QMainWindow object at 0x7f53304f3a30>
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property toolTip
+DEBUG:PyQt5.uic.properties:setting property iconVisibleInMenu
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property toolTip
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property toolTip
+DEBUG:PyQt5.uic.properties:setting property icon
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property toolTip
+DEBUG:PyQt5.uic.uiparser:pop widget QMainWindow main_window
+DEBUG:PyQt5.uic.uiparser:new topwidget None
+DEBUG:PyQt5.uic.uiparser:uiname is connection_widget
+DEBUG:PyQt5.uic.uiparser:toplevel widget is QDialog
+DEBUG:PyQt5.uic.properties:setting property geometry
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property windowTitle
+DEBUG:PyQt5.uic.uiparser:push QDialog connection_widget
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QVBoxLayout verticalLayout
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property alignment
+DEBUG:PyQt5.uic.uiparser:push QLabel ip_label
+DEBUG:PyQt5.uic.uiparser:pop widget QLabel ip_label
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.uiparser:push QWidget widget
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QHBoxLayout IP
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property layoutDirection
+DEBUG:PyQt5.uic.properties:setting property editable
+DEBUG:PyQt5.uic.properties:setting property sizeAdjustPolicy
+DEBUG:PyQt5.uic.properties:setting property iconSize
+DEBUG:PyQt5.uic.properties:setting property frame
+DEBUG:PyQt5.uic.properties:setting property modelColumn
+DEBUG:PyQt5.uic.uiparser:push QComboBox ip_box
+DEBUG:PyQt5.uic.uiparser:pop widget QComboBox ip_box
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QWidget object at 0x7f5330554820>
+DEBUG:PyQt5.uic.uiparser:pop layout QHBoxLayout IP
+DEBUG:PyQt5.uic.uiparser:pop widget QWidget widget
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property alignment
+DEBUG:PyQt5.uic.uiparser:push QLabel status_label
+DEBUG:PyQt5.uic.uiparser:pop widget QLabel status_label
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property orientation
+DEBUG:PyQt5.uic.uiparser:push QFrame line
+DEBUG:PyQt5.uic.uiparser:pop widget QFrame line
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property scaledContents
+DEBUG:PyQt5.uic.properties:setting property alignment
+DEBUG:PyQt5.uic.uiparser:push QLabel help
+DEBUG:PyQt5.uic.uiparser:pop widget QLabel help
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property spacing
+DEBUG:PyQt5.uic.properties:setting property leftMargin
+DEBUG:PyQt5.uic.properties:setting property topMargin
+DEBUG:PyQt5.uic.properties:setting property rightMargin
+DEBUG:PyQt5.uic.properties:setting property bottomMargin
+DEBUG:PyQt5.uic.properties:setting property pyuicMargins
+DEBUG:PyQt5.uic.properties:setting property pyuicSpacing
+DEBUG:PyQt5.uic.uiparser:push QHBoxLayout horizontalLayout_3
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property autoDefault
+DEBUG:PyQt5.uic.uiparser:push QPushButton addIP_btn
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton addIP_btn
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property autoDefault
+DEBUG:PyQt5.uic.uiparser:push QPushButton rmIP_btn
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton rmIP_btn
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property orientation
+DEBUG:PyQt5.uic.uiparser:push QFrame line_2
+DEBUG:PyQt5.uic.uiparser:pop widget QFrame line_2
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.properties:setting property sizePolicy
+DEBUG:PyQt5.uic.properties:setting property minimumSize
+DEBUG:PyQt5.uic.properties:setting property maximumSize
+DEBUG:PyQt5.uic.properties:setting property font
+DEBUG:PyQt5.uic.properties:setting property text
+DEBUG:PyQt5.uic.properties:setting property autoDefault
+DEBUG:PyQt5.uic.uiparser:push QPushButton conn_btn
+DEBUG:PyQt5.uic.uiparser:pop widget QPushButton conn_btn
+DEBUG:PyQt5.uic.uiparser:new topwidget <PyQt5.QtWidgets.QDialog object at 0x7f5330554670>
+DEBUG:PyQt5.uic.uiparser:pop layout QHBoxLayout horizontalLayout_3
+DEBUG:PyQt5.uic.uiparser:pop layout QVBoxLayout verticalLayout
+DEBUG:PyQt5.uic.uiparser:pop widget QDialog connection_widget
+DEBUG:PyQt5.uic.uiparser:new topwidget None
