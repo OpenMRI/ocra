@@ -1,0 +1,41 @@
+A file to put in stuff to code :-)
+
+250 Samples / ms
+
+Pixelbandwidth [Hz] = 1 / (params.TS /1000)
+
+Gradientsensitivity:
+	Sim
+	GXsens = 37.2 mT/m/A
+	GYsens = 34.9 mT/m/A
+	GZsens = 36.3 mT/m/A
+	Meas
+	GXsens = 28.1 mT/m/A
+	GYsens = 25.5 mT/m/A
+	GZsens = 28.3 mT/m/A
+
+Hard pulse bandwidth:
+	Delta_f [kHz] = 1 / (params.flippulselength / 1000)
+
+		100us > 10kHz
+
+
+Sinc pulse (2 time steps central lobe, 2 time steps side lobes):
+
+	t0 [us] = 4*params.flippulselength / 4 = 1 / params.flippulselength
+
+	Delta_f [kHz] = 1 / (t0) = 2 / (params.flippulselength / 1000)
+
+		100us > 400us > 20kHz
+
+Slice:
+slicethickness [mm]
+
+Gslice [mT/m] = Delta_f / (42.57kHz/mT * slicethickness / 1000)
+
+		2mm, 200us > 117,45	m
+
+gx[] =
+
+
+
