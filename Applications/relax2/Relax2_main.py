@@ -56,7 +56,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setWindowTitle('Relax 2.0')
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
-
+        
+        params.connectionmode = 0
         params.projaxis = np.zeros(3)
         params.ustime = 0
         params.usphase = 0
@@ -147,18 +148,20 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             print("Sequence:\t", params.sequence)
         
     def acquire(self):
-        if params.GUImode == 2 and params.sequence == 0:
-            proc.T1measurement_IR_FID()
-        elif params.GUImode == 2 and params.sequence == 1:
-            proc.T1measurement_IR_SE()
-        elif params.GUImode == 3 and params.sequence == 0:
-            proc.T2measurement_SE()
-        elif params.GUImode == 3 and params.sequence == 1:
-            proc.T2measurement_SIR_FID()
-        elif params.GUImode == 4:
-            seq.sequence_upload()
-        else:
-            seq.sequence_upload()
+        if params.connectionmode == 1:
+            if params.GUImode == 2 and params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.GUImode == 2 and params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.GUImode == 3 and params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.GUImode == 3 and params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.GUImode == 4:
+                seq.sequence_upload()
+            else:
+                seq.sequence_upload()
+        else: print('Not allowed in offline mode!')
             
     def load_params(self):
         self.Sequence_comboBox.clear()
@@ -940,56 +943,35 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.saveFile()
         
     def Autocentertool(self):
-        self.flippulselengthtemp = params.flippulselength
-        params.flippulselength = params.RFpulselength
+        if params.connectionmode == 1:
+            self.flippulselengthtemp = params.flippulselength
+            params.flippulselength = params.RFpulselength
         
-        proc.Autocentertool()
-        self.fig = Figure()
-        self.fig.set_facecolor("None")
-        self.fig_canvas = FigureCanvas(self.fig)
+            proc.Autocentertool()
+            self.fig = Figure()
+            self.fig.set_facecolor("None")
+            self.fig_canvas = FigureCanvas(self.fig)
         
-        self.ax = self.fig.add_subplot(111);
+            self.ax = self.fig.add_subplot(111);
         
-        self.ax.plot(params.ACvalues[0,:], params.ACvalues[1,:], 'o', color='#000000')
+            self.ax.plot(params.ACvalues[0,:], params.ACvalues[1,:], 'o', color='#000000')
         
-        self.ax.set_xlabel('Frequency [MHz]')
-        self.ax.set_ylabel('Signal')
+            self.ax.set_xlabel('Frequency [MHz]')
+            self.ax.set_ylabel('Signal')
         
-        self.fig_canvas.setGeometry(420, 40, 800, 750)
-        self.fig_canvas.show()
-        self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
+            self.fig_canvas.setGeometry(420, 40, 800, 750)
+            self.fig_canvas.show()
+            self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
-        params.flippulselength = self.flippulselengthtemp
+            params.flippulselength = self.flippulselengthtemp
+        else: print('Not allowed in offline mode!')
         
     def Flipangletool(self):
-        self.flippulselengthtemp = params.flippulselength
-        params.flippulselength = params.RFpulselength
+        if params.connectionmode == 1:
+            self.flippulselengthtemp = params.flippulselength
+            params.flippulselength = params.RFpulselength
         
-        proc.Flipangletool()
-        
-        self.fig = Figure()
-        self.fig.set_facecolor("None")
-        self.fig_canvas = FigureCanvas(self.fig)
-        
-        self.ax = self.fig.add_subplot(111);
-        
-        self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
-        
-        self.ax.set_xlabel('Attenuation [dB]')
-        self.ax.set_ylabel('Signal')
-        
-        self.fig_canvas.setGeometry(420, 40, 800, 750)
-        self.fig_canvas.show()
-        self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
-        
-        params.flippulselength = self.flippulselengthtemp
-        
-    def Shimtool(self):
-        print('WIP Shimtool')
-        
-        if params.ToolShimChannel != [0, 0, 0, 0]:
-        
-            proc.Shimtool()
+            proc.Flipangletool()
         
             self.fig = Figure()
             self.fig.set_facecolor("None")
@@ -997,32 +979,56 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
             self.ax = self.fig.add_subplot(111);
         
-            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[1,:]), 'o-', color='#0072BD')
-            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[2,:]), 'o-', color='#D95319')
-            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[3,:]), 'o-', color='#EDB120')
-            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[4,:]), 'o-', color='#7E2F8E')
-     
-            self.ax.set_xlabel('Shim [mA]')
+            self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
+        
+            self.ax.set_xlabel('Attenuation [dB]')
             self.ax.set_ylabel('Signal')
-            self.ax.legend(['X','Y','Z','Z²'])
+        
             self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
+            self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
-            if params.ToolShimChannel[0] == 1:
-                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[1,:])]))
-            else: self.Tool_Shim_X_Ref_lineEdit.setText(' ')
-            if params.ToolShimChannel[1] == 1:
-                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[2,:])]))
-            else: self.Tool_Shim_Y_Ref_lineEdit.setText(' ')
-            if params.ToolShimChannel[2] == 1:
-                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[3,:])]))
-            else: self.Tool_Shim_Z_Ref_lineEdit.setText(' ')
-            if params.ToolShimChannel[3] == 1:
-                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[4,:])]))
-            else: self.Tool_Shim_Z2_Ref_lineEdit.setText(' ')
+            params.flippulselength = self.flippulselengthtemp
+        else: print('Not allowed in offline mode!')
         
-        else: print('Please select gradient channel')
-    
+    def Shimtool(self):
+        if params.connectionmode == 1:
+            if params.ToolShimChannel != [0, 0, 0, 0]:
+        
+                proc.Shimtool()
+        
+                self.fig = Figure()
+                self.fig.set_facecolor("None")
+                self.fig_canvas = FigureCanvas(self.fig)
+        
+                self.ax = self.fig.add_subplot(111);
+        
+                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[1,:]), 'o-', color='#0072BD')
+                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[2,:]), 'o-', color='#D95319')
+                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[3,:]), 'o-', color='#EDB120')
+                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[4,:]), 'o-', color='#7E2F8E')
+     
+                self.ax.set_xlabel('Shim [mA]')
+                self.ax.set_ylabel('Signal')
+                self.ax.legend(['X','Y','Z','Z²'])
+                self.fig_canvas.setGeometry(420, 40, 800, 750)
+                self.fig_canvas.show()
+        
+                if params.ToolShimChannel[0] == 1:
+                    self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[1,:])]))
+                else: self.Tool_Shim_X_Ref_lineEdit.setText(' ')
+                if params.ToolShimChannel[1] == 1:
+                    self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[2,:])]))
+                else: self.Tool_Shim_Y_Ref_lineEdit.setText(' ')
+                if params.ToolShimChannel[2] == 1:
+                    self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[3,:])]))
+                else: self.Tool_Shim_Z_Ref_lineEdit.setText(' ')
+                if params.ToolShimChannel[3] == 1:
+                    self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[4,:])]))
+                else: self.Tool_Shim_Z2_Ref_lineEdit.setText(' ')
+        
+            else: print('Please select gradient channel')
+        else: print('Not allowed in offline mode!')
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
@@ -1563,7 +1569,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.setupUi(self)
 
         self.ui = loadUi('ui/connDialog.ui')
-        self.setGeometry(10, 40, 400, 200)
+        self.setGeometry(10, 40, 500, 250)
         self.ui.closeEvent = self.closeEvent
         self.conn_help = QPixmap('ui/connection_help.png')
         self.help.setVisible(False)
@@ -1571,6 +1577,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.conn_btn.clicked.connect(self.connect_event) 
         self.addIP_btn.clicked.connect(self.add_IP)
         self.rmIP_btn.clicked.connect(self.remove_IP)
+        self.offmod_btn.clicked.connect(self.offlinemode)
         self.status_label.setVisible(False)
 
         IPvalidator = QRegExp(
@@ -1588,17 +1595,23 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         connection = seq.conn_client()
 
         if connection:
+            params.connectionmode = 1
+            params.saveFile()
             self.status_label.setText('Connected.')
             self.connected.emit()
             self.mainwindow.show()
             self.close()
 
         elif not connection:
+            params.connectionmode = 0
+            params.saveFile()
             self.status_label.setText('Not connected.')
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
         else:
+            params.connectionmode = 0
+            params.saveFile()
             self.status_label.setText('Not connected with status: '+str(connection))
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
@@ -1623,7 +1636,10 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
             self.ip_box.removeItem(idx)
         except: pass
         print(params.hosts)
-
+        
+    def offlinemode(self):
+        self.mainwindow.show()
+        self.close()
 
 def run():
 

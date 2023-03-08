@@ -30,6 +30,7 @@ class Parameters:
     def var_init(self):
         print("Setting default parameters.")
         self.hosts = ['192.168.1.84']
+        self.connectionmode = 0
         self.GUImode = 0
         self.sequence = 0
         self.sequencefile = ''
@@ -165,6 +166,7 @@ class Parameters:
     def saveFile(self):  
         with open('parameters.pkl', 'wb') as file:
             pickle.dump([self.hosts, \
+                         self.connectionmode, \
                          self.GUImode, \
                          self.sequence, \
                          self.sequencefile, \
@@ -302,6 +304,7 @@ class Parameters:
         try:
             with open('parameters.pkl', 'rb') as file:
                 self.hosts, \
+                self.connectionmode, \
                 self.GUImode, \
                 self.sequence, \
                 self.sequencefile, \
