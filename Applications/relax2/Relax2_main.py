@@ -56,7 +56,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setWindowTitle('Relax 2.0')
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
-
+        
+        params.connectionmode = 0
         params.projaxis = np.zeros(3)
         params.ustime = 0
         params.usphase = 0
@@ -147,18 +148,21 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             print("Sequence:\t", params.sequence)
         
     def acquire(self):
-        if params.GUImode == 2 and params.sequence == 0:
-            proc.T1measurement_IR_FID()
-        elif params.GUImode == 2 and params.sequence == 1:
-            proc.T1measurement_IR_SE()
-        elif params.GUImode == 3 and params.sequence == 0:
-            proc.T2measurement_SE()
-        elif params.GUImode == 3 and params.sequence == 1:
-            proc.T2measurement_SIR_FID()
-        elif params.GUImode == 4:
-            seq.sequence_upload()
+        if params.connectionmode == 1:
+            if params.GUImode == 2 and params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.GUImode == 2 and params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.GUImode == 3 and params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.GUImode == 3 and params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.GUImode == 4:
+                seq.sequence_upload()
+            else:
+                seq.sequence_upload()
         else:
-            seq.sequence_upload()
+            print('Not allowed in offline mode!')
             
     def load_params(self):
         self.Sequence_comboBox.clear()
@@ -1571,6 +1575,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.conn_btn.clicked.connect(self.connect_event) 
         self.addIP_btn.clicked.connect(self.add_IP)
         self.rmIP_btn.clicked.connect(self.remove_IP)
+        self.offmod_btn.clicked.connect(self.offlinemode)
         self.status_label.setVisible(False)
 
         IPvalidator = QRegExp(
@@ -1588,17 +1593,23 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         connection = seq.conn_client()
 
         if connection:
+            params.connectionmode = 1
+            params.saveFile()
             self.status_label.setText('Connected.')
             self.connected.emit()
             self.mainwindow.show()
             self.close()
 
         elif not connection:
+            params.connectionmode = 0
+            params.saveFile()
             self.status_label.setText('Not connected.')
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
         else:
+            params.connectionmode = 0
+            params.saveFile()
             self.status_label.setText('Not connected with status: '+str(connection))
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
@@ -1623,7 +1634,10 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
             self.ip_box.removeItem(idx)
         except: pass
         print(params.hosts)
-
+        
+    def offlinemode(self):
+        self.mainwindow.show()
+        self.close()
 
 def run():
 
