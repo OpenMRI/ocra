@@ -5,10 +5,9 @@
 # NAME is the base name for most of the generated files.
 
 NAME ?= ocra_mri
-BOARD ?= stemlab
-
-PART ?= $(shell jq -r '.HDL.part' boards/$(BOARD)/ocra_config.json)
-PROC ?= ps7_cortexa9_0
+BOARD ?= stemlab_125_14
+export PART=$(shell jq -r '.HDL.part' boards/$(BOARD)/ocra_config.json)
+export PROC=$(shell jq -r '.HDL.proc' boards/$(BOARD)/ocra_config.json)
 
 CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
@@ -32,15 +31,35 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 
 .PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.tree/system.dts
 
-.PHONY: clean all xpr bit dtbo
+.PHONY: clean all xpr bit dtbo setup
 
-all: tmp/%.bit
+.ONESHELL:
+all: setup tmp/%.bit
 
-xpr: tmp/%.xpr
+.ONESHELL:
+xpr: setup tmp/%.xpr
 
-bit: tmp/%.bit
+.ONESHELL:
+bit: setup tmp/%.bit
 
-dtbo: tmp/%.dtbo
+.ONESHELL:
+dtbo: setup tmp/%.dtbo
+
+setup:
+    ifeq ("$(wildcard boards/$(BOARD)/ocra_config.json)","")
+        # The file doesn't exist
+		@echo "There seems to be no configuration for the board: $(BOARD)"
+		@echo "Please check the board string, and try again. Good luck!!"
+		exit 1
+    endif
+
+	@if ! jq -r '.HDL.projects' boards/$(BOARD)/ocra_config.json | grep -qw "$(NAME)"; then \
+        echo "The board: $(BOARD) does not appear to be supported by project $(NAME). Sorry!"; \
+        exit 1; \
+    fi
+
+	@echo "Great!! Building project: ${NAME} for board: ${BOARD} !"
+	@echo "part: $(PART)"
 
 $(DTREE_DIR): 
 	mkdir -p $@

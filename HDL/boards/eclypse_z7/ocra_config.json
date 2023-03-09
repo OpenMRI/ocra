@@ -1,5 +1,6 @@
 {
     "HDL": {
-        "part": "xc7z020clg484-1"
+        "part": "xc7z020clg484-1",
+        "proc": "ps7_cortexa9_0"
     }
 }
