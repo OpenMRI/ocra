@@ -1,6 +1,7 @@
 {
     "HDL": {
         "part": "xc7z020clg400-3",
-        "proc": "ps7_cortexa9_0"
+        "proc": "ps7_cortexa9_0",
+        "projects": ["shim_controller"]
     }
 }
