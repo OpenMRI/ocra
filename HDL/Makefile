@@ -7,7 +7,7 @@
 NAME ?= ocra_mri
 BOARD ?= stemlab
 
-PART ?= xc7z010clg400-1
+PART ?= $(shell jq -r '.HDL.part' boards/$(BOARD)/ocra_config.json)
 PROC ?= ps7_cortexa9_0
 
 CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
