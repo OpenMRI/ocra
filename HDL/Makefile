@@ -33,13 +33,15 @@ DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
 DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 
 
-.PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.fsbl/executable.elf tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.tree/system.dts
 
-all: tmp/$(BOARD)_$(NAME).dtbo tmp/$(BOARD)_$(NAME).bit
+all: tmp/$(BOARD)_$(NAME).bit
 
 xpr: tmp/$(BOARD)_$(NAME).xpr
 
 bit: tmp/$(BOARD)_$(NAME).bit
+
+dtbo: tmp/$(BOARD)_$(NAME).dtbo
 
 $(DTREE_DIR): 
 	mkdir -p $@
@@ -69,13 +71,8 @@ tmp/$(BOARD)_$(NAME).bit: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $(NAME) $(BOARD)
 
-tmp/%.bin: tmp/$(BOARD)_$(NAME).xpr
-	echo "all:{ $^}" > tmp/$(BOARD)_$(NAME).bif
-	bootgen -image tmp/$(BOARD)_$(NAME).bif -arch zynq -process_bitstream bin -w -o $@
-
 tmp/%.tree/system.dts: tmp/$(BOARD)_$(NAME).hdf $(DTREE_DIR)
 	$(HSI) scripts/devicetree.tcl $(NAME) $(PROC) $(DTREE_DIR) $(VIVADO_VER) $(BOARD)
-	#patch $@ patches/devicetree.patch
 
 clean:
 	$(RM) tmp
