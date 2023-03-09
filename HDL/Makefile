@@ -32,20 +32,22 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 
 .PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.tree/system.dts
 
-all: tmp/$(BOARD)_$(NAME).bit
+.PHONY: clean all xpr bit dtbo
 
-xpr: tmp/$(BOARD)_$(NAME).xpr
+all: tmp/%.bit
 
-bit: tmp/$(BOARD)_$(NAME).bit
+xpr: tmp/%.xpr
 
-dtbo: tmp/$(BOARD)_$(NAME).dtbo
+bit: tmp/%.bit
+
+dtbo: tmp/%.dtbo
 
 $(DTREE_DIR): 
 	mkdir -p $@
 	git clone $(DTREE_URL) $@
 	git --git-dir $@/.git --work-tree $@ checkout $(DTREE_TAG)
 
-tmp/$(BOARD)_$(NAME).dtbo: tmp/$(BOARD)_$(NAME).tree/system.dts
+tmp/%.dtbo: tmp/$(BOARD)_$(NAME).tree/system.dts
 	dtc -O dtb -o tmp/$(BOARD)_$(NAME).dtbo -b 0 -@ tmp/$(BOARD)_$(NAME).tree/pl.dtsi
 
 tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
@@ -56,7 +58,7 @@ tmp/cores/%: cores/%/core_config.tcl cores/%/*.v
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/core.tcl -tclargs $* $(PART)
 
-tmp/$(BOARD)_$(NAME).xpr: $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
+tmp/%.xpr: $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/, $(CORES)) 
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $(NAME) $(BOARD) $(PART)
 
@@ -64,7 +66,7 @@ tmp/%.hdf: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $(NAME) $(BOARD)
 
-tmp/$(BOARD)_$(NAME).bit: tmp/$(BOARD)_$(NAME).xpr
+tmp/%.bit: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $(NAME) $(BOARD)
 
