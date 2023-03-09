@@ -8,10 +8,11 @@
 # solution taken from http://www.googoolia.com/wp/2015/04/21/awk-symbol-lookup-error-awk-undefined-symbol-mpfr_z_sub/
 LD_LIBRARY_PATH =
 
-NAME = ocra_mri
+NAME ?= ocra_mri
+BOARD ?= stemlab
+
 PART = xc7z010clg400-1
 PROC = ps7_cortexa9_0
-BOARD = stemlab
 
 CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
 	axi_bram_writer_v1_0 axi_cfg_register_v1_0 axis_bram_reader_v1_0 axis_bram_writer_v1_0 axis_constant_v1_0 \
