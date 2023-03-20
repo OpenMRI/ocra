@@ -26,7 +26,8 @@ module axis_red_pitaya_adc #
    
   reg  [ADC_DATA_WIDTH-1:0] int_dat_a_reg;
   reg  [ADC_DATA_WIDTH-1:0] int_dat_b_reg;
-
+   reg [1:0] 		    int_channel_switch;
+   
   always @(posedge aclk)
   begin
     int_dat_a_reg <= adc_dat_a;

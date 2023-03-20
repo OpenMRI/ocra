@@ -37,6 +37,43 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_n adc_clk_n_i
 }
 
+# Create axi_cfg_register
+cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
+  CFG_DATA_WIDTH 128
+  AXI_ADDR_WIDTH 32
+  AXI_DATA_WIDTH 32
+}
+
+# Create slice with the TX configuration, which uses the bottom 32 bits
+cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
+  DIN_WIDTH 128 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+} {
+  Din cfg_0/cfg_data
+}
+
+# Create slice with the RX configuration and NCO configuration
+# RX seems to use the bottom 16 bit
+# NCO uses the upper 32 bit
+# Bits 63 to 48 seem free, USING bits 49,48 FOR ADC switch then
+cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
+  DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
+} {
+  Din cfg_0/cfg_data
+}
+
+# ADC switch slice
+cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
+  DIN_WIDTH 128 DIN_FROM 48 DIN_TO 48 DOUT_WIDTH 2
+} {
+  Din cfg_0/cfg_data
+}
+
+# Create another slice with data for the TX, which is another 32 bit
+cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
+  DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
+} {
+  Din cfg_0/cfg_data
+}
 # ADC
 
 # Create axis_red_pitaya_adc
@@ -45,6 +82,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
+  adc_channel_switch cfg_adc_switch
 }
 
 # Create axis_red_pitaya_dac
@@ -59,40 +97,6 @@ cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
   dac_dat dac_dat_o
 }
 
-# Create axi_cfg_register
-cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
-  CFG_DATA_WIDTH 128
-  AXI_ADDR_WIDTH 32
-  AXI_DATA_WIDTH 32
-}
-
-# Create xlslice
-cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg_0/cfg_data
-}
-
-# Create xlslice
-#cell xilinx.com:ip:xlslice:1.0 rst_slice_1 {
-#  DIN_WIDTH 128 DIN_FROM 15 DIN_TO 8 DOUT_WIDTH 8
-#} {
-#  Din cfg_0/cfg_data
-#}
-
-# Create xlslice
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
-} {
-  Din cfg_0/cfg_data
-}
-
-# Create xlslice
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
-} {
-  Din cfg_0/cfg_data
-}
 
 # Create xlconstant
 cell xilinx.com:ip:xlconstant:1.1 const_0
