@@ -8469,7 +8469,7 @@ int main(int argc)
   int fd, sock_server, sock_client, conn_status;
   void *cfg, *sts;
   volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider;
-  volatile uint16_t *rx_cntr, *tx_size;
+  volatile uint16_t *rx_cntr, *tx_size, *rx_switch;
   //volatile uint8_t *rx_rst, *tx_rst;
   volatile uint64_t *rx_data;
   void *tx_data;
