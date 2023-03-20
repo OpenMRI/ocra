@@ -63,7 +63,7 @@ cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
 
 # ADC switch slice
 cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
-  DIN_WIDTH 128 DIN_FROM 48 DIN_TO 48 DOUT_WIDTH 2
+  DIN_WIDTH 128 DIN_FROM 49 DIN_TO 48 DOUT_WIDTH 2
 } {
   Din cfg_0/cfg_data
 }
@@ -82,7 +82,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
-  adc_channel_switch cfg_adc_switch
+    adc_channel_switch cfg_adc_switch/Dout
 }
 
 # Create axis_red_pitaya_dac
