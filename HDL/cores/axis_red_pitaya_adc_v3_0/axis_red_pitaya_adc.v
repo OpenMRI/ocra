@@ -33,7 +33,6 @@ module axis_red_pitaya_adc #
     int_dat_a_reg <= adc_dat_a;
     int_dat_b_reg <= adc_dat_b;
     int_channel_switch <= adc_channel_switch;
-     
   end
 
   assign adc_csn = 1'b1;
