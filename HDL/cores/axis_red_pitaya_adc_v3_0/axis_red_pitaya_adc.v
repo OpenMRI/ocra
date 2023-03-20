@@ -31,16 +31,14 @@ module axis_red_pitaya_adc #
   begin
     int_dat_a_reg <= adc_dat_a;
     int_dat_b_reg <= adc_dat_b;
-    int_channel_switch <= adc_channel_switch,
+    int_channel_switch <= adc_channel_switch;
+     
   end
 
   assign adc_csn = 1'b1;
 
   assign m_axis_tvalid = 1'b1;
-
-  assign tdata = (sel == 3'b000) ? data_in_0 :
-                 (sel == 3'b001) ? data_in_1 :
-                                   data_in_2;   
+ 
   assign m_axis_tdata = (int_channel_switch == 2'b01) ? {{(SINGLE_PADDING_WIDTH+1){int_dat_a_reg[ADC_DATA_WIDTH-1]}}, ~int_dat_a_reg[ADC_DATA_WIDTH-2:0]} :
 			(int_channel_switch == 2'b10) ? {{(SINGLE_PADDING_WIDTH+1){int_dat_b_reg[ADC_DATA_WIDTH-1]}}, ~int_dat_b_reg[ADC_DATA_WIDTH-2:0]} :
 			                                {{(PADDING_WIDTH+1){int_dat_b_reg[ADC_DATA_WIDTH-1]}}, ~int_dat_b_reg[ADC_DATA_WIDTH-2:0],

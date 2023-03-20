@@ -40,7 +40,7 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
 # ADC
 
 # Create axis_red_pitaya_adc
-cell pavel-demin:user:axis_red_pitaya_adc:2.0 adc_0 {} {
+cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
   aclk pll_0/clk_out1
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
