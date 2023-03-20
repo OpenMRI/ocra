@@ -7,3 +7,6 @@ Seriously though, this repository is mostly code generated back in 2017 to demon
 If you're interested in learning more about getting started with OCRA, check out [The OCRA github page](https://openmri.github.io/ocra/).
 
 We also have a blog page about some of the hardware at the [The OCRA blog](https://zeugmatographix.org/ocra/2020/07/23/welcome-to-the-ocra-blog/)
+
+Its not straight-forward to build the FPGA bitfiles, at least until we provide better documentation. Until then, please find the bitfiles for the tabletop OCRA MRI setups here:
+[Downloadable binaries](https://drive.google.com/drive/folders/1gWpjpM8BfPyvGyobRKDbgHXIaMaJ5J4R?usp=share_link)
