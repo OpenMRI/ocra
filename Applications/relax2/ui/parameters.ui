@@ -694,28 +694,6 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="5">
-     <widget class="QLabel" name="label_3">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>RF Attenuation [dB]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="6">
      <widget class="QDoubleSpinBox" name="RF_Attenuation_doubleSpinBox">
       <property name="minimumSize">
@@ -2936,6 +2914,79 @@
        <number>10</number>
       </property>
      </widget>
+    </item>
+    <item row="3" column="5">
+     <widget class="QLabel" name="label_3">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>RF Attenuation [dB]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="5">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="RX1_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>75</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>RX1</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="RX2_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>71</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>RX2</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

@@ -8756,18 +8756,29 @@ int main(int argc)
       */
       
       //------------------------------------------------------------------------
+      //  Change RX mode
+      //------------------------------------------------------------------------
+      if ( trig == 1 ) {
+        printf("Set RX mode.\n");
+        int rxmode = (int)command[36];
+        printf("RX mode: %d \n", rxmode);
+        // 0 = no RX, 1 = RX1, 2 = RX2, 3 = RX1 and RX2
+        continue;
+      }
+      
+      //------------------------------------------------------------------------
       //  Change center frequency
       //------------------------------------------------------------------------
-      if ( trig == 2 ) {
+      else if ( trig == 2 ) {
         printf("Change frequency value.\n");
-        freq = command[36] + command[37]*0x100 +command[38]*0x10000 + command[39]*0x1000000;
+        freq = command[36] + command[37]*0x100 + command[38]*0x10000 + command[39]*0x1000000;
         *rx_freq = (uint32_t)floor(freq / 125.0e6 * (1<<30) + 0.5);
         printf("Setting frequency to %.4f MHz\n",freq/1e6f);
         if(freq < 0 || freq > 60000000) {
           printf("Frequency value out of range\n");
           continue;
         }
-        continue;  // wait for acquire command
+        continue;
       }
       
       //------------------------------------------------------------------------
@@ -8775,7 +8786,7 @@ int main(int argc)
       //------------------------------------------------------------------------
       else if ( trig == 3 ) {
         printf("Change attenuator value.\n");
-        unsigned int attn_value = command[36] + command[37]*0x100 +command[38]*0x10000 + command[39]*0x1000000;
+        unsigned int attn_value = command[36] + command[37]*0x100 + command[38]*0x10000 + command[39]*0x1000000;
         printf("Setting attenuation to %.2f dB\n", (float)(attn_value)*0.25);
         if (attn_value > 127) {
           printf("Attenuator setting out of range, clipping at 31.75 dB\n");
@@ -8783,7 +8794,7 @@ int main(int argc)
         }
         // set the attenuation value
         attn_config[0] = attn_value;
-        continue;  // wait for acquire command
+        continue;
       }
       
       //------------------------------------------------------------------------
@@ -8814,7 +8825,7 @@ int main(int argc)
 
         //printf("%s \n", "Pulse sequence loaded");
         update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
-        continue;  // wait for acquire command
+        continue;
       }
       
       //------------------------------------------------------------------------
@@ -8826,7 +8837,7 @@ int main(int argc)
 
         grad_ax = command[32];
         grad_sign = command[39];
-        grad_offset = command[36] +command[37]*0x100 + command[38]*0x1000;
+        grad_offset = command[36] + command[37]*0x100 + command[38]*0x1000;
         printf("Axis = %d \n", grad_ax);
         printf("Sign = %d \n", grad_sign);
         printf("Value = %d \n", grad_offset);

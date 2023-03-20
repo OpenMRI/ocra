@@ -89,7 +89,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Mode_T2_Measurement_pushButton.clicked.connect(lambda: self.switch_GUImode(3))
         self.Mode_Projections_pushButton.clicked.connect(lambda: self.switch_GUImode(4))
         
-        #self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery','Saturation Inversion Recovery (FID)'])
         self.Sequence_comboBox.currentIndexChanged.connect(self.set_sequence)
         self.Parameters_pushButton.clicked.connect(lambda: self.parameter_window())
         self.Acquire_pushButton.clicked.connect(lambda: self.acquire())
@@ -455,6 +454,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Slice_Thickness_doubleSpinBox.setKeyboardTracking(False)
         self.Slice_Thickness_doubleSpinBox.valueChanged.connect(self.update_params)
         
+        self.RX1_radioButton.toggled.connect(self.update_params)
+        self.RX2_radioButton.toggled.connect(self.update_params)
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -538,6 +540,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Slice_Offset_doubleSpinBox.setValue(params.sliceoffset)
         
         if params.autofreqoffset == 1: self.Auto_Frequency_Offset_radioButton.setChecked(True)
+        
+        if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
+        if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
         
     def update_flippulselength(self):
         params.flipangetime = self.Flipangle_Time_spinBox.value()
@@ -751,7 +756,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             self.Deltaf = 1 / (params.flippulselength) *1000000
             
             self.Gz = (2 * np.pi * self.Deltaf)/(2 * np.pi * 42.57 * (params.slicethickness))
-            print(self.Gz)
             params.GSamplitude = int(self.Gz / self.Gzsens * 1000)
 
             self.Gz3D = (2 * np.pi / params.slicethickness)/(2 * np.pi * 42.57 * (self.GPEtime/1000000))
@@ -789,6 +793,24 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if self.ln_kSpace_Magnitude_radioButton.isChecked(): params.lnkspacemag = 1
         else: params.lnkspacemag = 0
+        
+        if self.RX1_radioButton.isChecked(): params.rx1 = 1
+        else: params.rx1 = 0
+        if self.RX2_radioButton.isChecked(): params.rx2 = 1
+        else: params.rx2 = 0
+        
+        if params.rx1 == 0 and params.rx2 == 0:
+            params.rxmode = 0
+            print('Please select RX1 or RX2!')
+        elif params.rx1 == 1 and params.rx2 == 0:
+            params.rxmode = 1
+        elif params.rx1 == 0 and params.rx2 == 1:
+            params.rxmode = 2
+        elif params.rx1 == 1 and params.rx2 == 1:
+            params.rxmode = 3
+            print('Please select RX1 or RX2!')
+        
+        print('RX mode: ',params.rxmode)
         
         params.saveFile()
         
