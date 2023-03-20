@@ -52,8 +52,8 @@ cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
 }
 
 # Create slice with the RX configuration and NCO configuration
-# RX seems to use the bottom 16 bit
-# NCO uses the upper 32 bit
+# RX seems to use the bottom 16 bit of the upper 32 bit
+# NCO uses the bottom 32 bit
 # Bits 63 to 48 seem free, USING bits 49,48 FOR ADC switch then
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
   DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
