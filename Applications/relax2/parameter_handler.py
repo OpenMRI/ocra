@@ -47,6 +47,9 @@ class Parameters:
         self.flippulselength = 50
         self.flippulseamplitude = 16384
         self.RFattenuation = -15.00
+        self.rx1 = 1
+        self.rx2 = 0
+        self.rxmode = 1
         self.TS = 6
         self.ROBWscaler = 1
         self.TE = 15
@@ -183,6 +186,9 @@ class Parameters:
                          self.flippulselength, \
                          self.flippulseamplitude, \
                          self.RFattenuation, \
+                         self.rx1, \
+                         self.rx2, \
+                         self.rxmode, \
                          self.TS, \
                          self.ROBWscaler, \
                          self.TE, \
@@ -321,6 +327,9 @@ class Parameters:
                 self.flippulselength, \
                 self.flippulseamplitude, \
                 self.RFattenuation, \
+                self.rx1, \
+                self.rx2, \
+                self.rxmode, \
                 self.TS, \
                 self.ROBWscaler, \
                 self.TE, \
