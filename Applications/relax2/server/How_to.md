@@ -1,6 +1,6 @@
 1.) Remote access the Red Pitaya
 
-The Red Pitaya (RP) needs to be connected with the host (Raspberry Pi) via Ethernet.
+The Red Pitaya (RP) needs to be connected with the host (here in use with a Raspberry Pi) via Ethernet.
 
 Connect the RP with an ethernet cable directly to the Raspberry Pi.
 
