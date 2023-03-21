@@ -26,7 +26,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "fonttools"
-version = "4.39.0"
+version = "4.39.2"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -273,7 +273,10 @@ content-hash = "d91f94789b834755329a2b187c53a3c0fe903c8a52ab11c39a26eeb7ac0d9478
 [metadata.files]
 contourpy = []
 cycler = []
-fonttools = []
+fonttools = [
+    {file = "fonttools-4.39.2-py3-none-any.whl", hash = "sha256:85245aa2fd4cf502a643c9a9a2b5a393703e150a6eaacc3e0e84bb448053f061"},
+    {file = "fonttools-4.39.2.zip", hash = "sha256:e2d9f10337c9e3b17f9bce17a60a16a885a7d23b59b7f45ce07ea643e5580439"},
+]
 importlib-resources = []
 kiwisolver = []
 matplotlib = []

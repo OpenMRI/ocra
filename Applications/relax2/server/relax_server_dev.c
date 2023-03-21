@@ -8469,7 +8469,7 @@ int main(int argc)
   int fd, sock_server, sock_client, conn_status;
   void *cfg, *sts;
   volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider;
-  volatile uint16_t *rx_cntr, *tx_size;
+  volatile uint16_t *rx_cntr, *tx_size, *rx_switch;
   //volatile uint8_t *rx_rst, *tx_rst;
   volatile uint64_t *rx_data;
   void *tx_data;
@@ -8565,6 +8565,9 @@ int main(int argc)
   //tx_rst = ((uint8_t *)(cfg + 1));
   tx_size = ((uint16_t *)(cfg + 12));
 
+  //rx_switch
+  rx_switch = ((uint16_t *)(cfg + 6));
+  
   printf("Setting FPGA clock to 143 MHz !\n"); fflush(stdout);
 
   // set FPGA clock to 143 MHz
@@ -8762,7 +8765,8 @@ int main(int argc)
         printf("Set RX mode.\n");
         int rxmode = (int)command[36];
         printf("RX mode: %d \n", rxmode);
-        // 0 = no RX, 1 = RX1, 2 = RX2, 3 = RX1 and RX2
+        // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
+	*rx_switch = rxmode & (0x0003);
         continue;
       }
       
