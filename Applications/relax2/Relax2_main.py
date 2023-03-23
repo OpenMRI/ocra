@@ -114,31 +114,31 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)', 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)', 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)', 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)', 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)', 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)', 'RF Testsequence', 'Gradient Testsequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('Relax2_Rawdata/GOMRI_Spectrum_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 1:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', 'WIP 2D Radial (GRE, Half)', 'WIP 2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', 'WIP 2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)', '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)', 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)', 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)', 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)', 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo', '3D FFT Spin Echo ( Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('Relax2_Rawdata/GOMRI_Image_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 2:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('Relax2_Rawdata/GOMRI_T1_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/T1_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery [FID]'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('Relax2_Rawdata/GOMRI_T2_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 4:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)', 'Spin Echo (On Angle)'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('Relax2_Rawdata/GOMRI_Projection_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/Projection_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         
     def set_sequence(self, idx):
@@ -160,7 +160,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 seq.sequence_upload()
             else:
                 seq.sequence_upload()
-        else: print('Not allowed in offline mode!')
+        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
             
     def load_params(self):
         self.Sequence_comboBox.clear()
@@ -801,14 +801,14 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if params.rx1 == 0 and params.rx2 == 0:
             params.rxmode = 0
-            print('Please select RX1 or RX2!')
+            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
         elif params.rx1 == 1 and params.rx2 == 0:
             params.rxmode = 1
         elif params.rx1 == 0 and params.rx2 == 1:
             params.rxmode = 2
         elif params.rx1 == 1 and params.rx2 == 1:
             params.rxmode = 3
-            print('Please select RX1 or RX2!')
+            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
         
         print('RX mode: ',params.rxmode)
         
@@ -1486,33 +1486,33 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.datatxt = np.matrix(np.zeros((params.freqencyaxis.shape[0],2)))
             self.datatxt[:,0] = params.freqencyaxis.reshape(params.freqencyaxis.shape[0],1)
             self.datatxt[:,1] = params.spectrumfft
-            np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_Spectrum_Image_Data.txt', self.datatxt)
+            np.savetxt('imagedata/' + params.dataTimestamp + '_Spectrum_Image_Data.txt', self.datatxt)
             print('Spectrum image data saved!')
         elif params.GUImode == 1:
             if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
                 self.datatxt = np.matrix(np.zeros((params.img_mag.shape[1],params.img_mag.shape[0]*params.img_mag.shape[2])))
                 for m in range(params.img_mag.shape[0]):
                     self.datatxt[:,m*params.img_mag.shape[2]:m*params.img_mag.shape[2]+params.img_mag.shape[2]] = params.img_mag[m,:,:]
-                np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_mag.shape[0]) + '_Magnitude_Image_Data.txt', self.datatxt)
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_mag.shape[0]) + '_Magnitude_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
             else:
-                np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_Magnitude_Image_Data.txt', params.img_mag)
+                np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Data.txt', params.img_mag)
                 print('Magnitude image data saved!')
         elif params.GUImode == 2:
             self.datatxt = np.matrix(np.zeros((params.T1xvalues.shape[0],3)))
             self.datatxt[:,0] = params.T1xvalues.reshape(params.T1xvalues.shape[0],1)
             self.datatxt[:,1] = params.T1yvalues1.reshape(params.T1yvalues1.shape[0],1)
             self.datatxt[:,2] = params.T1regyvalues1.reshape(params.T1regyvalues1.shape[0],1)
-            np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_T1_Image_Data.txt', self.datatxt)
+            np.savetxt('imagedata/' + params.dataTimestamp + '_T1_Image_Data.txt', self.datatxt)
             print('T1 image data saved!')
         elif params.GUImode == 3:
             self.datatxt = np.matrix(np.zeros((params.T2xvalues.shape[0],3)))
             self.datatxt[:,0] = params.T2xvalues.reshape(params.T2xvalues.shape[0],1)
             self.datatxt[:,1] = params.T2yvalues.reshape(params.T2yvalues.shape[0],1)
             self.datatxt[:,2] = params.T2regyvalues.reshape(params.T2regyvalues.shape[0],1)
-            np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_T2_Image_Data.txt', self.datatxt)
+            np.savetxt('imagedata/' + params.dataTimestamp + '_T2_Image_Data.txt', self.datatxt)
             print('T2 image data saved!')
         elif params.GUImode == 4:
             print('WIP!')
@@ -1527,12 +1527,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.datatxt = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0]*params.img_pha.shape[2])))
                 for m in range(params.img_pha.shape[0]):
                     self.datatxt[:,m*params.img_pha.shape[2]:m*params.img_pha.shape[2]+params.img_pha.shape[2]] = params.img_pha[m,:,:]
-                np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_pha.shape[0]) + '_Phase_Image_Data.txt', self.datatxt)
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_pha.shape[0]) + '_Phase_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
             else:
-                np.savetxt('Relax2_Imagedata/'+ params.dataTimestamp + '_Phase_Image_Data.txt', params.img_pha)
+                np.savetxt('imagedata/'+ params.dataTimestamp + '_Phase_Image_Data.txt', params.img_pha)
                 print('Phase image data saved!')
         elif params.GUImode == 2:
             print('Please use Save Mag Image Data button!')
@@ -1551,12 +1551,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.datatxt = np.matrix(np.zeros((params.img.shape[1],params.img.shape[0]*params.img.shape[2]), dtype = np.complex64))
                 for m in range(params.img.shape[0]):
                     self.datatxt[:,m*params.img.shape[2]:m*params.img.shape[2]+params.img.shape[2]] = params.img[m,:,:]
-                np.savetxt('Relax2_Imagedata/' + params.dataTimestamp + '_3D_' + str(params.img.shape[0]) + '_Image_Data.txt', self.datatxt)
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img.shape[0]) + '_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
             else:
-                np.savetxt('Relax2_Imagedata/'+ params.dataTimestamp + '_Image_Data.txt', params.img)
+                np.savetxt('imagedata/'+ params.dataTimestamp + '_Image_Data.txt', params.img)
                 print('Image data saved!')
         elif params.GUImode == 2:
             print('Please use Save Mag Image Data button!')
