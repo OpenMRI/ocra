@@ -160,7 +160,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 seq.sequence_upload()
             else:
                 seq.sequence_upload()
-        else: print('Not allowed in offline mode!')
+        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
             
     def load_params(self):
         self.Sequence_comboBox.clear()
@@ -801,14 +801,14 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if params.rx1 == 0 and params.rx2 == 0:
             params.rxmode = 0
-            print('Please select RX1 or RX2!')
+            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
         elif params.rx1 == 1 and params.rx2 == 0:
             params.rxmode = 1
         elif params.rx1 == 0 and params.rx2 == 1:
             params.rxmode = 2
         elif params.rx1 == 1 and params.rx2 == 1:
             params.rxmode = 3
-            print('Please select RX1 or RX2!')
+            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
         
         print('RX mode: ',params.rxmode)
         
