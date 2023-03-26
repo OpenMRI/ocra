@@ -8510,6 +8510,7 @@ int main(int argc)
   uint32_t npe;   // Number of phase encodings for 2D SE
   uint32_t proj_ax;
 
+  uint32_t atten_address = 0; // hardwired for now
   // -- Defaults (freq & at in mem map) -- //
   uint32_t default_frequency = 11300000; // 11.3MHz
   volatile uint32_t *attn_config;
@@ -8541,7 +8542,7 @@ int main(int argc)
   unsigned int attn_bits = attenuation/0.25;
 
   // set the attenuation value
-  attn_config[0] = attn_bits;
+  attn_config[0] = attn_bits & (0x000000ff) | ((attn_address & 0x7) << 8);
 
   printf("Attn register value: %g dB (bits = %d)\n",attenuation,attn_config[0]);
 
