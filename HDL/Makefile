@@ -89,7 +89,7 @@ tmp/%.bit: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $(NAME) $(BOARD)
 
-tmp/%.bin: tmp/%.bit
+tmp/%.bin: tmp/$(BOARD)_$(NAME).bit
 	echo "all:{ $^}" > tmp/$(BOARD)_$(NAME).bif
 	bootgen -image tmp/$(BOARD)_$(NAME).bif -arch zynq -process_bitstream bin -w -o $@
 
