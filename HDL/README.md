@@ -9,3 +9,9 @@ To get a quick start, assuming you have Vitis/Vivado configured in your path, yo
 make NAME=base_pl BOARD=snickerdoodle_black
 ```
 
+Similarily, you can build the ocra_mri project for the stemlab_125_14 by calling
+```
+make NAME=ocra_mri BOARD=stemlab_125_14
+```
+
+This is pretty easy, isn't it?
