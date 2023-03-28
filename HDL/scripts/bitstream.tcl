@@ -15,5 +15,7 @@ set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
 write_bitstream -force -file tmp/${board_name}_${project_name}.bit
 
+open_run impl_1
+write_hw_platform -fixed -force -include_bit tmp/${board_name}_${project_name}.xsa
 
 close_project
