@@ -8797,11 +8797,9 @@ int main(int argc)
           printf("Attenuator setting out of range, clipping at 31.75 dB\n");
           attn_value = 127;
         }
-        // convert to the bits
-		unsigned int attn_bits = attenuation/0.25;
 
 		// set the attenuation value
-		attn_config[0] = attn_bits & (0x000000ff) | ((attn_address & 0x7) << 8);
+		attn_config[0] = attn_value & (0x000000ff) | ((attn_address & 0x7) << 8);
         continue;
       }
       
