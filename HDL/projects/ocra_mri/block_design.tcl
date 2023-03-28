@@ -75,6 +75,17 @@ cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
   Din cfg_1/cfg_data
 }
 
+# Clock domain crossing
+cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
+
+} {
+    src_in cfg_adc_switch/Dout
+    dest_clk pll_0/clk_out1
+    src_clk ps_0/FCLK_CLK0
+}
+set_property CONFIG.CDC_TYPE {xpm_cdc_array_single} [get_bd_cells xpm_cdc_gen_0]
+set_property CONFIG.WIDTH {2} [get_bd_cells xpm_cdc_gen_0]
+
 # Create another slice with data for the TX, which is another 32 bit
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
   DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
@@ -89,7 +100,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
-    adc_channel_switch cfg_adc_switch/Dout
+  adc_channel_switch xpm_cdc_gen_0/dest_out
 }
 
 # Create axis_red_pitaya_dac
