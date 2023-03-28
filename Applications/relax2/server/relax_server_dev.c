@@ -8798,8 +8798,8 @@ int main(int argc)
           attn_value = 127;
         }
 
-		// set the attenuation value
-		attn_config[0] = attn_value & (0x000000ff) | ((attn_address & 0x7) << 8);
+	    // set the attenuation value
+	    attn_config[0] = attn_value & (0x000000ff) | ((attn_address & 0x7) << 8);
         continue;
       }
       
