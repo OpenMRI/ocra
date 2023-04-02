@@ -1,4 +1,4 @@
-A file to put in stuff to code :-)
+A file to put in helpful stuff to code :-)
 
 250 Samples / ms
 
@@ -33,9 +33,8 @@ slicethickness [mm]
 
 Gslice [mT/m] = Delta_f / (42.57kHz/mT * slicethickness / 1000)
 
-		2mm, 200us > 117,45	m
+		2mm, 200us > 117,45
 
-gx[] =
 
 
 

@@ -36,8 +36,8 @@ Stop the server on the Red Pitaya with the ssh terminal command:
 /etc/init.d/relax_serverd stop
 
 Open a second (parallel) terminal (this will be the Raspberry side) and copy the server from the Raspberry to the Red Pitaya with the command:
-9
-scp /home/pi/Relax2/server/relax_server_dev.c root@192.168.1.84: (general command: scp [path]relax_server_dev.c root@[IP]:)
+
+scp /home/pi/relax2/server/relax_server_dev.c root@192.168.1.84: (general command: scp [path]relax_server_dev.c root@[IP]:)
 
 To compile the server, type the following command in the Red Pitaya ssh terminal:
 
@@ -84,7 +84,7 @@ Then type:
 
 In a second terminal (Raspberry side) copy the script to the RP.
 
-scp /home/pi/Relax2/server/relax_serverd root@192.168.1.84:/etc/init.d/
+scp /home/pi/relax2/server/relax_serverd root@192.168.1.84:/etc/init.d/
 
 (general command: scp [path]relax_serverd root@[IP]:/etc/init.d/)
 
