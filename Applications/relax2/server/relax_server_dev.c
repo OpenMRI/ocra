@@ -8165,6 +8165,8 @@ int main(int argc)
 
       trig = (float)command[0] + (float)command[1]*0x100;
       //printf("Trigger %d \n", trig);
+	  
+	  //printf("Command 0-40: \n 0: %d, 1: %d, 2: %d, 3: %d \n 4: %d, 5: %d, 6: %d, 7: %d \n 8: %d, 9: %d, 10: %d, 11: %d \n 12: %d, 13: %d, 14: %d, 15: %d \n 16: %d, 17: %d, 18: %d, 19: %d \n 20: %d, 21: %d, 22: %d, 23: %d \n 24: %d, 25: %d, 26: %d, 27: %d \n 28: %d, 29: %d, 30: %d, 31: %d \n 32: %d, 33: %d, 34: %d, 35: %d \n 36: %d, 37: %d, 38: %d, 39: %d \n", command[0], command[1], command[2], command[3], command[4], command[5], command[6], command[7], command[8], command[9], command[10], command[11], command[12], command[13], command[14], command[15], command[16], command[17], command[18], command[19], command[20], command[21], command[22], command[23], command[24], command[25], command[26], command[27], command[28], command[29], command[30], command[31], command[32], command[33], command[34], command[35], command[36], command[37], command[38], command[39]);
       
       //------------------------------------------------------------------------
       //  Change RX mode
