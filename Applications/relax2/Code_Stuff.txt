@@ -1,4 +1,4 @@
-A file to put in stuff to code :-)
+A file to put in helpfull stuff to code :-)
 
 250 Samples / ms
 
