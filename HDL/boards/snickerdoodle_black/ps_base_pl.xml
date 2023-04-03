@@ -93,6 +93,8 @@
         <user_parameter name="CONFIG.PCW_SD1_SD1_IO" value="MIO 10 .. 15"/>
         <user_parameter name="CONFIG.PCW_UART0_PERIPHERAL_ENABLE" value="1"/>
         <user_parameter name="CONFIG.PCW_UART0_UART0_IO" value="MIO 50 .. 51"/>
+	<user_parameter name="CONFIG.PCW_UART1_PERIPHERAL_ENABLE" value="1"/>
+        <user_parameter name="CONFIG.PCW_UART1_UART1_IO" value="MIO 36 .. 37"/>
         <user_parameter name="CONFIG.PCW_SPI1_PERIPHERAL_ENABLE" value="1"/>
         <user_parameter name="CONFIG.PCW_SPI1_SPI1_IO" value="MIO 46 .. 51"/>
         <user_parameter name="CONFIG.PCW_SPI1_GRP_SS0_ENABLE" value="1"/>
