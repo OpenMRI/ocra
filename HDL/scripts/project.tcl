@@ -7,6 +7,9 @@ file delete -force tmp/${board_name}_${project_name}.cache tmp/${board_name}_${p
 
 create_project -part $part_name ${board_name}_${project_name} tmp
 
+set_property board_part krtkl.com:snickerdoodle_black:part0:1.0 [current_project]
+set_property platform.extensible true [current_project]
+
 set_property IP_REPO_PATHS {tmp/cores tmp/cores_pavel} [current_project]
 
 set bd_path tmp/${board_name}_${project_name}.srcs/sources_1/bd/system
