@@ -1,7 +1,5 @@
 global board_name
-global project_name
-
-set ps_preset boards/${board_name}/ps_${project_name}.xml
+global project_name4
 
 # Create processing_system7
 cell xilinx.com:ip:processing_system7:5.5 ps_0 {
@@ -12,9 +10,10 @@ cell xilinx.com:ip:processing_system7:5.5 ps_0 {
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
-  make_external {FIXED_IO, DDR}
-  Master Disable
-  Slave Disable
+    make_external {FIXED_IO, DDR}
+    apply_board_preset 1
+    Master Disable
+    Slave Disable
 } [get_bd_cells ps_0]
 
 # Create proc_sys_reset
