@@ -1,13 +1,22 @@
+package require json
 
 set project_name [lindex $argv 0]
 set board_name [lindex $argv 1]
-set part_name [lindex $argv 2]
+
+# read the ocra_config for the board
+set ocra_config_fd [open boards/${board_name}/ocra_config.json "r"]
+set ocra_config_str [read $ocra_config_fd]
+close $ocra_config_fd
+set ocra_config_dict [json::json2dict $ocra_config_str] 
+
+set part_name [dict get $ocra_config_dict HDL part]
+set board_part [dict get $ocra_config_dict HDL board_part]
 
 file delete -force tmp/${board_name}_${project_name}.cache tmp/${board_name}_${project_name}.hw tmp/${board_name}_${project_name}.srcs tmp/${board_name}_${project_name}.runs tmp/${board_name}_${project_name}.xpr
 
 create_project -part $part_name ${board_name}_${project_name} tmp
 
-set_property board_part krtkl.com:snickerdoodle_black:part0:1.0 [current_project]
+set_property board_part $board_part [current_project]
 set_property platform.extensible true [current_project]
 
 set_property IP_REPO_PATHS {tmp/cores tmp/cores_pavel} [current_project]
