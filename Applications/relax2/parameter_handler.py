@@ -166,7 +166,7 @@ class Parameters:
         self.STvalues = []
         
 
-    def saveFile(self):  
+    def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
             pickle.dump([self.hosts, \
                          self.connectionmode, \
@@ -201,27 +201,15 @@ class Parameters:
                          self.frequencyrange, \
                          self.samples, \
                          self.sampledelay, \
-                         self.spectrumdata, \
                          self.dataTimestamp, \
                          self.timeaxis, \
-                         self.mag, \
-                         self.real, \
-                         self.imag, \
-                         self.freqencyaxis, \
                          self.frequencyplotrange, \
-                         self.spectrumfft, \
                          self.FWHM, \
                          self.peakvalue, \
                          self.noise, \
                          self.SNR, \
                          self.inhomogeneity, \
                          self.centerfrequency, \
-                         self.kspace, \
-                         self.k_amp, \
-                         self.k_pha, \
-                         self.img, \
-                         self.img_mag, \
-                         self.img_pha, \
                          self.ACstart, \
                          self.ACstop, \
                          self.ACstepwidth, \
@@ -235,22 +223,10 @@ class Parameters:
                          self.TIstart, \
                          self.TIstop, \
                          self.TIsteps, \
-                         self.T1values, \
-                         self.T1xvalues, \
-                         self.T1yvalues1, \
-                         self.T1yvalues2, \
-                         self.T1linregres, \
-                         self.T1regyvalues1, \
-                         self.T1regyvalues2, \
                          self.T1, \
                          self.TEstart, \
                          self.TEstop, \
                          self.TEsteps, \
-                         self.T2values, \
-                         self.T2xvalues, \
-                         self.T2yvalues, \
-                         self.T2linregres, \
-                         self.T2regyvalues, \
                          self.T2, \
                          self.projaxis, \
                          self.average, \
@@ -276,7 +252,6 @@ class Parameters:
                          self.GSPEstep, \
                          self.SPEsteps, \
                          self.Gdiffamplitude, \
-                         self.img_mag_diff, \
                          self.crusheramplitude, \
                          self.spoileramplitude, \
                          self.GROpretime, \
@@ -305,6 +280,36 @@ class Parameters:
                          self.STvalues], file)
        
         print("Parameters saved!")
+        
+    def saveFileData(self):  
+        with open('data.pkl', 'wb') as file:
+            pickle.dump([self.spectrumdata, \
+                         self.mag, \
+                         self.real, \
+                         self.imag, \
+                         self.freqencyaxis, \
+                         self.spectrumfft, \
+                         self.kspace, \
+                         self.k_amp, \
+                         self.k_pha, \
+                         self.img, \
+                         self.img_mag, \
+                         self.img_pha, \
+                         self.T1values, \
+                         self.T1xvalues, \
+                         self.T1yvalues1, \
+                         self.T1yvalues2, \
+                         self.T1linregres, \
+                         self.T1regyvalues1, \
+                         self.T1regyvalues2, \
+                         self.T2values, \
+                         self.T2xvalues, \
+                         self.T2yvalues, \
+                         self.T2linregres, \
+                         self.T2regyvalues, \
+                         self.img_mag_diff], file)
+       
+        print("Data saved!")
 
     def loadParam(self):
         try:
@@ -342,27 +347,15 @@ class Parameters:
                 self.frequencyrange, \
                 self.samples, \
                 self.sampledelay, \
-                self.spectrumdata, \
                 self.dataTimestamp, \
                 self.timeaxis, \
-                self.mag, \
-                self.real, \
-                self.imag, \
-                self.freqencyaxis, \
                 self.frequencyplotrange, \
-                self.spectrumfft, \
                 self.FWHM, \
                 self.peakvalue, \
                 self.noise, \
                 self.SNR, \
                 self.inhomogeneity, \
                 self.centerfrequency, \
-                self.kspace, \
-                self.k_amp, \
-                self.k_pha, \
-                self.img, \
-                self.img_mag, \
-                self.img_pha, \
                 self.ACstart, \
                 self.ACstop, \
                 self.ACstepwidth, \
@@ -376,22 +369,10 @@ class Parameters:
                 self.TIstart, \
                 self.TIstop, \
                 self.TIsteps, \
-                self.T1values, \
-                self.T1xvalues, \
-                self.T1yvalues1, \
-                self.T1yvalues2, \
-                self.T1linregres, \
-                self.T1regyvalues1, \
-                self.T1regyvalues2, \
                 self.T1, \
                 self.TEstart, \
                 self.TEstop, \
                 self.TEsteps, \
-                self.T2values, \
-                self.T2xvalues, \
-                self.T2yvalues, \
-                self.T2linregres, \
-                self.T2regyvalues, \
                 self.T2, \
                 self.projaxis, \
                 self.average, \
@@ -417,7 +398,6 @@ class Parameters:
                 self.GSPEstep, \
                 self.SPEsteps, \
                 self.Gdiffamplitude, \
-                self.img_mag_diff, \
                 self.crusheramplitude, \
                 self.spoileramplitude, \
                 self.GROpretime, \
@@ -449,6 +429,41 @@ class Parameters:
                 
         except:
             print("Parameter could not have been restored, setting default.")
+            self.var_init()
+            
+    def loadData(self):
+        try:
+            with open('data.pkl', 'rb') as file:
+                self.spectrumdata, \
+                self.mag, \
+                self.real, \
+                self.imag, \
+                self.freqencyaxis, \
+                self.spectrumfft, \
+                self.kspace, \
+                self.k_amp, \
+                self.k_pha, \
+                self.img, \
+                self.img_mag, \
+                self.img_pha, \
+                self.T1values, \
+                self.T1xvalues, \
+                self.T1yvalues1, \
+                self.T1yvalues2, \
+                self.T1linregres, \
+                self.T1regyvalues1, \
+                self.T1regyvalues2, \
+                self.T2values, \
+                self.T2xvalues, \
+                self.T2yvalues, \
+                self.T2linregres, \
+                self.T2regyvalues, \
+                self.img_mag_diff = pickle.load(file)
+             
+                print("Internal GUI Data successfully restored from file.")
+                
+        except:
+            print("Data could not have been restored, setting default.")
             self.var_init()
 
     def dispVars(self):

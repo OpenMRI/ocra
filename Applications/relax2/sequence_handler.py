@@ -32,6 +32,7 @@ class sequence:
     def __init__(self):
 
         params.loadParam()
+        
         self.initVariables()
         
         self.seq_fid = 'sequences/spectroscopy/FID.txt'

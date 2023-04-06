@@ -260,6 +260,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.spectrum_process()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
+                
+        params.saveFileData()
    
     def tools(self):
         self.dialog = ToolsWindow(self)
@@ -276,7 +278,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
             params.GUImode = 0
             params.sequence = 0
-            params.saveFile()
+            params.saveFileParameter()
+            params.saveFileData()
             event.accept()
             raise SystemExit
         else: event.ignore()
@@ -290,6 +293,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.setupUi(self)
         
         self.load_params()
+        
         self.ui = loadUi('ui/parameters.ui')
         self.setWindowTitle('Parameters')
         self.setGeometry(420, 40, 1300, 750)
@@ -582,7 +586,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 
             self.update_freqoffset()
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def update_flippulseamplitude(self):
         params.flipangeamplitude = self.Flipangle_Amplitude_spinBox.value()
@@ -593,7 +597,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         params.flippulseamplitude = int(params.RFpulseamplitude / 90 * params.flipangeamplitude)
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def auto_freqoffset(self):
         
@@ -604,7 +608,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         print('Autofreqoffset set to: ',params.autofreqoffset)
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def auto_gradients(self):
         
@@ -615,7 +619,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         print('Autograd set to: ',params.autograd)
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
@@ -812,7 +816,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         print('RX mode: ',params.rxmode)
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def update_freqoffset(self):
         if params.autofreqoffset == 0:
@@ -824,7 +828,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 params.frequencyoffset = abs(self.Frequency_Offset_spinBox.value())
                 params.frequencyoffsetsign = 1
 
-            params.saveFile()
+            params.saveFileParameter()
             
         elif params.autofreqoffset == 1:
             
@@ -859,7 +863,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.GSPEstep = self.GSPEstep_spinBox.value()
             print('Manual GPE max: ',params.GPEstep * params.nPE / 2)
             
-            params.saveFile()
+            params.saveFileParameter()
     
         elif params.autograd == 1:
             self.GROamplitude_spinBox.setValue(params.GROamplitude)
@@ -962,7 +966,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         if self.Tool_Shim_Z2_radioButton.isChecked(): params.ToolShimChannel[3] = 1
         else: params.ToolShimChannel[3] = 0
         
-        params.saveFile()
+        params.saveFileParameter()
         
     def Autocentertool(self):
         if params.connectionmode == 1:
@@ -1124,7 +1128,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         params.frequencyplotrange = self.Frequncyaxisrange_spinBox.value()
         params.animationstep = self.Animation_Step_spinBox.value()
         
-        params.saveFile()
+        params.saveFileParameter()
         
         if params.GUImode == 0:
             self.spectrum_plot_init()
@@ -1619,7 +1623,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
         if connection:
             params.connectionmode = 1
-            params.saveFile()
+            params.saveFileParameter()
             self.status_label.setText('Connected.')
             self.connected.emit()
             self.mainwindow.show()
@@ -1627,14 +1631,14 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
         elif not connection:
             params.connectionmode = 0
-            params.saveFile()
+            params.saveFileParameter()
             self.status_label.setText('Not connected.')
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
         else:
             params.connectionmode = 0
-            params.saveFile()
+            params.saveFileParameter()
             self.status_label.setText('Not connected with status: '+str(connection))
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
