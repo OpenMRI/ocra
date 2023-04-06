@@ -18,6 +18,7 @@ from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
+import math
 import pandas as pd
 from scipy.stats import linregress
 
@@ -812,21 +813,23 @@ class process:
         
     def animation_image_process(self):
         
-        
         self.kspaceanimate = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[1]), dtype = np.complex64))
-
-        params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0])))
+        self.kspaceanimatetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.animationimagetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0]*2)))
         
         self.kspace_centerx = int(params.kspace.shape[1]/2)
         self.kspace_centery = int(params.kspace.shape[0]/2)
         
         for n in range(params.kspace.shape[0]):
             self.kspaceanimate[n,:] = params.kspace[n,:]
+            self.kspaceanimatetemp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx-params.kspace.shape[0]/2*int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))):int(self.kspace_centerx+params.kspace.shape[0]/2*int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))])/np.amax(params.k_amp)
         
             #Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate)))
-            params.animationimage[n,:,:] = np.abs(I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)])
+            self.animationimagetemp[:,:] = np.abs(I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)])
+            self.animationimagetemp = self.animationimagetemp / np.amax(params.img_mag)
+            #Store animation array
+            params.animationimage[n,:,:] = np.concatenate((self.animationimagetemp[:,:],self.kspaceanimatetemp[:,:]),axis=1)  
 
-        
-        
 proc = process()

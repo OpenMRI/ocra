@@ -1573,6 +1573,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         fig = plt.figure()
        
         im = plt.imshow(params.animationimage[params.kspace.shape[0]-1,:,:], cmap='gray',animated=True)
+        plt.axis('off')
         def updatefig(i):
             im.set_array(params.animationimage[i,:,:])
             return im,
