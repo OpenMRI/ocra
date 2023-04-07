@@ -85,22 +85,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[int(n*params.usphaseidx+m),:] = 0
 
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
 
-                    
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -146,22 +162,40 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[:,int(n*params.usphaseidx+m),:] = 0
 
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[2] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[2] / 2 * (1 - params.cutoutsidevalue / 100)
 
-                    
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[2] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[2] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[:,self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            if params.cutcenter == 1:
+                for kk in range(params.kspace.shape[0]):
+                    for ii in range(params.kspace.shape[2]):
+                        for jj in range(params.kspace.shape[1]):
+                            if np.sqrt((ii - (params.kspace.shape[2]/2))**2 + (jj * params.kspace.shape[2]/params.kspace.shape[1] - (params.kspace.shape[2]/2))**2) <= self.cutc:
+                                params.kspace[kk,jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for kk in range(params.kspace.shape[0]):
+                    for ii in range(params.kspace.shape[2]):
+                        for jj in range(params.kspace.shape[1]):
+                            if np.sqrt((ii - (params.kspace.shape[2]/2))**2 + (jj * params.kspace.shape[2]/params.kspace.shape[1] - (params.kspace.shape[2]/2))**2) >= self.cuto:
+                                params.kspace[kk,jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[:,0:self.cutoy, :] = 0
-            params.kspace[:,params.kspace.shape[1] - self.cutoy:params.kspace.shape[1], :] = 0
-            params.kspace[:,:, 0:self.cutox] = 0
-            params.kspace[:,:, params.kspace.shape[2] - self.cutox:params.kspace.shape[2]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[2] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[2] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[:,self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[:,0:self.cutoy, :] = 0
+                params.kspace[:,params.kspace.shape[1] - self.cutoy:params.kspace.shape[1], :] = 0
+                params.kspace[:,:, 0:self.cutox] = 0
+                params.kspace[:,:, params.kspace.shape[2] - self.cutox:params.kspace.shape[2]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -200,20 +234,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[int(n*params.usphaseidx+m),:] = 0
        
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -248,15 +300,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     self.kspacediff[int(n*params.usphaseidx+m),:] = 0
 
-        #Set kSpace to 0 (Option)
-        if params.cutcenter == 1:
-            self.kspacediff[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            self.kspacediff[0:self.cutoy, :] = 0
-            self.kspacediff[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            self.kspacediff[:, 0:self.cutox] = 0
-            self.kspacediff[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(self.kspacediff)
@@ -300,20 +375,38 @@ class process:
 
 
                     
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)

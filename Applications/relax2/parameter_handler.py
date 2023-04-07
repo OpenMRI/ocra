@@ -117,6 +117,8 @@ class Parameters:
         self.average = 0
         self.averagecount = 10
         self.imagplots = 0
+        self.cutcirc = 0
+        self.cutrec = 0
         self.cutcenter = 0
         self.cutoutside = 0
         self.cutcentervalue = 0
@@ -232,6 +234,8 @@ class Parameters:
                          self.average, \
                          self.averagecount, \
                          self.imagplots, \
+                         self.cutcirc, \
+                         self.cutrec, \
                          self.cutcenter, \
                          self.cutoutside, \
                          self.cutcentervalue, \
@@ -378,6 +382,8 @@ class Parameters:
                 self.average, \
                 self.averagecount, \
                 self.imagplots, \
+                self.cutcirc, \
+                self.cutrec, \
                 self.cutcenter, \
                 self.cutoutside, \
                 self.cutcentervalue, \

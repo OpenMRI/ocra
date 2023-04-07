@@ -363,6 +363,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         self.Images_Plot_radioButton.toggled.connect(self.update_params)
         
+        self.kspace_cut_circ_radioButton.toggled.connect(self.update_params)
+        self.kspace_cut_rec_radioButton.toggled.connect(self.update_params)
+        
         self.kSpace_Cut_Center_radioButton.toggled.connect(self.update_params)
         self.kSpace_Cut_Outside_radioButton.toggled.connect(self.update_params)
         self.kSpace_Cut_Center_spinBox.setKeyboardTracking(False)
@@ -497,6 +500,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_spinBox.setValue(params.averagecount)
         
         if params.imagplots == 1: self.Images_Plot_radioButton.setChecked(True)
+        
+        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
+        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
         
         if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
         if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
@@ -666,6 +672,11 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if self.Images_Plot_radioButton.isChecked(): params.imagplots = 1
         else: params.imagplots = 0
+        
+        if self.kspace_cut_circ_radioButton.isChecked(): params.cutcirc = 1
+        else: params.cutcirc = 0
+        if self.kspace_cut_rec_radioButton.isChecked(): params.cutrec = 1
+        else: params.cutrec = 0
         
         if self.kSpace_Cut_Center_radioButton.isChecked(): params.cutcenter = 1
         else: params.cutcenter = 0
