@@ -31,6 +31,7 @@ class process:
     def __init__(self):
 
         params.loadParam()
+        params.loadData()
 
     def spectrum_process(self):
         self.procdata = np.genfromtxt(params.datapath + '.txt', dtype = np.complex64)
@@ -114,7 +115,7 @@ class process:
         params.img = I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
         params.img_mag = self.img_mag_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
         params.img_pha = self.img_pha_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
-        
+         
         print("Image data processed!")
             
     def image_3D_process(self):
