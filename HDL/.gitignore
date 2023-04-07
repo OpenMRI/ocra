@@ -3,3 +3,4 @@ uImage
 devicetree.dtb
 *~
 tmp/
+vivado*
