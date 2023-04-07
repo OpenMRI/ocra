@@ -13,6 +13,7 @@ import csv
 import numpy as np
 import os
 import math
+import time
 
 from datetime import datetime
 
@@ -118,7 +119,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 1:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', 'WIP 2D Radial (GRE, Half)', 'WIP 2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', 'WIP 2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)', '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)', 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)', 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)', 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)', 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo', '3D FFT Spin Echo ( Slab)', '3D FFT Turbo Spin Echo (Slab)'])
+            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', 'WIP 2D Radial (GRE, Half)', 'WIP 2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', 'WIP 2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)', '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)', 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)', 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)', 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)', 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo', '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -143,8 +144,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
     def set_sequence(self, idx):
         params.sequence = idx
-        if params.sequence != -1:
-            print("Sequence:\t", params.sequence)
+        if params.sequence != -1: print("Sequence:\t", params.sequence)
         
     def acquire(self):
         if params.connectionmode == 1:
@@ -156,10 +156,35 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_SE()
             elif params.GUImode == 3 and params.sequence == 1:
                 proc.T2measurement_SIR_FID()
-            elif params.GUImode == 4:
-                seq.sequence_upload()
-            else:
-                seq.sequence_upload()
+            elif params.GUImode == 1:
+                if params.autorecenter == 1:
+                    if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
+                        print('Slice')
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    
+                    else:
+                        print('No slice')
+                        seq.SE_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                else: seq.sequence_upload()
+            else: seq.sequence_upload()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
             
     def load_params(self):
@@ -304,6 +329,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.label.setToolTip('Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
         self.Center_pushButton.clicked.connect(lambda: self.frequency_center())
         self.Center_pushButton.setToolTip('Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
+        self.auto_recenter_radioButton.toggled.connect(self.update_params)
+        self.auto_recenter_radioButton.setToolTip('A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
         self.RF_Pulselength_spinBox.setKeyboardTracking(False)
         self.RF_Pulselength_spinBox.valueChanged.connect(self.update_params)
         self.label_2.setToolTip('The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
@@ -471,6 +498,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
     def load_params(self):
         self.Frequency_doubleSpinBox.setValue(params.frequency)
+        
+        if params.autorecenter == 1: self.auto_recenter_radioButton.setChecked(True)
+        
         self.RF_Pulselength_spinBox.setValue(params.RFpulselength)
         self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
         self.Readout_Bandwidth_spinBox.setValue(params.ROBWscaler)
@@ -629,13 +659,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
-        
+        if self.auto_recenter_radioButton.isChecked(): params.autorecenter = 1
+        else: params.autorecenter = 0
         params.RFpulselength = (round(self.RF_Pulselength_spinBox.value()/10)*10)
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangetime)
-        if params.GSamplitude == 0:
-            params.GSposttime =0
-        else:
-            params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
+        
+        if params.GSamplitude == 0: params.GSposttime =0
+        else: params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
         
         params.RFattenuation = self.RF_Attenuation_doubleSpinBox.value()
         params.ROBWscaler = self.Readout_Bandwidth_spinBox.value()

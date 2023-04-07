@@ -158,11 +158,11 @@ class sequence:
                 self.acquire_spectrum_TSE_Gs()
             elif params.sequence == 18:
                 print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
-                self.rf_test_setup()
-                self.Sequence_upload()
-                self.acquire_rf_test()
+                #self.rf_test_setup()
+                #self.Sequence_upload()
+                #self.acquire_rf_test()
             elif params.sequence == 19:
-#                 print('\033[1m' + 'Not active. Warning: This sequence will test all gradient channels with pulses. To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
+                # print('\033[1m' + 'Not active. Warning: This sequence will test all gradient channels with pulses. To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
                 print('\033[1m' + 'Pulselength [us] = TR, Amplitude [mA] = Spoiler Amplitude' + '\033[0m')
                 self.grad_test_setup()
                 self.Sequence_upload()
@@ -170,138 +170,156 @@ class sequence:
             else:
                 print('Sequence not defined!')
             
-        elif params.GUImode == 1:
+        elif params.GUImode == 1:       
             if params.sequence == 0:
+                # 2D Radial (GRE, Full)
                 print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_GRE()
             elif params.sequence == 1:
+                # 2D Radial (SE, Full)
                 print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_SE()
             elif params.sequence == 2:
+                # WIP 2D Radial (GRE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad gre half
             elif params.sequence == 3:
+                # WIP 2D Radial (SE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad half se
             elif params.sequence == 4:
+                # 2D Gradient Echo
                 self.Image_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE()
             elif params.sequence == 5:
+                # 2D Spin Echo
                 self.Image_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
             elif params.sequence == 6:
+                # 2D Inversion Recovery (GRE)
                 self.Image_IR_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE()
             elif params.sequence == 7:
+                # 2D Inversion Recovery (SE)
                 self.Image_IR_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
             elif params.sequence == 8:
+                # WIP 2D Saturation Inversion Recovery (GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #sir gre
             elif params.sequence == 9:
+                # WIP 2D Saturation Inversion Recovery (SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #sir se
             elif params.sequence == 10:
+                # 2D Turbo Spin Echo (4 Echos)
                 print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE()' + '\033[0m')
                 self.Image_TSE_setup()
                 self.Sequence_upload()
                 self.acquire_image_TSE()
             elif params.sequence == 11:
+                # 2D Echo Planar Imaging (GRE, 4 Echos)
                 print('\033[1m' + 'Still WIP. Readout timing needs to be adjusted in self.acquire_image_EPI().' + '\033[0m')
                 self.Image_EPI_setup()
                 self.Sequence_upload()
                 self.acquire_image_EPI()
             elif params.sequence == 12:
+                # 2D Echo Planar Imaging (SE, 4 Echos)
                 print('\033[1m' + 'Still WIP. Readout timing needs to be adjusted in self.acquire_image_SE_EPI().' + '\033[0m')
                 self.Image_EPI_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_EPI_SE()
             elif params.sequence == 13:
+                # 2D Diffusion (SE)
                 self.Image_SE_Diff_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Diff()
             elif params.sequence == 14:
+                # 2D Flow Compensation (GRE)
                 self.Image_FC_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE()
             elif params.sequence == 15:
+                # 2D Flow Compensation (SE)
                 self.Image_FC_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
             elif params.sequence == 16:
+                # WIP 2D Radial (Slice, GRE, Full)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad gre full slice
             elif params.sequence == 17:
+                # WIP 2D Radial (Slice, SE, Full)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad se full slice
             elif params.sequence == 18:
+                # WIP 2D Radial (Slice, GRE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad gre half slice
             elif params.sequence == 19:
+                # WIP 2D Radial (Slice, SE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #rad half se slice
             elif params.sequence == 20:
+                # 2D Gradient Echo (Slice)
                 self.Image_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE_Gs()
             elif params.sequence == 21:
+                # 2D Spin Echo (Slice)
                 self.Image_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Gs()
             elif params.sequence == 22:
+                # 2D Inversion Recovery (Slice, GRE)
                 self.Image_IR_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE_Gs()
             elif params.sequence == 23:
+                # 2D Inversion Recovery (Slice, SE)
                 self.Image_IR_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Gs()
             elif params.sequence == 24:
+                # WIP 2D Saturation Inversion Recovery (Slice, GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #sir gre slice
             elif params.sequence == 25:
+                # WIP 2D Saturation Inversion Recovery (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #sir se slice
             elif params.sequence == 26:
+                # 2D Turbo Spin Echo (Slice, 4 Echos)
                 print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE_Gs().' + '\033[0m')
                 self.Image_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_TSE_Gs()
             elif params.sequence == 27:
+                # WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #epi gre slice
             elif params.sequence == 28:
+                # WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #epi se slice
             elif params.sequence == 29:
+                # WIP 2D Diffusion (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #diff slice
             elif params.sequence == 30:
+                # WIP 2D Flow Compensation (Slice, GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #fc gre slice
             elif params.sequence == 31:
+                # WIP 2D Flow Compensation (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #fc se slice
             elif params.sequence == 32:
+                # WIP 3D FFT Spin Echo
                 print('\033[1m' + 'WIP' + '\033[0m')
-                #3d fft
             elif params.sequence == 33:
+                # 3D FFT Spin Echo (Slab)
                 self.Image_3D_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_SE_Gs()
             elif params.sequence == 34:
+                # 3D FFT Turbo Spin Echo (Slab)
                 self.Image_3D_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_TSE_Gs()
-            
             else:
                 print('Sequence not defined!')
                 
