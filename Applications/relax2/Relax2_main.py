@@ -159,7 +159,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
                     if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
-                        print('Slice')
                         seq.SE_Gs_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE_Gs()
@@ -170,9 +169,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
-                    
                     else:
-                        print('No slice')
                         seq.SE_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE()
