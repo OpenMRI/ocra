@@ -36,6 +36,7 @@ class Parameters:
         self.sequencefile = ''
         self.datapath = ''
         self.frequency = 11.3
+        self.autorecenter = 0
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
         self.phaseoffset = 0
@@ -177,6 +178,7 @@ class Parameters:
                          self.sequencefile, \
                          self.datapath, \
                          self.frequency, \
+                         self.autorecenter, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
                          self.phaseoffset, \
@@ -325,6 +327,7 @@ class Parameters:
                 self.sequencefile, \
                 self.datapath, \
                 self.frequency, \
+                self.autorecenter, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
                 self.phaseoffset, \
