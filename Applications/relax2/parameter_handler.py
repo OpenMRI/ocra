@@ -43,8 +43,8 @@ class Parameters:
         self.phaseoffsetradmod100 = 0
         self.RFpulselength = 100
         self.RFpulseamplitude = 16384
-        self.flipangetime = 90
-        self.flipangeamplitude = 90
+        self.flipangletime = 90
+        self.flipangleamplitude = 90
         self.flippulselength = 50
         self.flippulseamplitude = 16384
         self.RFattenuation = -15.00
@@ -167,6 +167,7 @@ class Parameters:
         self.ToolShimSteps = 20
         self.ToolShimChannel = [0, 0, 0, 0]
         self.STvalues = []
+        self.B1alphamap = []
         
 
     def saveFileParameter(self):  
@@ -185,8 +186,8 @@ class Parameters:
                          self.phaseoffsetradmod100, \
                          self.RFpulselength, \
                          self.RFpulseamplitude, \
-                         self.flipangetime, \
-                         self.flipangeamplitude, \
+                         self.flipangletime, \
+                         self.flipangleamplitude, \
                          self.flippulselength, \
                          self.flippulseamplitude, \
                          self.RFattenuation, \
@@ -313,7 +314,8 @@ class Parameters:
                          self.T2yvalues, \
                          self.T2linregres, \
                          self.T2regyvalues, \
-                         self.img_mag_diff], file)
+                         self.img_mag_diff, \
+                         self.B1alphamap], file)
        
         print("Data saved!")
 
@@ -334,8 +336,8 @@ class Parameters:
                 self.phaseoffsetradmod100, \
                 self.RFpulselength, \
                 self.RFpulseamplitude, \
-                self.flipangetime, \
-                self.flipangeamplitude, \
+                self.flipangletime, \
+                self.flipangleamplitude, \
                 self.flippulselength, \
                 self.flippulseamplitude, \
                 self.RFattenuation, \
@@ -467,7 +469,8 @@ class Parameters:
                 self.T2yvalues, \
                 self.T2linregres, \
                 self.T2regyvalues, \
-                self.img_mag_diff = pickle.load(file)
+                self.img_mag_diff, \
+                self.B1alphamap = pickle.load(file)
              
                 print("Internal GUI Data successfully restored from file.")
                 
