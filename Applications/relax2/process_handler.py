@@ -683,12 +683,125 @@ class process:
             
             params.frequency = self.frequencytemp
             params.grad[3] = self.shimtemp[3]
+            
+    def FieldMapB0(self):
+        print('Measuring B0 field...')
+        
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 5
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        self.TEtemp = params.TE
+        params.TE = params.TE * 2
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        for kk in range (10):
+        
+            for jj in range(int(params.img_pha.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(params.img_pha.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(params.img_pha.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(params.img_pha.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] - 2 * math.pi
+
+        self.FieldMapB0_S2 = params.img_pha
+        
+        time.sleep(params.TR/1000)
+        
+        params.TE = self.TEtemp
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        for kk in range (10):
+        
+            for jj in range(int(params.img_pha.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii-1,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj+ii+1,int(params.img_pha.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(params.img_pha.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii-1,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj-ii+1,int(params.img_pha.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(params.img_pha.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] + params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] = params.img_pha[int(params.img_pha.shape[0]/2)+jj+1,int(params.img_pha.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(params.img_pha.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] + params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] > math.pi:
+                        params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] = params.img_pha[int(params.img_pha.shape[0]/2)-jj-1,int(params.img_pha.shape[1]/2)+jj-ii+1] - 2 * math.pi
+
+        self.FieldMapB0_S1 = params.img_pha
+
+        params.B0Deltafmap = (self.FieldMapB0_S2 * self.FieldMapB0_S1) / (2 * math.pi * (2*params.TE - params.TE)) * params.frequency
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B0Deltafmap[params.img_mag < self.img_max/2] = np.nan
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
 
     def FieldMapB1(self):
         print('Measuring B1 field...')
+        
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
         params.GUImode = 1
         params.sequence = 4
-        params.datapath = 'rawdata/Image_rawdata'
+        params.datapath = 'rawdata/Tool_rawdata'
         
         self.flipangleamplitudetemp = params.flipangleamplitude
         
@@ -714,11 +827,20 @@ class process:
         self.img_max = np.max(np.amax(params.img_mag))
         params.B1alphamap[params.img_mag < self.img_max/2] = np.nan
         
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
     def FieldMapB1Slice(self):
         print('Measuring B1 (Slice) field...')
+        
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
         params.GUImode = 1
         params.sequence = 20
-        params.datapath = 'rawdata/Image_rawdata'
+        params.datapath = 'rawdata/Tool_rawdata'
         
         self.flipangleamplitudetemp = params.flipangleamplitude
         

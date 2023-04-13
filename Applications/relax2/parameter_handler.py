@@ -168,6 +168,7 @@ class Parameters:
         self.ToolShimChannel = [0, 0, 0, 0]
         self.STvalues = []
         self.B1alphamap = []
+        self.B0Deltafmap = []
         
 
     def saveFileParameter(self):  
@@ -315,7 +316,8 @@ class Parameters:
                          self.T2linregres, \
                          self.T2regyvalues, \
                          self.img_mag_diff, \
-                         self.B1alphamap], file)
+                         self.B1alphamap, \
+                         self.B0Deltafmap], file)
        
         print("Data saved!")
 
@@ -470,7 +472,8 @@ class Parameters:
                 self.T2linregres, \
                 self.T2regyvalues, \
                 self.img_mag_diff, \
-                self.B1alphamap = pickle.load(file)
+                self.B1alphamap, \
+                self.B0Deltafmap = pickle.load(file)
              
                 print("Internal GUI Data successfully restored from file.")
                 
