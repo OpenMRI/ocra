@@ -1030,8 +1030,10 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.ax.plot(params.ACvalues[0,:], params.ACvalues[1,:], 'o', color='#000000')
             self.ax.set_xlabel('Frequency [MHz]')
             self.ax.set_ylabel('Signal')
-        
-            self.fig_canvas.setGeometry(420, 40, 800, 750)
+            self.ax.set_title('Autocenter Signals')
+            self.fig_canvas.draw()
+            self.fig_canvas.setWindowTitle('Tool Plot')
+            self.fig_canvas.setGeometry(820, 40, 800, 750)
             self.fig_canvas.show()
             self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
@@ -1053,8 +1055,10 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
             self.ax.set_xlabel('Attenuation [dB]')
             self.ax.set_ylabel('Signal')
-        
-            self.fig_canvas.setGeometry(420, 40, 800, 750)
+            self.ax.set_title('Flipangle Signals')
+            self.fig_canvas.draw()
+            self.fig_canvas.setWindowTitle('Tool Plot')
+            self.fig_canvas.setGeometry(820, 40, 800, 750)
             self.fig_canvas.show()
             self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
@@ -1079,8 +1083,10 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.ax.set_xlabel('Shim [mA]')
                 self.ax.set_ylabel('Signal')
                 self.ax.legend(['X','Y','Z','Z²'])
-                
-                self.fig_canvas.setGeometry(420, 40, 800, 750)
+                self.ax.set_title('Shim Signals')
+                self.fig_canvas.draw()
+                self.fig_canvas.setWindowTitle('Tool Plot')
+                self.fig_canvas.setGeometry(820, 40, 800, 750)
                 self.fig_canvas.show()
         
                 if params.ToolShimChannel[0] == 1:
@@ -1117,19 +1123,24 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             proc.FieldMapB1()
             
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.show()
+            
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
-            
             self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
-            
-            self.FMB1_ax.imshow(params.B1alphamap, cmap='viridis'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
-            
-            # self.FMB1_ax.set_title('Flip Angle Map')
-            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamap, cmap='viridis'))
+            self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.set_title('Flip Angle Map')
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1', rotation=90)
             self.FMB1_canvas.draw()
-            self.FMB1_canvas.setWindowTitle('Flip Angle Map')
-            self.FMB1_canvas.setGeometry(420, 40, 400, 355)
-
+            self.FMB1_canvas.setWindowTitle('Tool Plot')
+            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
             self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1137,6 +1148,28 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
     def Field_Map_B1_Slice(self):
         if params.connectionmode == 1:
             print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
+            
+            proc.FieldMapB1Slice()
+            
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.show()
+            
+            self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.set_title('Flip Angle Map')
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'))
+            self.FMB1_fig_cbar.set_label('\u03B1', rotation=90)
+            self.FMB1_canvas.draw()
+            self.FMB1_canvas.setWindowTitle('Tool Plot')
+            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
 

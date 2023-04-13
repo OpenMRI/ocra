@@ -687,8 +687,38 @@ class process:
     def FieldMapB1(self):
         print('Measuring B1 field...')
         params.GUImode = 1
-        params.sequence = 5
-        #params.datapath = 'rawdata/Image_rawdata'
+        params.sequence = 4
+        params.datapath = 'rawdata/Image_rawdata'
+        
+        self.flipangleamplitudetemp = params.flipangleamplitude
+        
+        seq.sequence_upload()
+        proc.image_process()
+
+        self.FieldMapB1_S1 = params.img_mag
+        
+        time.sleep(params.TR/1000)
+        
+        params.flipangleamplitude = params.flipangleamplitude * 2
+        
+        seq.sequence_upload()
+        proc.image_process()
+
+        self.FieldMapB1_S2 = params.img_mag
+        
+        self.img_max = np.max(np.amax(params.img_mag))
+        
+        params.flipangleamplitude = self.flipangleamplitudetemp
+        
+        params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B1alphamap[params.img_mag < self.img_max/2] = np.nan
+        
+    def FieldMapB1Slice(self):
+        print('Measuring B1 (Slice) field...')
+        params.GUImode = 1
+        params.sequence = 20
+        params.datapath = 'rawdata/Image_rawdata'
         
         self.flipangleamplitudetemp = params.flipangleamplitude
         
