@@ -1139,13 +1139,43 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.FMB0_canvas.setWindowTitle('Tool Plot')
             self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
             self.FMB0_canvas.show()
- 
-            
+
         else: print('Not allowed in offline mode!')
 
     def Field_Map_B0_Slice(self):
         if params.connectionmode == 1:
             print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
+            
+            proc.FieldMapB0Slice()
+            
+            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            #self.IMag_ax.set_title('Magnitude Image')
+            #self.IMag_canvas.draw()
+            #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            #self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            #self.IMag_canvas.show()
+            
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
+            self.IPha_ax.set_title('Phase Image')
+            self.IPha_canvas.draw()
+            self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.show()
+            
+            self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax.imshow(params.B0Deltafmap, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+            self.FMB0_ax.set_title('Frequency Map')
+            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0Deltafmap, cmap='jet'))
+            self.FMB0_fig_cbar.set_label('\u0394 f in Hz', rotation=90)
+            self.FMB0_canvas.draw()
+            self.FMB0_canvas.setWindowTitle('Tool Plot')
+            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.show()
             
         else: print('Not allowed in offline mode!')
 
