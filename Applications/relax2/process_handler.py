@@ -692,11 +692,11 @@ class process:
         self.datapathtemp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 5
+        params.sequence = 4
         params.datapath = 'rawdata/Tool_rawdata'
         
         self.TEtemp = params.TE
-        params.TE = params.TE * 2
+        params.TE = params.TE + 1
         
         seq.sequence_upload()
         proc.image_process()
@@ -784,9 +784,9 @@ class process:
 
         self.FieldMapB0_S1 = params.img_pha
 
-        params.B0Deltafmap = (self.FieldMapB0_S2 * self.FieldMapB0_S1) / (2 * math.pi * (2*params.TE - params.TE)) * params.frequency
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B0Deltafmap[params.img_mag < self.img_max * 0.5] = np.nan
+        params.B0DeltaB0map[params.img_mag < self.img_max * 0.3] = np.nan
         
         params.GUImode = self.GUImodetemp
         params.sequence = self.sequencetemp
@@ -800,11 +800,11 @@ class process:
         self.datapathtemp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 21
+        params.sequence = 20
         params.datapath = 'rawdata/Tool_rawdata'
         
         self.TEtemp = params.TE
-        params.TE = params.TE * 2
+        params.TE = params.TE + 1
         
         seq.sequence_upload()
         proc.image_process()
@@ -892,9 +892,9 @@ class process:
 
         self.FieldMapB0_S1 = params.img_pha
 
-        params.B0Deltafmap = (self.FieldMapB0_S2 * self.FieldMapB0_S1) / (2 * math.pi * (2*params.TE - params.TE)) * params.frequency
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B0Deltafmap[params.img_mag < self.img_max * 0.5] = np.nan
+        params.B0DeltaB0map[params.img_mag < self.img_max * 0.3] = np.nan
         
         params.GUImode = self.GUImodetemp
         params.sequence = self.sequencetemp
@@ -933,7 +933,7 @@ class process:
         
         params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B1alphamap[params.img_mag < self.img_max * 0.5] = np.nan
+        params.B1alphamap[params.img_mag < self.img_max * 0.3] = np.nan
         
         params.GUImode = self.GUImodetemp
         params.sequence = self.sequencetemp
@@ -972,7 +972,7 @@ class process:
         
         params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B1alphamap[params.img_mag < self.img_max * 0.5] = np.nan
+        params.B1alphamap[params.img_mag < self.img_max * 0.3] = np.nan
 
     def T1measurement_IR_FID(self):
         print('Measuring T1...')
