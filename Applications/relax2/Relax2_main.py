@@ -1131,9 +1131,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
             self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
-            self.FMB0_ax.imshow(params.B0DeltaB0map, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
-            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0map, cmap='jet'))
+            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
@@ -1168,9 +1168,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
             self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
-            self.FMB0_ax.imshow(params.B0DeltaB0map, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
-            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0map, cmap='jet'))
+            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
@@ -1196,9 +1196,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
             self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
-            self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
-            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'))
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
@@ -1224,9 +1224,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
             self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
-            self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
-            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamap, cmap='jet'))
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
