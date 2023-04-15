@@ -497,11 +497,12 @@ class process:
     def Autocentertool(self):
         print('Finding Signals...')
         
+        self.freqtemp = 0
         self.freqtemp = params.frequency
         
-#         params.GUImode = 0
-#         params.sequence = 1
-#         params.TR = 2000
+        #params.GUImode = 0
+        #params.sequence = 1
+        #params.TR = 2000
         
         self.ACidx = round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1
         self.ACsteps = np.linspace(params.ACstart,params.ACstop,self.ACidx)
@@ -521,26 +522,22 @@ class process:
             
         params.ACvalues[0,:] = self.ACsteps
         params.ACvalues[1,:] = self.ACpeakvalues
-        
         params.Reffrequency = self.ACsteps[np.argmax(self.ACpeakvalues)]
         
+        np.savetxt('imagedata/Autocenter_Tool_Data.txt', np.transpose(params.ACvalues))
+
         params.frequency = self.freqtemp
         
     def Flipangletool(self):
         print('Finding Flipangles...')
         
-        self.atttemp = params.RFattenuation
-        
-        #params.GUImode = 0
-        #params.sequence = 1
-        #params.TR = 2000
-        #params.TS = 3
+        self.RFattenuationtemp = 0
+        self.RFattenuationtemp = params.RFattenuation
         
         self.FAsteps = np.linspace(params.FAstart,params.FAstop,params.FAsteps)
         params.FAvalues = np.matrix(np.zeros((2,params.FAsteps)))
         self.FApeakvalues = np.zeros(params.FAsteps)
         
-
         params.RFattenuation = -31.75
         seq.sequence_upload()
         proc.spectrum_process()
@@ -561,37 +558,38 @@ class process:
         params.FAvalues[0,:] = self.FAsteps
         params.FAvalues[1,:] = self.FApeakvalues
         
-        print(params.FAvalues)
-        
         params.RefRFattenuation = self.FAsteps[np.argmax(self.FApeakvalues)]
         
-        params.RFattenuation = self.atttemp
+        np.savetxt('imagedata/Flipangle_Tool_Data.txt', np.transpose(params.FAvalues))
+
+        params.RFattenuation = self.RFattenuationtemp
         
     def Shimtool(self):
         print('Processing shimtool...')
         
-        self.STsteps = np.linspace(params.ToolShimStart,params.ToolShimStop,params.ToolShimSteps)
-        self.STsteps = self.STsteps.astype(int)
-        print(self.STsteps)
-        
-        params.STvalues = np.matrix(np.zeros((5,params.ToolShimSteps)))
-        params.STvalues[0,:] = self.STsteps
-        
+        self.frequencytemp = 0
         self.frequencytemp = params.frequency
         self.shimtemp = [0, 0, 0, 0]
         self.shimtemp[:] = params.grad[:]
+        #print(self.shimtemp)
+        
+        self.STsteps = np.linspace(params.ToolShimStart,params.ToolShimStop,params.ToolShimSteps)
+        self.STsteps = self.STsteps.astype(int)
+        #print(self.STsteps)
+        
+        params.STvalues = np.matrix(np.zeros((5,params.ToolShimSteps)))
+        params.STvalues[0,:] = self.STsteps
         
         seq.sequence_upload()
         proc.spectrum_process()
         proc.spectrum_analytics()
         time.sleep(params.TR/1000)
         params.frequency = params.centerfrequency
-        print(self.shimtemp)
         
         if params.ToolShimChannel[0] == 1:
             self.STpeakvaluesX = np.zeros(params.ToolShimSteps)
-            
             params.grad[0] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -601,6 +599,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.grad[0] = self.STsteps[n]
                 params.frequency = params.centerfrequency
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -614,8 +613,8 @@ class process:
             
         if params.ToolShimChannel[1] == 1:
             self.STpeakvaluesY = np.zeros(params.ToolShimSteps)
-            
             params.grad[1] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -625,6 +624,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.grad[1] = self.STsteps[n]
                 params.frequency = params.centerfrequency
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -638,8 +638,8 @@ class process:
             
         if params.ToolShimChannel[2] == 1:
             self.STpeakvaluesZ = np.zeros(params.ToolShimSteps)
-            
             params.grad[2] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -649,6 +649,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.frequency = params.centerfrequency
                 params.grad[2] = self.STsteps[n]
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -662,8 +663,8 @@ class process:
             
         if params.ToolShimChannel[3] == 1:
             self.STpeakvaluesZ2 = np.zeros(params.ToolShimSteps)
-            
             params.grad[3] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -673,6 +674,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.frequency = params.centerfrequency
                 params.grad[3] = self.STsteps[n]
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -684,6 +686,8 @@ class process:
             params.frequency = self.frequencytemp
             params.grad[3] = self.shimtemp[3]
             
+        np.savetxt('imagedata/Shim_Tool_Data.txt', np.transpose(params.STvalues))
+
     def FieldMapB0(self):
         print('Measuring B0 field...')
         
@@ -800,11 +804,11 @@ class process:
         self.img_max = np.max(np.amax(params.img_mag))
         params.B0DeltaB0mapmasked[params.img_mag < self.img_max * 0.3] = np.nan
         
-        self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=1)
+        self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=0)
         np.savetxt('imagedata/FieldMap_B0_Phase_Raw_Data.txt', self.FieldMapB0_pha_raw)
-        self.FieldMapB0_pha = np.concatenate((self.FieldMapB0_S1,self.FieldMapB0_S2),axis=1)
+        self.FieldMapB0_pha = np.concatenate((self.FieldMapB0_S1,self.FieldMapB0_S2),axis=0)
         np.savetxt('imagedata/FieldMap_B0_Phase_Data.txt', self.FieldMapB0_pha)
-        self.B0DeltaB0maps = np.concatenate((params.img_mag,params.B0DeltaB0map,params.B0DeltaB0mapmasked),axis=1)
+        self.B0DeltaB0maps = np.concatenate((params.img_mag,params.B0DeltaB0map,params.B0DeltaB0mapmasked),axis=0)
         np.savetxt('imagedata/FieldMap_B0_deltat1ms_Mag_Map_MapMasked_Data.txt', self.B0DeltaB0maps)
         
         params.GUImode = self.GUImodetemp
