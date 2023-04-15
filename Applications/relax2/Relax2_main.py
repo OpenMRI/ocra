@@ -62,10 +62,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.projaxis = np.zeros(3)
         params.ustime = 0
         params.usphase = 0
-        params.flipangetime = 90
-        params.flipangeamplitude = 90
-        params.flippulselength = int(params.RFpulselength / 90 * params.flipangetime)
-        params.flippulseamplitude = int(params.RFpulseamplitude / 90 * params.flipangeamplitude)
+        params.flipangletime = 90
+        params.flipangleamplitude = 90
+        params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
+        params.flippulseamplitude = int(params.RFpulseamplitude / 90 * params.flipangleamplitude)
         params.average = 0
         params.frequencyplotrange = 250000
         params.sliceoffset = 0
@@ -543,8 +543,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.GPEstep_spinBox.setValue(params.GPEstep)
         self.GSamplitude_spinBox.setValue(params.GSamplitude)
 
-        self.Flipangle_Time_spinBox.setValue(params.flipangetime)
-        self.Flipangle_Amplitude_spinBox.setValue(params.flipangeamplitude)
+        self.Flipangle_Time_spinBox.setValue(params.flipangletime)
+        self.Flipangle_Amplitude_spinBox.setValue(params.flipangleamplitude)
         
         self.GSPEstep_spinBox.setValue(params.GSPEstep)
         self.SPEsteps_spinBox.setValue(params.SPEsteps)
@@ -582,13 +582,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
         
     def update_flippulselength(self):
-        params.flipangetime = self.Flipangle_Time_spinBox.value()
+        params.flipangletime = self.Flipangle_Time_spinBox.value()
  
-        if params.flipangetime != 90:
-            params.flipangeamplitude = 90
-            self.Flipangle_Amplitude_spinBox.setValue(params.flipangeamplitude)
+        if params.flipangletime != 90:
+            params.flipangleamplitude = 90
+            self.Flipangle_Amplitude_spinBox.setValue(params.flipangleamplitude)
             
-        params.flippulselength = int(params.RFpulselength / 90 * params.flipangetime)
+        params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
         if params.GSamplitude == 0:
             params.GSposttime =0
         else:
@@ -622,13 +622,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
         
     def update_flippulseamplitude(self):
-        params.flipangeamplitude = self.Flipangle_Amplitude_spinBox.value()
+        params.flipangleamplitude = self.Flipangle_Amplitude_spinBox.value()
         
-        if params.flipangeamplitude != 90:
-            params.flipangetime = 90
-            self.Flipangle_Time_spinBox.setValue(params.flipangetime)
+        if params.flipangleamplitude != 90:
+            params.flipangletime = 90
+            self.Flipangle_Time_spinBox.setValue(params.flipangletime)
         
-        params.flippulseamplitude = int(params.RFpulseamplitude / 90 * params.flipangeamplitude)
+        params.flippulseamplitude = int(params.RFpulseamplitude / 90 * params.flipangleamplitude)
         
         params.saveFileParameter()
         
@@ -659,7 +659,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if self.auto_recenter_radioButton.isChecked(): params.autorecenter = 1
         else: params.autorecenter = 0
         params.RFpulselength = (round(self.RF_Pulselength_spinBox.value()/10)*10)
-        params.flippulselength = int(params.RFpulselength / 90 * params.flipangetime)
+        params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
         
         if params.GSamplitude == 0: params.GSposttime =0
         else: params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
@@ -935,7 +935,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
         self.ui = loadUi('ui/tools.ui')
         self.setWindowTitle('Tools')
-        self.setGeometry(10, 40, 400, 850)
+        self.setGeometry(10, 40, 800, 850)
         
         self.AC_Start_Frequency_doubleSpinBox.setKeyboardTracking(False)
         self.AC_Start_Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
@@ -965,6 +965,15 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Tool_Shim_Z2_radioButton.toggled.connect(self.update_params)
         
         self.Tool_Shim_pushButton.clicked.connect(lambda: self.Shimtool())
+        
+        self.Field_Map_B0_pushButton.clicked.connect(lambda: self.Field_Map_B0())
+        self.Field_Map_B0_Slice_pushButton.clicked.connect(lambda: self.Field_Map_B0_Slice())
+        
+        self.Field_Map_B1_pushButton.clicked.connect(lambda: self.Field_Map_B1())
+        self.Field_Map_B1_Slice_pushButton.clicked.connect(lambda: self.Field_Map_B1_Slice())
+        
+        self.Field_Map_Gradient_pushButton.clicked.connect(lambda: self.Field_Map_Gradient())
+        self.Field_Map_Gradient_Slice_pushButton.clicked.connect(lambda: self.Field_Map_Gradient_Slice())
         
     def load_params(self):
         self.AC_Start_Frequency_doubleSpinBox.setValue(params.ACstart)
@@ -1012,18 +1021,19 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             params.flippulselength = params.RFpulselength
         
             proc.Autocentertool()
+            
             self.fig = Figure()
             self.fig.set_facecolor("None")
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-        
             self.ax.plot(params.ACvalues[0,:], params.ACvalues[1,:], 'o', color='#000000')
-        
             self.ax.set_xlabel('Frequency [MHz]')
             self.ax.set_ylabel('Signal')
-        
-            self.fig_canvas.setGeometry(420, 40, 800, 750)
+            self.ax.set_title('Autocenter Signals')
+            self.fig_canvas.draw()
+            self.fig_canvas.setWindowTitle('Tool Plot')
+            self.fig_canvas.setGeometry(820, 40, 800, 750)
             self.fig_canvas.show()
             self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
@@ -1042,13 +1052,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-        
             self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
-        
             self.ax.set_xlabel('Attenuation [dB]')
             self.ax.set_ylabel('Signal')
-        
-            self.fig_canvas.setGeometry(420, 40, 800, 750)
+            self.ax.set_title('Flipangle Signals')
+            self.fig_canvas.draw()
+            self.fig_canvas.setWindowTitle('Tool Plot')
+            self.fig_canvas.setGeometry(820, 40, 800, 750)
             self.fig_canvas.show()
             self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
@@ -1066,16 +1076,17 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.fig_canvas = FigureCanvas(self.fig)
         
                 self.ax = self.fig.add_subplot(111);
-        
                 self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[1,:]), 'o-', color='#0072BD')
                 self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[2,:]), 'o-', color='#D95319')
                 self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[3,:]), 'o-', color='#EDB120')
                 self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[4,:]), 'o-', color='#7E2F8E')
-     
                 self.ax.set_xlabel('Shim [mA]')
                 self.ax.set_ylabel('Signal')
                 self.ax.legend(['X','Y','Z','Z²'])
-                self.fig_canvas.setGeometry(420, 40, 800, 750)
+                self.ax.set_title('Shim Signals')
+                self.fig_canvas.draw()
+                self.fig_canvas.setWindowTitle('Tool Plot')
+                self.fig_canvas.setGeometry(820, 40, 800, 750)
                 self.fig_canvas.show()
         
                 if params.ToolShimChannel[0] == 1:
@@ -1093,6 +1104,149 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
             else: print('Please select gradient channel')
         else: print('Not allowed in offline mode!')
+
+    def Field_Map_B0(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_B0' + '\033[0m')
+            
+            proc.FieldMapB0()
+            
+            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            #self.IMag_ax.set_title('Magnitude Image')
+            #self.IMag_canvas.draw()
+            #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            #self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            #self.IMag_canvas.show()
+            
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
+            self.IPha_ax.set_title('Phase Image')
+            self.IPha_canvas.draw()
+            self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.show()
+            
+            self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+            self.FMB0_ax.set_title('\u0394 B0 Map')
+            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
+            self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
+            self.FMB0_canvas.draw()
+            self.FMB0_canvas.setWindowTitle('Tool Plot')
+            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.show()
+
+        else: print('Not allowed in offline mode!')
+
+    def Field_Map_B0_Slice(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
+            
+            proc.FieldMapB0Slice()
+            
+            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            #self.IMag_ax.set_title('Magnitude Image')
+            #self.IMag_canvas.draw()
+            #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            #self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            #self.IMag_canvas.show()
+            
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
+            self.IPha_ax.set_title('Phase Image')
+            self.IPha_canvas.draw()
+            self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.show()
+            
+            self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+            self.FMB0_ax.set_title('\u0394 B0 Map')
+            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
+            self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
+            self.FMB0_canvas.draw()
+            self.FMB0_canvas.setWindowTitle('Tool Plot')
+            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.show()
+            
+        else: print('Not allowed in offline mode!')
+
+    def Field_Map_B1(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_B1' + '\033[0m')
+            
+            proc.FieldMapB1()
+            
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.show()
+            
+            self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.set_title('Flip Angle Map')
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
+            self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
+            self.FMB1_canvas.draw()
+            self.FMB1_canvas.setWindowTitle('Tool Plot')
+            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.show()
+            
+        else: print('Not allowed in offline mode!')
+
+    def Field_Map_B1_Slice(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
+            
+            proc.FieldMapB1Slice()
+            
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.show()
+            
+            self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+            self.FMB1_ax.set_title('Flip Angle Map')
+            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
+            self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
+            self.FMB1_canvas.draw()
+            self.FMB1_canvas.setWindowTitle('Tool Plot')
+            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.show()
+            
+        else: print('Not allowed in offline mode!')
+
+    def Field_Map_Gradient(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
+            
+        else: print('Not allowed in offline mode!')
+
+    def Field_Map_Gradient_Slice(self):
+        if params.connectionmode == 1:
+            print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
+            
+        else: print('Not allowed in offline mode!')
+
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
