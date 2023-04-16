@@ -975,6 +975,30 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Field_Map_Gradient_pushButton.clicked.connect(lambda: self.Field_Map_Gradient())
         self.Field_Map_Gradient_Slice_pushButton.clicked.connect(lambda: self.Field_Map_Gradient_Slice())
         
+        self.GradientScaling_XNominal_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_XNominal_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        self.GradientScaling_YNominal_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_YNominal_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        self.GradientScaling_ZNominal_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_ZNominal_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        self.GradientScaling_XMeasured_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_XMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        self.GradientScaling_YMeasured_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_YMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        self.GradientScaling_ZMeasured_doubleSpinBox.setKeyboardTracking(False)
+        self.GradientScaling_ZMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        
+        self.Gradient_XScaling_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_XScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
+        self.Gradient_YScaling_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_YScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
+        self.Gradient_ZScaling_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_ZScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
+        
+        self.Apply_XScaling_pushButton.clicked.connect(lambda: self.set_gradsens_X())
+        self.Apply_YScaling_pushButton.clicked.connect(lambda: self.set_gradsens_Y())
+        self.Apply_ZScaling_pushButton.clicked.connect(lambda: self.set_gradsens_Z())
+        
     def load_params(self):
         self.AC_Start_Frequency_doubleSpinBox.setValue(params.ACstart)
         self.AC_Stop_Frequency_doubleSpinBox.setValue(params.ACstop)
@@ -991,6 +1015,18 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         if params.ToolShimChannel[1] == 1: self.Tool_Shim_Y_radioButton.setChecked(True)
         if params.ToolShimChannel[2] == 1: self.Tool_Shim_Z_radioButton.setChecked(True)
         if params.ToolShimChannel[3] == 1: self.Tool_Shim_Z2_radioButton.setChecked(True)
+        
+        self.GradientScaling_XNominal_doubleSpinBox.setValue(params.gradnominal[0])
+        self.GradientScaling_YNominal_doubleSpinBox.setValue(params.gradnominal[1])
+        self.GradientScaling_ZNominal_doubleSpinBox.setValue(params.gradnominal[2])
+        
+        self.GradientScaling_XMeasured_doubleSpinBox.setValue(params.gradmeasured[0])
+        self.GradientScaling_YMeasured_doubleSpinBox.setValue(params.gradmeasured[1])
+        self.GradientScaling_ZMeasured_doubleSpinBox.setValue(params.gradmeasured[2])
+        
+        self.Gradient_XScaling_doubleSpinBox.setValue(params.gradsenstool[0])
+        self.Gradient_YScaling_doubleSpinBox.setValue(params.gradsenstool[1])
+        self.Gradient_ZScaling_doubleSpinBox.setValue(params.gradsenstool[2])
         
     def update_params(self):
         params.ACstart = self.AC_Start_Frequency_doubleSpinBox.value()
@@ -1014,6 +1050,53 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         else: params.ToolShimChannel[3] = 0
         
         params.saveFileParameter()
+        
+    def update_gradsenstoolvaluesauto(self):
+        params.gradnominal[0] = self.GradientScaling_XNominal_doubleSpinBox.value()
+        params.gradnominal[1] = self.GradientScaling_YNominal_doubleSpinBox.value()
+        params.gradnominal[2] = self.GradientScaling_ZNominal_doubleSpinBox.value()
+        params.gradmeasured[0] = self.GradientScaling_XMeasured_doubleSpinBox.value()
+        params.gradmeasured[1] = self.GradientScaling_YMeasured_doubleSpinBox.value()
+        params.gradmeasured[2] = self.GradientScaling_ZMeasured_doubleSpinBox.value()
+        
+        params.gradsenstool[0] = params.gradmeasured[0]/params.gradnominal[0] * params.gradsens[0]
+        params.gradsenstool[1] = params.gradmeasured[1]/params.gradnominal[1] * params.gradsens[1]
+        params.gradsenstool[2] = params.gradmeasured[2]/params.gradnominal[2] * params.gradsens[2]
+
+        self.Gradient_XScaling_doubleSpinBox.setValue(params.gradsenstool[0])
+        self.Gradient_YScaling_doubleSpinBox.setValue(params.gradsenstool[1])
+        self.Gradient_ZScaling_doubleSpinBox.setValue(params.gradsenstool[2])
+        
+        params.saveFileParameter()
+        
+    def update_gradsenstoolvaluesmanual(self):
+        params.gradsenstool[0] = self.Gradient_XScaling_doubleSpinBox.value()
+        params.gradsenstool[1] = self.Gradient_YScaling_doubleSpinBox.value()
+        params.gradsenstool[2] = self.Gradient_ZScaling_doubleSpinBox.value()
+        
+        params.saveFileParameter()
+        
+    def set_gradsens_X(self):
+        print('Set X gradient sensitivity from ' + str(params.gradsens[0]) + 'mT/m/A to ' + str(params.gradsenstool[0]) + 'mT/m/A!')
+        
+        params.gradsens[0] = params.gradsenstool[0]
+        
+        params.saveFileParameter()
+        
+    def set_gradsens_Y(self):
+        print('Set Y gradient sensitivity from ' + str(params.gradsens[1]) + 'mT/m/A to ' + str(params.gradsenstool[1]) + 'mT/m/A!')
+        
+        params.gradsens[1] = params.gradsenstool[1]
+        
+        params.saveFileParameter()
+        
+    def set_gradsens_Z(self):
+        print('Set Z gradient sensitivity from ' + str(params.gradsens[2]) + 'mT/m/A to ' + str(params.gradsenstool[2]) + 'mT/m/A!')
+        
+        params.gradsens[2] = params.gradsenstool[2]
+        
+        params.saveFileParameter()
+        
         
     def Autocentertool(self):
         if params.connectionmode == 1:
@@ -1111,7 +1194,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             proc.FieldMapB0()
             
-            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
             #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
             #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             #self.IMag_ax.set_title('Magnitude Image')
@@ -1148,7 +1231,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             proc.FieldMapB0Slice()
             
-            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
             #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
             #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             #self.IMag_ax.set_title('Magnitude Image')
@@ -1239,11 +1322,77 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         if params.connectionmode == 1:
             print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
             
+            proc.FieldMapGradient()
+            
+            self.IMag_fig = Figure()
+            self.IMag_canvas = FigureCanvas(self.IMag_fig)
+            self.IMag_fig.set_facecolor("None")
+            self.IMag_ax = self.IMag_fig.add_subplot(111)
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
+            self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
+            self.IMag_ax.set_xticks(self.major_ticks)
+            self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
+            self.IMag_ax.set_yticks(self.major_ticks)
+            self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            
+            if params.imageorientation == 0:
+                self.IMag_ax.set_xlabel('X in mm')
+                self.IMag_ax.set_ylabel('Y in mm')
+            elif params.imageorientation == 1:
+                self.IMag_ax.set_xlabel('Y in mm')
+                self.IMag_ax.set_ylabel('Z in mm')
+            elif params.imageorientation == 2:
+                self.IMag_ax.set_xlabel('Z in mm')
+                self.IMag_ax.set_ylabel('X in mm')
+                
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.show()
+            
         else: print('Not allowed in offline mode!')
 
     def Field_Map_Gradient_Slice(self):
         if params.connectionmode == 1:
             print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
+            
+            proc.FieldMapGradientSlice()
+            
+            self.IMag_fig = Figure()
+            self.IMag_canvas = FigureCanvas(self.IMag_fig)
+            self.IMag_fig.set_facecolor("None")
+            self.IMag_ax = self.IMag_fig.add_subplot(111)
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax.set_title('Magnitude Image')
+            self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
+            self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
+            self.IMag_ax.set_xticks(self.major_ticks)
+            self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
+            self.IMag_ax.set_yticks(self.major_ticks)
+            self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            
+            if params.imageorientation == 0:
+                self.IMag_ax.set_xlabel('X in mm')
+                self.IMag_ax.set_ylabel('Y in mm')
+            elif params.imageorientation == 1:
+                self.IMag_ax.set_xlabel('Y in mm')
+                self.IMag_ax.set_ylabel('Z in mm')
+            elif params.imageorientation == 2:
+                self.IMag_ax.set_xlabel('Z in mm')
+                self.IMag_ax.set_ylabel('X in mm')
+                
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
 

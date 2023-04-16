@@ -1041,6 +1041,49 @@ class process:
         params.GUImode = self.GUImodetemp
         params.sequence = self.sequencetemp
         params.datapath = self.datapathtemp
+        
+    def FieldMapGradient(self):
+        print('Gradient tool started...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 5
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+    def FieldMapGradientSlice(self):
+        print('Gradient (Slice) tool started...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 21
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
 
     def T1measurement_IR_FID(self):
         print('Measuring T1...')
