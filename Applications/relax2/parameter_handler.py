@@ -174,6 +174,7 @@ class Parameters:
         self.B0DeltaB0mapmasked = []
         self.B1alphamap = []
         self.B1alphamapmasked = []
+        self.imagefilter = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -292,7 +293,8 @@ class Parameters:
                          self.ToolShimStop, \
                          self.ToolShimSteps, \
                          self.ToolShimChannel, \
-                         self.STvalues], file)
+                         self.STvalues, \
+                         self.imagefilter], file)
        
         print("Parameters saved!")
         
@@ -448,7 +450,8 @@ class Parameters:
                 self.ToolShimStop, \
                 self.ToolShimSteps, \
                 self.ToolShimChannel, \
-                self.STvalues = pickle.load(file)
+                self.STvalues, \
+                self.imagefilter = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
