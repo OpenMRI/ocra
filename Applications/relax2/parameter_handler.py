@@ -158,6 +158,9 @@ class Parameters:
         self.FOV = 20.0
         self.slicethickness = 5.0
         self.gradsens = [33.5, 31.9, 32.5]
+        self.gradnominal = [10.0, 10.0, 10.0]
+        self.gradmeasured = [10.0, 10.0, 10.0]
+        self.gradsenstool = [33.5, 31.9, 32.5]
         self.autofreqoffset = 1
         self.sliceoffset = 0
         self.animationstep = 100
@@ -278,6 +281,9 @@ class Parameters:
                          self.FOV, \
                          self.slicethickness, \
                          self.gradsens, \
+                         self.gradnominal, \
+                         self.gradmeasured, \
+                         self.gradsenstool, \
                          self.autofreqoffset, \
                          self.sliceoffset, \
                          self.animationstep, \
@@ -431,6 +437,9 @@ class Parameters:
                 self.FOV, \
                 self.slicethickness, \
                 self.gradsens, \
+                self.gradnominal, \
+                self.gradmeasured, \
+                self.gradsenstool, \
                 self.autofreqoffset, \
                 self.sliceoffset, \
                 self.animationstep, \
