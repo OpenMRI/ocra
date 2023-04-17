@@ -385,6 +385,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_radioButton.toggled.connect(self.update_params)
         self.Average_radioButton.setToolTip('Averaging of MRI spectra.')
         
+        self.Image_Filter_radioButton.toggled.connect(self.update_params)
         self.Images_Plot_radioButton.toggled.connect(self.update_params)
         
         self.kspace_cut_circ_radioButton.toggled.connect(self.update_params)
@@ -527,6 +528,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_spinBox.setValue(params.averagecount)
         
         if params.imagplots == 1: self.Images_Plot_radioButton.setChecked(True)
+        if params.imagefilter == 1: self.Image_Filter_radioButton.setChecked(True)
         
         if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
         if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
@@ -699,6 +701,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if self.Images_Plot_radioButton.isChecked(): params.imagplots = 1
         else: params.imagplots = 0
+        if self.Image_Filter_radioButton.isChecked(): params.imagefilter = 1
+        else: params.imagefilter = 0
         
         if self.kspace_cut_circ_radioButton.isChecked(): params.cutcirc = 1
         else: params.cutcirc = 0
@@ -1270,7 +1274,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
             self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -1298,7 +1304,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
             self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -1328,7 +1336,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             self.IMag_fig.set_facecolor("None")
             self.IMag_ax = self.IMag_fig.add_subplot(111)
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
             self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
@@ -1367,7 +1376,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             self.IMag_fig.set_facecolor("None")
             self.IMag_ax = self.IMag_fig.add_subplot(111)
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
             self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
@@ -1647,7 +1657,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
             
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
@@ -1687,7 +1699,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax = self.all_fig.add_subplot(gs[1,0]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.all_fig.add_subplot(gs[1,1]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
             
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
@@ -1715,7 +1729,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax = self.all_fig.add_subplot(gs[2,n]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.all_fig.add_subplot(gs[3,n]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
             
-            self.IMag_ax.imshow(params.img_mag[n,:,:], cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag[n,:,:], interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_mag[n,:,:], cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
         #self.IMag_ax.set_title('Magnitude Image')
             self.IPha_ax.imshow(params.img_pha[n,:,:], cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
         #self.IPha_ax.set_title('Phase Image')
@@ -1748,11 +1764,22 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
             
-            self.IMag_ax.imshow(params.img_mag, cmap='gray'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='gray')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
-            self.IDiff_ax.imshow(params.img_mag_diff, cmap='viridis'); self.IDiff_ax.axis('off'); self.IDiff_ax.set_aspect(1.0/self.IDiff_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IDiff_aximshow(params.img_mag_diff, interpolation='gaussian', cmap='jet')
+            else: self.IDiff_ax.imshow(params.img_mag_diff, cmap='jet')
+            self.IDiff_ax.axis('off'); self.IDiff_ax.set_aspect(1.0/self.IDiff_ax.get_data_ratio())
             self.IDiff_ax.set_title('Diffusion')
-            self.IComb_ax.imshow(params.img_mag, cmap='gray'); self.IComb_ax.imshow(params.img_mag_diff, cmap='viridis', alpha=0.5); self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+            if params.imagefilter == 1:
+                self.IComb_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
+                self.IComb_ax.imshow(params.img_mag_diff, interpolation='gaussian', cmap='jet', alpha=0.5)
+            else:
+                self.IComb_ax.imshow(params.img_mag, cmap='gray')
+                self.IComb_ax.imshow(params.img_mag_diff, cmap='jet', alpha=0.5)
+            self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
             self.IComb_ax.set_title('Combination')
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
@@ -1802,11 +1829,21 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax = self.all_fig.add_subplot(gs[1,1]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.all_fig.add_subplot(gs[1,2]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
             
-            self.IMag_ax.imshow(params.img_mag, cmap='gray'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
+            else: self.IMag_ax.imshow(params.img_mag, cmap='gray')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
-            self.IDiff_ax.imshow(params.img_mag_diff, cmap='viridis'); self.IDiff_ax.axis('off'); self.IDiff_ax.set_aspect(1.0/self.IDiff_ax.get_data_ratio())
+            if params.imagefilter == 1:self.IDiff_aximshow(params.img_mag_diff, interpolation='gaussian', cmap='jet')
+            else: self.IDiff_ax.imshow(params.img_mag_diff, cmap='jet')
+            self.IDiff_ax.axis('off'); self.IDiff_ax.set_aspect(1.0/self.IDiff_ax.get_data_ratio())
             self.IDiff_ax.set_title('Diffusion')
-            self.IComb_ax.imshow(params.img_mag, cmap='gray'); self.IComb_ax.imshow(params.img_mag_diff, cmap='viridis', alpha=0.5); self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+            if params.imagefilter == 1:
+                self.IComb_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
+                self.IComb_ax.imshow(params.img_mag_diff, interpolation='gaussian', cmap='jet', alpha=0.5)
+            else:
+                self.IComb_ax.imshow(params.img_mag, cmap='gray')
+                self.IComb_ax.imshow(params.img_mag_diff, cmap='jet', alpha=0.5)
+            self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
             self.IComb_ax.set_title('Combination')
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
