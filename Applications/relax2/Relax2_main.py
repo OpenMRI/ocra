@@ -489,6 +489,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.RX1_radioButton.toggled.connect(self.update_params)
         self.RX2_radioButton.toggled.connect(self.update_params)
         
+        self.RF_Rec_Carrier_radioButton.toggled.connect(self.update_params)
+        self.RF_Rec_Carrier_radioButton.setToolTip('Sets the RF carrier waveform from sine wave to rectengular. This is an experimental implementation.')
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -582,6 +585,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
         if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
+        
+        if params.RFreccarrier == 1: self.RF_Rec_Carrier_radioButton.setChecked(True)
         
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
@@ -856,7 +861,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.rxmode = 3
             print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
         
-        print('RX mode: ',params.rxmode)
+        #print('RX mode: ',params.rxmode)
+        
+        if self.RF_Rec_Carrier_radioButton.isChecked(): params.RFreccarrier = 1
+        else: params.RFreccarrier = 0
         
         params.saveFileParameter()
         

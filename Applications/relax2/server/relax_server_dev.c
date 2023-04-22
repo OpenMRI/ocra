@@ -8177,7 +8177,7 @@ int main(int argc)
         int rxmode = (int)command[36];
         printf("RX mode: %d \n", rxmode);
         // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
-	    //*rx_switch = rxmode & (0x0003);
+	      //*rx_switch = rxmode & (0x0003);
         continue;
       }
       
@@ -8282,6 +8282,18 @@ int main(int argc)
         update_gradient_waveform_state(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2,GRAD_OFFSET_ENABLED_OUTPUT,gradient_offset);
         printf("Gradient offsets updated with values: X %d, Y %d, Z %d Z2 %d [mA]\n", (int)(gradient_offset.gradient_x*1000), (int)(gradient_offset.gradient_y*1000), (int)(gradient_offset.gradient_z*1000), (int)(gradient_offset.gradient_z2*1000));
 
+        continue;
+      }
+      
+      //------------------------------------------------------------------------
+      //  Change RF carrier waveform
+      //------------------------------------------------------------------------
+      if ( trig == 6 ) {
+        printf("Set RF carrier waveform.\n");
+        int RFcarriermode = (int)command[36];
+        printf("Waveform: %d \n", RFcarriermode);
+        // 0 = Sine, 1 = Rectengular
+	      
         continue;
       }
       
