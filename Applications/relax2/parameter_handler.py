@@ -36,14 +36,15 @@ class Parameters:
         self.sequencefile = ''
         self.datapath = ''
         self.frequency = 11.3
+        self.autorecenter = 0
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
         self.phaseoffset = 0
         self.phaseoffsetradmod100 = 0
         self.RFpulselength = 100
         self.RFpulseamplitude = 16384
-        self.flipangetime = 90
-        self.flipangeamplitude = 90
+        self.flipangletime = 90
+        self.flipangleamplitude = 90
         self.flippulselength = 50
         self.flippulseamplitude = 16384
         self.RFattenuation = -15.00
@@ -117,6 +118,8 @@ class Parameters:
         self.average = 0
         self.averagecount = 10
         self.imagplots = 0
+        self.cutcirc = 0
+        self.cutrec = 0
         self.cutcenter = 0
         self.cutoutside = 0
         self.cutcentervalue = 0
@@ -155,6 +158,9 @@ class Parameters:
         self.FOV = 20.0
         self.slicethickness = 5.0
         self.gradsens = [33.5, 31.9, 32.5]
+        self.gradnominal = [10.0, 10.0, 10.0]
+        self.gradmeasured = [10.0, 10.0, 10.0]
+        self.gradsenstool = [33.5, 31.9, 32.5]
         self.autofreqoffset = 1
         self.sliceoffset = 0
         self.animationstep = 100
@@ -164,9 +170,13 @@ class Parameters:
         self.ToolShimSteps = 20
         self.ToolShimChannel = [0, 0, 0, 0]
         self.STvalues = []
-        
+        self.B0DeltaB0map = []
+        self.B0DeltaB0mapmasked = []
+        self.B1alphamap = []
+        self.B1alphamapmasked = []
+        self.imagefilter = 0
 
-    def saveFile(self):  
+    def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
             pickle.dump([self.hosts, \
                          self.connectionmode, \
@@ -175,14 +185,15 @@ class Parameters:
                          self.sequencefile, \
                          self.datapath, \
                          self.frequency, \
+                         self.autorecenter, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
                          self.phaseoffset, \
                          self.phaseoffsetradmod100, \
                          self.RFpulselength, \
                          self.RFpulseamplitude, \
-                         self.flipangetime, \
-                         self.flipangeamplitude, \
+                         self.flipangletime, \
+                         self.flipangleamplitude, \
                          self.flippulselength, \
                          self.flippulseamplitude, \
                          self.RFattenuation, \
@@ -201,27 +212,15 @@ class Parameters:
                          self.frequencyrange, \
                          self.samples, \
                          self.sampledelay, \
-                         self.spectrumdata, \
                          self.dataTimestamp, \
                          self.timeaxis, \
-                         self.mag, \
-                         self.real, \
-                         self.imag, \
-                         self.freqencyaxis, \
                          self.frequencyplotrange, \
-                         self.spectrumfft, \
                          self.FWHM, \
                          self.peakvalue, \
                          self.noise, \
                          self.SNR, \
                          self.inhomogeneity, \
                          self.centerfrequency, \
-                         self.kspace, \
-                         self.k_amp, \
-                         self.k_pha, \
-                         self.img, \
-                         self.img_mag, \
-                         self.img_pha, \
                          self.ACstart, \
                          self.ACstop, \
                          self.ACstepwidth, \
@@ -235,27 +234,17 @@ class Parameters:
                          self.TIstart, \
                          self.TIstop, \
                          self.TIsteps, \
-                         self.T1values, \
-                         self.T1xvalues, \
-                         self.T1yvalues1, \
-                         self.T1yvalues2, \
-                         self.T1linregres, \
-                         self.T1regyvalues1, \
-                         self.T1regyvalues2, \
                          self.T1, \
                          self.TEstart, \
                          self.TEstop, \
                          self.TEsteps, \
-                         self.T2values, \
-                         self.T2xvalues, \
-                         self.T2yvalues, \
-                         self.T2linregres, \
-                         self.T2regyvalues, \
                          self.T2, \
                          self.projaxis, \
                          self.average, \
                          self.averagecount, \
                          self.imagplots, \
+                         self.cutcirc, \
+                         self.cutrec, \
                          self.cutcenter, \
                          self.cutoutside, \
                          self.cutcentervalue, \
@@ -276,7 +265,6 @@ class Parameters:
                          self.GSPEstep, \
                          self.SPEsteps, \
                          self.Gdiffamplitude, \
-                         self.img_mag_diff, \
                          self.crusheramplitude, \
                          self.spoileramplitude, \
                          self.GROpretime, \
@@ -294,6 +282,9 @@ class Parameters:
                          self.FOV, \
                          self.slicethickness, \
                          self.gradsens, \
+                         self.gradnominal, \
+                         self.gradmeasured, \
+                         self.gradsenstool, \
                          self.autofreqoffset, \
                          self.sliceoffset, \
                          self.animationstep, \
@@ -302,9 +293,44 @@ class Parameters:
                          self.ToolShimStop, \
                          self.ToolShimSteps, \
                          self.ToolShimChannel, \
-                         self.STvalues], file)
+                         self.STvalues, \
+                         self.imagefilter], file)
        
         print("Parameters saved!")
+        
+    def saveFileData(self):  
+        with open('data.pkl', 'wb') as file:
+            pickle.dump([self.spectrumdata, \
+                         self.mag, \
+                         self.real, \
+                         self.imag, \
+                         self.freqencyaxis, \
+                         self.spectrumfft, \
+                         self.kspace, \
+                         self.k_amp, \
+                         self.k_pha, \
+                         self.img, \
+                         self.img_mag, \
+                         self.img_pha, \
+                         self.T1values, \
+                         self.T1xvalues, \
+                         self.T1yvalues1, \
+                         self.T1yvalues2, \
+                         self.T1linregres, \
+                         self.T1regyvalues1, \
+                         self.T1regyvalues2, \
+                         self.T2values, \
+                         self.T2xvalues, \
+                         self.T2yvalues, \
+                         self.T2linregres, \
+                         self.T2regyvalues, \
+                         self.img_mag_diff, \
+                         self.B0DeltaB0map, \
+                         self.B0DeltaB0mapmasked, \
+                         self.B1alphamap, \
+                         self.B1alphamapmasked], file)
+       
+        print("Data saved!")
 
     def loadParam(self):
         try:
@@ -316,14 +342,15 @@ class Parameters:
                 self.sequencefile, \
                 self.datapath, \
                 self.frequency, \
+                self.autorecenter, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
                 self.phaseoffset, \
                 self.phaseoffsetradmod100, \
                 self.RFpulselength, \
                 self.RFpulseamplitude, \
-                self.flipangetime, \
-                self.flipangeamplitude, \
+                self.flipangletime, \
+                self.flipangleamplitude, \
                 self.flippulselength, \
                 self.flippulseamplitude, \
                 self.RFattenuation, \
@@ -342,27 +369,15 @@ class Parameters:
                 self.frequencyrange, \
                 self.samples, \
                 self.sampledelay, \
-                self.spectrumdata, \
                 self.dataTimestamp, \
                 self.timeaxis, \
-                self.mag, \
-                self.real, \
-                self.imag, \
-                self.freqencyaxis, \
                 self.frequencyplotrange, \
-                self.spectrumfft, \
                 self.FWHM, \
                 self.peakvalue, \
                 self.noise, \
                 self.SNR, \
                 self.inhomogeneity, \
                 self.centerfrequency, \
-                self.kspace, \
-                self.k_amp, \
-                self.k_pha, \
-                self.img, \
-                self.img_mag, \
-                self.img_pha, \
                 self.ACstart, \
                 self.ACstop, \
                 self.ACstepwidth, \
@@ -376,27 +391,17 @@ class Parameters:
                 self.TIstart, \
                 self.TIstop, \
                 self.TIsteps, \
-                self.T1values, \
-                self.T1xvalues, \
-                self.T1yvalues1, \
-                self.T1yvalues2, \
-                self.T1linregres, \
-                self.T1regyvalues1, \
-                self.T1regyvalues2, \
                 self.T1, \
                 self.TEstart, \
                 self.TEstop, \
                 self.TEsteps, \
-                self.T2values, \
-                self.T2xvalues, \
-                self.T2yvalues, \
-                self.T2linregres, \
-                self.T2regyvalues, \
                 self.T2, \
                 self.projaxis, \
                 self.average, \
                 self.averagecount, \
                 self.imagplots, \
+                self.cutcirc, \
+                self.cutrec, \
                 self.cutcenter, \
                 self.cutoutside, \
                 self.cutcentervalue, \
@@ -417,7 +422,6 @@ class Parameters:
                 self.GSPEstep, \
                 self.SPEsteps, \
                 self.Gdiffamplitude, \
-                self.img_mag_diff, \
                 self.crusheramplitude, \
                 self.spoileramplitude, \
                 self.GROpretime, \
@@ -435,6 +439,9 @@ class Parameters:
                 self.FOV, \
                 self.slicethickness, \
                 self.gradsens, \
+                self.gradnominal, \
+                self.gradmeasured, \
+                self.gradsenstool, \
                 self.autofreqoffset, \
                 self.sliceoffset, \
                 self.animationstep, \
@@ -443,12 +450,52 @@ class Parameters:
                 self.ToolShimStop, \
                 self.ToolShimSteps, \
                 self.ToolShimChannel, \
-                self.STvalues = pickle.load(file)
+                self.STvalues, \
+                self.imagefilter = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
         except:
             print("Parameter could not have been restored, setting default.")
+            self.var_init()
+            
+    def loadData(self):
+        try:
+            with open('data.pkl', 'rb') as file:
+                self.spectrumdata, \
+                self.mag, \
+                self.real, \
+                self.imag, \
+                self.freqencyaxis, \
+                self.spectrumfft, \
+                self.kspace, \
+                self.k_amp, \
+                self.k_pha, \
+                self.img, \
+                self.img_mag, \
+                self.img_pha, \
+                self.T1values, \
+                self.T1xvalues, \
+                self.T1yvalues1, \
+                self.T1yvalues2, \
+                self.T1linregres, \
+                self.T1regyvalues1, \
+                self.T1regyvalues2, \
+                self.T2values, \
+                self.T2xvalues, \
+                self.T2yvalues, \
+                self.T2linregres, \
+                self.T2regyvalues, \
+                self.img_mag_diff, \
+                self.B0DeltaB0map, \
+                self.B0DeltaB0mapmasked, \
+                self.B1alphamap, \
+                self.B1alphamapmasked = pickle.load(file)
+             
+                print("Internal GUI Data successfully restored from file.")
+                
+        except:
+            print("Data could not have been restored, setting default.")
             self.var_init()
 
     def dispVars(self):

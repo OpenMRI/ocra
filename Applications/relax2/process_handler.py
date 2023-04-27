@@ -18,6 +18,7 @@ from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
+import math
 import pandas as pd
 from scipy.stats import linregress
 
@@ -30,6 +31,7 @@ class process:
     def __init__(self):
 
         params.loadParam()
+        params.loadData()
 
     def spectrum_process(self):
         self.procdata = np.genfromtxt(params.datapath + '.txt', dtype = np.complex64)
@@ -83,22 +85,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[int(n*params.usphaseidx+m),:] = 0
 
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
 
-                    
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -113,7 +131,7 @@ class process:
         params.img = I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
         params.img_mag = self.img_mag_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
         params.img_pha = self.img_pha_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
-        
+         
         print("Image data processed!")
             
     def image_3D_process(self):
@@ -144,22 +162,40 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[:,int(n*params.usphaseidx+m),:] = 0
 
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[2] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[2] / 2 * (1 - params.cutoutsidevalue / 100)
 
-                    
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[2] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[2] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[:,self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            if params.cutcenter == 1:
+                for kk in range(params.kspace.shape[0]):
+                    for ii in range(params.kspace.shape[2]):
+                        for jj in range(params.kspace.shape[1]):
+                            if np.sqrt((ii - (params.kspace.shape[2]/2))**2 + (jj * params.kspace.shape[2]/params.kspace.shape[1] - (params.kspace.shape[2]/2))**2) <= self.cutc:
+                                params.kspace[kk,jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for kk in range(params.kspace.shape[0]):
+                    for ii in range(params.kspace.shape[2]):
+                        for jj in range(params.kspace.shape[1]):
+                            if np.sqrt((ii - (params.kspace.shape[2]/2))**2 + (jj * params.kspace.shape[2]/params.kspace.shape[1] - (params.kspace.shape[2]/2))**2) >= self.cuto:
+                                params.kspace[kk,jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[:,0:self.cutoy, :] = 0
-            params.kspace[:,params.kspace.shape[1] - self.cutoy:params.kspace.shape[1], :] = 0
-            params.kspace[:,:, 0:self.cutox] = 0
-            params.kspace[:,:, params.kspace.shape[2] - self.cutox:params.kspace.shape[2]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[2] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[2] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[:,self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[:,0:self.cutoy, :] = 0
+                params.kspace[:,params.kspace.shape[1] - self.cutoy:params.kspace.shape[1], :] = 0
+                params.kspace[:,:, 0:self.cutox] = 0
+                params.kspace[:,:, params.kspace.shape[2] - self.cutox:params.kspace.shape[2]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -198,20 +234,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     params.kspace[int(n*params.usphaseidx+m),:] = 0
        
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -246,15 +300,38 @@ class process:
                 for m in range(int(params.usphaseidx/2)):
                     self.kspacediff[int(n*params.usphaseidx+m),:] = 0
 
-        #Set kSpace to 0 (Option)
-        if params.cutcenter == 1:
-            self.kspacediff[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            self.kspacediff[0:self.cutoy, :] = 0
-            self.kspacediff[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            self.kspacediff[:, 0:self.cutox] = 0
-            self.kspacediff[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(self.kspacediff)
@@ -298,20 +375,38 @@ class process:
 
 
                     
-        #Set kSpace to 0 (Option)
-        self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
-        self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
-        self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
-        self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
-        
-        if params.cutcenter == 1:
-            params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+        if params.cutcirc == 1:
+            #Set kSpace to 0 (Option)
+            self.cutc = params.kspace.shape[1] / 2 * params.cutcentervalue / 100
+            self.cuto = params.kspace.shape[1] / 2 * (1 - params.cutoutsidevalue / 100)
+
+            if params.cutcenter == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) <= self.cutc:
+                            params.kspace[jj,ii] = 0
+                            
+            if params.cutoutside == 1:
+                for ii in range(params.kspace.shape[1]):
+                    for jj in range(params.kspace.shape[0]):
+                        if np.sqrt((ii - (params.kspace.shape[1]/2))**2 + (jj * params.kspace.shape[1]/params.kspace.shape[0] - (params.kspace.shape[1]/2))**2) >= self.cuto:
+                            params.kspace[jj,ii] = 0
             
-        if params.cutoutside == 1:
-            params.kspace[0:self.cutoy, :] = 0
-            params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
-            params.kspace[:, 0:self.cutox] = 0
-            params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
+        if params.cutrec == 1:
+            #Set kSpace to 0 (Option)
+            self.cutcx = int(params.kspace.shape[1] / 2 * params.cutcentervalue / 100)
+            self.cutcy = int(params.kspace.shape[0] / 2 * params.cutcentervalue / 100)
+            self.cutox = int(params.kspace.shape[1] / 2 * params.cutoutsidevalue / 100)
+            self.cutoy = int(params.kspace.shape[0] / 2 * params.cutoutsidevalue / 100)
+        
+            if params.cutcenter == 1:
+                params.kspace[self.kspace_centery - self.cutcy:self.kspace_centery + self.cutcy, self.kspace_centerx - self.cutcx:self.kspace_centerx + self.cutcx] = 0
+            
+            if params.cutoutside == 1:
+                params.kspace[0:self.cutoy, :] = 0
+                params.kspace[params.kspace.shape[0] - self.cutoy:params.kspace.shape[0], :] = 0
+                params.kspace[:, 0:self.cutox] = 0
+                params.kspace[:, params.kspace.shape[1] - self.cutox:params.kspace.shape[1]] = 0
             
         #Image calculations
         self.k_amp_full = np.abs(params.kspace)
@@ -402,11 +497,12 @@ class process:
     def Autocentertool(self):
         print('Finding Signals...')
         
+        self.freqtemp = 0
         self.freqtemp = params.frequency
         
-#         params.GUImode = 0
-#         params.sequence = 1
-#         params.TR = 2000
+        #params.GUImode = 0
+        #params.sequence = 1
+        #params.TR = 2000
         
         self.ACidx = round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1
         self.ACsteps = np.linspace(params.ACstart,params.ACstop,self.ACidx)
@@ -426,26 +522,22 @@ class process:
             
         params.ACvalues[0,:] = self.ACsteps
         params.ACvalues[1,:] = self.ACpeakvalues
-        
         params.Reffrequency = self.ACsteps[np.argmax(self.ACpeakvalues)]
         
+        np.savetxt('imagedata/Autocenter_Tool_Data.txt', np.transpose(params.ACvalues))
+
         params.frequency = self.freqtemp
         
     def Flipangletool(self):
         print('Finding Flipangles...')
         
-        self.atttemp = params.RFattenuation
-        
-        #params.GUImode = 0
-        #params.sequence = 1
-        #params.TR = 2000
-        #params.TS = 3
+        self.RFattenuationtemp = 0
+        self.RFattenuationtemp = params.RFattenuation
         
         self.FAsteps = np.linspace(params.FAstart,params.FAstop,params.FAsteps)
         params.FAvalues = np.matrix(np.zeros((2,params.FAsteps)))
         self.FApeakvalues = np.zeros(params.FAsteps)
         
-
         params.RFattenuation = -31.75
         seq.sequence_upload()
         proc.spectrum_process()
@@ -466,37 +558,38 @@ class process:
         params.FAvalues[0,:] = self.FAsteps
         params.FAvalues[1,:] = self.FApeakvalues
         
-        print(params.FAvalues)
-        
         params.RefRFattenuation = self.FAsteps[np.argmax(self.FApeakvalues)]
         
-        params.RFattenuation = self.atttemp
+        np.savetxt('imagedata/Flipangle_Tool_Data.txt', np.transpose(params.FAvalues))
+
+        params.RFattenuation = self.RFattenuationtemp
         
     def Shimtool(self):
-        print('WIP Shimtool Proc')
+        print('Processing shimtool...')
         
-        self.STsteps = np.linspace(params.ToolShimStart,params.ToolShimStop,params.ToolShimSteps)
-        self.STsteps = self.STsteps.astype(int)
-        print(self.STsteps)
-        
-        params.STvalues = np.matrix(np.zeros((5,params.ToolShimSteps)))
-        params.STvalues[0,:] = self.STsteps
-        
+        self.frequencytemp = 0
         self.frequencytemp = params.frequency
         self.shimtemp = [0, 0, 0, 0]
         self.shimtemp[:] = params.grad[:]
+        #print(self.shimtemp)
+        
+        self.STsteps = np.linspace(params.ToolShimStart,params.ToolShimStop,params.ToolShimSteps)
+        self.STsteps = self.STsteps.astype(int)
+        #print(self.STsteps)
+        
+        params.STvalues = np.matrix(np.zeros((5,params.ToolShimSteps)))
+        params.STvalues[0,:] = self.STsteps
         
         seq.sequence_upload()
         proc.spectrum_process()
         proc.spectrum_analytics()
         time.sleep(params.TR/1000)
         params.frequency = params.centerfrequency
-        print(self.shimtemp)
         
         if params.ToolShimChannel[0] == 1:
             self.STpeakvaluesX = np.zeros(params.ToolShimSteps)
-            
             params.grad[0] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -506,6 +599,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.grad[0] = self.STsteps[n]
                 params.frequency = params.centerfrequency
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -519,8 +613,8 @@ class process:
             
         if params.ToolShimChannel[1] == 1:
             self.STpeakvaluesY = np.zeros(params.ToolShimSteps)
-            
             params.grad[1] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -530,6 +624,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.grad[1] = self.STsteps[n]
                 params.frequency = params.centerfrequency
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -543,8 +638,8 @@ class process:
             
         if params.ToolShimChannel[2] == 1:
             self.STpeakvaluesZ = np.zeros(params.ToolShimSteps)
-            
             params.grad[2] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -554,6 +649,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.frequency = params.centerfrequency
                 params.grad[2] = self.STsteps[n]
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -567,8 +663,8 @@ class process:
             
         if params.ToolShimChannel[3] == 1:
             self.STpeakvaluesZ2 = np.zeros(params.ToolShimSteps)
-            
             params.grad[3] = self.STsteps[0]
+            
             seq.sequence_upload()
             proc.spectrum_process()
             proc.spectrum_analytics()
@@ -578,6 +674,7 @@ class process:
                 print(n+1, '/', params.ToolShimSteps)
                 params.frequency = params.centerfrequency
                 params.grad[3] = self.STsteps[n]
+                
                 seq.sequence_upload()
                 proc.spectrum_process()
                 proc.spectrum_analytics()
@@ -589,7 +686,405 @@ class process:
             params.frequency = self.frequencytemp
             params.grad[3] = self.shimtemp[3]
             
+        np.savetxt('imagedata/Shim_Tool_Data.txt', np.transpose(params.STvalues))
+
+    def FieldMapB0(self):
+        print('Measuring B0 field...')
         
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 4
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        self.TEtemp = 0
+        self.TEtemp = params.TE
+        params.TE = params.TE + 1
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB0_S2_raw = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S2 = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S2_raw[:,:] = params.img_pha[:,:]
+        self.FieldMapB0_S2[:,:] = params.img_pha[:,:]
+        
+        for kk in range (10):
+        
+            for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(self.FieldMapB0_S2.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S2.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] - 2 * math.pi
+        
+        time.sleep(params.TR/1000)
+        
+        params.TE = self.TEtemp
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB0_S1_raw = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S1 = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S1_raw = params.img_pha
+        self.FieldMapB0_S1 = params.img_pha
+        
+        for kk in range (10):
+        
+            for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(self.FieldMapB0_S1.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S1.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] - 2 * math.pi
+
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
+        params.B0DeltaB0mapmasked = np.matrix(np.zeros((params.B0DeltaB0map.shape[1],params.B0DeltaB0map.shape[0])))
+        params.B0DeltaB0mapmasked[:,:] = params.B0DeltaB0map[:,:]
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        
+        self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=0)
+        np.savetxt('imagedata/FieldMap_B0_Phase_Raw_Data.txt', self.FieldMapB0_pha_raw)
+        self.FieldMapB0_pha = np.concatenate((self.FieldMapB0_S1,self.FieldMapB0_S2),axis=0)
+        np.savetxt('imagedata/FieldMap_B0_Phase_Data.txt', self.FieldMapB0_pha)
+        self.B0DeltaB0maps = np.concatenate((params.img_mag,params.B0DeltaB0map,params.B0DeltaB0mapmasked),axis=0)
+        np.savetxt('imagedata/FieldMap_B0_deltat1ms_Mag_Map_MapMasked_Data.txt', self.B0DeltaB0maps)
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+    def FieldMapB0Slice(self):
+        print('Measuring B0 (Slice) field...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 20
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        self.TEtemp = 0
+        self.TEtemp = params.TE
+        params.TE = params.TE + 1
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB0_S2_raw = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S2 = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S2_raw[:,:] = params.img_pha[:,:]
+        self.FieldMapB0_S2[:,:] = params.img_pha[:,:]
+        
+        for kk in range (10):
+        
+            for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S2.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S2.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(self.FieldMapB0_S2.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)+jj+1,int(self.FieldMapB0_S2.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S2.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] > math.pi:
+                        self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0]/2)-jj-1,int(self.FieldMapB0_S2.shape[1]/2)+jj-ii+1] - 2 * math.pi
+        
+        time.sleep(params.TR/1000)
+        
+        params.TE = self.TEtemp
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB0_S1_raw = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S1 = np.matrix(np.zeros((params.img_pha.shape[1],params.img_pha.shape[0])))
+        self.FieldMapB0_S1_raw = params.img_pha
+        self.FieldMapB0_S1 = params.img_pha
+        
+        for kk in range (10):
+        
+            for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii-1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj+ii+1,int(self.FieldMapB0_S1.shape[1]/2)+jj+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii-1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj-ii+1,int(self.FieldMapB0_S1.shape[1]/2)-jj-1] - 2 * math.pi
+            
+            for jj in range(int(self.FieldMapB0_S1.shape[0]/2)-2):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)+jj+1,int(self.FieldMapB0_S1.shape[1]/2)-jj+ii+1] - 2 * math.pi
+            for jj in range(int(self.FieldMapB0_S1.shape[0]/2)-1):
+                for ii in range(1+jj*2):
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii-1] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii] - 2 * math.pi
+                    if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] > math.pi:
+                        self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] - 2 * math.pi
+
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
+        params.B0DeltaB0mapmasked = np.matrix(np.zeros((params.B0DeltaB0map.shape[1],params.B0DeltaB0map.shape[0])))
+        params.B0DeltaB0mapmasked[:,:] = params.B0DeltaB0map[:,:]
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        
+        self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=1)
+        np.savetxt('imagedata/FieldMap_B0_Phase_Raw_Data.txt', self.FieldMapB0_pha_raw)
+        self.FieldMapB0_pha = np.concatenate((self.FieldMapB0_S1,self.FieldMapB0_S2),axis=1)
+        np.savetxt('imagedata/FieldMap_B0_Phase_Data.txt', self.FieldMapB0_pha)
+        self.B0DeltaB0maps = np.concatenate((params.img_mag,params.B0DeltaB0map,params.B0DeltaB0mapmasked),axis=1)
+        np.savetxt('imagedata/FieldMap_B0_deltat1ms_Mag_Map_MapMasked_Data.txt', self.B0DeltaB0maps)
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+
+    def FieldMapB1(self):
+        print('Measuring B1 field...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 4
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        self.flipangleamplitudetemp = 0
+        self.flipangleamplitudetemp = params.flipangleamplitude
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB1_S1 = np.matrix(np.zeros((params.img_mag.shape[1],params.img_mag.shape[0])))
+        self.FieldMapB1_S1[:,:] = params.img_mag[:,:]
+        
+        time.sleep(params.TR/1000)
+        
+        params.flipangleamplitude = params.flipangleamplitude * 2
+        
+        seq.sequence_upload()
+        proc.image_process()
+
+        self.FieldMapB1_S2 = np.matrix(np.zeros((params.img_mag.shape[1],params.img_mag.shape[0])))
+        self.FieldMapB1_S2[:,:] = params.img_mag[:,:]
+        
+        params.flipangleamplitude = self.flipangleamplitudetemp
+        
+        params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
+        params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1],params.B1alphamap.shape[0])))
+        params.B1alphamapmasked[:,:] = params.B1alphamap[:,:]
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B1alphamapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        
+        self.FieldMapB1_mag = np.concatenate((self.FieldMapB1_S1,self.FieldMapB1_S2),axis=1)
+        np.savetxt('imagedata/FieldMap_B1_Phase_Data.txt', self.FieldMapB1_mag)
+        self.B1alphamaps = np.concatenate((params.img_mag,params.B1alphamap,params.B1alphamapmasked),axis=1)
+        np.savetxt('imagedata/FieldMap_B1_alpha'+ str(params.flipangleamplitude) +'deg_Mag_Map_MapMasked_Data.txt', self.B1alphamaps)
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+    def FieldMapB1Slice(self):
+        print('Measuring B1 (Slice) field...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 20
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        self.flipangleamplitudetemp = 0
+        self.flipangleamplitudetemp = params.flipangleamplitude
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        self.FieldMapB1_S1 = np.matrix(np.zeros((params.img_mag.shape[1],params.img_mag.shape[0])))
+        self.FieldMapB1_S1[:,:] = params.img_mag[:,:]
+        
+        time.sleep(params.TR/1000)
+        
+        params.flipangleamplitude = params.flipangleamplitude * 2
+        
+        seq.sequence_upload()
+        proc.image_process()
+
+        self.FieldMapB1_S2 = np.matrix(np.zeros((params.img_mag.shape[1],params.img_mag.shape[0])))
+        self.FieldMapB1_S2[:,:] = params.img_mag[:,:]
+        
+        params.flipangleamplitude = self.flipangleamplitudetemp
+        
+        params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
+        params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1],params.B1alphamap.shape[0])))
+        params.B1alphamapmasked[:,:] = params.B1alphamap[:,:]
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.B1alphamapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        
+        self.FieldMapB1_mag = np.concatenate((self.FieldMapB1_S1,self.FieldMapB1_S2),axis=1)
+        np.savetxt('imagedata/FieldMap_B1_Phase_Data.txt', self.FieldMapB1_mag)
+        self.B1alphamaps = np.concatenate((params.img_mag,params.B1alphamap,params.B1alphamapmasked),axis=1)
+        np.savetxt('imagedata/FieldMap_B1_alpha'+ str(params.flipangleamplitude) +'deg_Mag_Map_MapMasked_Data.txt', self.B1alphamaps)
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+    def FieldMapGradient(self):
+        print('Gradient tool started...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 5
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+    def FieldMapGradientSlice(self):
+        print('Gradient (Slice) tool started...')
+        
+        self.GUImodetemp = 0
+        self.sequencetemp = 0
+        self.datapathtemp = ''
+        self.GUImodetemp = params.GUImode
+        self.sequencetemp = params.sequence
+        self.datapathtemp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 21
+        params.datapath = 'rawdata/Tool_rawdata'
+        
+        seq.sequence_upload()
+        proc.image_process()
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        params.datapath = self.datapathtemp
+        
+
     def T1measurement_IR_FID(self):
         print('Measuring T1...')
         
@@ -812,21 +1307,23 @@ class process:
         
     def animation_image_process(self):
         
-        
         self.kspaceanimate = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[1]), dtype = np.complex64))
-
-        params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0])))
+        self.kspaceanimatetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.animationimagetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0]*2)))
         
         self.kspace_centerx = int(params.kspace.shape[1]/2)
         self.kspace_centery = int(params.kspace.shape[0]/2)
         
         for n in range(params.kspace.shape[0]):
             self.kspaceanimate[n,:] = params.kspace[n,:]
+            self.kspaceanimatetemp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx-params.kspace.shape[0]/2*int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))):int(self.kspace_centerx+params.kspace.shape[0]/2*int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1]/params.kspace.shape[0]))])/np.amax(params.k_amp)
         
             #Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate)))
-            params.animationimage[n,:,:] = np.abs(I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)])
+            self.animationimagetemp[:,:] = np.abs(I[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)])
+            self.animationimagetemp = self.animationimagetemp / np.amax(params.img_mag)
+            #Store animation array
+            params.animationimage[n,:,:] = np.concatenate((self.animationimagetemp[:,:],self.kspaceanimatetemp[:,:]),axis=1)  
 
-        
-        
 proc = process()

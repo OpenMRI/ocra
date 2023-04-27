@@ -29,12 +29,13 @@ DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
 DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 
 
-.PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.hdf tmp/%.bit tmp/%.tree/system.dts
+.PRECIOUS: tmp/cores_pavel/% tmp/cores/% tmp/%.xpr tmp/%.xsa tmp/%.bit tmp/%.tree/system.dts
 
 .PHONY: clean all xpr bit dtbo setup
 
 .ONESHELL:
-all: setup tmp/%.bin
+all: setup tmp/%.bin tmp/%.dtbo
+
 
 .ONESHELL:
 xpr: setup tmp/%.xpr
@@ -81,7 +82,7 @@ tmp/%.xpr: $(addprefix tmp/cores_pavel/, $(CORES_PAVEL)) $(addprefix tmp/cores/,
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/project.tcl -tclargs $(NAME) $(BOARD) $(PART)
 
-tmp/%.hdf: tmp/$(BOARD)_$(NAME).xpr
+tmp/%.xsa: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/hwdef.tcl -tclargs $(NAME) $(BOARD)
 
@@ -92,8 +93,9 @@ tmp/%.bit: tmp/$(BOARD)_$(NAME).xpr
 tmp/%.bin: tmp/$(BOARD)_$(NAME).bit
 	echo "all:{ $^}" > tmp/$(BOARD)_$(NAME).bif
 	bootgen -image tmp/$(BOARD)_$(NAME).bif -arch zynq -process_bitstream bin -w -o $@
+	rm tmp/$(BOARD)_$(NAME).bif
 
-tmp/%.tree/system.dts: tmp/$(BOARD)_$(NAME).hdf $(DTREE_DIR)
+tmp/%.tree/system.dts: tmp/$(BOARD)_$(NAME).xsa $(DTREE_DIR)
 	$(HSI) scripts/devicetree.tcl $(NAME) $(PROC) $(DTREE_DIR) $(VIVADO_VER) $(BOARD)
 
 clean:
