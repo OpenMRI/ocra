@@ -30,3 +30,5 @@ QT_DEBUG_PLUGINS=1 poetry run python3 Relax2_main.py
 ```
 
 Likely you will find that the xcb plugin not installed correctly.
+
+To use the latest development version of Relax2.0 you need to update the relax2 folder on your host computer (here a RaspberryPi) and the server and binaries files on the Red Pitaya 125-14 (see server folder README)!!!
