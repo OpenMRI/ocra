@@ -14,11 +14,11 @@ set hard_path tmp/${board_name}_${project_name}.hard
 set tree_path tmp/${board_name}_${project_name}.tree
 
 file mkdir $hard_path
-file copy -force tmp/${board_name}_${project_name}.hdf $hard_path/${board_name}_${project_name}.hdf
+file copy -force tmp/${board_name}_${project_name}.xsa $hard_path/${board_name}_${project_name}.xsa
 
 hsi::set_repo_path $repo_path
 
-hsi::open_hw_design $hard_path/${board_name}_${project_name}.hdf
+hsi::open_hw_design $hard_path/${board_name}_${project_name}.xsa
 hsi::create_sw_design -proc $proc_name -os device_tree devicetree
 
 common::set_property CONFIG.kernel_version $version [hsi::get_os]
