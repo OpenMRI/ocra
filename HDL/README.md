@@ -6,7 +6,7 @@ In order to build the HDL code you need to have Xilinx Vitis 2022.2 full edition
 
 **Basic working knowledge of Linux and bash is more or less required to follow these instructions.**
 
-In order to install Vitis you will need about 110 GB of free disk space, and you will need to register an account with Xilinx website (remember the password, because the installer will also require the same login credentials that you created on the Xilinx website. It is best to download the [web installer](https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2022.2_1014_8888_Lin64.bin).
+In order to install Vitis you will need about 110 GB of free disk space, and you will need to register an account with Xilinx website (remember the password, because the installer will also require the same login credentials that you created on the Xilinx website. It is best to download the [Vitis web installer](https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2022.2_1014_8888_Lin64.bin).
 
 Vivado (the main tool in the Vitis package) is a bit of a beast and requires a reasonably powerful workstation.
 
