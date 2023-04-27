@@ -34,7 +34,7 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 .PHONY: clean all xpr bit dtbo setup
 
 .ONESHELL:
-all: setup tmp/%.bit tmp/%.dtbo
+all: setup tmp/%.bin tmp/%.dtbo
 
 .ONESHELL:
 xpr: setup tmp/%.xpr
@@ -88,6 +88,11 @@ tmp/%.xsa: tmp/$(BOARD)_$(NAME).xpr
 tmp/%.bit: tmp/$(BOARD)_$(NAME).xpr
 	mkdir -p $(@D)
 	$(VIVADO) -source scripts/bitstream.tcl -tclargs $(NAME) $(BOARD)
+
+tmp/%.bin: tmp/$(BOARD)_$(NAME).bit
+	echo "all:{ $^}" > tmp/$(BOARD)_$(NAME).bif
+	bootgen -image tmp/$(BOARD)_$(NAME).bif -arch zynq -process_bitstream bin -w -o $@
+	rm tmp/$(BOARD)_$(NAME).bif
 
 tmp/%.tree/system.dts: tmp/$(BOARD)_$(NAME).xsa $(DTREE_DIR)
 	$(HSI) scripts/devicetree.tcl $(NAME) $(PROC) $(DTREE_DIR) $(VIVADO_VER) $(BOARD)
