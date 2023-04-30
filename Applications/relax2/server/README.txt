@@ -91,3 +91,31 @@ scp /home/pi/relax2/server/relax_serverd root@192.168.1.84:/etc/init.d/
 Type the start command in the ssh terminal:
 
 /etc/init.d/relax_serverd start
+
+5.) Changing the Red Pitaya binaries
+
+Download the Bitfiles from the link of the OCRA main README and copy them in the relax2/server folder.
+
+Connect to the RP via ssh and stop the relax_serverd script.
+
+ssh root@192.168.1.84 (general command: ssh root@[IP])
+
+Then type:
+
+/etc/init.d/relax_serverd stop
+
+Remove the old .bin, .dtbo and load_fpga_bit.sh file with:
+
+rm ocra_mri.bit.bin
+rm ocra_mri.dtbo
+rm load_fpga_bit.sh
+
+In a second terminal (Raspberry side) copy the new files to the Red Pitaya:
+
+scp /home/pi/relax2/server/stemlab_125_14_ocra_mri.bit.bin root@192.168.1.84:
+scp /home/pi/relax2/server/stemlab_125_14_ocra_mri.dtbo root@192.168.1.84:
+scp /home/pi/relax2/server/load_fpga_bit.sh root@192.168.1.84:
+
+Type the server start command in the ssh terminal:
+
+/etc/init.d/relax_serverd start
