@@ -37,23 +37,16 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_n adc_clk_n_i
 }
 
-# Create axi_cfg_register
+# Create axi_cfg_register 256 bits
 cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
-  CFG_DATA_WIDTH 128
-  AXI_ADDR_WIDTH 32
-  AXI_DATA_WIDTH 32
-}
-
-# Create axicfg_register 2
-cell pavel-demin:user:axi_cfg_register:1.0 cfg_1 {
-  CFG_DATA_WIDTH 32
+  CFG_DATA_WIDTH 256 
   AXI_ADDR_WIDTH 32
   AXI_DATA_WIDTH 32
 }
 
 # Create slice with the TX configuration, which uses the bottom 32 bits
 cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+  DIN_WIDTH 256 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
   Din cfg_0/cfg_data
 }
@@ -63,16 +56,16 @@ cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
 # NCO uses the bottom 32 bit
 # Bits 63 to 48 seem free, USING bits 49,48 FOR ADC switch then
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
+  DIN_WIDTH 256 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
 } {
   Din cfg_0/cfg_data
 }
 
 # ADC switch slice
 cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
-  DIN_WIDTH 32 DIN_FROM 1 DIN_TO 0 DOUT_WIDTH 2
+  DIN_WIDTH 256 DIN_FROM 129 DIN_TO 128 DOUT_WIDTH 2
 } {
-  Din cfg_1/cfg_data
+  Din cfg_0/cfg_data
 }
 
 # Clock domain crossing
@@ -88,7 +81,7 @@ set_property CONFIG.WIDTH {2} [get_bd_cells xpm_cdc_gen_0]
 
 # Create another slice with data for the TX, which is another 32 bit
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
+  DIN_WIDTH 256 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
 } {
   Din cfg_0/cfg_data
 }
@@ -164,17 +157,9 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Clk Auto
 } [get_bd_intf_pins cfg_0/S_AXI]
 
-set_property RANGE 1K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
+set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
 
-# Create all required interconnections
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
-  Master /ps_0/M_AXI_GP0
-  Clk Auto
-} [get_bd_intf_pins cfg_1/S_AXI]
-
-set_property RANGE 1K [get_bd_addr_segs ps_0/Data/SEG_cfg_1_reg0]
-set_property OFFSET 0x40000400 [get_bd_addr_segs ps_0/Data/SEG_cfg_1_reg0]
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {

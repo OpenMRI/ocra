@@ -8068,7 +8068,7 @@ int main(int argc)
   //rx_switch
   // the offset is a bit obscure here, but cfg1 on the FPGA falls on the same PAGE as cfg as far as the OS is concerned,
   // so I'm using the same mmap here
-  rx_switch = ((uint16_t *)(cfg + 1024));
+  rx_switch = ((uint32_t *)(cfg + 1024));
   
   printf("Setting FPGA clock to 143 MHz !\n"); fflush(stdout);
 
