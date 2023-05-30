@@ -1088,6 +1088,7 @@ class process:
     def T1measurement_IR_FID(self):
         print('Measuring T1...')
         
+        self.TItemp = 0
         self.TItemp = params.TI
         
         self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
@@ -1107,6 +1108,8 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
             seq.IR_FID_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_FID()
@@ -1129,6 +1132,7 @@ class process:
     def T1measurement_IR_SE(self):
         print('Measuring T1...')
         
+        self.TItemp = 0
         self.TItemp = params.TI
         
         self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
@@ -1148,6 +1152,8 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
             seq.IR_SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1208,6 +1214,7 @@ class process:
     def T2measurement_SE(self):
         print('Measuring T2...')
         
+        self.TEtemp = 0
         self.TEtemp = params.TE
         
         self.T2steps = np.linspace(params.TEstart,params.TEstop,params.TEsteps)
@@ -1227,6 +1234,8 @@ class process:
             print(n+1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n],1)
             params.TE = self.T2steps[n]
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
             seq.SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1249,6 +1258,7 @@ class process:
     def T2measurement_SIR_FID(self):
         print('Measuring T2...')
         
+        self.TEtemp = 0
         self.TEtemp = params.TE
         
         self.T2steps = np.linspace(params.TEstart,params.TEstop,params.TEsteps)
@@ -1257,6 +1267,8 @@ class process:
         
         self.T2steps[0] = round(self.T2steps[0],1)
         params.TE = self.T2steps[0]
+        params.frequency = params.centerfrequency
+        params.saveFileParameter()
         seq.SIR_FID_setup()
         seq.Sequence_upload()
         seq.acquire_spectrum_SE()
