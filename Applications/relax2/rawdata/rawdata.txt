@@ -1,6 +1,6 @@
 In this folder you will find the acquired rawdata.
 
-Example rawdata can be downloaded here:
+Exsample rawdata can be downloaded here:
 https://data.stimulate.ovgu.de/f/675009ce02fa4cbda49d/
 
 There is rawdata for:
