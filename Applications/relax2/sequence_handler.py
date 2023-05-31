@@ -79,6 +79,7 @@ class sequence:
     def sequence_upload(self):
     
         self.RXconfig_upload()
+        self.TXconfig_upload()
         self.Gradients_upload()
         self.Frequency_upload()
         self.RFattenuation_upload()
@@ -373,12 +374,19 @@ class sequence:
         self.freq_old = 0
         self.att_old = 0
         self.rxmode_old = 1
+        self.RFreccarrier_old = 0
 
     def RXconfig_upload(self):
         if params.rxmode != self.rxmode_old:
             socket.write(struct.pack('<IIIIIIIIII', 1, 0, 0, 0, 0, 0, 0, 0, 0, int(params.rxmode)))
             print('Set RX port!')
             self.rxmode_old = params.rxmode
+            
+    def TXconfig_upload(self):
+        if params.RFreccarrier != self.RFreccarrier_old:
+            socket.write(struct.pack('<IIIIIIIIII', 6, 0, 0, 0, 0, 0, 0, 0, 0, int(params.RFreccarrier)))
+            print('Set RX port!')
+            self.RFreccarrier_old = params.RFreccarrier
 
     def Frequency_upload(self):
         if params.frequency != self.freq_old:
