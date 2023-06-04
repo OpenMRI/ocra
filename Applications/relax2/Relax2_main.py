@@ -14,11 +14,13 @@ import numpy as np
 import os
 import math
 import time
+import shutil
 
 from datetime import datetime
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths
 from PyQt5.QtGui import QRegExpValidator, QPixmap
@@ -46,6 +48,7 @@ Conn_Dialog_Form, Conn_Dialog_Base = loadUiType('ui/connDialog.ui')
 Para_Window_Form, Para_Window_Base = loadUiType('ui/parameters.ui')
 Plot_Window_Form, Plot_Window_Base = loadUiType('ui/plotview.ui')
 Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
+Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
@@ -95,6 +98,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Acquire_pushButton.clicked.connect(lambda: self.acquire())
         self.Data_Process_pushButton.clicked.connect(lambda: self.dataprocess())
         self.Tools_pushButton.clicked.connect(lambda: self.tools())
+        self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
         
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
@@ -159,6 +163,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
                     if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
                         seq.SE_Gs_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE_Gs()
@@ -170,6 +178,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     else:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
                         seq.SE_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE()
@@ -287,6 +299,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
    
     def tools(self):
         self.dialog = ToolsWindow(self)
+        self.dialog.show()
+        
+    def protocol(self):
+        self.dialog = ProtocolWindow(self)
         self.dialog.show()
 
     def update_gui(self):
@@ -1405,6 +1421,212 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
+        
+class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(ProtocolWindow, self).__init__(parent)
+        self.setupUi(self)
+        
+        #self.load_params()
+        self.prot_datapath = 'protocol/Protocol_01'
+        
+        self.ui = loadUi('ui/protocol.ui')
+        self.setWindowTitle('Protocol')
+        self.setGeometry(420, 40, 800, 850)
+        
+        self.Protocol_Datapath_lineEdit.setText(self.prot_datapath)
+        self.Protocol_Datapath_lineEdit.editingFinished.connect(lambda: self.set_protocol_datapath())
+        
+        self.protocol_new_protocol()
+        
+        self.Protocol_Add_pushButton.clicked.connect(lambda: self.protocol_add())
+        self.Protocol_Overwrite_pushButton.clicked.connect(lambda: self.protocol_overwrite())
+        self.Protocol_Insert_pushButton.clicked.connect(lambda: self.protocol_insert())
+        self.Protocol_Delete_Last_pushButton.clicked.connect(lambda: self.protocol_delete_last())
+        self.Protocol_Delete_pushButton.clicked.connect(lambda: self.protocol_delete())
+        self.Protocol_Save_Protocol_pushButton.clicked.connect(lambda: self.protocol_save_protocol())
+        self.Protocol_New_Protocol_pushButton.clicked.connect(lambda: self.protocol_new_protocol())
+        self.Protocol_Load_Protocol_pushButton.clicked.connect(lambda: self.protocol_load_protocol())
+        self.Protocol_Execute_Protocol_pushButton.clicked.connect(lambda: self.protocol_execute_protocol())
+        
+    def set_protocol_datapath(self):
+        self.prot_datapath = self.Protocol_Datapath_lineEdit.text()
+        #print('Protocol datapath:', self.prot_datapath)
+        
+    def protocol_add(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]+1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0],:] = self.protocol[:,:]
+        self.protocoltemp[self.protocoltemp.shape[0]-2,0] = params.GUImode
+        self.protocoltemp[self.protocoltemp.shape[0]-2,1] = params.sequence
+        self.protocol = self.protocoltemp
+        
+        try:
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.protocol.shape[0]-1) + '_parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.protocol_plot_table()
+        
+    def protocol_delete_last(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]-1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0]-1,:] = self.protocol[0:self.protocol.shape[0]-1,:]
+        self.protocol = self.protocoltemp
+        
+        try:
+            os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.protocol_plot_table()
+        
+    def protocol_insert(self):
+        if self.Protocol_Number_spinBox.value()-1 <= self.protocoltemp.shape[0]-1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]+1, self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value()-1,:] = self.protocol[0:self.Protocol_Number_spinBox.value()-1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1,0] = params.GUImode
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1,1] = params.sequence
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0]-1,:] = self.protocol[self.Protocol_Number_spinBox.value()-1:self.protocol.shape[0]-1,:]
+            self.protocol = self.protocoltemp
+            
+            for n in range(self.Protocol_Number_spinBox.value(),self.protocol.shape[0]-1):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n) + '_parameters.pkl',self.prot_datapath + '_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+            time.sleep(0.001)
+            for n in range(self.Protocol_Number_spinBox.value()+1,self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n-1) + '_parameters_temp.pkl',self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.001)
+                    os.remove(self.prot_datapath + '_' + str(n-1) + '_parameters_temp.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+                
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+        
+    def protocol_delete(self):
+        if self.Protocol_Number_spinBox.value() <= self.protocoltemp.shape[0]-1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0], self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value()-1,:] = self.protocol[0:self.Protocol_Number_spinBox.value()-1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1:self.protocoltemp.shape[0]-2,:] = self.protocol[self.Protocol_Number_spinBox.value():self.protocol.shape[0]-1,:]
+            self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]-1, self.protocoltemp.shape[1])))
+            self.protocol = self.protocoltemp[0:self.protocoltemp.shape[0]-1,:]
+            
+            for n in range(self.Protocol_Number_spinBox.value(),self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl',self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+            try:
+                os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+        
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+        
+    def protocol_overwrite(self):
+        if self.Protocol_Number_spinBox.value()-1 <= self.protocoltemp.shape[0]-2:
+            self.protocol[self.Protocol_Number_spinBox.value()-1,0] = params.GUImode
+            self.protocol[self.Protocol_Number_spinBox.value()-1,1] = params.sequence
+            
+            try:
+                shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+            
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+    
+    def protocol_plot_table(self):
+        self.Protocol_Table_tableWidget.setRowCount(self.protocol.shape[0]-1)
+        self.Protocol_Table_tableWidget.setColumnCount(self.protocol.shape[1])
+        self.Protocol_Table_tableWidget.setHorizontalHeaderLabels(('Mode','Sequence'))
+        for n in range(self.protocol.shape[0]-1):
+            for m in range(self.protocol.shape[1]):
+                self.Protocol_Table_tableWidget.setItem(n,m,QTableWidgetItem(str(int(self.protocol[n,m]))))
+        self.Protocol_Table_tableWidget.show()
+        
+    def protocol_save_protocol(self):
+        np.savetxt(self.prot_datapath + '.txt', self.protocol[0:self.protocol.shape[0]-1,:])
+        print('Protocol saved!')
+        
+    def protocol_new_protocol(self):
+        self.protocol = np.matrix([0,0])
+        
+        self.protocol_plot_table()
+        
+    def protocol_load_protocol(self):
+        self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
+        self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
+        self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
+        print(self.protocol)
+        print(self.protocol.shape)
+        
+        self.protocol_plot_table()
+        
+    def protocol_execute_protocol(self):
+        print('WIP')
+        for n in range(self.protocol.shape[0]-1):
+            print(n)
+            try:
+                shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl','parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+            
+            params.loadParam()
+            
+            params.datapath = self.prot_datapath + '_' + str(n+1) + '_rawdata'
+            
+            self.protocol_acquire()
+            
+            time.sleep(params.TR/1000)
+            
+    def protocol_acquire(self):
+        if params.connectionmode == 1:
+            if params.GUImode == 2 and params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.GUImode == 2 and params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.GUImode == 3 and params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.GUImode == 3 and params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.GUImode == 1:
+                if params.autorecenter == 1:
+                    if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    else:
+                        seq.SE_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                else: seq.sequence_upload()
+            else: seq.sequence_upload()
+        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
 
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
