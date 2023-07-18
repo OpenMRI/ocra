@@ -109,7 +109,7 @@ cell xilinx.com:ip:axis_subset_converter:1.1 quotient_0 {
     M_TDATA_NUM_BYTES.VALUE_SRC USER
     S_TDATA_NUM_BYTES 4
     M_TDATA_NUM_BYTES 2
-    TDATA_REMAP {tdata[31:16]}
+    TDATA_REMAP {2'b00, tdata[31:18]}
 } {
     aclk /ps_0/FCLK_CLK0
     aresetn /rst_0/peripheral_aresetn
