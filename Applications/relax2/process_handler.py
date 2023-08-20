@@ -704,7 +704,7 @@ class process:
         
         self.TEtemp = 0
         self.TEtemp = params.TE
-        params.TE = params.TE + 1
+        params.TE = 2 * params.TE
         
         seq.sequence_upload()
         proc.image_process()
@@ -714,7 +714,7 @@ class process:
         self.FieldMapB0_S2_raw[:,:] = params.img_pha[:,:]
         self.FieldMapB0_S2[:,:] = params.img_pha[:,:]
         
-        for kk in range (10):
+        for kk in range (20):
         
             for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-2):
                 for ii in range(1+jj*2):
@@ -762,7 +762,7 @@ class process:
         self.FieldMapB0_S1_raw = params.img_pha
         self.FieldMapB0_S1 = params.img_pha
         
-        for kk in range (10):
+        for kk in range (20):
         
             for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-2):
                 for ii in range(1+jj*2):
@@ -798,11 +798,11 @@ class process:
                     if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] > math.pi:
                         self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] - 2 * math.pi
 
-        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * ((2 * params.TE - params.TE))/1000)
         params.B0DeltaB0mapmasked = np.matrix(np.zeros((params.B0DeltaB0map.shape[1],params.B0DeltaB0map.shape[0])))
         params.B0DeltaB0mapmasked[:,:] = params.B0DeltaB0map[:,:]
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * params.signalmask] = np.nan
         
         self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=0)
         np.savetxt('imagedata/FieldMap_B0_Phase_Raw_Data.txt', self.FieldMapB0_pha_raw)
@@ -831,7 +831,7 @@ class process:
         
         self.TEtemp = 0
         self.TEtemp = params.TE
-        params.TE = params.TE + 1
+        params.TE = 2 * params.TE
         
         seq.sequence_upload()
         proc.image_process()
@@ -841,7 +841,7 @@ class process:
         self.FieldMapB0_S2_raw[:,:] = params.img_pha[:,:]
         self.FieldMapB0_S2[:,:] = params.img_pha[:,:]
         
-        for kk in range (10):
+        for kk in range (20):
         
             for jj in range(int(self.FieldMapB0_S2.shape[1]/2)-2):
                 for ii in range(1+jj*2):
@@ -889,7 +889,7 @@ class process:
         self.FieldMapB0_S1_raw = params.img_pha
         self.FieldMapB0_S1 = params.img_pha
         
-        for kk in range (10):
+        for kk in range (20):
         
             for jj in range(int(self.FieldMapB0_S1.shape[1]/2)-2):
                 for ii in range(1+jj*2):
@@ -925,11 +925,11 @@ class process:
                     if self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] + self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] > math.pi:
                         self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] = self.FieldMapB0_S1[int(self.FieldMapB0_S1.shape[0]/2)-jj-1,int(self.FieldMapB0_S1.shape[1]/2)+jj-ii+1] - 2 * math.pi
 
-        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * (((params.TE + 1) - params.TE))/1000)
+        params.B0DeltaB0map = (self.FieldMapB0_S2 - self.FieldMapB0_S1) / (2 * math.pi * 42.577 * ((2 * params.TE - params.TE))/1000)
         params.B0DeltaB0mapmasked = np.matrix(np.zeros((params.B0DeltaB0map.shape[1],params.B0DeltaB0map.shape[0])))
         params.B0DeltaB0mapmasked[:,:] = params.B0DeltaB0map[:,:]
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        params.B0DeltaB0mapmasked[params.img_mag < self.img_max * params.signalmask] = np.nan
         
         self.FieldMapB0_pha_raw = np.concatenate((self.FieldMapB0_S1_raw,self.FieldMapB0_S2_raw),axis=1)
         np.savetxt('imagedata/FieldMap_B0_Phase_Raw_Data.txt', self.FieldMapB0_pha_raw)
@@ -981,7 +981,7 @@ class process:
         params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1],params.B1alphamap.shape[0])))
         params.B1alphamapmasked[:,:] = params.B1alphamap[:,:]
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B1alphamapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        params.B1alphamapmasked[params.img_mag < self.img_max * params.signalmask] = np.nan
         
         self.FieldMapB1_mag = np.concatenate((self.FieldMapB1_S1,self.FieldMapB1_S2),axis=1)
         np.savetxt('imagedata/FieldMap_B1_Phase_Data.txt', self.FieldMapB1_mag)
@@ -1031,7 +1031,7 @@ class process:
         params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1],params.B1alphamap.shape[0])))
         params.B1alphamapmasked[:,:] = params.B1alphamap[:,:]
         self.img_max = np.max(np.amax(params.img_mag))
-        params.B1alphamapmasked[params.img_mag < self.img_max * 0.3] = np.nan
+        params.B1alphamapmasked[params.img_mag < self.img_max * params.signalmask] = np.nan
         
         self.FieldMapB1_mag = np.concatenate((self.FieldMapB1_S1,self.FieldMapB1_S2),axis=1)
         np.savetxt('imagedata/FieldMap_B1_Phase_Data.txt', self.FieldMapB1_mag)
@@ -1086,7 +1086,7 @@ class process:
         
 
     def T1measurement_IR_FID(self):
-        print('Measuring T1...')
+        print('Measuring T1 (FID)...')
         
         self.TItemp = 0
         self.TItemp = params.TI
@@ -1127,10 +1127,10 @@ class process:
         self.datatxt2 = np.transpose(params.T1values)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print('T1 Data aquired!')
+        print('T1 (FID) Data aquired!')
         
     def T1measurement_IR_SE(self):
-        print('Measuring T1...')
+        print('Measuring T1 (SE)...')
         
         self.TItemp = 0
         self.TItemp = params.TI
@@ -1171,7 +1171,95 @@ class process:
         self.datatxt2 = np.transpose(params.T1values)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print('T1 Data aquired!')
+        print('T1 (SE) Data aquired!')
+        
+    def T1measurement_IR_FID_Gs(self):
+        print('Measuring T1 (Slice, FID)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1values = np.matrix(np.zeros((2,params.TIsteps)))
+        self.T1peakvalues = np.zeros(params.TIsteps)
+        
+        self.T1steps[0] = round(self.T1steps[0],1)
+        params.TI = self.T1steps[0]
+        seq.IR_FID_Gs_setup()
+        seq.Sequence_upload()
+        seq.acquire_spectrum_FID_Gs()
+        proc.spectrum_process()
+        proc.spectrum_analytics()
+        time.sleep(params.TR/1000)
+        
+        for n in range(params.TIsteps):
+            print(n+1, '/', params.TIsteps)
+            self.T1steps[n] = round(self.T1steps[n],1)
+            params.TI = self.T1steps[n]
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            seq.IR_FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            self.T1peakvalues[n] = params.peakvalue
+            time.sleep(params.TR/1000)
+            
+        params.T1values[0,:] = self.T1steps
+        params.T1values[1,:] = self.T1peakvalues
+        
+        params.TI = self.TItemp
+        
+        self.datatxt2 = np.matrix(np.zeros((params.TIsteps,2)))
+        self.datatxt2 = np.transpose(params.T1values)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        print('T1 (Slice, FID) Data aquired!')
+        
+    def T1measurement_IR_SE_Gs(self):
+        print('Measuring T1 (Slice, SE)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1values = np.matrix(np.zeros((2,params.TIsteps)))
+        self.T1peakvalues = np.zeros(params.TIsteps)
+        
+        self.T1steps[0] = round(self.T1steps[0],1)
+        params.TI = self.T1steps[0]
+        seq.IR_SE_Gs_setup()
+        seq.Sequence_upload()
+        seq.acquire_spectrum_SE_Gs()
+        proc.spectrum_process()
+        proc.spectrum_analytics()
+        time.sleep(params.TR/1000)
+        
+        for n in range(params.TIsteps):
+            print(n+1, '/', params.TIsteps)
+            self.T1steps[n] = round(self.T1steps[n],1)
+            params.TI = self.T1steps[n]
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            seq.IR_SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            self.T1peakvalues[n] = params.peakvalue
+            time.sleep(params.TR/1000)
+            
+        params.T1values[0,:] = self.T1steps
+        params.T1values[1,:] = self.T1peakvalues
+        
+        params.TI = self.TItemp
+        
+        self.datatxt2 = np.matrix(np.zeros((params.TIsteps,2)))
+        self.datatxt2 = np.transpose(params.T1values)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        print('T1 (Slice, SE) Data aquired!')
         
     def T1process(self):
         print('Calculating T1...')
@@ -1192,7 +1280,6 @@ class process:
             
         self.T1ymax = np.max(params.T1yvalues2)
 
-        # params.T1yvalues2[:] = np.log(self.T1ymax - params.T1yvalues2)
         params.T1yvalues2[:] = np.log(self.T1ymax - params.T1yvalues2)
         
         params.T1yvalues2[np.isinf(params.T1yvalues2)] = np.nan
@@ -1209,6 +1296,258 @@ class process:
         params.T1regyvalues1 = abs(self.T1ymax * (1-2*np.exp(-(params.T1xvalues/params.T1))))
         
         print(params.T1linregres)
+        print('T1 calculated!')
+        
+    def T1measurement_Image_IR_GRE(self):
+        print('Measuring T1 (2D GRE)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1stepsimg = np.zeros((params.TIsteps))
+        params.T1img_mag = np.array(np.zeros((params.TIsteps, params.nPE, params.nPE)))
+
+        for n in range(params.TIsteps):
+            
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR/1000)
+    
+            print(n+1, '/', params.TIsteps)
+            params.T1stepsimg[n] = round(self.T1steps[n],1)
+            params.TI = params.T1stepsimg[n]
+            
+            seq.Image_IR_GRE_setup()
+            seq.Sequence_upload()
+            seq.acquire_image_GRE()
+            proc.image_process()
+  
+            params.T1img_mag[n,:,:] = params.img_mag[:,:]
+            time.sleep(params.TR/1000)
+
+        params.TI = self.TItemp
+        params.saveFileData()
+        
+        self.datatxt3 = np.zeros((params.T1stepsimg.shape[0]))
+        self.datatxt3 = np.transpose(params.T1stepsimg)
+        np.savetxt(params.datapath + '_Image_TI_steps.txt', self.datatxt3)
+        
+        self.datatxt1 = np.matrix(np.zeros((params.T1img_mag.shape[1],params.T1img_mag.shape[0]*params.T1img_mag.shape[2])))
+        for m in range(params.T1img_mag.shape[0]):
+            self.datatxt1[:,m*params.T1img_mag.shape[2]:m*params.T1img_mag.shape[2]+params.T1img_mag.shape[2]] = params.T1img_mag[m,:,:]
+        np.savetxt(params.datapath + '_Image_Magnitude.txt', self.datatxt1)
+        
+        print('T1 (2D GRE) Data aquired!')
+
+    def T1measurement_Image_IR_SE(self):
+        print('Measuring T1 (2D SE)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1stepsimg = np.zeros((params.TIsteps))
+        params.T1img_mag = np.array(np.zeros((params.TIsteps, params.nPE, params.nPE)))
+
+        for n in range(params.TIsteps):
+            
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR/1000)
+    
+            print(n+1, '/', params.TIsteps)
+            params.T1stepsimg[n] = round(self.T1steps[n],1)
+            params.TI = params.T1stepsimg[n]
+            
+            seq.Image_IR_SE_setup()
+            seq.Sequence_upload()
+            seq.acquire_image_SE()
+            proc.image_process()
+  
+            params.T1img_mag[n,:,:] = params.img_mag[:,:]
+            time.sleep(params.TR/1000)
+
+        params.TI = self.TItemp
+        params.saveFileData()
+        
+        self.datatxt3 = np.zeros((params.T1stepsimg.shape[0]))
+        self.datatxt3 = np.transpose(params.T1stepsimg)
+        np.savetxt(params.datapath + '_Image_TI_steps.txt', self.datatxt3)
+        
+        self.datatxt1 = np.matrix(np.zeros((params.T1img_mag.shape[1],params.T1img_mag.shape[0]*params.T1img_mag.shape[2])))
+        for m in range(params.T1img_mag.shape[0]):
+            self.datatxt1[:,m*params.T1img_mag.shape[2]:m*params.T1img_mag.shape[2]+params.T1img_mag.shape[2]] = params.T1img_mag[m,:,:]
+        np.savetxt(params.datapath + '_Image_Magnitude.txt', self.datatxt1)
+        
+        print('T1 (2D SE) Data aquired!')
+        
+    def T1measurement_Image_IR_GRE_Gs(self):
+        print('Measuring T1 (Slice, 2D GRE)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1stepsimg = np.zeros((params.TIsteps))
+        params.T1img_mag = np.array(np.zeros((params.TIsteps, params.nPE, params.nPE)))
+
+        for n in range(params.TIsteps):
+            
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR/1000)
+    
+            print(n+1, '/', params.TIsteps)
+            params.T1stepsimg[n] = round(self.T1steps[n],1)
+            params.TI = params.T1stepsimg[n]
+            
+            seq.Image_IR_GRE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_image_GRE_Gs()
+            proc.image_process()
+  
+            params.T1img_mag[n,:,:] = params.img_mag[:,:]
+            time.sleep(params.TR/1000)
+
+        params.TI = self.TItemp
+        params.saveFileData()
+        
+        self.datatxt3 = np.zeros((params.T1stepsimg.shape[0]))
+        self.datatxt3 = np.transpose(params.T1stepsimg)
+        np.savetxt(params.datapath + '_Image_TI_steps.txt', self.datatxt3)
+        
+        self.datatxt1 = np.matrix(np.zeros((params.T1img_mag.shape[1],params.T1img_mag.shape[0]*params.T1img_mag.shape[2])))
+        for m in range(params.T1img_mag.shape[0]):
+            self.datatxt1[:,m*params.T1img_mag.shape[2]:m*params.T1img_mag.shape[2]+params.T1img_mag.shape[2]] = params.T1img_mag[m,:,:]
+        np.savetxt(params.datapath + '_Image_Magnitude.txt', self.datatxt1)
+        
+        print('T1 (Slice, 2D GRE) Data aquired!')
+
+    def T1measurement_Image_IR_SE_Gs(self):
+        print('Measuring T1 (Slice, 2D SE)...')
+        
+        self.TItemp = 0
+        self.TItemp = params.TI
+        
+        self.T1steps = np.linspace(params.TIstart,params.TIstop,params.TIsteps)
+        params.T1stepsimg = np.zeros((params.TIsteps))
+        params.T1img_mag = np.array(np.zeros((params.TIsteps, params.nPE, params.nPE)))
+
+        for n in range(params.TIsteps):
+            
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR/1000)
+    
+            print(n+1, '/', params.TIsteps)
+            params.T1stepsimg[n] = round(self.T1steps[n],1)
+            params.TI = params.T1stepsimg[n]
+            
+            seq.Image_IR_SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_image_SE_Gs()
+            proc.image_process()
+  
+            params.T1img_mag[n,:,:] = params.img_mag[:,:]
+            time.sleep(params.TR/1000)
+
+        params.TI = self.TItemp
+        params.saveFileData()
+        
+        self.datatxt3 = np.zeros((params.T1stepsimg.shape[0]))
+        self.datatxt3 = np.transpose(params.T1stepsimg)
+        np.savetxt(params.datapath + '_Image_TI_steps.txt', self.datatxt3)
+        
+        self.datatxt1 = np.matrix(np.zeros((params.T1img_mag.shape[1],params.T1img_mag.shape[0]*params.T1img_mag.shape[2])))
+        for m in range(params.T1img_mag.shape[0]):
+            self.datatxt1[:,m*params.T1img_mag.shape[2]:m*params.T1img_mag.shape[2]+params.T1img_mag.shape[2]] = params.T1img_mag[m,:,:]
+        np.savetxt(params.datapath + '_Image_Magnitude.txt', self.datatxt1)
+        
+        print('T1 (Slice, 2D SE) Data aquired!')
+        
+    def T1imageprocess(self):
+        print('Calculating T1...')
+        
+        self.procdata = np.genfromtxt(params.datapath + '_Image_TI_steps.txt')
+        params.T1stepsimg = np.transpose(self.procdata)
+        
+        self.procdata = np.genfromtxt(params.datapath + '_Image_Magnitude.txt')
+        params.T1img_mag = np.array(np.zeros((int(self.procdata.shape[1]/self.procdata.shape[0]), self.procdata.shape[0], self.procdata.shape[0])))
+
+        for n in range(int(self.procdata.shape[1]/self.procdata.shape[0])):
+            params.T1img_mag[n,:,:] = self.procdata[:,n*self.procdata.shape[0]:n*self.procdata.shape[0]+self.procdata.shape[0]]
+        
+        params.T1imgvalues = np.matrix(np.zeros((params.T1img_mag.shape[1], params.T1img_mag.shape[2])))
+                                             
+        for n in range(params.T1img_mag.shape[1]):
+            for m in range(params.T1img_mag.shape[2]):
+ 
+                params.T1xvalues = np.zeros(params.T1stepsimg.shape[0])
+                params.T1yvalues1 = np.zeros(params.T1stepsimg.shape[0])
+                params.T1yvalues2 = np.zeros(params.T1stepsimg.shape[0])
+                params.T1xvalues[:] = params.T1stepsimg[:]
+                params.T1yvalues1[:] = params.T1img_mag[:,n,m]
+                params.T1yvalues2[:] = params.T1img_mag[:,n,m]
+        
+                self.minindex = np.argmin(params.T1yvalues1)
+        
+                if self.minindex >=1:
+                    params.T1yvalues2[0:self.minindex-1] = -params.T1yvalues1[0:self.minindex-1]
+            
+                self.T1ymax = np.max(params.T1yvalues2)
+
+                params.T1yvalues2[:] = np.log(self.T1ymax - params.T1yvalues2)
+        
+                params.T1yvalues2[np.isinf(params.T1yvalues2)] = np.nan
+
+                params.T1linregres = linregress(params.T1xvalues[np.isnan(params.T1yvalues2) == False], params.T1yvalues2[np.isnan(params.T1yvalues2) == False])
+        
+                params.T1imgvalues[n,m] = round(-(1/params.T1linregres.slope),2)
+                
+        self.img_max = np.max(np.amax(params.img_mag))
+        params.T1imgvalues[params.img_mag < self.img_max * params.signalmask] = np.nan
+                
         print('T1 calculated!')
         
     def T2measurement_SE(self):

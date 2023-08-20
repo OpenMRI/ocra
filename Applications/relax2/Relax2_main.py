@@ -129,7 +129,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 2:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)'])
+            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)', 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T1_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -156,6 +156,18 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T1measurement_IR_FID()
             elif params.GUImode == 2 and params.sequence == 1:
                 proc.T1measurement_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.GUImode == 2 and params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.GUImode == 2 and params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.GUImode == 2 and params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.GUImode == 2 and params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
             elif params.GUImode == 3 and params.sequence == 0:
                 proc.T2measurement_SE()
             elif params.GUImode == 3 and params.sequence == 1:
@@ -246,12 +258,21 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 self.dialog.show()
             else: print('No File!!')
                 
-        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1):
+        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No File!!')
+        elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T1imageprocess()
+                    self.dialog = PlotWindow(self)
+                    self.dialog.show()
+                else: print('No File!!')
+            else: print('No File!!')
+            
         elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
@@ -505,6 +526,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.RX1_radioButton.toggled.connect(self.update_params)
         self.RX2_radioButton.toggled.connect(self.update_params)
         
+        self.SignalMask_doubleSpinBox.setKeyboardTracking(False)
+        self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -599,6 +624,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
         if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
         
+        self.SignalMask_doubleSpinBox.setValue(params.signalmask)
+        
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
  
@@ -611,7 +638,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.GSposttime =0
         else:
             params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
-        
+
         if params.autograd == 1:
             self.Deltaf = 1 / (params.flippulselength) *1000000
             
@@ -871,8 +898,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         elif params.rx1 == 1 and params.rx2 == 1:
             params.rxmode = 3
             print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
-        
         print('RX mode: ',params.rxmode)
+        
+        params.signalmask = self.SignalMask_doubleSpinBox.value()
         
         params.saveFileParameter()
         
@@ -1653,7 +1681,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             else:
                 self.imaging_plot_init()
         elif params.GUImode == 2:
-            self.T1_plot_init()
+            if params.sequence == 0 or params.sequence == 1:
+                self.T1_plot_init()
+            else:
+                self.T1_imaging_plot_init()
         elif params.GUImode == 3:
             self.T2_plot_init()  
         elif params.GUImode == 4:
@@ -1848,6 +1879,23 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas2.setWindowTitle('Plot - ' + params.datapath + '.txt')
         self.fig_canvas2.setGeometry(830, 40, 400, 355)
         self.fig_canvas2.show()
+        
+    def T1_imaging_plot_init(self):
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        if params.imagefilter == 1:
+            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], interpolation='gaussian', cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T1imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
+        else:
+            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T1imgvalues, cmap='jet', alpha=0.5)
+        self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+        self.IComb_ax.set_title('T1')
+        self.IComb_fig.colorbar(self.cb, label='T1 in ms')
+        self.IComb_canvas.draw()
+        self.IComb_canvas.setWindowTitle('Plot - ' + params.datapath + '_Image_Magnitude.txt')
+        self.IComb_canvas.setGeometry(420, 40, 800, 750)
+        self.IComb_canvas.show()
         
     def T2_plot_init(self):
         self.fig = Figure()
