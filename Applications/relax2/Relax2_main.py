@@ -1681,7 +1681,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             else:
                 self.imaging_plot_init()
         elif params.GUImode == 2:
-            if params.sequence == 0 or params.sequence == 1:
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
                 self.T1_plot_init()
             else:
                 self.T1_imaging_plot_init()
