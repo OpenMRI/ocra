@@ -105,6 +105,9 @@ class Parameters:
         self.T1regyvalues1 = []
         self.T1regyvalues2 = []
         self.T1 = 100
+        self.T1stepsimg = []
+        self.T1img_mag = []
+        self.T1imgvalues = []
         self.TEstart = 4
         self.TEstop = 20
         self.TEsteps = 10
@@ -175,6 +178,7 @@ class Parameters:
         self.B1alphamap = []
         self.B1alphamapmasked = []
         self.imagefilter = 0
+        self.signalmask = 0.5
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -235,6 +239,7 @@ class Parameters:
                          self.TIstop, \
                          self.TIsteps, \
                          self.T1, \
+                         self.T1stepsimg, \
                          self.TEstart, \
                          self.TEstop, \
                          self.TEsteps, \
@@ -294,7 +299,8 @@ class Parameters:
                          self.ToolShimSteps, \
                          self.ToolShimChannel, \
                          self.STvalues, \
-                         self.imagefilter], file)
+                         self.imagefilter, \
+                         self.signalmask], file)
        
         print("Parameters saved!")
         
@@ -319,6 +325,8 @@ class Parameters:
                          self.T1linregres, \
                          self.T1regyvalues1, \
                          self.T1regyvalues2, \
+                         self.T1img_mag, \
+                         self.T1imgvalues, \
                          self.T2values, \
                          self.T2xvalues, \
                          self.T2yvalues, \
@@ -392,6 +400,7 @@ class Parameters:
                 self.TIstop, \
                 self.TIsteps, \
                 self.T1, \
+                self.T1stepsimg, \
                 self.TEstart, \
                 self.TEstop, \
                 self.TEsteps, \
@@ -451,7 +460,8 @@ class Parameters:
                 self.ToolShimSteps, \
                 self.ToolShimChannel, \
                 self.STvalues, \
-                self.imagefilter = pickle.load(file)
+                self.imagefilter, \
+                self.signalmask = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
@@ -481,6 +491,8 @@ class Parameters:
                 self.T1linregres, \
                 self.T1regyvalues1, \
                 self.T1regyvalues2, \
+                self.T1img_mag, \
+                self.T1imgvalues, \
                 self.T2values, \
                 self.T2xvalues, \
                 self.T2yvalues, \
