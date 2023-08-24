@@ -85,7 +85,7 @@ class Parameters:
         self.img_mag = []
         self.img_pha = []
         self.ACstart = 11.2
-        self.ACstop = 11.3
+        self.ACstop = 11.4
         self.ACstepwidth = 5000
         self.ACvalues = []
         self.Reffrequency = 11.31
