@@ -11,7 +11,7 @@ CMD8 = GRAD_PULSE                   				// A[9] GRAD with receiver on
 CMD9 = TX_GATE | TX_PULSE | RX_PULSE | GRAD_PULSE	// A[A] RF&GRAD
 CMD10 = TX_GATE | TX_PULSE | GRAD_PULSE				// A[B] RF&GRAD with receiver on
 CMD12 = TX_GATE | GRAD_PULSE | RX_PULSE
-CMD13 = TX_GATE | GRAD_PULSE
+NOP   // A[D] UNUSED
 NOP   // A[E] UNUSED
 NOP   // A[F] UNUSED
 LD64 2, LOOP_CTR    						// A[10] Load LOOP_CTR to R[2]		"J here"
@@ -25,7 +25,7 @@ LD64 9, CMD9        						// A[17] Load CMD9 to R[9]
 LD64 10, CMD10      						// A[18] Load CMD10 to R[10]
 LD64 11, CMD1
 LD64 12, CMD12
-LD64 13, CMD13
+NOP   // A[1B] UNUSED
 NOP   // A[1C] UNUSED
 TXOFFSET 500 							// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
 GRADOFFSET 0 						// A[1E] GRADOFFSET
@@ -33,22 +33,27 @@ PR 7, 20		// enable gradient offsets
 PR 11, 100
 PR 5, 100	// Flip RF Pulse
 PR 11, 10
-PR 3, 2520	// Pause
-GRADOFFSET 402
+PR 3, 4020	// Pause
+GRADOFFSET 82
 PR 7, 210
 PR 3, 400	// Crusher length
-GRADOFFSET 422
+GRADOFFSET 102
 PR 7, 110
 PR 12, 100
 TXOFFSET 0
-PR 6, 200	// 180deg RF Pulse
-GRADOFFSET 442
+PR 5, 200	// 180deg RF Pulse
+GRADOFFSET 122
 PR 12, 10
 PR 7, 200
 PR 3, 400	// Crusher length
-GRADOFFSET 462
-PR 7, 210
-PR 3, 605	// Pause
+GRADOFFSET 142
+PR 7, 210 	
+PR 3, 3930	// Pause
+PR 11, 100
+TXOFFSET 500
+PR 5, 100	// Flip RF Pulse
+PR 11, 10
+PR 3, 0	// Pause
 GRADOFFSET 2
 PR 7, 210
 PR 3, 350	// Readout prephaser length
@@ -58,106 +63,10 @@ PR 4, 2000	// Sampling window
 GRADOFFSET 62
 PR 8, 210
 PR 4, 0
-GRADOFFSET 122
-PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 142
-PR 8, 210
-PR 4, 600	// Pause
-GRADOFFSET 402
-PR 8, 210
-PR 4, 400	// Crusher length
-GRADOFFSET 422
-PR 8, 110
-PR 13, 100
-PR 6, 200	// 180deg RF Pulse
-GRADOFFSET 442
-PR 13, 10
-PR 8, 200
-PR 4, 400	// Crusher length l89
-GRADOFFSET 462
-PR 8, 210
-PR 4, 605	// Pause
-GRADOFFSET 202
-PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 222
-PR 8, 210
-PR 4, 0
-GRADOFFSET 82
-PR 8, 210
-PR 4, 2000	// Sampling window
-GRADOFFSET 102
-PR 8, 210
-PR 4, 0
 GRADOFFSET 162
 PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 182
-PR 8, 210
-PR 4, 595	// Pause
-GRADOFFSET 402
-PR 8, 210
-PR 4, 400	// Crusher length
-GRADOFFSET 422
-PR 8, 110
-PR 13, 100
-PR 6, 200	// 180deg RF Pulse l61
-GRADOFFSET 442
-PR 13, 10
-PR 8, 200
-PR 4, 400	// Crusher length
-GRADOFFSET 462
-PR 8, 210
-PR 4, 595	// Pause
-GRADOFFSET 242 
-PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 262
-PR 8, 210
-PR 4, 0
-GRADOFFSET 42
-PR 8, 210
-PR 4, 2000	// Sampling window
-GRADOFFSET 62
-PR 8, 210
-PR 4, 0
-GRADOFFSET 282
-PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 302
-PR 8, 210
-PR 4, 600	// Pause
-GRADOFFSET 402
-PR 8, 210
-PR 4, 400	// Crusher length
-GRADOFFSET 422
-PR 8, 110
-PR 13, 100
-PR 6, 200	// 180deg RF Pulse
-GRADOFFSET 442
-PR 13, 10
-PR 8, 200
-PR 4, 400	// Crusher length
-GRADOFFSET 462
-PR 8, 210
-PR 4, 595	// Pause
-GRADOFFSET 362
-PR 8, 210
-PR 4, 350	// Readout prephaser length
-GRADOFFSET 382
-PR 8, 210
-PR 4, 0
-GRADOFFSET 82
-PR 8, 210
-PR 4, 2000	// Sampling window
-GRADOFFSET 102
-PR 8, 210
-PR 4, 0
-GRADOFFSET 482
-PR 8, 210
 PR 4, 1000	// Spoiler length
-GRADOFFSET 502
+GRADOFFSET 182
 PR 8, 210
 PR 4, 200000
 DEC 2 										// A[27] DEC R[2]

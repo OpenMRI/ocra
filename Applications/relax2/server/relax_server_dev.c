@@ -5957,7 +5957,7 @@ void update_gradient_waveforms_2D_TSE(volatile uint32_t *gx,volatile uint32_t *g
    
   float fPETSEstep = nPE/2 * PEstep/20 * signum;
   float fPETSE = 0;
-
+/*
   // Set waveform base value
   for(i=2; i<2000; i++) {
      ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
@@ -6438,6 +6438,678 @@ void update_gradient_waveforms_2D_TSE(volatile uint32_t *gx,volatile uint32_t *g
       fPETSE += fPETSEstep;
       ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  */
+  // Set waveform base value
+  for(i=2; i<2000; i++) {
+     ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+     gx[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+     gy[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+     gz[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+     gz2[i] = 0x001fffff & (ival | 0x00100000);
+  }
+   if (imor == 0){
+     fRO = offset.gradient_x;
+     fPE = offset.gradient_y;
+     fSL = offset.gradient_z;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Crusher gradient
+    for(i=delay+400; i<(delay+420); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+420; i<(delay+440); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+440; i<(delay+460); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+460; i<(delay+480); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+480; i<(delay+500); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+500; i<(delay+520); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 1){
+    fRO = offset.gradient_y;
+    fPE = offset.gradient_z;
+    fSL = offset.gradient_x;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Crusher gradient
+    for(i=delay+400; i<(delay+420); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+420; i<(delay+440); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+440; i<(delay+460); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+460; i<(delay+480); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+480; i<(delay+500); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+500; i<(delay+520); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 2){
+    fRO = offset.gradient_z;
+    fPE = offset.gradient_x;
+    fSL = offset.gradient_y;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Crusher gradient
+    for(i=delay+400; i<(delay+420); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+420; i<(delay+440); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+440; i<(delay+460); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+460; i<(delay+480); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+480; i<(delay+500); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+500; i<(delay+520); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
 }
@@ -6546,151 +7218,214 @@ void update_gradient_waveforms_2D_TSE_slice(volatile uint32_t *gx,volatile uint3
       ival = (int32_t)floor(fRO/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    // Slice gradient
     for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+400; i<(delay+420); i++) {
       fSL += fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+100; i<(delay+120); i++) {
+    for(i=delay+420; i<(delay+440); i++) {
       fSL -= fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+120; i<(delay+140); i++) {
+    for(i=delay+440; i<(delay+460); i++) {
       fSL -= fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+140; i<(delay+160); i++) {
+    for(i=delay+460; i<(delay+480); i++) {
       fSL += fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
     // Slice gradient with crusher
-    for(i=delay+160; i<(delay+180); i++) {
+    for(i=delay+480; i<(delay+500); i++) {
       fSL += fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+180; i<(delay+200); i++) {
+    for(i=delay+500; i<(delay+520); i++) {
       fSL -= fCRstep;
       fSL += fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+200; i<(delay+220); i++) {
+    for(i=delay+520; i<(delay+540); i++) {
       fSL += fCRstep;
       fSL -= fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     } 
-    for(i=delay+220; i<(delay+240); i++) {
+    for(i=delay+540; i<(delay+560); i++) {
       fSL -= fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
     //Spoiler gradient
-    for(i=delay+240; i<(delay+260); i++) {
+    for(i=delay+560; i<(delay+580); i++) {
       fSL += fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+260; i<(delay+280); i++) {
+    for(i=delay+580; i<(delay+600); i++) {
       fSL -= fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // TSE phase gradients
-    // 1st echo + is in readout prephaser
-    // 1st echo -
-    for(i=delay+280; i<(delay+300); i++) {
-      fPE -= fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+300; i<(delay+320); i++) {
-      fPE += fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo +
-    for(i=delay+320; i<(delay+340); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+340; i<(delay+360); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo -
-    for(i=delay+360; i<(delay+380); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+380; i<(delay+400); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo +
-    for(i=delay+400; i<(delay+420); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+420; i<(delay+440); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo -
-    for(i=delay+440; i<(delay+460); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+460; i<(delay+480); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo +
-    for(i=delay+480; i<(delay+500); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+500; i<(delay+520); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo -
-    for(i=delay+520; i<(delay+540); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+540; i<(delay+560); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gy[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
   else if (imor == 1){
@@ -6726,151 +7461,214 @@ void update_gradient_waveforms_2D_TSE_slice(volatile uint32_t *gx,volatile uint3
       ival = (int32_t)floor(fRO/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    // Slice gradient
     for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+400; i<(delay+420); i++) {
       fSL += fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+100; i<(delay+120); i++) {
+    for(i=delay+420; i<(delay+440); i++) {
       fSL -= fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+120; i<(delay+140); i++) {
+    for(i=delay+440; i<(delay+460); i++) {
       fSL -= fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+140; i<(delay+160); i++) {
+    for(i=delay+460; i<(delay+480); i++) {
       fSL += fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
     // Slice gradient with crusher
-    for(i=delay+160; i<(delay+180); i++) {
+    for(i=delay+480; i<(delay+500); i++) {
       fSL += fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+180; i<(delay+200); i++) {
+    for(i=delay+500; i<(delay+520); i++) {
       fSL -= fCRstep;
       fSL += fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+200; i<(delay+220); i++) {
+    for(i=delay+520; i<(delay+540); i++) {
       fSL += fCRstep;
       fSL -= fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     } 
-    for(i=delay+220; i<(delay+240); i++) {
+    for(i=delay+540; i<(delay+560); i++) {
       fSL -= fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
     //Spoiler gradient
-    for(i=delay+240; i<(delay+260); i++) {
+    for(i=delay+560; i<(delay+580); i++) {
       fSL += fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+260; i<(delay+280); i++) {
+    for(i=delay+580; i<(delay+600); i++) {
       fSL -= fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // TSE phase gradients
-    // 1st echo + is in readout prephaser
-    // 1st echo -
-    for(i=delay+280; i<(delay+300); i++) {
-      fPE -= fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+300; i<(delay+320); i++) {
-      fPE += fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo +
-    for(i=delay+320; i<(delay+340); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+340; i<(delay+360); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo -
-    for(i=delay+360; i<(delay+380); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+380; i<(delay+400); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo +
-    for(i=delay+400; i<(delay+420); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+420; i<(delay+440); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo -
-    for(i=delay+440; i<(delay+460); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+460; i<(delay+480); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo +
-    for(i=delay+480; i<(delay+500); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+500; i<(delay+520); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo -
-    for(i=delay+520; i<(delay+540); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+540; i<(delay+560); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gz[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
   else if (imor == 2){
@@ -6906,151 +7704,214 @@ void update_gradient_waveforms_2D_TSE_slice(volatile uint32_t *gx,volatile uint3
       ival = (int32_t)floor(fRO/fLSB)*16;
       gz[i] = 0x001fffff & (ival | 0x00100000);
     }
-    // Slice gradient
     for(i=delay+80; i<(delay+100); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo +
+    for(i=delay+160; i<(delay+180); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 2nd echo -
+    for(i=delay+200; i<(delay+220); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+220; i<(delay+240); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo +
+    for(i=delay+240; i<(delay+260); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 3rd echo -
+    for(i=delay+280; i<(delay+300); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo +
+    for(i=delay+320; i<(delay+340); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // 4th echo -
+    for(i=delay+360; i<(delay+380); i++) {
+      fPE -= fPEstep;
+      fPETSE -= fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+380; i<(delay+400); i++) {
+      fPE += fPEstep;
+      fPETSE += fPETSEstep;
+      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+      
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+400; i<(delay+420); i++) {
       fSL += fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+100; i<(delay+120); i++) {
+    for(i=delay+420; i<(delay+440); i++) {
       fSL -= fSLstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+120; i<(delay+140); i++) {
+    for(i=delay+440; i<(delay+460); i++) {
       fSL -= fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+140; i<(delay+160); i++) {
+    for(i=delay+460; i<(delay+480); i++) {
       fSL += fSLrepstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
     // Slice gradient with crusher
-    for(i=delay+160; i<(delay+180); i++) {
+    for(i=delay+480; i<(delay+500); i++) {
       fSL += fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+180; i<(delay+200); i++) {
+    for(i=delay+500; i<(delay+520); i++) {
       fSL -= fCRstep;
       fSL += fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+200; i<(delay+220); i++) {
+    for(i=delay+520; i<(delay+540); i++) {
       fSL += fCRstep;
       fSL -= fSLrefstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     } 
-    for(i=delay+220; i<(delay+240); i++) {
+    for(i=delay+540; i<(delay+560); i++) {
       fSL -= fCRstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
     //Spoiler gradient
-    for(i=delay+240; i<(delay+260); i++) {
+    for(i=delay+560; i<(delay+580); i++) {
       fSL += fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
     }
-    for(i=delay+260; i<(delay+280); i++) {
+    for(i=delay+580; i<(delay+600); i++) {
       fSL -= fSPstep;
       ival = (int32_t)floor(fSL/fLSB)*16;
       gy[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // TSE phase gradients
-    // 1st echo + is in readout prephaser
-    // 1st echo -
-    for(i=delay+280; i<(delay+300); i++) {
-      fPE -= fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+300; i<(delay+320); i++) {
-      fPE += fPEstep;
-      ival = (int32_t)floor(fPE/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo +
-    for(i=delay+320; i<(delay+340); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+340; i<(delay+360); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 2nd echo -
-    for(i=delay+360; i<(delay+380); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+380; i<(delay+400); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo +
-    for(i=delay+400; i<(delay+420); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+420; i<(delay+440); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 3rd echo -
-    for(i=delay+440; i<(delay+460); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+460; i<(delay+480); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+2*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo +
-    for(i=delay+480; i<(delay+500); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+500; i<(delay+520); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    // 4th echo -
-    for(i=delay+520; i<(delay+540); i++) {
-      fPE -= fPEstep;
-      fPETSE -= fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
-    }
-    for(i=delay+540; i<(delay+560); i++) {
-      fPE += fPEstep;
-      fPETSE += fPETSEstep;
-      ival = (int32_t)floor((fPE+3*fPETSE)/fLSB)*16;
-      gx[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
 }
