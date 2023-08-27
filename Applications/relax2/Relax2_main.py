@@ -135,7 +135,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery [FID]'])
+            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)', 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)','2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -172,6 +172,18 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_SE()
             elif params.GUImode == 3 and params.sequence == 1:
                 proc.T2measurement_SIR_FID()
+            elif params.GUImode == 3 and params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.GUImode == 3 and params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.GUImode == 3 and params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.GUImode == 3 and params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
                     if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
@@ -273,12 +285,20 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 else: print('No File!!')
             else: print('No File!!')
             
-        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1):
+        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No File!!')
+        elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T2imageprocess()
+                    self.dialog = PlotWindow(self)
+                    self.dialog.show()
+            else: print('No File!!')
+            
         elif params.GUImode == 4:
             if params.sequence == 0 or params.sequence == 1:
                 self.datapathtemp = params.datapath
@@ -1680,13 +1700,19 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.imaging_diff_plot_init()
             else:
                 self.imaging_plot_init()
+                
         elif params.GUImode == 2:
             if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
                 self.T1_plot_init()
             else:
                 self.T1_imaging_plot_init()
+                
         elif params.GUImode == 3:
-            self.T2_plot_init()  
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
+                self.T2_plot_init()
+            else:
+                self.T2_imaging_plot_init()
+            
         elif params.GUImode == 4:
             if params.sequence == 0 or params.sequence == 1:
                 params.frequencyplotrange = 250000
@@ -1914,6 +1940,23 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
         self.fig_canvas.setGeometry(420, 40, 400, 355)
         self.fig_canvas.show()
+        
+    def T2_imaging_plot_init(self):
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        if params.imagefilter == 1:
+            self.IComb_ax.imshow(params.T2img_mag[0,:,:], interpolation='gaussian', cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T2imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
+        else:
+            self.IComb_ax.imshow(params.T2img_mag[0,:,:], cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T2imgvalues, cmap='jet', alpha=0.5)
+        self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+        self.IComb_ax.set_title('T2')
+        self.IComb_fig.colorbar(self.cb, label='T2 in ms')
+        self.IComb_canvas.draw()
+        self.IComb_canvas.setWindowTitle('Plot - ' + params.datapath + '_Image_Magnitude.txt')
+        self.IComb_canvas.setGeometry(420, 40, 800, 750)
+        self.IComb_canvas.show()
 
     def imaging_plot_init(self):
         if params.imagplots == 1:

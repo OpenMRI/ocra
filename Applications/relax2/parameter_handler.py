@@ -53,12 +53,12 @@ class Parameters:
         self.rxmode = 1
         self.TS = 6
         self.ROBWscaler = 1
-        self.TE = 15
-        self.TI = 2
+        self.TE = 12
+        self.TI = 1700
         self.TR = 500
         self.grad = [0, 0, 0, 0]
         self.Gradientorientation = [0, 1, 2, 3]
-        self.imageorientation = 0
+        self.imageorientation = 2
         self.nPE = 32
         self.frequencyrange = 250000
         self.samples = 50000
@@ -84,19 +84,19 @@ class Parameters:
         self.img = []
         self.img_mag = []
         self.img_pha = []
-        self.ACstart = 11.25
-        self.ACstop = 11.35
-        self.ACstepwidth = 10000
+        self.ACstart = 11.2
+        self.ACstop = 11.4
+        self.ACstepwidth = 5000
         self.ACvalues = []
         self.Reffrequency = 11.31
         self.FAstart = -31.00
         self.FAstop = -1.00
-        self.FAsteps = 10
+        self.FAsteps = 30
         self.FAvalues = []
         self.RefRFattenuation = -15.00
-        self.TIstart = 1
-        self.TIstop = 2000
-        self.TIsteps = 10
+        self.TIstart = 400
+        self.TIstop = 10000
+        self.TIsteps = 20
         self.T1values = []
         self.T1xvalues = []
         self.T1yvalues1 = []
@@ -108,15 +108,18 @@ class Parameters:
         self.T1stepsimg = []
         self.T1img_mag = []
         self.T1imgvalues = []
-        self.TEstart = 4
-        self.TEstop = 20
-        self.TEsteps = 10
+        self.TEstart = 10
+        self.TEstop = 1000
+        self.TEsteps = 20
         self.T2values = []
         self.T2xvalues = []
         self.T2yvalues = []
         self.T2linregres = []
         self.T2regyvalues = []
         self.T2 = 10
+        self.T2stepsimg = []
+        self.T2img_mag = []
+        self.T2imgvalues = []
         self.projaxis = []
         self.average = 0
         self.averagecount = 10
@@ -125,8 +128,8 @@ class Parameters:
         self.cutrec = 0
         self.cutcenter = 0
         self.cutoutside = 0
-        self.cutcentervalue = 0
-        self.cutoutsidevalue = 0
+        self.cutcentervalue = 20
+        self.cutoutsidevalue = 70
         self.ustime = 0
         self.usphase = 0
         self.ustimeidx = 0
@@ -158,7 +161,7 @@ class Parameters:
         self.radialanglestepradmod100 = 0
         self.lnkspacemag = 0
         self.autograd = 1
-        self.FOV = 20.0
+        self.FOV = 12.0
         self.slicethickness = 5.0
         self.gradsens = [33.5, 31.9, 32.5]
         self.gradnominal = [10.0, 10.0, 10.0]
@@ -177,7 +180,7 @@ class Parameters:
         self.B0DeltaB0mapmasked = []
         self.B1alphamap = []
         self.B1alphamapmasked = []
-        self.imagefilter = 0
+        self.imagefilter = 1
         self.signalmask = 0.5
 
     def saveFileParameter(self):  
@@ -244,6 +247,7 @@ class Parameters:
                          self.TEstop, \
                          self.TEsteps, \
                          self.T2, \
+                         self.T2stepsimg, \
                          self.projaxis, \
                          self.average, \
                          self.averagecount, \
@@ -332,6 +336,8 @@ class Parameters:
                          self.T2yvalues, \
                          self.T2linregres, \
                          self.T2regyvalues, \
+                         self.T2img_mag, \
+                         self.T2imgvalues, \
                          self.img_mag_diff, \
                          self.B0DeltaB0map, \
                          self.B0DeltaB0mapmasked, \
@@ -405,6 +411,7 @@ class Parameters:
                 self.TEstop, \
                 self.TEsteps, \
                 self.T2, \
+                self.T2stepsimg, \
                 self.projaxis, \
                 self.average, \
                 self.averagecount, \
@@ -498,6 +505,8 @@ class Parameters:
                 self.T2yvalues, \
                 self.T2linregres, \
                 self.T2regyvalues, \
+                self.T2img_mag, \
+                self.T2imgvalues, \
                 self.img_mag_diff, \
                 self.B0DeltaB0map, \
                 self.B0DeltaB0mapmasked, \
