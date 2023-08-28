@@ -58,6 +58,10 @@ class sequence:
         self.seq_rf_test = 'sequences/spectroscopy/RF_Test.txt'
         self.seq_grad_test = 'sequences/spectroscopy/Gradient_Test.txt'
         
+        self.seq_2D_rad_f_gre = 'sequences/imaging/2D_RAD_F_GRE.txt'
+        self.seq_2D_rad_f_se = 'sequences/imaging/2D_RAD_F_SE.txt'
+        self.seq_2D_rad_h_gre = 'sequences/imaging/2D_RAD_H_GRE.txt'
+        self.seq_2D_rad_h_se = 'sequences/imaging/2D_RAD_H_SE.txt'
         self.seq_2D_gre = 'sequences/imaging/2D_GRE.txt'
         self.seq_2D_se = 'sequences/imaging/2D_SE.txt'
         self.seq_2D_se_gs = 'sequences/imaging/2D_SE_Gs.txt'
@@ -75,6 +79,7 @@ class sequence:
         self.seq_2D_se_diff = 'sequences/imaging/2D_SE_DIFF.txt'
         self.seq_2D_fc_gre = 'sequences/imaging/2D_FC_GRE.txt'
         self.seq_2D_fc_se = 'sequences/imaging/2D_FC_SE.txt'
+        self.seq_2D_sir_gre = 'sequences/imaging/2D_SIR_GRE.txt'
     
     def sequence_upload(self):
     
@@ -174,21 +179,27 @@ class sequence:
             if params.sequence == 0:
                 # 2D Radial (GRE, Full)
                 print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
-                self.Image_GRE_setup()
+                self.Image_radial_f_GRE_setup()
                 self.Sequence_upload()
-                self.acquire_image_radial_GRE()
+                self.acquire_image_radial_f_GRE()
             elif params.sequence == 1:
                 # 2D Radial (SE, Full)
                 print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
-                self.Image_SE_setup()
+                self.Image_radial_f_SE_setup()
                 self.Sequence_upload()
-                self.acquire_image_radial_SE()
+                self.acquire_image_radial_f_SE()
             elif params.sequence == 2:
                 # WIP 2D Radial (GRE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_GRE()
             elif params.sequence == 3:
                 # WIP 2D Radial (SE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_SE()
             elif params.sequence == 4:
                 # 2D Gradient Echo
                 self.Image_GRE_setup()
@@ -210,8 +221,10 @@ class sequence:
                 self.Sequence_upload()
                 self.acquire_image_SE()
             elif params.sequence == 8:
-                # WIP 2D Saturation Inversion Recovery (GRE)
-                print('\033[1m' + 'WIP' + '\033[0m')
+                # 2D Saturation Inversion Recovery (GRE)
+                self.Image_SIR_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
             elif params.sequence == 9:
                 # WIP 2D Saturation Inversion Recovery (SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
@@ -996,6 +1009,104 @@ class sequence:
         params.sequencefile = self.seq_grad_test
         
         print("Gradient test sequence setup complete!")
+        
+    #2D Radial Full Gradient Echo Sequence   
+    def Image_radial_f_GRE_setup(self):
+        if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        
+        f = open(self.seq_2D_rad_f_gre, 'r+')
+        lines = f.readlines()
+        lines[-21] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_gre, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_gre
+        
+        print("2D radial full GRE setup complete!")
+    
+    # 2D Radial Full Spin Echo Sequence
+    def Image_radial_f_SE_setup(self):
+        if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+        f = open(self.seq_2D_rad_f_se, 'r+')
+        lines = f.readlines()
+        lines[-36] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-34] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-31] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-26] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-22] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_se, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_se
+        
+        print("2D radial full SE setup complete!")
+        
+    #2D Radial Half Gradient Echo Sequence   
+    def Image_radial_h_GRE_setup(self):
+        if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        
+        f = open(self.seq_2D_rad_h_gre, 'r+')
+        lines = f.readlines()
+        lines[-19] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-17] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_gre, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_gre
+        
+        print("2D radial half GRE setup complete!")
+    
+    # 2D Radial Half Spin Echo Sequence
+    def Image_radial_h_SE_setup(self):
+        if int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
+            params.TE = (params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.TS * 1000 / 2) < 0:
+            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+            
+        f = open(self.seq_2D_rad_h_se, 'r+')
+        lines = f.readlines()
+        lines[-34] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-32] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-29] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-24] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-20] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-17] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_se, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_se
+        
+        print("2D radial half SE setup complete!")
 
     #2D Gradient Echo Sequence   
     def Image_GRE_setup(self):
@@ -1103,6 +1214,42 @@ class sequence:
         params.sequencefile = self.seq_2D_ir_se
         
         print("2D IR SE setup complete!")
+        
+    # 2D Saturation Inversion Recovery GRE Sequence
+    def Image_SIR_GRE_setup(self):          
+        if int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
+            params.TE = (params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
+            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        self.TGRE = 1
+        if int(self.TGRE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            self.TGRE = (params.flippulselength / 2 + 10 + 30 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            print('T GRE set to:', self.TGRE, 'ms')
+        
+            
+        f = open(self.seq_2D_sir_gre, 'r+')
+        lines = f.readlines()
+        lines[-41] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-39] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-36] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-31] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-27] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-24] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
+        lines[-21] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(self.TGRE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_sir_gre, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_sir_gre
+        
+        print("2D SIR GRE setup complete!")
         
     #2D Gradient Echo (Slice Select) Sequence   
     def Image_GRE_Gs_setup(self):
@@ -2753,20 +2900,18 @@ class sequence:
                     break
                 else: continue
             self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
                 
-#             self.kspace2[n, :] = self.data[0:10000]  
-            
-        self.kspace[0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
+        self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
-        self.kspace[int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
+        self.kspace[int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = -self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps+self.nsteps/2):int(2*self.nsteps+self.nsteps/2), :] = self.kspacetemp[0:self.nsteps, :]
-        self.kspace[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :] = self.kspacetemp[int(self.nsteps+self.nsteps/2):int(2*self.nsteps), :]
+        self.kspace[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :] = -self.kspacetemp[int(self.nsteps+self.nsteps/2):int(2*self.nsteps), :]
         self.kspace[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :] = self.kspacetemp[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :]
-        self.kspace[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :] = self.kspacetemp[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :]
-            
+        self.kspace[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :] = -self.kspacetemp[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :]
+     
         params.kspace = self.kspace
         
         self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
@@ -2814,19 +2959,17 @@ class sequence:
                     break
                 else: continue
             self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
-                
-#             self.kspace2[n, :] = self.data[0:10000]  
-            
-        self.kspace[0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+
+        self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
-        self.kspace[int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
+        self.kspace[int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = -self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps+self.nsteps/2):int(2*self.nsteps+self.nsteps/2), :] = self.kspacetemp[0:self.nsteps, :]
-        self.kspace[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :] = self.kspacetemp[int(self.nsteps+self.nsteps/2):int(2*self.nsteps), :]
+        self.kspace[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :] = -self.kspacetemp[int(self.nsteps+self.nsteps/2):int(2*self.nsteps), :]
         self.kspace[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :] = self.kspacetemp[int(2*self.nsteps+self.nsteps/2):int(3*self.nsteps), :]
-        self.kspace[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :] = self.kspacetemp[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :]
+        self.kspace[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :] = -self.kspacetemp[int(3*self.nsteps+self.nsteps/2):int(4*self.nsteps), :]
             
         params.kspace = self.kspace
         
@@ -2940,9 +3083,9 @@ class sequence:
                     break
                 else: continue
             self.kspace[n*4, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspace[n*4+1, :] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]
+            self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]
             self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]
-            self.kspace[n*4+3, :] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]
+            self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]
             
 #             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
 #             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
@@ -3026,7 +3169,7 @@ class sequence:
         
         print("Image acquired!")
         
-    def acquire_image_radial_GRE(self):
+    def acquire_image_radial_f_GRE(self):
         print("Acquire image...")
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
@@ -3075,9 +3218,9 @@ class sequence:
             
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,params.nPE), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -3086,7 +3229,7 @@ class sequence:
         
         print("Image acquired!")
         
-    def acquire_image_radial_SE(self):
+    def acquire_image_radial_f_SE(self):
         print("Acquire image...")
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
@@ -3131,13 +3274,127 @@ class sequence:
             
             time.sleep(params.TR/1000)
         
-   
-            
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,params.nPE), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
+    def acquire_image_radial_h_GRE(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+        
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        
+        self.radialanglecount = self.radialangles.shape[0]
+
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 31, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, params.spoileramplitude << 16 | self.radialangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+            
+            time.sleep(params.TR/1000)
+        
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
+    def acquire_image_radial_h_SE(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        
+        self.radialanglecount = self.radialangles.shape[0]
+        
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 30, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, self.radialangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+            
+            time.sleep(params.TR/1000)
+
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
