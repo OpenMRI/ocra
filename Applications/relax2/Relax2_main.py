@@ -117,25 +117,47 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
         if params.GUImode == 0:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)', 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)', 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)', 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)', 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)', 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)', 'RF Testsequence', 'Gradient Testsequence'])
+            self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
+                                             , 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)' \
+                                             , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                             , 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)' \
+                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                             , 'RF Testsequence', 'Gradient Testsequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 1:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)', '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)', '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)', 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)', 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)', 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)', 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo', '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
+            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
+                                             , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                             , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                             , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                             , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                             , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                             , 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)' \
+                                             , 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                             , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                             , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 2:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)', 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
+            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)' \
+                                             , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                             , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T1_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)', 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)','2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
+            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)' \
+                                             , 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
+                                             ,'2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -186,14 +208,16 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
-                    if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
+                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                       or params.sequence == 15:
                         seq.RXconfig_upload()
                         seq.Gradients_upload()
                         seq.Frequency_upload()
                         seq.RFattenuation_upload()
-                        seq.SE_Gs_setup()
+                        seq.FID_setup()
                         seq.Sequence_upload()
-                        seq.acquire_spectrum_SE_Gs()
+                        seq.acquire_spectrum_FID()
                         proc.spectrum_process()
                         proc.spectrum_analytics()
                         params.frequency = params.centerfrequency
@@ -201,7 +225,27 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
-                    else:
+                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                         or params.sequence == 32:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_FID_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                         or params.sequence == 16:
                         seq.RXconfig_upload()
                         seq.Gradients_upload()
                         seq.Frequency_upload()
@@ -209,6 +253,25 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.SE_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                         or params.sequence == 36:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
                         proc.spectrum_process()
                         proc.spectrum_analytics()
                         params.frequency = params.centerfrequency
@@ -241,28 +304,34 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence == 32 or params.sequence == 33 or params.sequence == 34):
+        elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
             if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
                 proc.image_3D_process()
                 # proc.image_3D_analytics()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No 3D File!! \'Path/Filename_3D_slices\', \'_3D_slices\' will add automatically, Parameter: 3D Slab Steps needs to match \'slices\'')
-        elif params.GUImode == 1 and (params.sequence == 13 or params.sequence == 29):
+        elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_diff_process()
                 # proc.image_analytics()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 or params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19):
+        elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
+                                      or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
+                                      or params.sequence == 19 or params.sequence == 20):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.radial_process()
                 proc.image_analytics()
                 self.dialog = PlotWindow(self)
                 self.dialog.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence != 32 or params.sequence != 33 or params.sequence != 34 or params.sequence != 13 or params.sequence != 29 or params.sequence != 0 or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 or params.sequence != 16 or params.sequence != 17 or params.sequence != 18 or params.sequence != 19):
+        elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
+                                      or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
+                                      or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
+                                      or params.sequence != 17 or params.sequence != 18 or params.sequence != 19 \
+                                      or params.sequence != 20):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_process()
                 proc.image_analytics()
@@ -1694,9 +1763,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         if params.GUImode == 0:
             self.spectrum_plot_init()
         elif params.GUImode == 1:
-            if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
+            if params.sequence == 34 or params.sequence == 35 or params.sequence == 36:
                 self.imaging_3D_plot_init()
-            elif params.sequence == 13 or params.sequence == 29:
+            elif params.sequence == 14 or params.sequence == 31:
                 self.imaging_diff_plot_init()
             else:
                 self.imaging_plot_init()
