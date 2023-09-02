@@ -55,6 +55,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.dialog_params = None
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
@@ -103,9 +105,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
     def establish_conn(self):
-        self.dialog = ConnectionDialog(self)
-        self.dialog.show()
-        self.dialog.connected.connect(self.start_com)
+        self.dialog_con = ConnectionDialog(self)
+        self.dialog_con.show()
+        self.dialog_con.connected.connect(self.start_com)
 
     def start_com(self):
         logger.init()
@@ -223,6 +225,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
@@ -240,6 +245,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
@@ -258,6 +266,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
@@ -277,10 +288,16 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
             
     def load_params(self):
@@ -288,9 +305,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.switch_GUImode(params.GUImode)
         
     def parameter_window(self):
-            self.dialog = None
-            self.dialog = ParametersWindow(self)
-            self.dialog.show()
+            self.dialog_params = None
+            self.dialog_params = ParametersWindow(self)
+            self.dialog_params.show()
         
     def set_Datapath(self):
         params.datapath = self.Datapath_lineEdit.text()
@@ -301,22 +318,22 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.spectrum_process()
                 proc.spectrum_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
         elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
             if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
                 proc.image_3D_process()
                 # proc.image_3D_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No 3D File!! \'Path/Filename_3D_slices\', \'_3D_slices\' will add automatically, Parameter: 3D Slab Steps needs to match \'slices\'')
         elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_diff_process()
                 # proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
         elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
                                       or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
@@ -324,8 +341,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.radial_process()
                 proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
         elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
                                       or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
@@ -335,37 +352,37 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_process()
                 proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
                 
         elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
         elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T1imageprocess()
-                    self.dialog = PlotWindow(self)
-                    self.dialog.show()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
                 else: print('No File!!')
             else: print('No File!!')
             
         elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
         elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T2imageprocess()
-                    self.dialog = PlotWindow(self)
-                    self.dialog.show()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else: print('No File!!')
             
         elif params.GUImode == 4:
@@ -398,22 +415,22 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             params.projz[:,3] = params.spectrumfft
                     else: print('No File!!')
                 params.datapath = self.datapathtemp
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             elif params.sequence == 2 or params.sequence == 3:
                 proc.spectrum_process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
                 
         params.saveFileData()
    
     def tools(self):
-        self.dialog = ToolsWindow(self)
-        self.dialog.show()
+        self.dialog_tools = ToolsWindow(self)
+        self.dialog_tools.show()
         
     def protocol(self):
-        self.dialog = ProtocolWindow(self)
-        self.dialog.show()
+        self.dialog_prot = ProtocolWindow(self)
+        self.dialog_prot.show()
 
     def update_gui(self):
         QApplication.processEvents()
@@ -1290,7 +1307,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             if params.ToolShimChannel != [0, 0, 0, 0]:
         
                 proc.Shimtool()
-        
+                
                 self.fig = Figure()
                 self.fig.set_facecolor("None")
                 self.fig_canvas = FigureCanvas(self.fig)
@@ -1713,24 +1730,84 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                 proc.T1measurement_IR_FID()
             elif params.GUImode == 2 and params.sequence == 1:
                 proc.T1measurement_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.GUImode == 2 and params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.GUImode == 2 and params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.GUImode == 2 and params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.GUImode == 2 and params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
             elif params.GUImode == 3 and params.sequence == 0:
                 proc.T2measurement_SE()
             elif params.GUImode == 3 and params.sequence == 1:
                 proc.T2measurement_SIR_FID()
+            elif params.GUImode == 3 and params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.GUImode == 3 and params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.GUImode == 3 and params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.GUImode == 3 and params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
-                    if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
-                        seq.SE_Gs_setup()
+                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                       or params.sequence == 15:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_setup()
                         seq.Sequence_upload()
-                        seq.acquire_spectrum_SE_Gs()
+                        seq.acquire_spectrum_FID()
                         proc.spectrum_process()
                         proc.spectrum_analytics()
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
-                    else:
+                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                         or params.sequence == 32:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_FID_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                         or params.sequence == 16:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
                         seq.SE_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE()
@@ -1739,10 +1816,38 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        #seq.sequence_upload()
+                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                         or params.sequence == 36:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
 
 
