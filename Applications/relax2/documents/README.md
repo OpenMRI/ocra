@@ -37,15 +37,15 @@ Connect to the console (192.168.1.84).
 
 ## 2 Finding the first signal
 
-To excite spins with RF pulses the carrier freqeuncy of the RF pulse needs to match the LARMOR frequency of the specific OCRA Tabletop System.
+To excite spins with RF pulses the carrier frequency of the RF pulse needs to match the LARMOR frequency of the OCRA Tabletop System.
 
 ### 2.i Manual frequency search
 
 Insert a water sample (without a 3D printed sample).
 
-Click on Spectroscopy and select the Spin Echo sequence.
+In the main window click on Spectroscopy and select the Spin Echo sequence.
 
-Click on parameters.
+In the main window click on parameters.
 
 Enter the following parameters.
 
@@ -67,13 +67,20 @@ In the main window click on Data Process.
 
 The Signal should be shown in the plot.
 
-If the signal is not visible search for the signal in the range of 11.10 MHz to 11.40MHz (parameter window) by repeating the measurement. 
-Reacquire the signal with different RF frequencies till you find the spectrum peak. 
-Verify that it’s the spin signal by removing the sample. 
-When the sample is removed the signal should disappear. If not, it’s just a noise peak.
+If the signal is not visible search for the signal in the range of 11.10 MHz to 11.40MHz (parameter window - RF Frequency) by repeating the measurement.
+
+Reacquire the signal with different RF frequencies till you find the spectrum peak.
+ 
+Verify that it’s the spin signal by removing the sample.
+ 
+When the sample is removed the signal should disappear.
+ 
+If not, it’s just a noise peak.
+
 The time domain signal should have a bell curve.
 
-If you are close to the frequency in your plot you can press ‘Recenter’ in the parameter window. 
+If you are close to the frequency in your plot you can press ‘Recenter’ in the parameter window.
+
 Iterrate the measurement and recenter process till you have the exact LARMOR frequency.
 
 RF Frequency: _____________________MHz
@@ -93,7 +100,9 @@ Small attenuation (-1dB) means high RF pulse amplitudes and high flip angles, hi
 
 ### 3.i Manual transmit adjust
 
-Acquire Spin Echo Signals with different RF attenuations (-31dB to -1dB in steps of 2dB) and plot the signal amplitude shown in the plotvalues window (Peak Max). Wait min. 8s between the acquirements for the signal to relax (full T1 relaxation).
+Acquire Spin Echo Signals with different RF attenuations (-31dB to -1dB in steps of 2dB) and plot the signal amplitude shown in the plotvalues window (Peak Max). 
+
+Wait min. 8s between the acquirements for the signal to relax (full T1 relaxation).
 
 Parameters:
 - Sample: Water without 3D printed sample
