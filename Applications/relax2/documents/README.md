@@ -335,6 +335,14 @@ Repeat the test image with the new scaling factors and check the MR image again.
 
 Repeat the scaling if necessary.
 
+To get the actual scaling factors type in 8.3mm on nominal values and 8.3mm on measured values (or any other 1:1 values).
+
+Scaling X:___________________mT/m/A
+
+Scaling Y:___________________mT/m/A
+
+Scaling Z:___________________mT/m/A
+
 ## 6 Parameters for spectroscopy and imaging
 
 ### 6.i Spectroscopy
