@@ -295,10 +295,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+        if self.dialog_params != None:
+            self.dialog_params.load_params()
+            self.dialog_params.repaint()  
             
     def load_params(self):
         self.Sequence_comboBox.clear()
