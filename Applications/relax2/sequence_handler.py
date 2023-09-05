@@ -211,124 +211,134 @@ class sequence:
                 self.Sequence_upload()
                 self.acquire_image_SE()
             elif params.sequence == 6:
+                # 2D Spin Echo (InOut)
+                self.Image_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_IO()
+            elif params.sequence == 7:
                 # 2D Inversion Recovery (GRE)
                 self.Image_IR_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE()
-            elif params.sequence == 7:
+            elif params.sequence == 8:
                 # 2D Inversion Recovery (SE)
                 self.Image_IR_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
-            elif params.sequence == 8:
+            elif params.sequence == 9:
                 # 2D Saturation Inversion Recovery (GRE)
                 self.Image_SIR_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
-            elif params.sequence == 9:
+            elif params.sequence == 10:
                 # WIP 2D Saturation Inversion Recovery (SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 10:
+            elif params.sequence == 11:
                 # 2D Turbo Spin Echo (4 Echos)
                 print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE()' + '\033[0m')
                 self.Image_TSE_setup()
                 self.Sequence_upload()
                 self.acquire_image_TSE()
-            elif params.sequence == 11:
+            elif params.sequence == 12:
                 # 2D Echo Planar Imaging (GRE, 4 Echos)
                 print('\033[1m' + 'Still WIP. Readout timing needs to be adjusted in self.acquire_image_EPI().' + '\033[0m')
                 self.Image_EPI_setup()
                 self.Sequence_upload()
                 self.acquire_image_EPI()
-            elif params.sequence == 12:
+            elif params.sequence == 13:
                 # 2D Echo Planar Imaging (SE, 4 Echos)
                 print('\033[1m' + 'Still WIP. Readout timing needs to be adjusted in self.acquire_image_SE_EPI().' + '\033[0m')
                 self.Image_EPI_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_EPI_SE()
-            elif params.sequence == 13:
+            elif params.sequence == 14:
                 # 2D Diffusion (SE)
                 self.Image_SE_Diff_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Diff()
-            elif params.sequence == 14:
+            elif params.sequence == 15:
                 # 2D Flow Compensation (GRE)
                 self.Image_FC_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE()
-            elif params.sequence == 15:
+            elif params.sequence == 16:
                 # 2D Flow Compensation (SE)
                 self.Image_FC_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
-            elif params.sequence == 16:
+            elif params.sequence == 17:
                 # WIP 2D Radial (Slice, GRE, Full)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 17:
+            elif params.sequence == 18:
                 # WIP 2D Radial (Slice, SE, Full)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 18:
+            elif params.sequence == 19:
                 # WIP 2D Radial (Slice, GRE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 19:
+            elif params.sequence == 20:
                 # WIP 2D Radial (Slice, SE, Half)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 20:
+            elif params.sequence == 21:
                 # 2D Gradient Echo (Slice)
                 self.Image_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE_Gs()
-            elif params.sequence == 21:
+            elif params.sequence == 22:
                 # 2D Spin Echo (Slice)
                 self.Image_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Gs()
-            elif params.sequence == 22:
+            elif params.sequence == 23:
+                # 2D Spin Echo (Slice, InOut)
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs_IO()
+            elif params.sequence == 24:
                 # 2D Inversion Recovery (Slice, GRE)
                 self.Image_IR_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_GRE_Gs()
-            elif params.sequence == 23:
+            elif params.sequence == 25:
                 # 2D Inversion Recovery (Slice, SE)
                 self.Image_IR_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Gs()
-            elif params.sequence == 24:
+            elif params.sequence == 26:
                 # WIP 2D Saturation Inversion Recovery (Slice, GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 25:
+            elif params.sequence == 27:
                 # WIP 2D Saturation Inversion Recovery (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 26:
+            elif params.sequence == 28:
                 # 2D Turbo Spin Echo (Slice, 4 Echos)
                 print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE_Gs().' + '\033[0m')
                 self.Image_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_TSE_Gs()
-            elif params.sequence == 27:
+            elif params.sequence == 29:
                 # WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 28:
+            elif params.sequence == 30:
                 # WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 29:
+            elif params.sequence == 31:
                 # WIP 2D Diffusion (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 30:
+            elif params.sequence == 32:
                 # WIP 2D Flow Compensation (Slice, GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 31:
+            elif params.sequence == 33:
                 # WIP 2D Flow Compensation (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 32:
+            elif params.sequence == 34:
                 # WIP 3D FFT Spin Echo
                 print('\033[1m' + 'WIP' + '\033[0m')
-            elif params.sequence == 33:
+            elif params.sequence == 35:
                 # 3D FFT Spin Echo (Slab)
                 self.Image_3D_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_SE_Gs()
-            elif params.sequence == 34:
+            elif params.sequence == 36:
                 # 3D FFT Turbo Spin Echo (Slab)
                 self.Image_3D_TSE_Gs_setup()
                 self.Sequence_upload()
@@ -2692,6 +2702,52 @@ class sequence:
         
         print("Image acquired!")
         
+    def acquire_image_SE_IO(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+            
+        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 34, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
+
+        while(True):
+            if not socket.waitForBytesWritten(): break
+            time.sleep(0.0001)
+        for n in range(params.nPE):
+            print(n+1,'/',params.nPE)
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ",int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+        
+        for n in range(int(params.nPE/2)):
+            self.kspace[n,:] = self.kspacetemp[2*n,:]
+            self.kspace[int(params.nPE/2+n),:] = self.kspacetemp[2*n+1,:]
+        
+        self.kspace[0:int(params.nPE/2),:]=np.flip(self.kspace[0:int(params.nPE/2),:],0)
+            
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,params.nPE), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
     def acquire_image_GRE_Gs(self):
         print("Acquire image...")
 
@@ -2754,6 +2810,52 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,params.nPE), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
+    def acquire_image_SE_Gs_IO(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+            
+        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 35, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
+
+        while(True):
+            if not socket.waitForBytesWritten(): break
+            time.sleep(0.0001)
+        for n in range(params.nPE):
+            print(n+1,'/',params.nPE)
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ",int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+        
+        for n in range(int(params.nPE/2)):
+            self.kspace[n,:] = self.kspacetemp[2*n,:]
+            self.kspace[int(params.nPE/2+n),:] = self.kspacetemp[2*n+1,:]
+        
+        self.kspace[0:int(params.nPE/2),:]=np.flip(self.kspace[0:int(params.nPE/2),:],0)   
             
         params.kspace = self.kspace
         
