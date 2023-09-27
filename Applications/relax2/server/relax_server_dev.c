@@ -8179,7 +8179,7 @@ int main(int argc)
         int rxmode = (unsigned int)command[36];
         printf("RX mode: %d \n", rxmode);
         // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
-	    //*rx_switch = rxmode & (0x0003);
+	    *rx_switch = rxmode & (0x0003);
         continue;
       }
       
