@@ -140,7 +140,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Slave   {/ps_0/S_AXI_HP0}
   intc_ip {New AXI Interconnect}
 } [get_bd_intf_pins ps_0/S_AXI_HP0]
-save_bd_design
+connect_bd_intf_net [get_bd_intf_pins rx_0/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_0/axi_datamover_0/M_AXI_S2MM]
 
 #  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout  
 module tx_0 {

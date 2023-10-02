@@ -243,6 +243,14 @@ cell xilinx.com:ip:axi_datamover:5.1 axi_datamover_0 {
   S_AXIS_S2MM                 axis_dma_rx_0/M_AXIS_S2MM
   S_AXIS_S2MM_CMD             axis_dma_rx_0/M_AXIS_S2MM_CMD
 }
-connect_bd_net      [get_bd_pins axi_datamover_0/m_axi_s2mm_bresp]  [get_bd_pins axis_dma_rx_0/axi_mm_bresp]
-connect_bd_net      [get_bd_pins axi_datamover_0/m_axi_s2mm_bvalid] [get_bd_pins axis_dma_rx_0/axi_mm_bvalid]
-connect_bd_net      [get_bd_pins axi_datamover_0/m_axi_s2mm_bready] [get_bd_pins axis_dma_rx_0/axi_mm_bready]
+cell open-mri:user:axi_sniffer:1.0 axi_sniffer_0 {
+  C_S_AXI_ADDR_WIDTH 32
+  C_S_AXI_DATA_WIDTH 64
+} {
+  aclk      $fclk
+  aresetn   $f_aresetn
+  bresp     axis_dma_rx_0/axi_mm_bresp
+  bvalid    axis_dma_rx_0/axi_mm_bvalid
+  bready    axis_dma_rx_0/axi_mm_bready
+}
+set_property CONFIG.PROTOCOL AXI4 [get_bd_intf_pins /rx_0/axi_sniffer_0/S_AXI]
