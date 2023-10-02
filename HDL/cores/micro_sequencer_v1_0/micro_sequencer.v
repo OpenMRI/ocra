@@ -63,6 +63,7 @@ module micro_sequencer #
     output reg 				      m_en, 
     output reg [63:0] 			      pulse,
     input 				      cfg,
+	input                             unpause,
 	
     // User ports ends
     // Do not modify the ports beyond this line
@@ -195,6 +196,7 @@ module micro_sequencer #
      JNZ=       6'b010000,      // jump to immeduate address of register is nonzero
      BTR=	6'b010100,	// branch to immediate address if triggered
      J=		6'b010111,	// jump to immediate address
+     PAUSE=	6'b011000,	// pause
      HALT=	6'b011001,	// halt
      PI=	6'b011100,	// pulse lower 32 bit immediately with up to 23 bit delay
      PR=	6'b011101;	// pulse 64 bit register with up to 40 bit delay
@@ -202,7 +204,7 @@ module micro_sequencer #
    reg [0:0] 	     inExe;				// instruction execution
    reg [3:0] 	     state, next_state;		// execution FSM state
    reg [2:0] 	     st_taskInt, ns_taskInt;
-   parameter Reset=4'h0, Fetch=4'h1, Decode=4'h2, Execute=4'h3, MemAccess=4'h4, WriteBack=4'h5, Stall=4'h6, Halted=4'h7, WaitForFetch=4'h8, WaitForFetch2=4'h9, MemAccess2=4'hA, MemAccess3=4'hB; // available states
+   parameter Reset=4'h0, Fetch=4'h1, Decode=4'h2, Execute=4'h3, MemAccess=4'h4, WriteBack=4'h5, Stall=4'h6, Halted=4'h7, WaitForFetch=4'h8, WaitForFetch2=4'h9, MemAccess2=4'hA, MemAccess3=4'hB, Paused=4'hC; // available states
    integer 	     i;
    reg [BRAM_ADDR_WIDTH-1:0] 	     int_mem_addr;
    
@@ -771,6 +773,9 @@ module micro_sequencer #
 		pulse[15:8] <= `PC;
 		state <= Halted;
 		end // when the HALT command is encountered, end the simulation, needs to be modified later
+	     PAUSE: begin
+			state <= Paused;
+		 end
 	     PI: begin
 		state <= MemAccess;
 		end
@@ -807,6 +812,10 @@ module micro_sequencer #
 	Halted: begin
 	   state <= Halted;
 	end // end Halted
+
+	Paused: begin
+		state <= unpause? MemAccess : Paused;
+	end
 	
 	MemAccess: begin
 	   // we have to wait for the memory again here, because its registered

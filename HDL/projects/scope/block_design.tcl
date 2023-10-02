@@ -243,6 +243,10 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 
+create_bd_cell -type module -reference sync_external_pulse detect_unpause_pulse_0
+connect_bd_net [get_bd_pins detect_unpause_pulse_0/aclk]    [get_bd_pins $fclk]
+connect_bd_net [get_bd_pins detect_unpause_pulse_0/aresetn] [get_bd_pins $f_aresetn]
+
 # Create microsequencer
 cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
   C_S_AXI_DATA_WIDTH 32
@@ -253,6 +257,7 @@ cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
   BRAM_PORTA sequence_memory/BRAM_PORTB
   S_AXI_ACLK $fclk
   S_AXI_ARESETN $f_aresetn
+  unpause detect_unpause_pulse_0/pulse_detected
 }
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
@@ -305,15 +310,21 @@ set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
 # Delete input/output port
-delete_bd_objs [get_bd_ports exp_p_tri_io]
-delete_bd_objs [get_bd_ports exp_n_tri_io]
+delete_bd_objs [get_bd_ports exp_p_tri_io_*]
+delete_bd_objs [get_bd_ports exp_n_tri_io_*]
 
 # Create newoutput port
-create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
-#connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
+for {set i 0} {$i < 4} {incr i} {
+    create_bd_port -dir O exp_p_tri_io_$i
+}
+for {set i 4} {$i < 8} {incr i} {
+    create_bd_port -dir I exp_p_tri_io_$i
+}
 
 # Create output port for the SPI stuff
-create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
+for {set i 0} {$i < 8} {incr i} {
+    create_bd_port -dir O exp_n_tri_io_$i
+}
 
 # 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
 #          and the txgate will use the eight' pin on the n side
@@ -324,28 +335,24 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 txgate_slice_0
 set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {4} CONFIG.DIN_TO {4} CONFIG.DOUT_WIDTH {1}] [get_bd_cells txgate_slice_0]
 connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins txgate_slice_0/Din]
 
-# Concat with the gradient DAC slice
-cell xilinx.com:ip:xlconstant:1.1 const_spi_0 {
-  CONST_WIDTH 7
-  CONST_VALUE 0b110
-}
-cell xilinx.com:ip:xlconcat:2.1 nio_concat_0 {
-    NUM_PORTS 2
-}
-connect_bd_net [get_bd_pins nio_concat_0/In0] [get_bd_pins const_spi_0/dout]
-connect_bd_net [get_bd_pins nio_concat_0/In1] [get_bd_pins txgate_slice_0/Dout]
-
-# connect to pins
-connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins nio_concat_0/Dout]
-
-# Generate the signals for the positive side
-cell xilinx.com:ip:xlconcat:2.1 pio_concat_0 {
-    NUM_PORTS 3
-}
-connect_bd_net [get_bd_pins pio_concat_0/In0] [get_bd_pins serial_attenuator/attn_clk]
-connect_bd_net [get_bd_pins pio_concat_0/In1] [get_bd_pins serial_attenuator/attn_serial]
-connect_bd_net [get_bd_pins pio_concat_0/In2] [get_bd_pins serial_attenuator/attn_le]
-
-# connect to pins
-connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins pio_concat_0/Dout]
-save_bd_design
+# Input / Output
+cell xilinx.com:ip:xlconstant:1.1 const_low
+cell xilinx.com:ip:xlconstant:1.1 const_high
+set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {0}] [get_bd_cells const_low]
+set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {1}] [get_bd_cells const_high]
+# exp_p_tri_io [3:0] - output
+connect_bd_net [get_bd_ports exp_p_tri_io_0] [get_bd_pins serial_attenuator/attn_clk]
+connect_bd_net [get_bd_ports exp_p_tri_io_1] [get_bd_pins serial_attenuator/attn_serial]
+connect_bd_net [get_bd_ports exp_p_tri_io_2] [get_bd_pins serial_attenuator/attn_le]
+connect_bd_net [get_bd_ports exp_p_tri_io_3] [get_bd_pins const_low/Dout]
+# exp_p_tri_io [7:4] - input
+connect_bd_net [get_bd_ports exp_p_tri_io_4] [get_bd_pins detect_unpause_pulse_0/external_input]
+# exp_n_tri_io [7:0] - output
+connect_bd_net [get_bd_ports exp_n_tri_io_0] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_1] [get_bd_pins const_high/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_2] [get_bd_pins const_high/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_3] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_4] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_5] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_6] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_ports exp_n_tri_io_7] [get_bd_pins txgate_slice_0/Dout]
