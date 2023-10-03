@@ -1,0 +1,5 @@
+/dts-v1/;
+/plugin/;
+/include/ "../tmp/stemlab_125_14_ocra_mri.tree/pl.dtsi"
+/ {
+};

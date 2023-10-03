@@ -16,7 +16,7 @@ module axis_dma_rx #
 
     input                                        gate,
     input                                        s2mm_err,
-    output                                       interrupt,
+    output                                       i_rq,
 
     //Snooping the BRESP interface
     input       [1:0]                            axi_mm_bresp,
