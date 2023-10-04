@@ -632,6 +632,6 @@ module axis_dma_rx #
   assign m_axis_s2mm_tlast      = data_tlast;
   assign m_axis_s2mm_tvalid     = data_tvalid;
   // Interrupt
-  assign interrupt              = interrupt_2q | interrupt_q;
+  assign i_rq                   = interrupt_2q | interrupt_q;
 
 endmodule
