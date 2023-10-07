@@ -1,0 +1,15 @@
+/dts-v1/;
+/plugin/;
+/include/ "../tmp/stemlab_125_14_ext_ex_data_transfer.tree/pl.dtsi"
+/ {
+    fragment@3 {
+        target = <&amba>;
+        overlay3: __overlay__ {
+            dma_rx_irq: dma_rx_irq {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 29 1>;
+            };
+        };
+    };
+};

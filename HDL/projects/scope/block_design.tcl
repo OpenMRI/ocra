@@ -141,6 +141,7 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   intc_ip {New AXI Interconnect}
 } [get_bd_intf_pins ps_0/S_AXI_HP0]
 connect_bd_intf_net [get_bd_intf_pins rx_0/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_0/axi_datamover_0/M_AXI_S2MM]
+set_property range 1G [get_bd_addr_segs {rx_0/axi_datamover_0/Data_S2MM/SEG_ps_0_HP0_DDR_LOWOCM}]
 
 #  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout  
 module tx_0 {
