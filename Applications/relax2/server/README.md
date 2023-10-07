@@ -1,4 +1,4 @@
-1.) Remote access the Red Pitaya
+## Remote access the Red Pitaya
 
 The Red Pitaya (RP) needs to be connected with the host (here in use with a Raspberry Pi) via Ethernet.
 
@@ -17,7 +17,7 @@ To remote access the Red Pitaya via ssh type:
 ssh root@192.168.1.84 (general command: ssh root@[IP])
 
 
-2.) Changing the server
+## Changing the server
 
 Info:
 - If not done, the relax2 folder needs to be updated before this (replace it with the newest one).
@@ -55,7 +55,7 @@ When the compilation is finished restart the (new) server on the Red Pitaya. Typ
 /etc/init.d/relax_serverd start
 
 
-3.) Manual start of the server
+## Manual start of the server
 
 Manual start the server over the ssh terminal allows to see the fprint commands in the terminal.
 
@@ -71,8 +71,7 @@ Start the manual server with:
 
 /home/root/relax_server_dev
 
-
-4.) Copy the server autostart script to the RP
+## Copy the server autostart script to the RP
 
 Connect to the RP via ssh and stop the relax_serverd script.
 
@@ -92,7 +91,7 @@ Type the start command in the ssh terminal:
 
 /etc/init.d/relax_serverd start
 
-5.) Changing the Red Pitaya binaries
+## Changing the Red Pitaya binaries
 
 Download the Bitfiles from the link of the OCRA main README and copy them in the relax2/server folder.
 
