@@ -14,6 +14,7 @@ cell xilinx.com:ip:processing_system7:5.5 ps_0 {
   S_AXI_HP0_ACLK ps_0/FCLK_CLK0
 }
 
+
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
   make_external {FIXED_IO, DDR}
@@ -268,6 +269,14 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
+
+cell xilinx.com:ip:xlconcat:2.1 irq_concat_0 {
+    NUM_PORTS 3
+}
+connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/irq_halt]
+connect_bd_net [get_bd_pins irq_concat_0/In1] [get_bd_pins micro_sequencer/irq_litr]
+connect_bd_net [get_bd_pins irq_concat_0/In2] [get_bd_pins rx_0/axis_dma_rx_0/i_rq]
+connect_bd_net [get_bd_pins irq_concat_0/Dout] [get_bd_pins /ps_0/IRQ_F2P]
 
 # Create RF attenuator
 cell open-mri:user:axi_serial_attenuator:1.0 serial_attenuator {

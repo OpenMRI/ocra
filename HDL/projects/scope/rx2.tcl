@@ -223,7 +223,6 @@ cell open-mri:user:axis_dma_rx:1.0 axis_dma_rx_0 {
   aresetn   $f_aresetn
   S_AXIS    conv_1/M_AXIS
   gate      slice_0/Dout
-  i_rq      /ps_0/IRQ_F2P
 }
 
 cell xilinx.com:ip:axi_datamover:5.1 axi_datamover_0 {
