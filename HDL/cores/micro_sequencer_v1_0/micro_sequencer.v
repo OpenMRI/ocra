@@ -64,6 +64,8 @@ module micro_sequencer #
     output reg [63:0] 			      pulse,
     input 				      cfg,
 	input                             unpause,
+	output		 	 	 	 	 	  irq_halt,
+	output		 	 	 	 	 	  irq_litr,
 	
     // User ports ends
     // Do not modify the ports beyond this line
@@ -190,7 +192,8 @@ module micro_sequencer #
      NOP= 	6'b000000,	// do nothing
      DEC=       6'b000001,      // decrement value of register by one
      INC=       6'b000010,      // increment value of regiuster by one
-     LD64=	6'b000100,	// load 64 bit value to register
+	 LITR=  6'b000010,
+	 LD64=	6'b000100,	// load 64 bit value to register
      TXOFFSET=  6'b001000,      // set the txoffset to a 16 bit value in formatA
      GRADOFFSET=  6'b001001,      // set the txoffset to a 16 bit value in formatA
      JNZ=       6'b010000,      // jump to immeduate address of register is nonzero
@@ -217,6 +220,12 @@ module micro_sequencer #
    reg [BRAM_ADDR_WIDTH-1:0] 	       NextPC;
    reg [63:0] 	       opA, opB; 	       
 	
+   reg irq_halt_q, irq_halt_2q;
+   reg irq_litr_q, irq_litr_2q;
+   wire buffer_ready;
+   reg clear_buffer_flag;
+   reg[1:0] error_code;
+
    // assign the memory interface outputs
    assign bram_porta_addr = int_mem_addr;
    assign bram_porta_clk = aclk;
@@ -253,6 +262,7 @@ module micro_sequencer #
    //------------------------------------------------
    //-- Number of Slave Registers 4
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg0;
+   wire[C_S_AXI_DATA_WIDTH-1:0]   slv_reg0_d;
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg1;
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg2;
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg3;
@@ -264,6 +274,7 @@ module micro_sequencer #
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg8;
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg9;
    reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg10;
+   reg [C_S_AXI_DATA_WIDTH-1:0]   slv_reg11;
    
    wire 			  slv_reg_rden;
    wire 			  slv_reg_wren;
@@ -369,7 +380,7 @@ module micro_sequencer #
      begin
 	if ( S_AXI_ARESETN == 1'b0 )
 	  begin
-	     //slv_reg0 <= 8'h00;
+	     slv_reg0 <= 8'h00;
 	     //slv_reg1 <= 8'h10;
 	     //slv_reg2 <= 8'h20;
 	     //slv_reg3 <= 8'h30;
@@ -421,6 +432,9 @@ module micro_sequencer #
                   end
 		endcase
 	     end
+	   else begin
+		 slv_reg0 <= slv_reg0_d;
+	   end
 	end
      end    
    
@@ -537,6 +551,7 @@ module micro_sequencer #
 	  4'h8   : reg_data_out <= slv_reg8;
           4'h9   : reg_data_out <= slv_reg9;
           4'hA   : reg_data_out <= slv_reg10;
+          4'hB   : reg_data_out <= slv_reg11;
           default : reg_data_out <= 0;
 	endcase
      end
@@ -687,6 +702,9 @@ module micro_sequencer #
    // State machine without any pipelining
    task taskExecute; begin
       tick <= tick+1;
+	  irq_halt_q <= 0;
+	  irq_litr_q <= 0;
+	  clear_buffer_flag <= 0;
       case (state)
 	Fetch: begin // Tick 1 : instruction fetch, throw PC to address bus,
 	   $display("%4dns %8x : Fetching 64 bits ", $stime, `PC);
@@ -738,6 +756,12 @@ module micro_sequencer #
 		memReadStart(directAddress, `QUAD); // LD Ra,directAddress; Ra<=[directAddress]
 		state <= MemAccess;		
 	     end
+		 LITR: begin
+			stallTimerReg <= delayConstant;
+			stallTimerEnable <= 1;
+			state <= Stall;
+			irq_litr_q <= 1;
+		 end
 	     TXOFFSET: begin
 		result[15:0] <= delayConstant[15:0];
 		state <= MemAccess;
@@ -772,6 +796,8 @@ module micro_sequencer #
 	     HALT: begin
 		pulse[15:8] <= `PC;
 		state <= Halted;
+		irq_halt_q <= 1;
+		error_code <= 2'h0;
 		end // when the HALT command is encountered, end the simulation, needs to be modified later
 	     PAUSE: begin
 			state <= Paused;
@@ -799,7 +825,19 @@ module micro_sequencer #
 		if(stallTimerReg == 40'h0000000000) 
 		  begin
 		     stallTimerEnable <= 0;
-		     state <= MemAccess;
+		     if(op==LITR && buffer_ready) begin
+				state <= Fetch;
+				`PC	<= 0;
+				clear_buffer_flag <= 1;
+			 end
+			 else if (op==LITR && ~buffer_ready) begin
+				state <=  Halted;
+				irq_halt_q <= 1;
+				error_code <= 2'h3;
+			 end
+			 else begin
+				state <= MemAccess;
+			 end
 		  end 
 		else 
 		  begin 
@@ -903,13 +941,17 @@ module micro_sequencer #
 	   slv_reg8 <= 0; 
 	   slv_reg9 <= 0; 
 	   slv_reg10 <= 0;
+	   slv_reg11 <= 0;
 	   int_mem_addr <= 0;
 	   cycles <= 0;
 	   stallTimerEnable <= 0; 
 	   stallTimerReg <= 40'hffffffffff;
 	   tx_offset <= 0;
 	   grad_offset <= 0;
-	   
+	   irq_halt_q <= 0;
+	   irq_litr_q <= 0;
+	   clear_buffer_flag <= 0;
+	   error_code <= 0;
 	end
       else if (inExe == 0 && slv_reg0[2:0] == 3'b111) 
 	begin
@@ -941,7 +983,8 @@ module micro_sequencer #
 	   slv_reg9 <= R[2][31:0];
 	   slv_reg10[12:0] <= directAddress;
 	   slv_reg10[31:26] <= op;
-
+	   slv_reg11[1:0] <= error_code;
+	   slv_reg11[31:2] <= 0;
 	   
 	   // 1000 0000 = 0x80
 	   // 1001 0000 = 0x90
@@ -967,7 +1010,18 @@ module micro_sequencer #
       pc <= `PC;
       //cycles <= cycles + 1;
    end
-   
+
+	//interrupt, error code, and buffer ready bit
+	assign  slv_reg0_d[31:9] = slv_reg0[31:9];
+	assign  slv_reg0_d[8]    = clear_buffer_flag ? 1'b0 : slv_reg0[8];
+	assign  slv_reg0_d[7:0]  = slv_reg0[7:0];
+    assign  buffer_ready = slv_reg0[8];
+	always @(posedge aclk) begin
+		irq_halt_2q <= irq_halt_q;
+		irq_litr_2q <= irq_litr_q;
+	end	
+	assign irq_halt = irq_halt_2q || irq_halt_q;
+	assign irq_litr = irq_litr_2q || irq_litr_q;
    //
    // User logic ends
 endmodule
