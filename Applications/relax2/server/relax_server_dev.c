@@ -7966,8 +7966,8 @@ int main(int argc)
   // -- Communication and Data -- //
   int fd, sock_server, sock_client, conn_status;
   void *cfg, *sts;
-  volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider;
-  volatile uint16_t *rx_cntr, *tx_size, *rx_switch;
+  volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider, *rx_switch;
+  volatile uint16_t *rx_cntr, *tx_size;
   //volatile uint8_t *rx_rst, *tx_rst;
   volatile uint64_t *rx_data;
   void *tx_data;
@@ -8176,10 +8176,10 @@ int main(int argc)
       //------------------------------------------------------------------------
       if ( trig == 1 ) {
         printf("Set RX mode.\n");
-        int rxmode = (int)command[36];
+        int rxmode = (unsigned int)command[36];
         printf("RX mode: %d \n", rxmode);
         // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
-	    //*rx_switch = rxmode & (0x0003);
+	    *rx_switch = rxmode & (0x0003);
         continue;
       }
       
