@@ -10,6 +10,8 @@
  
  The correct implementation can only work when there is at least 1 bit extension, so this module will fail
  compilation when the input and output bits are the same.
+ 
+ OpenMRI 2023
  */
 `timescale 1 ns / 1 ps
 
