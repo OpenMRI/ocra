@@ -8178,7 +8178,7 @@ int main(int argc)
         printf("Set RX mode.\n");
         int rxmode = (unsigned int)command[36];
         printf("RX mode: %d \n", rxmode);
-        // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
+        // 0 = RX1 and RX2, 1= RX1, 2 = RX2, 3 is reserved
 	    *rx_switch = rxmode & (0x0003);
         continue;
       }
