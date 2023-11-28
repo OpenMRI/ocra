@@ -11,7 +11,10 @@
  The correct implementation can only work when there is at least 1 bit extension, so this module will fail
  compilation when the input and output bits are the same.
  
- OpenMRI 2023
+ A further simplification is that the bits will always be extended to a multiple of a byte boundary for now,
+ to ensure that the output data has the imaginary component start on a byte boundary.
+ 
+ OpenMRI @2023
  */
 `timescale 1 ns / 1 ps
 
@@ -45,6 +48,10 @@ module axis_red_pitaya_adc #
    initial begin
       if (AXIS_TDATA_WIDTH/2 <= ADC_DATA_WIDTH) begin
 	 $error("Assertion failed: this core does not support converting data without extending by at least one bit!");
+      end
+
+      if (AXIS_TDATA_WIDTH/2 % 8 != 0) begin
+	 $error("Assertion failed: the data packing for Xilinx cores requires the imaginary component to start on a byte boundary! Choose an appropriate AXIS bus width to accomplish this.");
       end
    end
    
