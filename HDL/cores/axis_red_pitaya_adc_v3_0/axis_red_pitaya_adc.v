@@ -22,24 +22,24 @@ module axis_red_pitaya_adc #
    )
    (
     // System signals
-    input wire			    aclk,
+    input wire			       aclk,
 
     // ADC signals
-    output wire			    adc_csn,
-    input wire [ADC_DATA_WIDTH-1:0] adc_dat_a,
-    input wire [ADC_DATA_WIDTH-1:0] adc_dat_b,
+    output wire			       adc_csn,
+    input wire [ADC_DATA_WIDTH-1:0]    adc_dat_a,
+    input wire [ADC_DATA_WIDTH-1:0]    adc_dat_b,
 
     // Control signals for the switch
-    input wire [1:0]		    adc_channel_switch, 
+    input wire [1:0]		       adc_channel_switch, 
     // Master side
-    output wire			    m_axis_tvalid,
-    output wire [AXIS_TDATA_WIDTH-1:0]   m_axis_tdata
+    output wire			       m_axis_tvalid,
+    output wire [AXIS_TDATA_WIDTH-1:0] m_axis_tdata
     );
-   localparam			    PADDING_WIDTH = AXIS_TDATA_WIDTH/2 - ADC_DATA_WIDTH;
+   localparam			       PADDING_WIDTH = AXIS_TDATA_WIDTH/2 - ADC_DATA_WIDTH;
    
-   reg [ADC_DATA_WIDTH-1:0]	    int_dat_a_reg;
-   reg [ADC_DATA_WIDTH-1:0]	    int_dat_b_reg;
-   reg [1:0]			    int_channel_switch;
+   reg [ADC_DATA_WIDTH-1:0]	       int_dat_a_reg;
+   reg [ADC_DATA_WIDTH-1:0]	       int_dat_b_reg;
+   reg [1:0]			       int_channel_switch;
    
    // make an initial block to prevent compiling with invalid parameters
    initial begin
@@ -47,7 +47,7 @@ module axis_red_pitaya_adc #
 	 $error("Assertion failed: this core does not support converting data without extending by at least one bit!");
       end
    end
-  
+   
    // implement a function for the switch
    function automatic [AXIS_TDATA_WIDTH-1:0] switch (input [1:0] code, input [ADC_DATA_WIDTH-1:0] data_a, input [ADC_DATA_WIDTH-1:0] data_b);
       // generate the 2's complement correctly and store in a local variable, to make the code below more readable
