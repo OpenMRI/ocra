@@ -8342,7 +8342,7 @@ int main(int argc)
 
   // -- Communication and Data -- //
   int fd, sock_server, sock_client, conn_status;
-  void *cfg, *sts, *cfg2;
+  void *cfg, *sts;
   volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider, *rx_switch;
   volatile uint16_t *rx_cntr, *tx_size;
   //volatile uint8_t *rx_rst, *tx_rst;
@@ -8397,8 +8397,7 @@ int main(int argc)
 
   // set up shared memory (please refer to the memory offset table)
 	slcr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0xF8000000);
-	cfg = mmap(NULL, 128, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000000);
-	cfg2 = mmap(NULL, 128, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000080);
+	cfg = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000000);
 	sts = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40001000);
 	rx_data = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40010000);
 	tx_data = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40020000);
@@ -8446,7 +8445,7 @@ int main(int argc)
   //rx_switch
   // the offset is a bit obscure here, but cfg1 on the FPGA falls on the same PAGE as cfg as far as the OS is concerned,
   // so I'm using the same mmap here
-  rx_switch = ((uint32_t *)(cfg2 + 0));
+  rx_switch = ((uint32_t *)(cfg + 16));
   
   printf("Setting FPGA clock to 143 MHz !\n"); fflush(stdout);
 

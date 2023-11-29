@@ -6,7 +6,7 @@ cell xilinx.com:ip:xlslice:1.0 slice_0 {
 
 # Create xlslice
 cell xilinx.com:ip:xlslice:1.0 rate_slice {
-  DIN_WIDTH 64 DIN_FROM 47 DIN_TO 32 DOUT_WIDTH 16
+  DIN_WIDTH 32 DIN_FROM 15 DIN_TO 0 DOUT_WIDTH 16
 }
 
 # Create xlconstant
