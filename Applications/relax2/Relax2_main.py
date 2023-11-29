@@ -14,11 +14,13 @@ import numpy as np
 import os
 import math
 import time
+import shutil
 
 from datetime import datetime
 
 # import PyQt5 packages
-from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths
 from PyQt5.QtGui import QRegExpValidator, QPixmap
@@ -46,12 +48,15 @@ Conn_Dialog_Form, Conn_Dialog_Base = loadUiType('ui/connDialog.ui')
 Para_Window_Form, Para_Window_Base = loadUiType('ui/parameters.ui')
 Plot_Window_Form, Plot_Window_Base = loadUiType('ui/plotview.ui')
 Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
+Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.dialog_params = None
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
@@ -95,13 +100,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Acquire_pushButton.clicked.connect(lambda: self.acquire())
         self.Data_Process_pushButton.clicked.connect(lambda: self.dataprocess())
         self.Tools_pushButton.clicked.connect(lambda: self.tools())
+        self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
         
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
     def establish_conn(self):
-        self.dialog = ConnectionDialog(self)
-        self.dialog.show()
-        self.dialog.connected.connect(self.start_com)
+        self.dialog_con = ConnectionDialog(self)
+        self.dialog_con.show()
+        self.dialog_con.connected.connect(self.start_com)
 
     def start_com(self):
         logger.init()
@@ -113,25 +119,47 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
         if params.GUImode == 0:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)', 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)', 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)', 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)', 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)', 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)', 'RF Testsequence', 'Gradient Testsequence'])
+            self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
+                                             , 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)' \
+                                             , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                             , 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)' \
+                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                             , 'RF Testsequence', 'Gradient Testsequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 1:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', 'WIP 2D Radial (GRE, Half)', 'WIP 2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)', 'WIP 2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)', '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)', 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)', 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)', 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)', 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo', '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
+            self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
+                                             , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                             , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                             , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                             , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                             , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                             , 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)' \
+                                             , 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                             , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                             , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 2:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)'])
+            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)' \
+                                             , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                             , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T1_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery [FID]'])
+            self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)' \
+                                             , 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
+                                             ,'2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -152,24 +180,84 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T1measurement_IR_FID()
             elif params.GUImode == 2 and params.sequence == 1:
                 proc.T1measurement_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.GUImode == 2 and params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.GUImode == 2 and params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.GUImode == 2 and params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.GUImode == 2 and params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
             elif params.GUImode == 3 and params.sequence == 0:
                 proc.T2measurement_SE()
             elif params.GUImode == 3 and params.sequence == 1:
                 proc.T2measurement_SIR_FID()
+            elif params.GUImode == 3 and params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.GUImode == 3 and params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.GUImode == 3 and params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.GUImode == 3 and params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
-                    if params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21 or params.sequence == 22 or params.sequence == 23 or params.sequence == 24 or params.sequence == 25 or params.sequence == 26 or params.sequence == 27 or params.sequence == 28 or params.sequence == 29 or params.sequence == 30 or params.sequence == 31 or params.sequence == 33 or params.sequence == 34:
-                        seq.SE_Gs_setup()
+                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                       or params.sequence == 15:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_setup()
                         seq.Sequence_upload()
-                        seq.acquire_spectrum_SE_Gs()
+                        seq.acquire_spectrum_FID()
                         proc.spectrum_process()
                         proc.spectrum_analytics()
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
-                    else:
+                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                         or params.sequence == 32:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_FID_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                         or params.sequence == 16:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
                         seq.SE_setup()
                         seq.Sequence_upload()
                         seq.acquire_spectrum_SE()
@@ -178,20 +266,48 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                         or params.sequence == 36:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+        if self.dialog_params != None:
+            self.dialog_params.load_params()
+            self.dialog_params.repaint()  
             
     def load_params(self):
         self.Sequence_comboBox.clear()
         self.switch_GUImode(params.GUImode)
         
     def parameter_window(self):
-            self.dialog = None
-            self.dialog = ParametersWindow(self)
-            self.dialog.show()
+            self.dialog_params = None
+            self.dialog_params = ParametersWindow(self)
+            self.dialog_params.show()
         
     def set_Datapath(self):
         params.datapath = self.Datapath_lineEdit.text()
@@ -202,50 +318,73 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.spectrum_process()
                 proc.spectrum_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence == 32 or params.sequence == 33 or params.sequence == 34):
+        elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
             if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
                 proc.image_3D_process()
                 # proc.image_3D_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No 3D File!! \'Path/Filename_3D_slices\', \'_3D_slices\' will add automatically, Parameter: 3D Slab Steps needs to match \'slices\'')
-        elif params.GUImode == 1 and (params.sequence == 13 or params.sequence == 29):
+        elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_diff_process()
                 # proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 or params.sequence == 16 or params.sequence == 17 or params.sequence == 18 or params.sequence == 19):
+        elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
+                                      or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
+                                      or params.sequence == 19 or params.sequence == 20):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.radial_process()
                 proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
-        elif params.GUImode == 1 and (params.sequence != 32 or params.sequence != 33 or params.sequence != 34 or params.sequence != 13 or params.sequence != 29 or params.sequence != 0 or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 or params.sequence != 16 or params.sequence != 17 or params.sequence != 18 or params.sequence != 19):
+        elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
+                                      or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
+                                      or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
+                                      or params.sequence != 17 or params.sequence != 18 or params.sequence != 19 \
+                                      or params.sequence != 20):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_process()
                 proc.image_analytics()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
                 
-        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1):
+        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
-        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1):
+        elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T1imageprocess()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+                else: print('No File!!')
+            else: print('No File!!')
+            
+        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             else: print('No File!!')
+        elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T2imageprocess()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+            else: print('No File!!')
+            
         elif params.GUImode == 4:
             if params.sequence == 0 or params.sequence == 1:
                 self.datapathtemp = params.datapath
@@ -276,18 +415,22 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             params.projz[:,3] = params.spectrumfft
                     else: print('No File!!')
                 params.datapath = self.datapathtemp
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
             elif params.sequence == 2 or params.sequence == 3:
                 proc.spectrum_process()
-                self.dialog = PlotWindow(self)
-                self.dialog.show()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
                 
         params.saveFileData()
    
     def tools(self):
-        self.dialog = ToolsWindow(self)
-        self.dialog.show()
+        self.dialog_tools = ToolsWindow(self)
+        self.dialog_tools.show()
+        
+    def protocol(self):
+        self.dialog_prot = ProtocolWindow(self)
+        self.dialog_prot.show()
 
     def update_gui(self):
         QApplication.processEvents()
@@ -489,6 +632,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.RX1_radioButton.toggled.connect(self.update_params)
         self.RX2_radioButton.toggled.connect(self.update_params)
         
+        self.SignalMask_doubleSpinBox.setKeyboardTracking(False)
+        self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -583,6 +730,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
         if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
         
+        self.SignalMask_doubleSpinBox.setValue(params.signalmask)
+        
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
  
@@ -595,7 +744,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.GSposttime =0
         else:
             params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
-        
+
         if params.autograd == 1:
             self.Deltaf = 1 / (params.flippulselength) *1000000
             
@@ -855,8 +1004,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         elif params.rx1 == 1 and params.rx2 == 1:
             params.rxmode = 3
             print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
-        
         print('RX mode: ',params.rxmode)
+        
+        params.signalmask = self.SignalMask_doubleSpinBox.value()
         
         params.saveFileParameter()
         
@@ -1157,7 +1307,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             if params.ToolShimChannel != [0, 0, 0, 0]:
         
                 proc.Shimtool()
-        
+                
                 self.fig = Figure()
                 self.fig.set_facecolor("None")
                 self.fig_canvas = FigureCanvas(self.fig)
@@ -1405,6 +1555,300 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
+        
+class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(ProtocolWindow, self).__init__(parent)
+        self.setupUi(self)
+        
+        #self.load_params()
+        self.prot_datapath = 'protocol/Protocol_01'
+        
+        self.ui = loadUi('ui/protocol.ui')
+        self.setWindowTitle('Protocol')
+        self.setGeometry(420, 40, 800, 850)
+        
+        self.Protocol_Datapath_lineEdit.setText(self.prot_datapath)
+        self.Protocol_Datapath_lineEdit.editingFinished.connect(lambda: self.set_protocol_datapath())
+        
+        self.protocol_new_protocol()
+        
+        self.Protocol_Add_pushButton.clicked.connect(lambda: self.protocol_add())
+        self.Protocol_Overwrite_pushButton.clicked.connect(lambda: self.protocol_overwrite())
+        self.Protocol_Insert_pushButton.clicked.connect(lambda: self.protocol_insert())
+        self.Protocol_Delete_Last_pushButton.clicked.connect(lambda: self.protocol_delete_last())
+        self.Protocol_Delete_pushButton.clicked.connect(lambda: self.protocol_delete())
+        self.Protocol_Save_Protocol_pushButton.clicked.connect(lambda: self.protocol_save_protocol())
+        self.Protocol_New_Protocol_pushButton.clicked.connect(lambda: self.protocol_new_protocol())
+        self.Protocol_Load_Protocol_pushButton.clicked.connect(lambda: self.protocol_load_protocol())
+        self.Protocol_Execute_Protocol_pushButton.clicked.connect(lambda: self.protocol_execute_protocol())
+        
+    def set_protocol_datapath(self):
+        self.prot_datapath = self.Protocol_Datapath_lineEdit.text()
+        #print('Protocol datapath:', self.prot_datapath)
+        
+    def protocol_add(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]+1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0],:] = self.protocol[:,:]
+        self.protocoltemp[self.protocoltemp.shape[0]-2,0] = params.GUImode
+        self.protocoltemp[self.protocoltemp.shape[0]-2,1] = params.sequence
+        self.protocol = self.protocoltemp
+        
+        try:
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.protocol.shape[0]-1) + '_parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.protocol_plot_table()
+        
+    def protocol_delete_last(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]-1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0]-1,:] = self.protocol[0:self.protocol.shape[0]-1,:]
+        self.protocol = self.protocoltemp
+        
+        try:
+            os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.protocol_plot_table()
+        
+    def protocol_insert(self):
+        if self.Protocol_Number_spinBox.value()-1 <= self.protocoltemp.shape[0]-1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0]+1, self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value()-1,:] = self.protocol[0:self.Protocol_Number_spinBox.value()-1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1,0] = params.GUImode
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1,1] = params.sequence
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0]-1,:] = self.protocol[self.Protocol_Number_spinBox.value()-1:self.protocol.shape[0]-1,:]
+            self.protocol = self.protocoltemp
+            
+            for n in range(self.Protocol_Number_spinBox.value(),self.protocol.shape[0]-1):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n) + '_parameters.pkl',self.prot_datapath + '_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+            time.sleep(0.001)
+            for n in range(self.Protocol_Number_spinBox.value()+1,self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n-1) + '_parameters_temp.pkl',self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.001)
+                    os.remove(self.prot_datapath + '_' + str(n-1) + '_parameters_temp.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+                
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+        
+    def protocol_delete(self):
+        if self.Protocol_Number_spinBox.value() <= self.protocoltemp.shape[0]-1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0], self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value()-1,:] = self.protocol[0:self.Protocol_Number_spinBox.value()-1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value()-1:self.protocoltemp.shape[0]-2,:] = self.protocol[self.Protocol_Number_spinBox.value():self.protocol.shape[0]-1,:]
+            self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]-1, self.protocoltemp.shape[1])))
+            self.protocol = self.protocoltemp[0:self.protocoltemp.shape[0]-1,:]
+            
+            for n in range(self.Protocol_Number_spinBox.value(),self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl',self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.001)
+                except: print('No parameter file.')
+            try:
+                os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+        
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+        
+    def protocol_overwrite(self):
+        if self.Protocol_Number_spinBox.value()-1 <= self.protocoltemp.shape[0]-2:
+            self.protocol[self.Protocol_Number_spinBox.value()-1,0] = params.GUImode
+            self.protocol[self.Protocol_Number_spinBox.value()-1,1] = params.sequence
+            
+            try:
+                shutil.copyfile('parameters.pkl',self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+            
+        else: print('Index to high!')
+        
+        self.protocol_plot_table()
+    
+    def protocol_plot_table(self):
+        self.Protocol_Table_tableWidget.setRowCount(self.protocol.shape[0]-1)
+        self.Protocol_Table_tableWidget.setColumnCount(self.protocol.shape[1])
+        self.Protocol_Table_tableWidget.setHorizontalHeaderLabels(('Mode','Sequence'))
+        for n in range(self.protocol.shape[0]-1):
+            for m in range(self.protocol.shape[1]):
+                self.Protocol_Table_tableWidget.setItem(n,m,QTableWidgetItem(str(int(self.protocol[n,m]))))
+        self.Protocol_Table_tableWidget.show()
+        
+    def protocol_save_protocol(self):
+        np.savetxt(self.prot_datapath + '.txt', self.protocol[0:self.protocol.shape[0]-1,:])
+        print('Protocol saved!')
+        
+    def protocol_new_protocol(self):
+        self.protocol = np.matrix([0,0])
+        
+        self.protocol_plot_table()
+        
+    def protocol_load_protocol(self):
+        self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
+        self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
+        self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
+        print(self.protocol)
+        print(self.protocol.shape)
+        
+        self.protocol_plot_table()
+        
+    def protocol_execute_protocol(self):
+        print('WIP')
+        for n in range(self.protocol.shape[0]-1):
+            print(n)
+            try:
+                shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl','parameters.pkl')
+                time.sleep(0.001)
+            except: print('No parameter file.')
+            
+            params.loadParam()
+            
+            params.datapath = self.prot_datapath + '_' + str(n+1) + '_rawdata'
+            
+            self.protocol_acquire()
+            
+            time.sleep(params.TR/1000)
+            
+    def protocol_acquire(self):
+        if params.connectionmode == 1:
+            if params.GUImode == 2 and params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.GUImode == 2 and params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.GUImode == 2 and params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.GUImode == 2 and params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.GUImode == 2 and params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.GUImode == 2 and params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.GUImode == 2 and params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.GUImode == 3 and params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.GUImode == 3 and params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.GUImode == 3 and params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.GUImode == 3 and params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.GUImode == 3 and params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.GUImode == 3 and params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
+            elif params.GUImode == 1:
+                if params.autorecenter == 1:
+                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                       or params.sequence == 15:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_FID()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                         or params.sequence == 32:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.FID_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_FID_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                         or params.sequence == 16:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.SE_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        #seq.sequence_upload()
+                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                         or params.sequence == 36:
+                        seq.RXconfig_upload()
+                        seq.Gradients_upload()
+                        seq.Frequency_upload()
+                        seq.RFattenuation_upload()
+                        seq.SE_Gs_setup()
+                        seq.Sequence_upload()
+                        seq.acquire_spectrum_SE_Gs()
+                        proc.spectrum_process()
+                        proc.spectrum_analytics()
+                        params.frequency = params.centerfrequency
+                        params.saveFileParameter()
+                        print('Autorecenter to:', params.frequency)
+                        if self.dialog_params != None:
+                            self.dialog_params.load_params()
+                            self.dialog_params.repaint()
+                        time.sleep(params.TR/1000)
+                        seq.sequence_upload()
+                else: seq.sequence_upload()
+            else: seq.sequence_upload()
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
+        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
 
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
@@ -1424,16 +1868,25 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         if params.GUImode == 0:
             self.spectrum_plot_init()
         elif params.GUImode == 1:
-            if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
+            if params.sequence == 34 or params.sequence == 35 or params.sequence == 36:
                 self.imaging_3D_plot_init()
-            elif params.sequence == 13 or params.sequence == 29:
+            elif params.sequence == 14 or params.sequence == 31:
                 self.imaging_diff_plot_init()
             else:
                 self.imaging_plot_init()
+                
         elif params.GUImode == 2:
-            self.T1_plot_init()
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
+                self.T1_plot_init()
+            else:
+                self.T1_imaging_plot_init()
+                
         elif params.GUImode == 3:
-            self.T2_plot_init()  
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
+                self.T2_plot_init()
+            else:
+                self.T2_imaging_plot_init()
+            
         elif params.GUImode == 4:
             if params.sequence == 0 or params.sequence == 1:
                 params.frequencyplotrange = 250000
@@ -1627,6 +2080,23 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas2.setGeometry(830, 40, 400, 355)
         self.fig_canvas2.show()
         
+    def T1_imaging_plot_init(self):
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        if params.imagefilter == 1:
+            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], interpolation='gaussian', cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T1imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
+        else:
+            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T1imgvalues, cmap='jet', alpha=0.5)
+        self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+        self.IComb_ax.set_title('T1')
+        self.IComb_fig.colorbar(self.cb, label='T1 in ms')
+        self.IComb_canvas.draw()
+        self.IComb_canvas.setWindowTitle('Plot - ' + params.datapath + '_Image_Magnitude.txt')
+        self.IComb_canvas.setGeometry(420, 40, 800, 750)
+        self.IComb_canvas.show()
+        
     def T2_plot_init(self):
         self.fig = Figure()
         self.fig.set_facecolor("None")
@@ -1644,6 +2114,23 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
         self.fig_canvas.setGeometry(420, 40, 400, 355)
         self.fig_canvas.show()
+        
+    def T2_imaging_plot_init(self):
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        if params.imagefilter == 1:
+            self.IComb_ax.imshow(params.T2img_mag[0,:,:], interpolation='gaussian', cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T2imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
+        else:
+            self.IComb_ax.imshow(params.T2img_mag[0,:,:], cmap='gray')
+            self.cb = self.IComb_ax.imshow(params.T2imgvalues, cmap='jet', alpha=0.5)
+        self.IComb_ax.axis('off'); self.IComb_ax.set_aspect(1.0/self.IComb_ax.get_data_ratio())
+        self.IComb_ax.set_title('T2')
+        self.IComb_fig.colorbar(self.cb, label='T2 in ms')
+        self.IComb_canvas.draw()
+        self.IComb_canvas.setWindowTitle('Plot - ' + params.datapath + '_Image_Magnitude.txt')
+        self.IComb_canvas.setGeometry(420, 40, 800, 750)
+        self.IComb_canvas.show()
 
     def imaging_plot_init(self):
         if params.imagplots == 1:
