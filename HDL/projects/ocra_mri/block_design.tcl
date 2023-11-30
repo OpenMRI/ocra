@@ -37,7 +37,7 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_n adc_clk_n_i
 }
 cell open-mri:user:axi_config_registers:1.0 cfg8 {
-    AXI_ADDR_WIDTH 3
+    AXI_ADDR_WIDTH 5
     AXI_DATA_WIDTH 32
 }
 
