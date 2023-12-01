@@ -19,7 +19,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
 import math
-import pandas as pd
+#import pandas as pd
 from scipy.stats import linregress
 
 from TCPsocket import socket, connected, unconnected

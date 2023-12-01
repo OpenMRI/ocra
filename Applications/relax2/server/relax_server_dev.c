@@ -8468,6 +8468,9 @@ int main(int argc)
 
   // set default rx sample rate
   *rx_rate = 250;
+  
+  // set default rx mode
+  *rx_switch = 1;
 
   // fill tx buffer with zeros
   memset(tx_data, 0, 65536);
@@ -8553,10 +8556,10 @@ int main(int argc)
       //------------------------------------------------------------------------
       if ( trig == 1 ) {
         printf("Set RX mode.\n");
-        int rxmode = (unsigned int)command[36];
+        unsigned int rxmode = (unsigned int)command[36];
         printf("RX mode: %d \n", rxmode);
-        // 0 = RX1 and RX2, 1= RX1, 2 = RX2, 3 is reserved
-	    *rx_switch = rxmode & (0x0003);
+        // 0 = RX1 and RX2, 1= RX1, 2 = RX2, 3 is reserved (0)
+	    *rx_switch = (uint32_t)rxmode & (0x0003);
         continue;
       }
       
