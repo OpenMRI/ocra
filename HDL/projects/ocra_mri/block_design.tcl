@@ -36,31 +36,10 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_p adc_clk_p_i
   clk_in1_n adc_clk_n_i
 }
+
 cell open-mri:user:axi_config_registers:1.0 cfg8 {
     AXI_ADDR_WIDTH 5
     AXI_DATA_WIDTH 32
-}
-
-# Create slice with the TX configuration, which uses the bottom 32 bits
-cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_0
-}
-
-# Create slice with the RX configuration and NCO configuration
-# RX seems to use the bottom 16 bit of the upper 32 bit
-# NCO uses the bottom 32 bit
-cell xilinx.com:ip:xlslice:1.0 nco_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_1
-}
-
-cell xilinx.com:ip:xlslice:1.0 rx_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_2
 }
 
 # ADC switch slice
@@ -81,12 +60,6 @@ cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
 set_property CONFIG.CDC_TYPE {xpm_cdc_array_single} [get_bd_cells xpm_cdc_gen_0]
 set_property CONFIG.WIDTH {2} [get_bd_cells xpm_cdc_gen_0]
 
-# Create another slice with data for the TX, which is another 32 bit
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_3
-}
 # ADC
 
 # Create axis_red_pitaya_adc
@@ -110,7 +83,6 @@ cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
   dac_dat dac_dat_o
 }
 
-
 # Create xlconstant
 cell xilinx.com:ip:xlconstant:1.1 const_0
 
@@ -119,18 +91,18 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 module rx_0 {
   source projects/ocra_mri/rx2.tcl
 } {
-  rate_slice/Din rx_slice_0/Dout
+  rate_slice/Din cfg8/config_2
   fifo_0/S_AXIS adc_0/M_AXIS
   fifo_0/s_axis_aclk pll_0/clk_out1
   fifo_0/s_axis_aresetn const_0/dout
 }
 
-#  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout  
+#  axis_interpolator_0/cfg_data cfg8/config_0  
 module tx_0 {
   source projects/ocra_mri/tx6.tcl
 } {
-  slice_1/Din cfg_slice_1/Dout
-  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout
+  slice_1/Din cfg8/config_3
+  axis_interpolator_0/cfg_data cfg8/config_0
   fifo_1/M_AXIS dac_0/S_AXIS
   fifo_1/m_axis_aclk pll_0/clk_out1
   fifo_1/m_axis_aresetn const_0/dout
@@ -139,7 +111,7 @@ module tx_0 {
 module nco_0 {
     source projects/ocra_mri/nco.tcl
 } {
-  slice_1/Din nco_slice_0/Dout
+  slice_1/Din cfg8/config_1
   bcast_nco/M00_AXIS rx_0/mult_0/S_AXIS_B
   bcast_nco/M01_AXIS tx_0/mult_0/S_AXIS_B
 }

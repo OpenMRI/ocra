@@ -27,7 +27,7 @@ cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
   aresetn /rst_0/peripheral_aresetn
 }
 
-# Create cmpy
+# The top 24 bits is the most we need, 16 would probably be fine as well
 cell xilinx.com:ip:cmpy:6.0 mult_0 {
   FLOWCONTROL Blocking
   APORTWIDTH.VALUE_SRC USER
@@ -35,7 +35,7 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
   APORTWIDTH 16
   BPORTWIDTH 24
   ROUNDMODE Random_Rounding
-  OUTPUTWIDTH 26
+  OUTPUTWIDTH 24
 } {
   S_AXIS_A fifo_0/M_AXIS
   S_AXIS_CTRL lfsr_0/M_AXIS
