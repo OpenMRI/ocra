@@ -5,7 +5,7 @@
 
 # Create xlslice
 cell xilinx.com:ip:xlslice:1.0 slice_1 {
-  DIN_WIDTH 64 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 }
 
 # Create axis_constant

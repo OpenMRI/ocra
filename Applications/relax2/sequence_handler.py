@@ -19,8 +19,8 @@ from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
-import pandas as pd
-from scipy.optimize import curve_fit, brentq
+#import pandas as pd
+#from scipy.optimize import curve_fit, brentq
 # just for debugging calculations:
 import matplotlib.pyplot as plt
 

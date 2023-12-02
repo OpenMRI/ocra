@@ -6,7 +6,7 @@ cell xilinx.com:ip:xlslice:1.0 slice_0 {
 
 # Create xlslice
 cell xilinx.com:ip:xlslice:1.0 rate_slice {
-  DIN_WIDTH 64 DIN_FROM 47 DIN_TO 32 DOUT_WIDTH 16
+  DIN_WIDTH 32 DIN_FROM 15 DIN_TO 0 DOUT_WIDTH 16
 }
 
 # Create xlconstant
@@ -15,7 +15,7 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 # Create axis_clock_converter
 cell xilinx.com:ip:axis_clock_converter:1.1 fifo_0 {
   TDATA_NUM_BYTES.VALUE_SRC USER
-  TDATA_NUM_BYTES 2
+  TDATA_NUM_BYTES 4
 } {
   m_axis_aclk /ps_0/FCLK_CLK0
   m_axis_aresetn /rst_0/peripheral_aresetn
@@ -32,7 +32,7 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
   FLOWCONTROL Blocking
   APORTWIDTH.VALUE_SRC USER
   BPORTWIDTH.VALUE_SRC USER
-  APORTWIDTH 14
+  APORTWIDTH 16
   BPORTWIDTH 24
   ROUNDMODE Random_Rounding
   OUTPUTWIDTH 26

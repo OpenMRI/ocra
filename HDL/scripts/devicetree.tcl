@@ -24,7 +24,7 @@ hsi::create_sw_design -proc $proc_name -os device_tree devicetree
 common::set_property CONFIG.kernel_version $version [hsi::get_os]
 common::set_property CONFIG.bootargs $boot_args [hsi::get_os]
 common::set_property CONFIG.dt_overlay true [hsi::get_os]
-common::set_property CONFIG.firmware_name ${project_name}.bit [hsi::get_os]
+common::set_property CONFIG.firmware_name ${board_name}_${project_name}.bit [hsi::get_os]
 
 hsi::generate_bsp -dir $tree_path
 

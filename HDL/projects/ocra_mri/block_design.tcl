@@ -36,43 +36,56 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_p adc_clk_p_i
   clk_in1_n adc_clk_n_i
 }
-
-# Create axi_cfg_register
-cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
-  CFG_DATA_WIDTH 128
-  AXI_ADDR_WIDTH 32
-  AXI_DATA_WIDTH 32
+cell open-mri:user:axi_config_registers:1.0 cfg8 {
+    AXI_ADDR_WIDTH 5
+    AXI_DATA_WIDTH 32
 }
 
 # Create slice with the TX configuration, which uses the bottom 32 bits
 cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_0
 }
 
 # Create slice with the RX configuration and NCO configuration
 # RX seems to use the bottom 16 bit of the upper 32 bit
 # NCO uses the bottom 32 bit
-# Bits 63 to 48 seem free, USING bits 49,48 FOR ADC switch then
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
+cell xilinx.com:ip:xlslice:1.0 nco_slice_0 {
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_1
+}
+
+cell xilinx.com:ip:xlslice:1.0 rx_slice_0 {
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+} {
+  Din cfg8/config_2
 }
 
 # ADC switch slice
 cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
-  DIN_WIDTH 128 DIN_FROM 49 DIN_TO 48 DOUT_WIDTH 2
+  DIN_WIDTH 32 DIN_FROM 1 DIN_TO 0 DOUT_WIDTH 2
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_4
 }
+
+# Clock domain crossing
+cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
+
+} {
+    src_in cfg_adc_switch/Dout
+    dest_clk pll_0/clk_out1
+    src_clk ps_0/FCLK_CLK0
+}
+set_property CONFIG.CDC_TYPE {xpm_cdc_array_single} [get_bd_cells xpm_cdc_gen_0]
+set_property CONFIG.WIDTH {2} [get_bd_cells xpm_cdc_gen_0]
 
 # Create another slice with data for the TX, which is another 32 bit
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_3
 }
 # ADC
 
@@ -82,7 +95,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
-    adc_channel_switch cfg_adc_switch/Dout
+  adc_channel_switch xpm_cdc_gen_0/dest_out
 }
 
 # Create axis_red_pitaya_dac
@@ -106,7 +119,7 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 module rx_0 {
   source projects/ocra_mri/rx2.tcl
 } {
-  rate_slice/Din cfg_slice_0/Dout
+  rate_slice/Din rx_slice_0/Dout
   fifo_0/S_AXIS adc_0/M_AXIS
   fifo_0/s_axis_aclk pll_0/clk_out1
   fifo_0/s_axis_aresetn const_0/dout
@@ -126,7 +139,7 @@ module tx_0 {
 module nco_0 {
     source projects/ocra_mri/nco.tcl
 } {
-  slice_1/Din cfg_slice_0/Dout
+  slice_1/Din nco_slice_0/Dout
   bcast_nco/M00_AXIS rx_0/mult_0/S_AXIS_B
   bcast_nco/M01_AXIS tx_0/mult_0/S_AXIS_B
 }
@@ -144,10 +157,10 @@ cell pavel-demin:user:axi_sts_register:1.0 sts_0 {
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master /ps_0/M_AXI_GP0
   Clk Auto
-} [get_bd_intf_pins cfg_0/S_AXI]
+} [get_bd_intf_pins cfg8/S_AXI]
 
-set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
-set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
+set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg8_reg0]
+set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg8_reg0]
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
