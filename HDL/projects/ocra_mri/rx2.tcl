@@ -46,10 +46,10 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
 cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
   S_TDATA_NUM_BYTES.VALUE_SRC USER
   M_TDATA_NUM_BYTES.VALUE_SRC USER
-  S_TDATA_NUM_BYTES 8
+  S_TDATA_NUM_BYTES 6
   M_TDATA_NUM_BYTES 3
   M00_TDATA_REMAP {tdata[23:0]}
-  M01_TDATA_REMAP {tdata[55:32]}
+  M01_TDATA_REMAP {tdata[47:24]}
 } {
   S_AXIS mult_0/M_AXIS_DOUT
   aclk /ps_0/FCLK_CLK0

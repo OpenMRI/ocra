@@ -3,6 +3,14 @@ global project_name
 
 set ps_preset boards/${board_name}/ps_${project_name}.xml
 
+variable dsp_clk_freq
+
+if {$board_name == "stemlab_122_16"} {
+    set dsp_clk_freq 122.88
+} else {
+    set dsp_clk_freq 125
+}
+
 # Create processing_system7
 cell xilinx.com:ip:processing_system7:5.5 ps_0 {
   PCW_IMPORT_BOARD_PRESET $ps_preset
