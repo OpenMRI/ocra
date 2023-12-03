@@ -3,12 +3,13 @@ global project_name
 
 set ps_preset boards/${board_name}/ps_${project_name}.xml
 
+# define some variables needed for later
 variable dsp_clk_freq
 
 if {$board_name == "stemlab_122_16"} {
     set dsp_clk_freq 122.88
 } else {
-    set dsp_clk_freq 125
+    set dsp_clk_freq 125.0
 }
 
 # Create processing_system7
@@ -28,11 +29,14 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 # Create proc_sys_reset
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 
+puts "OCRA: DSP_CLK_FREQ:"
+puts $dsp_clk_freq
+
 # Create clk_wiz
 cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   PRIMITIVE PLL
   PRIM_IN_FREQ.VALUE_SRC USER
-  PRIM_IN_FREQ 125.0
+  PRIM_IN_FREQ $dsp_clk_freq
   PRIM_SOURCE Differential_clock_capable_pin
   CLKOUT1_USED true
   CLKOUT1_REQUESTED_OUT_FREQ 125.0
@@ -80,7 +84,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
 }
 
 # Create axis_red_pitaya_dac
-cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
+cell open-mri:user:axis_red_pitaya_dac:1.1 dac_0 {} {
   aclk pll_0/clk_out1
   ddr_clk pll_0/clk_out2
   locked pll_0/locked

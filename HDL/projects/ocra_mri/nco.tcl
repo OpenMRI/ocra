@@ -3,6 +3,8 @@
 # 2017 by Thomas Witzel
 # block design for the NCO 
 
+global dsp_clk_freq
+
 # Create xlslice
 cell xilinx.com:ip:xlslice:1.0 slice_1 {
   DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
