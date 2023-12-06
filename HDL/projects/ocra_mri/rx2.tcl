@@ -161,7 +161,7 @@ cell xilinx.com:ip:fir_compiler:7.2 fir_0 {
   SAMPLE_FREQUENCY 5.0
   CLOCK_FREQUENCY 125
   OUTPUT_ROUNDING_MODE Convergent_Rounding_to_Even
-  OUTPUT_WIDTH 24
+  OUTPUT_WIDTH 32
   M_DATA_HAS_TREADY true
   HAS_ARESETN true
 } {
@@ -170,43 +170,13 @@ cell xilinx.com:ip:fir_compiler:7.2 fir_0 {
   aresetn /rst_0/peripheral_aresetn
 }
 
-# Create axis_subset_converter
-cell xilinx.com:ip:axis_subset_converter:1.1 subset_0 {
-  S_TDATA_NUM_BYTES.VALUE_SRC USER
-  M_TDATA_NUM_BYTES.VALUE_SRC USER
-  S_TDATA_NUM_BYTES 4
-  M_TDATA_NUM_BYTES 3
-  TDATA_REMAP {tdata[23:0]}
-} {
-  S_AXIS fir_0/M_AXIS_DATA
-  aclk /ps_0/FCLK_CLK0
-  aresetn /rst_0/peripheral_aresetn
-}
-
-# Create floating_point
-cell xilinx.com:ip:floating_point:7.1 fp_0 {
-  OPERATION_TYPE Fixed_to_float
-  A_PRECISION_TYPE.VALUE_SRC USER
-  C_A_EXPONENT_WIDTH.VALUE_SRC USER
-  C_A_FRACTION_WIDTH.VALUE_SRC USER
-  A_PRECISION_TYPE Custom
-  C_A_EXPONENT_WIDTH 8
-  C_A_FRACTION_WIDTH 24
-  RESULT_PRECISION_TYPE Single
-  HAS_ARESETN true
-} {
-  S_AXIS_A subset_0/M_AXIS
-  aclk /ps_0/FCLK_CLK0
-  aresetn /rst_0/peripheral_aresetn
-}
-
-# Create axis_dwidth_converter
+# Convert the 64 bit wide complex word into sequential 32 bit words of real and imag
 cell xilinx.com:ip:axis_dwidth_converter:1.1 conv_1 {
   S_TDATA_NUM_BYTES.VALUE_SRC USER
   S_TDATA_NUM_BYTES 4
   M_TDATA_NUM_BYTES 8
 } {
-  S_AXIS fp_0/M_AXIS_RESULT
+  S_AXIS fir_0/M_AXIS_DATA
   aclk /ps_0/FCLK_CLK0
   aresetn /rst_0/peripheral_aresetn
 }
