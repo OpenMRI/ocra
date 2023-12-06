@@ -8336,7 +8336,7 @@ void update_RF_pulses(volatile uint16_t *tx_size, void *tx_data,  int32_t RF_amp
   memcpy(tx_data, pulse, 2 * size);
 }
 
-typedef union mixer {
+typedef __attribute__((packed)) union mixer {
   uint64_t x;
   int32_t y[2];
   float z[2];
