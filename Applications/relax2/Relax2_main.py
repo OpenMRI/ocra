@@ -995,15 +995,15 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         else: params.rx2 = 0
         
         if params.rx1 == 0 and params.rx2 == 0:
-            params.rxmode = 0
-            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
+            params.rxmode = 3
+            print('\033[1m' + 'No RX port selected!' + '\033[0m')
         elif params.rx1 == 1 and params.rx2 == 0:
             params.rxmode = 1
         elif params.rx1 == 0 and params.rx2 == 1:
             params.rxmode = 2
         elif params.rx1 == 1 and params.rx2 == 1:
-            params.rxmode = 3
-            print('\033[1m' + 'Please select RX1 or RX2!' + '\033[0m')
+            params.rxmode = 0
+            print('\033[1m' + 'Mixed signal!' + '\033[0m')
         print('RX mode: ',params.rxmode)
         
         params.signalmask = self.SignalMask_doubleSpinBox.value()

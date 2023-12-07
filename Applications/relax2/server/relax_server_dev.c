@@ -8343,8 +8343,8 @@ int main(int argc)
   // -- Communication and Data -- //
   int fd, sock_server, sock_client, conn_status;
   void *cfg, *sts;
-  volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider;
-  volatile uint16_t *rx_cntr, *tx_size, *rx_switch;
+  volatile uint32_t *slcr, *rx_freq, *rx_rate, *seq_config, *pulseq_memory, *tx_divider, *rx_switch;
+  volatile uint16_t *rx_cntr, *tx_size;
   //volatile uint8_t *rx_rst, *tx_rst;
   volatile uint64_t *rx_data;
   void *tx_data;
@@ -8443,7 +8443,9 @@ int main(int argc)
   tx_size = ((uint16_t *)(cfg + 12));
 
   //rx_switch
-  rx_switch = ((uint16_t *)(cfg + 6));
+  // the offset is a bit obscure here, but cfg1 on the FPGA falls on the same PAGE as cfg as far as the OS is concerned,
+  // so I'm using the same mmap here
+  rx_switch = ((uint32_t *)(cfg + 16));
   
   printf("Setting FPGA clock to 143 MHz !\n"); fflush(stdout);
 
@@ -8466,6 +8468,9 @@ int main(int argc)
 
   // set default rx sample rate
   *rx_rate = 250;
+  
+  // set default rx mode
+  *rx_switch = 1;
 
   // fill tx buffer with zeros
   memset(tx_data, 0, 65536);
@@ -8551,10 +8556,10 @@ int main(int argc)
       //------------------------------------------------------------------------
       if ( trig == 1 ) {
         printf("Set RX mode.\n");
-        int rxmode = (int)command[36];
+        unsigned int rxmode = (unsigned int)command[36];
         printf("RX mode: %d \n", rxmode);
-        // 1 = RX1, 2 = RX2, 0, 3 = RX1 and RX2
-	    //*rx_switch = rxmode & (0x0003);
+        // 0 = RX1 and RX2, 1= RX1, 2 = RX2, 3 is reserved (0)
+	    *rx_switch = (uint32_t)rxmode & (0x0003);
         continue;
       }
       
