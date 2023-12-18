@@ -295,6 +295,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
+            params.save_header_file()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
         if self.dialog_params != None:
             self.dialog_params.load_params()

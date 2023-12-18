@@ -51,6 +51,7 @@ class Parameters:
         self.rx1 = 1
         self.rx2 = 0
         self.rxmode = 1
+        self.RXscaling = 0.0000762939 #1280 20480
         self.TS = 6
         self.ROBWscaler = 1
         self.TE = 12
@@ -207,6 +208,7 @@ class Parameters:
                          self.rx1, \
                          self.rx2, \
                          self.rxmode, \
+                         self.RXscaling, \
                          self.TS, \
                          self.ROBWscaler, \
                          self.TE, \
@@ -371,6 +373,7 @@ class Parameters:
                 self.rx1, \
                 self.rx2, \
                 self.rxmode, \
+                self.RXscaling, \
                 self.TS, \
                 self.ROBWscaler, \
                 self.TE, \
@@ -534,5 +537,140 @@ class Parameters:
         print("Gradients (x, y, z, z2):\t", self.grad, "mA")
         print("Gradient Orientation:\t\t", self.Gradientorientation)
         print("Image Resolution:\t\t", self.nPE)
+        
+    def save_header_file(self):
+        print('juhu')
+        file = open(params.datapath + '_Header.txt','w')
+
+        file.write('Hosts: ' + str(self.hosts) + '\n')
+        file.write('Connection mode: ' + str(self.connectionmode) + '\n')
+        file.write('GUI mode: ' + str(self.GUImode) + '\n')
+        file.write('Sequence: ' + str(self.sequence) + '\n')
+        file.write('Sequence file: ' + str(self.sequencefile) + '\n')
+        file.write('Data path: ' + str(self.datapath) + '\n')
+        file.write('Frequency [MHz]: ' + str(self.frequency) + '\n')
+        file.write('Auto recenter: ' + str(self.autorecenter) + '\n')
+        if self.frequencyoffsetsign == 1:
+            file.write('RF frequency offset [Hz]: -' + str(self.frequencyoffset) + '\n')
+        else:
+            file.write('RF frequency offset [Hz]: ' + str(self.frequencyoffset) + '\n')
+        file.write('RF phase offset [°]: ' + str(self.phaseoffset) + '\n')
+        file.write('RF phase offset [rad]: ' + str(self.phaseoffsetradmod100) + '\n')
+        file.write('RF pulse length [µs]: ' + str(self.RFpulselength) + '\n')
+        file.write('RF pulse amplitude: ' + str(self.RFpulseamplitude) + '\n')
+        file.write('Flip angle (time) [°]: ' + str(self.flipangletime) + '\n')
+        file.write('Flip angle (amplitude) [°]: ' + str(self.flipangleamplitude) + '\n')
+        file.write('Flip pulse length [µs]: ' + str(self.flippulselength) + '\n')
+        file.write('Flip pulse amplitude: ' + str(self.flippulseamplitude) + '\n')
+        file.write('RF attenuation [dB]: ' + str(self.RFattenuation) + '\n')
+        file.write('RX port 1: ' + str(self.rx1) + '\n')
+        file.write('RX port 2: ' + str(self.rx2) + '\n')
+        file.write('RX mode: ' + str(self.rxmode) + '\n')
+        file.write('RX scaling: ' + str(self.RXscaling) + '\n')
+        file.write('TS [ms]: ' + str(self.TS) + '\n')
+        file.write('Readout bandwidth scaling: ' + str(self.ROBWscaler) + '\n')
+        file.write('TE [ms]: ' + str(self.TE) + '\n')
+        file.write('TI [ms]: ' + str(self.TI) + '\n')
+        file.write('TR [ms]: ' + str(self.TR) + '\n')
+        file.write('Shim values [mA]: ' + str(self.grad) + '\n')
+        file.write('Gradient orientation: ' + str(self.Gradientorientation) + '\n')
+        if self.imageorientation == 0:
+            file.write('Image orientation: XY\n')
+        elif self.imageorientation == 1:
+            file.write('Image orientation: YZ\n')
+        else:
+            file.write('Image orientation: ZX\n')
+        file.write('Image resolution: ' + str(self.nPE) + '\n')
+        file.write('Frequency range [Hz]: ' + str(self.frequencyrange) + '\n')
+        file.write('Samples: ' + str(self.samples) + '\n')
+        file.write('Sampledelay: ' + str(self.sampledelay) + '\n')
+        file.write('Timestamp: ' + str(self.dataTimestamp) + '\n')
+        # file.write(': ' + str(self.timeaxis) + '\n')
+        # file.write(': ' + str(self.frequencyplotrange) + '\n')
+        # file.write(': ' + str(self.FWHM) + '\n')
+        # file.write(': ' + str(self.peakvalue) + '\n')
+        # file.write(': ' + str(self.noise) + '\n')
+        # file.write(': ' + str(self.SNR) + '\n')
+        # file.write(': ' + str(self.inhomogeneity) + '\n')
+        # file.write(': ' + str(self.centerfrequency) + '\n')
+        # file.write(': ' + str(self.ACstart) + '\n')
+        # file.write(': ' + str(self.ACstop) + '\n')
+        # file.write(': ' + str(self.ACstepwidth) + '\n')
+        # file.write(': ' + str(self.ACvalues) + '\n')
+        # file.write(': ' + str(self.Reffrequency) + '\n')
+        # file.write(': ' + str(self.FAstart) + '\n')
+        # file.write(': ' + str(self.FAstop) + '\n')
+        # file.write(': ' + str(self.FAsteps) + '\n')
+        # file.write(': ' + str(self.FAvalues) + '\n')
+        # file.write(': ' + str(self.RefRFattenuation) + '\n')
+        file.write('TI start [ms]: ' + str(self.TIstart) + '\n')
+        file.write('TI stop [ms]: ' + str(self.TIstop) + '\n')
+        file.write('TI steps: ' + str(self.TIsteps) + '\n')
+        # file.write(': ' + str(self.T1) + '\n')
+        # file.write(': ' + str(self.T1stepsimg) + '\n')
+        file.write('TE start [ms]: ' + str(self.TEstart) + '\n')
+        file.write('TE stop [ms]: ' + str(self.TEstop) + '\n')
+        file.write('TE steps: ' + str(self.TEsteps) + '\n')
+        # file.write(': ' + str(self.T2) + '\n')
+        # file.write(': ' + str(self.T2stepsimg) + '\n')
+        file.write('Projection axes: ' + str(self.projaxis) + '\n')
+        file.write('Average: ' + str(self.average) + '\n')
+        file.write('Number of averages: ' + str(self.averagecount) + '\n')
+        # file.write(': ' + str(self.imagplots) + '\n')
+        # file.write(': ' + str(self.cutcirc) + '\n')
+        # file.write(': ' + str(self.cutrec) + '\n')
+        # file.write(': ' + str(self.cutcenter) + '\n')
+        # file.write(': ' + str(self.cutoutside) + '\n')
+        # file.write(': ' + str(self.cutcentervalue) + '\n')
+        # file.write(': ' + str(self.cutoutsidevalue) + '\n')
+        # file.write(': ' + str(self.ustime) + '\n')
+        # file.write(': ' + str(self.usphase) + '\n')
+        # file.write(': ' + str(self.ustimeidx) + '\n')
+        # file.write(': ' + str(self.usphaseidx) + '\n')
+        file.write('Projection gradient amplitude [mA]: ' + str(self.Gproj) + '\n')
+        # file.write(': ' + str(self.projx) + '\n')
+        # file.write(': ' + str(self.projy) + '\n')
+        # file.write(': ' + str(self.projz) + '\n')
+        file.write('Projection angle [°]: ' + str(self.projectionangle) + '\n')
+        file.write('Projection angle [rad]: ' + str(self.projectionangleradmod100) + '\n')
+        file.write('Readout gradient amplitude [mA]: ' + str(self.GROamplitude) + '\n')
+        file.write('Phase gradient step amplitude [mA]: ' + str(self.GPEstep) + '\n')
+        file.write('Slice gradient amplitude [mA]: ' + str(self.GSamplitude) + '\n')
+        file.write('3D phase gradient step amplitude [mA]:: ' + str(self.GSPEstep) + '\n')
+        file.write('3D phase steps: ' + str(self.SPEsteps) + '\n')
+        file.write('Diffusion gradient amplitude [mA]: ' + str(self.Gdiffamplitude) + '\n')
+        file.write('Crusher gradient amplitude [mA]: ' + str(self.crusheramplitude) + '\n')
+        file.write('Spoiler gradient amplitude [mA]: ' + str(self.spoileramplitude) + '\n')
+        file.write('Readout gradient prephaser duration [µs]: ' + str(self.GROpretime) + '\n')
+        file.write('Readout gradient prephaser duration scaling: ' + str(self.GROpretimescaler) + '\n')
+        file.write('Slice gradient rephaser time [µs]: ' + str(self.GSposttime) + '\n')
+        file.write('Crusher gradient duration [µs]: ' + str(self.crushertime) + '\n')
+        file.write('Spoiler gradient duration [µs]: ' + str(self.spoilertime) + '\n')
+        file.write('Diffusion gradient duration [µs]: ' + str(self.diffusiontime) + '\n')
+        file.write('Fluid compensation readout gradient prephaser 1 duration [µs]: ' + str(self.GROfcpretime1) + '\n')
+        file.write('Fluid compensation readout gradient prephaser 2 duration [µs]: ' + str(self.GROfcpretime2) + '\n')
+        file.write('Radial angle [°]: ' + str(self.radialanglestep) + '\n')
+        file.write('Radial angle [rad]: ' + str(self.radialanglestepradmod100) + '\n')
+        # file.write(': ' + str(self.lnkspacemag) + '\n')
+        file.write('Auto gradients: ' + str(self.autograd) + '\n')
+        file.write('FOV [mm]: ' + str(self.FOV) + '\n')
+        file.write('Slice/Slab thickness [mm]: ' + str(self.slicethickness) + '\n')
+        file.write('Gradient sensitivity [mT/m/A]: ' + str(self.gradsens) + '\n')
+        # file.write(': ' + str(self.gradnominal) + '\n')
+        # file.write(': ' + str(self.gradmeasured) + '\n')
+        # file.write(': ' + str(self.gradsenstool) + '\n')
+        file.write('Auto frequency offset: ' + str(self.autofreqoffset) + '\n')
+        file.write('Slice offset [mm]: ' + str(self.sliceoffset) + '\n')
+        # file.write(': ' + str(self.animationstep) + '\n')
+        # file.write(': ' + str(self.animationimage) + '\n')
+        # file.write(': ' + str(self.ToolShimStart) + '\n')
+        # file.write(': ' + str(self.ToolShimStop) + '\n')
+        # file.write(': ' + str(self.ToolShimSteps) + '\n')
+        # file.write(': ' + str(self.ToolShimChannel) + '\n')
+        # file.write(': ' + str(self.STvalues) + '\n')
+        # file.write(': ' + str(self.imagefilter) + '\n')
+        # file.write(': ' + str(self.signalmask))
+        
+        file.close()
         
 params = Parameters()

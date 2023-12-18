@@ -1741,7 +1741,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -1789,7 +1789,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -1838,10 +1838,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -1891,10 +1891,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
            
             
             if params.average == 1:
@@ -1945,10 +1945,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -1997,7 +1997,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2045,7 +2045,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2093,7 +2093,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2142,10 +2142,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2195,10 +2195,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2248,10 +2248,10 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2300,7 +2300,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2348,7 +2348,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2415,7 +2415,7 @@ class sequence:
                             break
                         else: continue
         
-                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2482,7 +2482,7 @@ class sequence:
                             break
                         else: continue
         
-                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2546,7 +2546,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2608,7 +2608,7 @@ class sequence:
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -3189,10 +3189,10 @@ class sequence:
             self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]
             self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]
             
-#             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-#             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-#             self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-#             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+#             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+#             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+#             self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+#             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
                 
 #             self.kspace2[n, :] = self.data[0:10000]  
 
