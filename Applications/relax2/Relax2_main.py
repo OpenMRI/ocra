@@ -49,6 +49,7 @@ Para_Window_Form, Para_Window_Base = loadUiType('ui/parameters.ui')
 Plot_Window_Form, Plot_Window_Base = loadUiType('ui/plotview.ui')
 Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
 Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
+SAR_Window_Form, SAR_Window_Base = loadUiType('ui/sar.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
@@ -57,6 +58,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setupUi(self)
         
         self.dialog_params = None
+        self.dialog_tools = None
+        self.dialog_prot = None
+        self.dialog_sarmonitor = None
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
@@ -80,6 +84,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.phaseoffsetradmod100 = 0
         params.lnkspacemag = 0
         params.ToolShimChannel = [0, 0, 0, 0]
+        params.SAR_status = 1
         
         if params.GSamplitude == 0:
             params.GSposttime = 0
@@ -101,6 +106,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Data_Process_pushButton.clicked.connect(lambda: self.dataprocess())
         self.Tools_pushButton.clicked.connect(lambda: self.tools())
         self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
+        self.SAR_Monitor_pushButton.clicked.connect(lambda: self.sarmonitor())
         
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
@@ -137,8 +143,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                              , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
                                              , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
                                              , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
-                                             , 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)' \
-                                             , 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                             , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                              , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                              , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
                                              , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
@@ -165,7 +171,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 4:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)', 'Spin Echo (On Angle)'])
+            self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
+                                             , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                             , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Projection_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -306,9 +314,12 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.switch_GUImode(params.GUImode)
         
     def parameter_window(self):
-            self.dialog_params = None
+        if self.dialog_params == None:
             self.dialog_params = ParametersWindow(self)
             self.dialog_params.show()
+        else:
+            self.dialog_params.hide()
+            self.dialog_params.show() 
         
     def set_Datapath(self):
         params.datapath = self.Datapath_lineEdit.text()
@@ -386,52 +397,67 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     self.dialog_plot.show()
             else: print('No File!!')
             
-        elif params.GUImode == 4:
-            if params.sequence == 0 or params.sequence == 1:
-                self.datapathtemp = params.datapath
-                params.projx =  np.matrix(np.zeros((1,4)))
-                params.projy =  np.matrix(np.zeros((1,4)))
-                params.projz =  np.matrix(np.zeros((1,4)))
-                for m in range(params.projaxis.shape[0]):
-                    params.datapath = self.datapathtemp + '_' + str(m)
-                    if os.path.isfile(params.datapath + '.txt') == True:
-                        proc.spectrum_process()
-                        if m == 0:
-                            params.projx = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projx[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projx[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projx[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projx[:,3] = params.spectrumfft
-                        elif m == 1:
-                            params.projy = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projy[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projy[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projy[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projy[:,3] = params.spectrumfft
-                        elif m == 2:
-                            params.projz = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projz[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projz[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projz[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projz[:,3] = params.spectrumfft
-                    else: print('No File!!')
-                params.datapath = self.datapathtemp
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
-            elif params.sequence == 2 or params.sequence == 3:
-                proc.spectrum_process()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+        elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
+            self.datapathtemp = params.datapath
+            params.projx =  np.matrix(np.zeros((1,4)))
+            params.projy =  np.matrix(np.zeros((1,4)))
+            params.projz =  np.matrix(np.zeros((1,4)))
+            for m in range(params.projaxis.shape[0]):
+                params.datapath = self.datapathtemp + '_' + str(m)
+                if os.path.isfile(params.datapath + '.txt') == True:
+                    proc.spectrum_process()
+                    if m == 0:
+                        params.projx = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projx[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projx[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projx[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projx[:,3] = params.spectrumfft
+                    elif m == 1:
+                        params.projy = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projy[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projy[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projy[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projy[:,3] = params.spectrumfft
+                    elif m == 2:
+                        params.projz = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projz[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projz[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projz[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projz[:,3] = params.spectrumfft
+                else: print('No File!!')
+            params.datapath = self.datapathtemp
+            self.dialog_plot = PlotWindow(self)
+            self.dialog_plot.show()
+        elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
+            proc.spectrum_process()
+            self.dialog_plot = PlotWindow(self)
+            self.dialog_plot.show()
                 
         params.saveFileData()
    
     def tools(self):
-        self.dialog_tools = ToolsWindow(self)
-        self.dialog_tools.show()
+        if self.dialog_tools == None:
+            self.dialog_tools = ToolsWindow(self)
+            self.dialog_tools.show()
+        else:
+            self.dialog_tools.hide()
+            self.dialog_tools.show() 
         
     def protocol(self):
-        self.dialog_prot = ProtocolWindow(self)
-        self.dialog_prot.show()
+        if self.dialog_prot == None:
+            self.dialog_prot = ProtocolWindow(self)
+            self.dialog_prot.show()
+        else:
+            self.dialog_prot.hide()
+            self.dialog_prot.show() 
+        
+    def sarmonitor(self):
+        if self.dialog_sarmonitor == None:
+            self.dialog_sarmonitor = SARMonitorWindow(self)
+            self.dialog_sarmonitor.show()
+        else:
+            self.dialog_sarmonitor.hide()
+            self.dialog_sarmonitor.show() 
 
     def update_gui(self):
         QApplication.processEvents()
@@ -1290,10 +1316,18 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-            self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
+            self.ax.plot(np.transpose(params.FAvalues[0,:]), np.transpose(params.FAvalues[1,:]), 'o-', color='#000000')
             self.ax.set_xlabel('Attenuation [dB]')
             self.ax.set_ylabel('Signal')
             self.ax.set_title('Flipangle Signals')
+            
+            self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), (math.ceil(params.FAstop)-math.floor(params.FAstart))+1)
+            self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop)-math.floor(params.FAstart)))*4+1)
+            self.ax.set_xticks(self.major_ticks)
+            self.ax.set_xticks(self.minor_ticks, minor=True)
+            self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax.set_xlim((math.floor(params.FAstart), math.ceil(params.FAstop)))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
             self.fig_canvas.setGeometry(820, 40, 800, 750)
@@ -1889,11 +1923,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.T2_imaging_plot_init()
             
         elif params.GUImode == 4:
-            if params.sequence == 0 or params.sequence == 1:
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5:
                 params.frequencyplotrange = 250000
                 self.Frequncyaxisrange_spinBox.setValue(params.frequencyplotrange)
                 self.projection_plot_init()
-            elif params.sequence == 2 or params.sequence == 3:
+            elif params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7:
                 params.frequencyplotrange = 250000
                 self.Frequncyaxisrange_spinBox.setValue(params.frequencyplotrange)
                 self.spectrum_plot_init()
@@ -2450,7 +2484,40 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         ani = animation.FuncAnimation(fig, updatefig, frames = params.kspace.shape[0], interval = params.animationstep, blit=True)
         plt.show()
         
+class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(SARMonitorWindow, self).__init__(parent)
+        self.setupUi(self)
         
+        self.load_params()
+        
+        self.ui = loadUi('ui/sar.ui')
+        self.setWindowTitle('SAR Monitor')
+        self.setGeometry(420, 40, 400, 250)
+        
+        self.SAR_Enable_radioButton.toggled.connect(self.update_params)
+        self.SAR_Limit_doubleSpinBox.setKeyboardTracking(False)
+        self.SAR_Limit_doubleSpinBox.valueChanged.connect(self.update_params) 
+        
+    def load_params(self):
+        if params.SAR_enable == 1: self.SAR_Enable_radioButton.setChecked(True)
+        
+        self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
+        
+        if params.SAR_status == 1: self.SAR_Status_lineEdit.setText('Communication')
+        elif params.SAR_status == 2: self.SAR_Status_lineEdit.setText('Sampling')
+        else: self.SAR_Status_lineEdit.setText('Error')
+            
+    def update_params(self):
+        if self.SAR_Enable_radioButton.isChecked(): params.SAR_enable = 1
+        else: params.SAR_enable = 0
+        
+        params.SAR_limit = self.SAR_Limit_doubleSpinBox.value()
+        
+        params.saveFileParameter()
         
 
 class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):

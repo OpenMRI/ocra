@@ -62,6 +62,10 @@ class sequence:
         self.seq_2D_rad_f_se = 'sequences/imaging/2D_RAD_F_SE.txt'
         self.seq_2D_rad_h_gre = 'sequences/imaging/2D_RAD_H_GRE.txt'
         self.seq_2D_rad_h_se = 'sequences/imaging/2D_RAD_H_SE.txt'
+        self.seq_2D_rad_f_gre_gs = 'sequences/imaging/2D_RAD_F_GRE_Gs.txt'
+        self.seq_2D_rad_f_se_gs = 'sequences/imaging/2D_RAD_F_SE_Gs.txt'
+        self.seq_2D_rad_h_gre_gs = 'sequences/imaging/2D_RAD_H_GRE_Gs.txt'
+        self.seq_2D_rad_h_se_gs = 'sequences/imaging/2D_RAD_H_SE_Gs.txt'
         self.seq_2D_gre = 'sequences/imaging/2D_GRE.txt'
         self.seq_2D_se = 'sequences/imaging/2D_SE.txt'
         self.seq_2D_se_gs = 'sequences/imaging/2D_SE_Gs.txt'
@@ -268,16 +272,32 @@ class sequence:
                 self.acquire_image_SE()
             elif params.sequence == 17:
                 # WIP 2D Radial (Slice, GRE, Full)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_f_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_f_GRE_Gs()
             elif params.sequence == 18:
                 # WIP 2D Radial (Slice, SE, Full)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_f_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_f_SE_Gs()
             elif params.sequence == 19:
                 # WIP 2D Radial (Slice, GRE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_GRE_Gs()
             elif params.sequence == 20:
                 # WIP 2D Radial (Slice, SE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_SE_Gs()
             elif params.sequence == 21:
                 # 2D Gradient Echo (Slice)
                 self.Image_GRE_Gs_setup()
@@ -362,7 +382,23 @@ class sequence:
             elif params.sequence == 3:
                 self.Image_SE_setup()
                 self.Sequence_upload()
-                self.acquire_projection_SE_angle() 
+                self.acquire_projection_SE_angle()
+            elif params.sequence == 4:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_GRE_Gs()
+            elif params.sequence == 5:
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_SE_Gs()
+            elif params.sequence == 6:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_GRE_angle_Gs()
+            elif params.sequence == 7:
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_SE_angle_Gs()
             else:
                 print('Sequence not defined!')
         
@@ -1117,6 +1153,119 @@ class sequence:
         params.sequencefile = self.seq_2D_rad_h_se
         
         print("2D radial half SE setup complete!")
+        
+    #2D Radial Full Gradient Echo (Slice Select) Sequence   
+    def Image_radial_f_GRE_Gs_setup(self):
+        if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+               
+        f = open(self.seq_2D_rad_f_gre_gs, 'r+')
+        lines = f.readlines()
+        lines[-26] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-22] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_gre_gs, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_gre_gs
+        
+        print("2D radial full GRE (slice) setup complete!")
+    
+    # 2D Radial Full Spin Echo (Slice Select) Sequence
+    def Image_radial_f_SE_Gs_setup(self):
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        
+        f = open(self.seq_2D_rad_f_se_gs, 'r+')
+        lines = f.readlines()
+        lines[-41] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-37] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-34] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-31] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-26] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-22] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_se_gs, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_se_gs
+        
+        print("2D radial full SE (slice) setup complete!")
+        
+    #2D Radial Half Gradient Echo (Slice Select)Sequence   
+    def Image_radial_h_GRE_Gs_setup(self):
+        if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+        f = open(self.seq_2D_rad_h_gre_gs, 'r+')
+        lines = f.readlines()
+        lines[-23] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-16] = 'PR 3, ' + str(int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 25 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_gre_gs, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_gre_gs
+        
+        print("2D radial half GRE (slice) setup complete!")
+    
+    # 2D Radial Half Spin Echo (Slice Select) Sequence
+    def Image_radial_h_SE_Gs_setup(self):
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
+            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+            
+        f = open(self.seq_2D_rad_h_se_gs, 'r+')
+        lines = f.readlines()
+        lines[-38] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-34] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-31] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-28] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-23] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-16] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 25 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+#         lines[-34] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+#         lines[-32] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+#         lines[-29] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+#         lines[-24] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
+#         lines[-20] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+#         lines[-17] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+#         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+#         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_se_gs, "w") as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_se_gs
+        
+        print("2D radial half SE (slice) setup complete!")
 
     #2D Gradient Echo Sequence   
     def Image_GRE_setup(self):
@@ -2366,7 +2515,6 @@ class sequence:
         
         print("Gradient test sequence finished!")
         
-        
   
     def acquire_projection_GRE(self):
         print("Acquire projection(s)...")
@@ -2626,6 +2774,264 @@ class sequence:
         
         print("Projection acquired!")
         
+    def acquire_projection_GRE_Gs(self):
+        print("Acquire projection(s)...")
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        for m in range(params.projaxis.shape[0]):
+            if params.projaxis[m] == 1:
+                self.ax = m
+            else:
+                self.ax = 3
+            
+            if self.ax == 3:
+                print('Projection Axis: -')
+                if os.path.isfile(params.datapath + '_' + str(m) + '.txt') == True:
+                    os.remove(params.datapath + '_' + str(m) + '.txt')
+
+            if self.ax != 3:
+                if self.ax == 0: print('Projection Axis: X')
+                if self.ax == 1: print('Projection Axis: Y')
+                if self.ax == 2: print('Projection Axis: Z')
+                
+                if params.average == 0: self.avecount = 1
+                else: self.avecount = params.averagecount
+        
+                self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+                for n in range(self.avecount):
+                    print('Average: ',n+1,'/',self.avecount)
+        
+                    socket.write(struct.pack('<IIIIIIIIII', self.ax << 16 | 36, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16, params.Gproj[self.ax]))
+
+                    while(True):
+                        if not socket.waitForBytesWritten(): break
+                        time.sleep(0.0001)
+            
+                    while True:
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
+                        time.sleep(0.0001)
+                        if datasize == 8*params.samples:
+                            print("Readout finished : ", int(datasize/8), "Samples")
+                            self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                            break
+                        else: continue
+        
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    if params.average == 1:
+                        time.sleep(params.TR/1000)
+            
+                params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+                self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+                self.datatxt1[0,:] = params.timeaxis[:]
+                self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+                self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+                self.datatxt2 = np.transpose(self.datatxt1)
+                np.savetxt(params.datapath + '_' + str(m) + '.txt', self.datatxt2)
+            
+                time.sleep(params.TR/1000)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Projection(s) acquired!")
+        
+    def acquire_projection_SE_Gs(self):
+        print("Acquire projection(s)...")
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        for m in range(params.projaxis.shape[0]):
+            if params.projaxis[m] == 1:
+                self.ax = m
+            else:
+                self.ax = 3
+            
+            if self.ax == 3:
+                print('Projection Axis: -')
+                if os.path.isfile(params.datapath + '_' + str(m) + '.txt') == True:
+                    os.remove(params.datapath + '_' + str(m) + '.txt')
+
+            if self.ax != 3:
+                if self.ax == 0: print('Projection Axis: X')
+                if self.ax == 1: print('Projection Axis: Y')
+                if self.ax == 2: print('Projection Axis: Z')
+                
+                if params.average == 0: self.avecount = 1
+                else: self.avecount = params.averagecount
+        
+                self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+                for n in range(self.avecount):
+                    print('Average: ',n+1,'/',self.avecount)
+        
+                    socket.write(struct.pack('<IIIIIIIIII', self.ax << 16 | 37, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | params.crusheramplitude, params.Gproj[self.ax]))
+
+                    while(True):
+                        if not socket.waitForBytesWritten(): break
+                        time.sleep(0.0001)
+            
+                    while True:
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
+                        time.sleep(0.0001)
+                        if datasize == 8*params.samples:
+                            print("Readout finished : ", int(datasize/8), "Samples")
+                            self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                            break
+                        else: continue
+        
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    if params.average == 1:
+                        time.sleep(params.TR/1000)
+            
+                params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+                self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+                self.datatxt1[0,:] = params.timeaxis[:]
+                self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+                self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+                self.datatxt2 = np.transpose(self.datatxt1)
+                np.savetxt(params.datapath + '_' + str(m) + '.txt', self.datatxt2)
+            
+                time.sleep(params.TR/1000)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Projection(s) acquired!")
+        
+    def acquire_projection_GRE_angle_Gs(self):
+        print("Acquire projection...")
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+                
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | params.projectionangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Projection acquired!")
+        
+    def acquire_projection_SE_angle_Gs(self):
+        print("Acquire projection...")
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+                
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | params.projectionangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Projection acquired!")
+        
     def acquire_image_GRE(self):
         print("Acquire image...")
 
@@ -2649,7 +3055,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2687,7 +3093,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2727,7 +3133,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
         
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -2771,7 +3177,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2809,7 +3215,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2849,7 +3255,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
         
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -2895,7 +3301,7 @@ class sequence:
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
-                self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+                self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2943,10 +3349,10 @@ class sequence:
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
-                self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-                self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-                self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-                self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+                self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+                self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+                self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             self.kspace[m,0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
             self.kspace[m,int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3001,10 +3407,10 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
                 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3060,10 +3466,10 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3128,10 +3534,10 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n*4, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
-            self.kspace[n*4+1, :] = -self.data[self.data_idx + self.sampledelay2 : self.sampledelay2 : -1]
-            self.kspace[n*4+2, :] = self.data[self.sampledelay3 : self.data_idx + self.sampledelay3]
-            self.kspace[n*4+3, :] = -self.data[self.data_idx + self.sampledelay4 : self.sampledelay4 : -1]
+            self.kspace[n*4, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            self.kspace[n*4+1, :] = -self.data[self.data_idx + self.sampledelay2 : self.sampledelay2 : -1]*params.RXscaling
+            self.kspace[n*4+2, :] = self.data[self.sampledelay3 : self.data_idx + self.sampledelay3]*params.RXscaling
+            self.kspace[n*4+3, :] = -self.data[self.data_idx + self.sampledelay4 : self.sampledelay4 : -1]*params.RXscaling
                 
             self.kspace2[n, :] = self.data[0:10000]  
 
@@ -3184,10 +3590,10 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n*4, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]
-            self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]
-            self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]
+            self.kspace[n*4, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
 #             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
 #             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
@@ -3256,7 +3662,7 @@ class sequence:
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]  
+            self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -3312,7 +3718,7 @@ class sequence:
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3372,7 +3778,7 @@ class sequence:
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3430,7 +3836,7 @@ class sequence:
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3488,7 +3894,7 @@ class sequence:
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
 
@@ -3505,7 +3911,238 @@ class sequence:
         
         print("Image acquired!")
         
-        
+    def acquire_image_radial_f_GRE_Gs(self):
+        print("Acquire image...")
 
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 180, params.radialanglestep)
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+        
+        self.radialanglecount = self.radialangles.shape[0]
+
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | self.radialangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+   
+            
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+
+    def acquire_image_radial_f_SE_Gs(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 180, params.radialanglestep)
+
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+        
+        self.radialanglecount = self.radialangles.shape[0]
+        
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | self.radialangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
+    def acquire_image_radial_h_GRE_Gs(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+        
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        
+        self.radialanglecount = self.radialangles.shape[0]
+
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | self.radialangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
+        
+    def acquire_image_radial_h_SE_Gs(self):
+        print("Acquire image...")
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        
+        self.radialanglecount = self.radialangles.shape[0]
+        
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | self.radialangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print("Readout finished : ", int(datasize/8), "Samples")
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print("Image acquired!")
 
 seq = sequence()

@@ -484,7 +484,7 @@ class process:
         
         self.img_noisecut = np.matrix(np.zeros((params.img_mag.shape[0],params.img_mag.shape[1])))
         self.img_noisecut[:,:] = params.img_mag[:,:]
-        self.img_noisecut[self.img_noisecut >= self.img_max/2] = np.nan
+        self.img_noisecut[self.img_noisecut >= self.img_max * params.signalmask] = np.nan
         params.noise = round(np.mean(self.img_noisecut[np.isnan(self.img_noisecut) == False]), 3)
         print("Noise: ", params.noise)
         

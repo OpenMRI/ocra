@@ -183,6 +183,9 @@ class Parameters:
         self.B1alphamapmasked = []
         self.imagefilter = 1
         self.signalmask = 0.5
+        self.SAR_enable = 0
+        self.SAR_limit = 1
+        self.SAR_status = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -306,7 +309,10 @@ class Parameters:
                          self.ToolShimChannel, \
                          self.STvalues, \
                          self.imagefilter, \
-                         self.signalmask], file)
+                         self.signalmask, \
+                         self.SAR_enable, \
+                         self.SAR_limit, \
+                         self.SAR_status], file)
        
         print("Parameters saved!")
         
@@ -471,7 +477,10 @@ class Parameters:
                 self.ToolShimChannel, \
                 self.STvalues, \
                 self.imagefilter, \
-                self.signalmask = pickle.load(file)
+                self.signalmask, \
+                self.SAR_enable, \
+                self.SAR_limit, \
+                self.SAR_status = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
@@ -539,7 +548,6 @@ class Parameters:
         print("Image Resolution:\t\t", self.nPE)
         
     def save_header_file(self):
-        print('juhu')
         file = open(params.datapath + '_Header.txt','w')
 
         file.write('Hosts: ' + str(self.hosts) + '\n')
@@ -670,6 +678,9 @@ class Parameters:
         # file.write(': ' + str(self.STvalues) + '\n')
         # file.write(': ' + str(self.imagefilter) + '\n')
         # file.write(': ' + str(self.signalmask))
+        file.write('SAR enable: ' + str(self.SAR_enable) + '\n')
+        file.write('SAR limit [W]: ' + str(self.SAR_limit) + '\n')
+        file.write('SAR status: ' + str(self.SAR_status) + '\n')
         
         file.close()
         
