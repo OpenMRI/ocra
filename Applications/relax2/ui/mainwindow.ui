@@ -439,6 +439,25 @@
           </property>
          </spacer>
         </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="SAR_Monitor_pushButton">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SAR Monitor</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
