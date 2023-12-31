@@ -60,6 +60,7 @@ class Parameters:
         self.grad = [0, 0, 0, 0]
         self.Gradientorientation = [0, 1, 2, 3]
         self.imageorientation = 2
+        self.imageresolution = 2
         self.nPE = 32
         self.frequencyrange = 250000
         self.samples = 50000
@@ -220,6 +221,7 @@ class Parameters:
                          self.grad, \
                          self.Gradientorientation, \
                          self.imageorientation, \
+                         self.imageresolution, \
                          self.nPE, \
                          self.frequencyrange, \
                          self.samples, \
@@ -388,6 +390,7 @@ class Parameters:
                 self.grad, \
                 self.Gradientorientation, \
                 self.imageorientation, \
+                self.imageresolution, \
                 self.nPE, \
                 self.frequencyrange, \
                 self.samples, \
@@ -588,7 +591,8 @@ class Parameters:
             file.write('Image orientation: YZ\n')
         else:
             file.write('Image orientation: ZX\n')
-        file.write('Image resolution: ' + str(self.nPE) + '\n')
+        file.write('Image resolution index: ' + str(self.imageresolution) + '\n')
+        file.write('Image resolution [pixel]: ' + str(self.nPE) + '\n')
         file.write('Frequency range [Hz]: ' + str(self.frequencyrange) + '\n')
         file.write('Samples: ' + str(self.samples) + '\n')
         file.write('Sampledelay: ' + str(self.sampledelay) + '\n')
