@@ -187,6 +187,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.sequence = idx
         if params.sequence != -1: print("Sequence:\t", params.sequence)
         
+        params.saveFileParameter()
+        
     def acquire(self):
         if params.connectionmode == 1:
             if params.GUImode == 2 and params.sequence == 0:
@@ -345,7 +347,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.spectrum_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
             if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
                 proc.image_3D_process()
@@ -359,7 +361,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 # proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
                                       or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
                                       or params.sequence == 19 or params.sequence == 20):
@@ -368,7 +370,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
                                       or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
                                       or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
@@ -379,36 +381,36 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
                 
         elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T1imageprocess()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
-                else: print('No File!!')
-            else: print('No File!!')
+                else: print('No file!!')
+            else: print('No file!!')
             
         elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T2imageprocess()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
             
         elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
             self.datapathtemp = params.datapath
@@ -437,7 +439,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         params.projz[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
                         params.projz[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
                         params.projz[:,3] = params.spectrumfft
-                else: print('No File!!')
+                else: print('No file!!')
             params.datapath = self.datapathtemp
             self.dialog_plot = PlotWindow(self)
             self.dialog_plot.show()
@@ -1756,8 +1758,60 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.Protocol_Table_tableWidget.setColumnCount(self.protocol.shape[1])
         self.Protocol_Table_tableWidget.setHorizontalHeaderLabels(('Mode','Sequence'))
         for n in range(self.protocol.shape[0]-1):
-            for m in range(self.protocol.shape[1]):
-                self.Protocol_Table_tableWidget.setItem(n,m,QTableWidgetItem(str(int(self.protocol[n,m]))))
+            
+            if self.protocol[n,0] == 0:
+                self.Prot_Table_GUImode = 'Spectroscopy'
+                self.Prot_Table_sequence = ('Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
+                                            , 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                            , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                            , 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                            , 'RF Testsequence', 'Gradient Testsequence')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 1:
+                self.Prot_Table_GUImode = 'Imaging'
+                self.Prot_Table_sequence = ('2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
+                                            , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                            , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                            , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                            , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                            , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                            , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                            , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                            , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 2:
+                self.Prot_Table_GUImode = 'T1 Measurement'
+                self.Prot_Table_sequence = ('Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)' \
+                                            , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 3:
+                self.Prot_Table_GUImode = 'T2 Measurement'
+                self.Prot_Table_sequence = ('Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)' \
+                                            , 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
+                                            ,'2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])]))   
+            elif self.protocol[n,0] == 4:
+                self.Prot_Table_GUImode = 'Projections'
+                self.Prot_Table_sequence = ('Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
+                                            , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                            , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])]))
+                    
+        self.Protocol_Table_tableWidget.resizeColumnToContents(0)
+        self.Protocol_Table_tableWidget.resizeColumnToContents(1)
+                    
         self.Protocol_Table_tableWidget.show()
         
     def protocol_save_protocol(self):
@@ -1770,22 +1824,32 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.protocol_plot_table()
         
     def protocol_load_protocol(self):
-        self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
-        self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
-        self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
-        print(self.protocol)
-        print(self.protocol.shape)
-        
-        self.protocol_plot_table()
+        if os.path.isfile(self.prot_datapath + '.txt') == True:
+            self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
+            self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
+            self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
+            print(self.protocol)
+            print(self.protocol.shape)
+            self.protocol_plot_table()
+        else: print('No protocol file!!')
         
     def protocol_execute_protocol(self):
         print('WIP')
+        
+        try:
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_parameters_temp.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+        
         for n in range(self.protocol.shape[0]-1):
-            print(n)
+            print('Protocol task: ', n)
             try:
                 shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl','parameters.pkl')
                 time.sleep(0.001)
-            except: print('No parameter file.')
+            except: print('No parameter file!!')
             
             params.loadParam()
             
@@ -1794,6 +1858,15 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             self.protocol_acquire()
             
             time.sleep(params.TR/1000)
+            
+        params.datapath = self.datapathtemp
+        
+        try:
+            shutil.copyfile(self.prot_datapath + '_parameters_temp.pkl', 'parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        params.loadParam()
             
     def protocol_acquire(self):
         if params.connectionmode == 1:
@@ -1846,9 +1919,6 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
@@ -1866,9 +1936,6 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
@@ -1887,11 +1954,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
-                        #seq.sequence_upload()
+                        seq.sequence_upload()
                     elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                          or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                          or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
@@ -1909,16 +1973,11 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
+            params.save_header_file()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
 
 
@@ -2006,8 +2065,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         params.saveFileParameter()
         
         if params.GUImode == 0:
+            self.fig_canvas.hide()
             self.spectrum_plot_init()
         elif params.GUImode == 4:
+            self.fig_canvas.hide()
             self.projection_plot_init()
             
     def spectrum_plot_init(self):
