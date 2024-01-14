@@ -18,10 +18,10 @@ import breeze_resources
 
 class Parameters:
     def __init__(self):
-        file = QFile(":/light.qss")
+        self.GUIthemestr = ['light', 'dark']
+        file = QFile(':/' + self.GUIthemestr[0] + '.qss')
         file.open(QFile.ReadOnly | QFile.Text)
         stream = QTextStream(file)
-
         self.stylesheet = stream.readAll()
         self.cycler = cycler(color=['#000000', '#0000BB', '#BB0000'])
 
@@ -30,6 +30,7 @@ class Parameters:
     def var_init(self):
         print("Setting default parameters.")
         self.hosts = ['192.168.1.84']
+        self.GUItheme = 0
         self.connectionmode = 0
         self.GUImode = 0
         self.sequence = 0
@@ -191,6 +192,7 @@ class Parameters:
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
             pickle.dump([self.hosts, \
+                         self.GUItheme, \
                          self.connectionmode, \
                          self.GUImode, \
                          self.sequence, \
@@ -360,6 +362,7 @@ class Parameters:
         try:
             with open('parameters.pkl', 'rb') as file:
                 self.hosts, \
+                self.GUItheme, \
                 self.connectionmode, \
                 self.GUImode, \
                 self.sequence, \
@@ -554,6 +557,7 @@ class Parameters:
         file = open(params.datapath + '_Header.txt','w')
 
         file.write('Hosts: ' + str(self.hosts) + '\n')
+        # file.write(': ' + str(self.GUItheme) + '\n')
         file.write('Connection mode: ' + str(self.connectionmode) + '\n')
         file.write('GUI mode: ' + str(self.GUImode) + '\n')
         file.write('Sequence: ' + str(self.sequence) + '\n')
@@ -687,5 +691,12 @@ class Parameters:
         file.write('SAR status: ' + str(self.SAR_status) + '\n')
         
         file.close()
+        
+    def load_GUItheme(self):
+        file = QFile(':/' + self.GUIthemestr[self.GUItheme] + '.qss')
+        file.open(QFile.ReadOnly | QFile.Text)
+        stream = QTextStream(file)
+        self.stylesheet = stream.readAll()
+        self.cycler = cycler(color=['#000000', '#0000BB', '#BB0000'])
         
 params = Parameters()

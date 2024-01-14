@@ -205,33 +205,6 @@
       </property>
      </widget>
     </item>
-    <item row="26" column="4">
-     <widget class="QLabel" name="label_47">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>GRO Prephaser Length Scaler</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
     <item row="18" column="4">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
@@ -860,34 +833,6 @@
       </property>
      </widget>
     </item>
-    <item row="26" column="5">
-     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="maximum">
-       <double>2.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.010000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
     <item row="17" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
@@ -1051,33 +996,6 @@
       </property>
       <property name="text">
        <string>90° Ref. Pulselength [µs]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="25" column="4">
-     <widget class="QLabel" name="label_38">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
-      <property name="text">
-       <string>Imaging</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -1468,6 +1386,161 @@
         </property>
         <property name="text">
          <string>ln (k-Space Mag)</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="25" column="4">
+     <widget class="QLabel" name="label_12">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>GUI Theme</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="28" column="4">
+     <widget class="QLabel" name="label_47">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>GRO Prephaser Length Scaler</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="28" column="5">
+     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="maximum">
+       <double>2.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="27" column="4">
+     <widget class="QLabel" name="label_38">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>Imaging</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="26" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_10">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="GUI_Light_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Light</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="GUI_Dark_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Dark</string>
         </property>
         <property name="autoExclusive">
          <bool>false</bool>

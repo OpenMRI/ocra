@@ -66,6 +66,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
+        params.load_GUItheme()
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
         
@@ -1029,6 +1030,9 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
         self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
         
+        self.GUI_Light_radioButton.clicked.connect(self.update_light)
+        self.GUI_Dark_radioButton.clicked.connect(self.update_dark)
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -1072,6 +1076,9 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
         
         self.SignalMask_doubleSpinBox.setValue(params.signalmask)
+        
+        if params.GUItheme == 0: self.GUI_Light_radioButton.setChecked(True)
+        if params.GUItheme == 1: self.GUI_Dark_radioButton.setChecked(True)
         
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
@@ -1154,10 +1161,23 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         elif params.rx1 == 1 and params.rx2 == 1:
             params.rxmode = 0
             print('\033[1m' + 'Mixed signal!' + '\033[0m')
-        print('RX mode: ',params.rxmode)
-        
+
         params.signalmask = self.SignalMask_doubleSpinBox.value()
         
+        params.saveFileParameter()
+        
+    def update_light(self):
+        if self.GUI_Light_radioButton.isChecked():
+            params.GUItheme = 0
+            self.GUI_Dark_radioButton.setChecked(False)
+            
+        params.saveFileParameter()
+            
+    def update_dark(self):
+        if self.GUI_Dark_radioButton.isChecked():
+            params.GUItheme = 1
+            self.GUI_Light_radioButton.setChecked(False)
+            
         params.saveFileParameter()
         
     def Set_AC_centerfrequency(self):
