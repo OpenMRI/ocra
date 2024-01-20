@@ -192,38 +192,40 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
     def acquire(self):
         if params.connectionmode == 1:
-            if params.GUImode == 2 and params.sequence == 0:
-                proc.T1measurement_IR_FID()
-            elif params.GUImode == 2 and params.sequence == 1:
-                proc.T1measurement_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 2:
-                proc.T1measurement_IR_FID_Gs()
-            elif params.GUImode == 2 and params.sequence == 3:
-                proc.T1measurement_IR_SE_Gs()
-            elif params.GUImode == 2 and params.sequence == 4:
-                proc.T1measurement_Image_IR_GRE()
-            elif params.GUImode == 2 and params.sequence == 5:
-                proc.T1measurement_Image_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 6:
-                proc.T1measurement_Image_IR_GRE_Gs()
-            elif params.GUImode == 2 and params.sequence == 7:
-                proc.T1measurement_Image_IR_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 0:
-                proc.T2measurement_SE()
-            elif params.GUImode == 3 and params.sequence == 1:
-                proc.T2measurement_SIR_FID()
-            elif params.GUImode == 3 and params.sequence == 2:
-                proc.T2measurement_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 3:
-                proc.T2measurement_SIR_FID_Gs()
-            elif params.GUImode == 3 and params.sequence == 4:
-                proc.T2measurement_Image_SE()
-            elif params.GUImode == 3 and params.sequence == 5:
-                proc.T2measurement_Image_SIR_GRE()
-            elif params.GUImode == 3 and params.sequence == 6:
-                proc.T2measurement_Image_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 7:
-                proc.T2measurement_Image_SIR_GRE_Gs()
+            if params.GUImode == 2:
+                if params.sequence == 0:
+                    proc.T1measurement_IR_FID()
+                elif params.sequence == 1:
+                    proc.T1measurement_IR_SE()
+                elif params.sequence == 2:
+                    proc.T1measurement_IR_FID_Gs()
+                elif params.sequence == 3:
+                    proc.T1measurement_IR_SE_Gs()
+                elif params.sequence == 4:
+                    proc.T1measurement_Image_IR_GRE()
+                elif params.sequence == 5:
+                    proc.T1measurement_Image_IR_SE()
+                elif params.sequence == 6:
+                    proc.T1measurement_Image_IR_GRE_Gs()
+                elif params.sequence == 7:
+                    proc.T1measurement_Image_IR_SE_Gs()
+            elif params.GUImode == 3:
+                if params.sequence == 0:
+                    proc.T2measurement_SE()
+                elif params.sequence == 1:
+                    proc.T2measurement_SIR_FID()
+                elif params.sequence == 2:
+                    proc.T2measurement_SE_Gs()
+                elif params.sequence == 3:
+                    proc.T2measurement_SIR_FID_Gs()
+                elif params.sequence == 4:
+                    proc.T2measurement_Image_SE()
+                elif params.sequence == 5:
+                    proc.T2measurement_Image_SIR_GRE()
+                elif params.sequence == 6:
+                    proc.T2measurement_Image_SE_Gs()
+                elif params.sequence == 7:
+                    proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
                     if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
@@ -2025,7 +2027,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
         self.ui = loadUi('ui/plotview.ui')
         self.setWindowTitle('Plotvalues - ' + params.datapath + '.txt')
-        self.setGeometry(10, 490, 400, 400)
+        self.setGeometry(10, 490, 400, 500)
           
         if params.GUImode == 0:
             self.spectrum_plot_init()
@@ -2251,7 +2253,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax6.plot(params.timeaxis, params.projz[:,0], label='Magnitude')
         
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-        self.fig_canvas.setGeometry(420, 40, 600, 750)
+        self.fig_canvas.setGeometry(420, 40, 600, 950)
         self.fig_canvas.show()
         
                     
