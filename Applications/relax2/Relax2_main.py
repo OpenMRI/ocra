@@ -315,7 +315,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
         if self.dialog_params != None:
             self.dialog_params.load_params()
-            self.dialog_params.repaint()  
+            self.dialog_params.repaint()
+        if self.dialog_config != None:
+            self.dialog_config.load_params()
+            self.dialog_config.repaint()
             
     def load_params(self):
         self.Sequence_comboBox.clear()
@@ -1346,13 +1349,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1)
             self.ax.set_xticks(self.major_ticks)
             self.ax.set_xticks(self.minor_ticks, minor=True)
-            self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax.grid(which='major', color='#888888', linestyle='-')
+            self.ax.grid(which='minor', color='#888888', linestyle=':')
+            self.ax.grid(which='both', visible = True)
             self.ax.set_xlim((params.ACstart, params.ACstop))
             self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.ACvalues[1,:]))))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
-            self.fig_canvas.setGeometry(820, 40, 800, 750)
+            self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
             self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
@@ -1380,13 +1384,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop)-math.floor(params.FAstart)))*4+1)
             self.ax.set_xticks(self.major_ticks)
             self.ax.set_xticks(self.minor_ticks, minor=True)
-            self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax.grid(which='major', color='#888888', linestyle='-')
+            self.ax.grid(which='minor', color='#888888', linestyle=':')
+            self.ax.grid(which='both', visible = True)
             self.ax.set_xlim((math.floor(params.FAstart), math.ceil(params.FAstop)))
             self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.FAvalues[1,:]))))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
-            self.fig_canvas.setGeometry(820, 40, 800, 750)
+            self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
             self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
@@ -1414,12 +1419,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.ax.set_title('Shim Signals')
                 self.major_ticks = np.linspace(math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10, (math.ceil(params.ToolShimStop/10) - math.floor(params.ToolShimStart/10))+1)
                 self.ax.set_xticks(self.major_ticks)
-                self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
+                self.ax.grid(which='major', color='#888888', linestyle='-')
+                self.ax.grid(which='major', visible = True)
+                
                 self.ax.set_xlim((math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10))
-                self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.STvalues[1:4,:]))))
+                self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.STvalues[1:,:]))))
                 self.fig_canvas.draw()
                 self.fig_canvas.setWindowTitle('Tool Plot')
-                self.fig_canvas.setGeometry(820, 40, 800, 750)
+                self.fig_canvas.setGeometry(420, 40, 800, 750)
                 self.fig_canvas.show()
         
                 if params.ToolShimChannel[0] == 1:
@@ -1454,23 +1461,23 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             #self.IMag_canvas.show()
             
             self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
             self.IPha_canvas.draw()
             self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.setGeometry(420, 40, 400, 355)
             self.IPha_canvas.show()
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
             self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
             self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
             self.FMB0_canvas.show()
 
         else: print('Not allowed in offline mode!')
@@ -1491,23 +1498,23 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             #self.IMag_canvas.show()
             
             self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
             self.IPha_canvas.draw()
             self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.setGeometry(420, 40, 400, 355)
             self.IPha_canvas.show()
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
             self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
             self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
             self.FMB0_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1519,25 +1526,25 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.FieldMapB1()
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
             self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.setGeometry(420, 40, 400, 355)
             self.IMag_canvas.show()
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
             self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
             self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
             self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1549,25 +1556,25 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.FieldMapB1Slice()
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
             self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.setGeometry(420, 40, 400, 355)
             self.IMag_canvas.show()
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
             self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
             self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
             self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1592,8 +1599,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
             self.IMag_ax.set_yticks(self.major_ticks)
             self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
             self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.IMag_ax.grid(which='both', visible = True)
             
             if params.imageorientation == 0:
                 self.IMag_ax.set_xlabel('X in mm')
@@ -1607,7 +1615,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.setGeometry(420, 40, 800, 750)
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1632,8 +1640,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
             self.IMag_ax.set_yticks(self.major_ticks)
             self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
             self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.IMag_ax.grid(which='both', visible = True)
             
             if params.imageorientation == 0:
                 self.IMag_ax.set_xlabel('X in mm')
@@ -1647,7 +1656,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.setGeometry(420, 40, 800, 750)
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -2112,8 +2121,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
         self.ax1.set_xticks(self.major_ticks)
         self.ax1.set_xticks(self.minor_ticks, minor=True)
-        self.ax1.grid(which='major', color='#CCCCCC', linestyle='--')
-        self.ax1.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.ax1.grid(which='major', color='#888888', linestyle='-')
+        self.ax1.grid(which='minor', color='#888888', linestyle=':')
+        self.ax1.grid(which='both', visible = True)
         
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.ax2.plot(params.timeaxis, params.real, label='Real')
@@ -2126,8 +2136,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
         self.ax2.set_xticks(self.major_ticks)
         self.ax2.set_xticks(self.minor_ticks, minor=True)
-        self.ax2.grid(which='major', color='#CCCCCC', linestyle='--')
-        self.ax2.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.ax2.grid(which='major', color='#888888', linestyle='-')
+        self.ax2.grid(which='minor', color='#888888', linestyle=':')
+        self.ax2.grid(which='both', visible = True)
         self.ax2.legend()
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         
@@ -2143,10 +2154,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         if params.projx.shape[0] == params.freqencyaxis.shape[0]:
             self.ax1 = self.fig.add_subplot(6,1,1)
             self.ax2 = self.fig.add_subplot(6,1,2)
-            
             self.ax1.plot(params.freqencyaxis, params.projx[:,3])
             self.ax1.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
-            self.ax1.set_ylim([0,1.1*np.max(params.spectrumfft)])
+            self.ax1.set_ylim([0,1.1*np.max(params.projx[:,3])])
             self.ax1.set_title('X - Spectrum')
             self.ax1.set_ylabel('RX Signal [arb.]')
             self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')
@@ -2154,8 +2164,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
             self.ax1.set_xticks(self.major_ticks)
             self.ax1.set_xticks(self.minor_ticks, minor=True)
-            self.ax1.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax1.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax1.grid(which='major', color='#888888', linestyle='-')
+            self.ax1.grid(which='minor', color='#888888', linestyle=':')
+            self.ax1.grid(which='both', visible = True)
             self.ax2.plot(params.timeaxis, params.projx[:,0], label='Magnitude')
             self.ax2.plot(params.timeaxis, params.projx[:,1], label='Real')
             self.ax2.plot(params.timeaxis, params.projx[:,2], label='Imaginary')
@@ -2167,18 +2178,18 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
             self.ax2.set_xticks(self.major_ticks)
             self.ax2.set_xticks(self.minor_ticks, minor=True)
-            self.ax2.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax2.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax2.grid(which='major', color='#888888', linestyle='-')
+            self.ax2.grid(which='minor', color='#888888', linestyle=':')
+            self.ax2.grid(which='both', visible = True)
             self.ax2.legend()
             self.ax2.plot(params.timeaxis, params.projx[:,0], label='Magnitude')
             
         if params.projy.shape[0] == params.freqencyaxis.shape[0]:
             self.ax3 = self.fig.add_subplot(6,1,3)
             self.ax4 = self.fig.add_subplot(6,1,4)
-            
             self.ax3.plot(params.freqencyaxis, params.projy[:,3])
             self.ax3.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
-            self.ax3.set_ylim([0,1.1*np.max(params.spectrumfft)])
+            self.ax3.set_ylim([0,1.1*np.max(params.projy[:,3])])
             self.ax3.set_title('Y - Spectrum')
             self.ax3.set_ylabel('RX Signal [arb.]')
             self.ax3.set_xlabel('$\Delta$ Frequency [Hz]')
@@ -2186,8 +2197,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
             self.ax3.set_xticks(self.major_ticks)
             self.ax3.set_xticks(self.minor_ticks, minor=True)
-            self.ax3.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax3.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax3.grid(which='major', color='#888888', linestyle='-')
+            self.ax3.grid(which='minor', color='#888888', linestyle=':')
+            self.ax3.grid(which='both', visible = True)
             self.ax4.plot(params.timeaxis, params.projy[:,0], label='Magnitude')
             self.ax4.plot(params.timeaxis, params.projy[:,1], label='Real')
             self.ax4.plot(params.timeaxis, params.projy[:,2], label='Imaginary')
@@ -2199,8 +2211,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
             self.ax4.set_xticks(self.major_ticks)
             self.ax4.set_xticks(self.minor_ticks, minor=True)
-            self.ax4.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax4.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax4.grid(which='major', color='#888888', linestyle='-')
+            self.ax4.grid(which='minor', color='#888888', linestyle=':')
+            self.ax4.grid(which='both', visible = True)
             self.ax4.legend()
             self.ax4.plot(params.timeaxis, params.projy[:,0], label='Magnitude')
         
@@ -2209,7 +2222,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax6 = self.fig.add_subplot(6,1,6)
             self.ax5.plot(params.freqencyaxis, params.projz[:,3])
             self.ax5.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
-            self.ax5.set_ylim([0,1.1*np.max(params.spectrumfft)])
+            self.ax5.set_ylim([0,1.1*np.max(params.projz[:,3])])
             self.ax5.set_title('Z - Spectrum')
             self.ax5.set_ylabel('RX Signal [arb.]')
             self.ax5.set_xlabel('$\Delta$ Frequency [Hz]')
@@ -2217,8 +2230,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
             self.ax5.set_xticks(self.major_ticks)
             self.ax5.set_xticks(self.minor_ticks, minor=True)
-            self.ax5.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax5.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax5.grid(which='major', color='#888888', linestyle='-')
+            self.ax5.grid(which='minor', color='#888888', linestyle=':')
+            self.ax5.grid(which='both', visible = True)
             self.ax6.plot(params.timeaxis, params.projz[:,0], label='Magnitude')
             self.ax6.plot(params.timeaxis, params.projz[:,1], label='Real')
             self.ax6.plot(params.timeaxis, params.projz[:,2], label='Imaginary')
@@ -2230,8 +2244,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
             self.ax6.set_xticks(self.major_ticks)
             self.ax6.set_xticks(self.minor_ticks, minor=True)
-            self.ax6.grid(which='major', color='#CCCCCC', linestyle='--')
-            self.ax6.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.ax6.grid(which='major', color='#888888', linestyle='-')
+            self.ax6.grid(which='minor', color='#888888', linestyle=':')
+            self.ax6.grid(which='both', visible = True)
             self.ax6.legend()
             self.ax6.plot(params.timeaxis, params.projz[:,0], label='Magnitude')
         
@@ -2249,7 +2264,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_fig.set_facecolor("None")
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0]/2-params.nPE/2):int(self.projzx.shape[0]/2+params.nPE/2),int(self.projzx.shape[1]/2-params.nPE/2):int(self.projzx.shape[1]/2+params.nPE/2)], interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0]/2-params.nPE/2):int(self.projzx.shape[0]/2+params.nPE/2),int(self.projzx.shape[1]/2-params.nPE/2):int(self.projzx.shape[1]/2+params.nPE/2)], cmap='viridis')
             self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
@@ -2274,8 +2289,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/200)+1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
-        self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
-        self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
         self.ax.set_xlim((0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000))
         self.ax.set_ylim(0, 1.1*np.max(params.T1yvalues1))
         self.ax.legend(loc = 'lower right')
@@ -2299,8 +2315,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/200)+1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
-        self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
-        self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
         self.ax.set_xlim((0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000))
         self.ax.legend()
         self.ax.set_title('T1 = ' + str(params.T1) + 'ms, r = '+ str(round(params.T1linregres.rvalue,2)))
@@ -2311,7 +2328,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def T1_imaging_plot_init(self):
         self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
-        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], interpolation='gaussian', cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T1imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
@@ -2341,8 +2358,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.minor_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/200)+1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
-        self.ax.grid(which='major', color='#CCCCCC', linestyle='--')
-        self.ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
         self.ax.set_xlim((0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)*1000))
         self.ax.set_ylim(0, 1.1*np.max(params.T2yvalues))
         self.ax.legend()
@@ -2354,7 +2372,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def T2_imaging_plot_init(self):
         self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
-        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T2img_mag[0,:,:], interpolation='gaussian', cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T2imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
@@ -2376,10 +2394,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
             self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -2418,10 +2436,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
             
             gs = GridSpec(2, 2, figure=self.all_fig)
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[0,1]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[1,0]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[1,1]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[0,1]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[1,0]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[1,1]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -2448,10 +2466,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             
         gs = GridSpec(4, params.img_mag.shape[0], figure=self.all_fig)
         for n in range(params.img_mag.shape[0]):
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,n]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[1,n]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[2,n]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[3,n]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,n]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[1,n]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[2,n]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[3,n]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag[n,:,:], interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag[n,:,:], cmap='viridis')
@@ -2481,12 +2499,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
             self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IDiff_ax = self.IDiff_fig.add_subplot(111); self.IDiff_ax.grid(False); self.IDiff_ax.axis(frameon=False)
-            self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IDiff_ax = self.IDiff_fig.add_subplot(111); self.IDiff_ax.grid(False); #self.IDiff_ax.axis(frameon=False)
+            self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
@@ -2546,12 +2564,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
             
             gs = GridSpec(2, 3, figure=self.all_fig)
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IDiff_ax = self.all_fig.add_subplot(gs[0,1]); self.IDiff_ax.grid(False); self.IDiff_ax.axis(frameon=False)
-            self.IComb_ax = self.all_fig.add_subplot(gs[0,2]); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[1,0]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[1,1]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[1,2]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IDiff_ax = self.all_fig.add_subplot(gs[0,1]); self.IDiff_ax.grid(False); #self.IDiff_ax.axis(frameon=False)
+            self.IComb_ax = self.all_fig.add_subplot(gs[0,2]); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[1,0]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[1,1]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[1,2]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
             else: self.IMag_ax.imshow(params.img_mag, cmap='gray')
