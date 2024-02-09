@@ -30,7 +30,7 @@ class Parameters:
     def var_init(self):
         print("Setting default parameters.")
         self.hosts = ['192.168.1.84']
-        self.GUItheme = 0
+        self.GUItheme = 1
         self.connectionmode = 0
         self.GUImode = 0
         self.sequence = 0
@@ -52,7 +52,7 @@ class Parameters:
         self.rx1 = 1
         self.rx2 = 0
         self.rxmode = 1
-        self.RXscaling = 0.0000762939 #1280 20480
+        self.RXscaling = 1280 # 20480 Exp binaries 0.0000762939
         self.TS = 6
         self.ROBWscaler = 1
         self.TE = 12
