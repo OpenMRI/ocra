@@ -9886,9 +9886,8 @@ int main(int argc)
           usleep(1000000); // Sleep 1s
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
-            while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-
+			while(*rx_cntr < 10000) usleep(500);
+			for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
