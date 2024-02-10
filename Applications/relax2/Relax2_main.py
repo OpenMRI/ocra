@@ -46,9 +46,11 @@ plt.rcParams['toolbar'] = 'toolbar2'
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
 Conn_Dialog_Form, Conn_Dialog_Base = loadUiType('ui/connDialog.ui')
 Para_Window_Form, Para_Window_Base = loadUiType('ui/parameters.ui')
+Config_Window_Form, Config_Window_Base = loadUiType('ui/config.ui')
 Plot_Window_Form, Plot_Window_Base = loadUiType('ui/plotview.ui')
 Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
 Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
+SAR_Window_Form, SAR_Window_Base = loadUiType('ui/sar.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
@@ -57,9 +59,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setupUi(self)
         
         self.dialog_params = None
+        self.dialog_config = None
+        self.dialog_tools = None
+        self.dialog_prot = None
+        self.dialog_sarmonitor = None
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
+        params.load_GUItheme()
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
         
@@ -80,6 +87,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.phaseoffsetradmod100 = 0
         params.lnkspacemag = 0
         params.ToolShimChannel = [0, 0, 0, 0]
+        params.SAR_status = 1
         
         if params.GSamplitude == 0:
             params.GSposttime = 0
@@ -94,13 +102,17 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Mode_T1_Measurement_pushButton.clicked.connect(lambda: self.switch_GUImode(2))
         self.Mode_T2_Measurement_pushButton.clicked.connect(lambda: self.switch_GUImode(3))
         self.Mode_Projections_pushButton.clicked.connect(lambda: self.switch_GUImode(4))
+        self.Tools_pushButton.clicked.connect(lambda: self.tools())
+        self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
         
         self.Sequence_comboBox.currentIndexChanged.connect(self.set_sequence)
+        
         self.Parameters_pushButton.clicked.connect(lambda: self.parameter_window())
         self.Acquire_pushButton.clicked.connect(lambda: self.acquire())
         self.Data_Process_pushButton.clicked.connect(lambda: self.dataprocess())
-        self.Tools_pushButton.clicked.connect(lambda: self.tools())
-        self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
+        
+        self.Config_pushButton.clicked.connect(lambda: self.config_window())
+        self.SAR_Monitor_pushButton.clicked.connect(lambda: self.sarmonitor())
         
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
@@ -137,8 +149,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                              , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
                                              , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
                                              , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
-                                             , 'WIP 2D Radial (Slice, GRE, Full)', 'WIP 2D Radial (Slice, SE, Full)', 'WIP 2D Radial (Slice, GRE, Half)' \
-                                             , 'WIP 2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                             , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                              , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                              , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
                                              , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
@@ -165,7 +177,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 4:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)', 'Spin Echo (On Angle)'])
+            self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
+                                             , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                             , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Projection_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -174,40 +188,44 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.sequence = idx
         if params.sequence != -1: print("Sequence:\t", params.sequence)
         
+        params.saveFileParameter()
+        
     def acquire(self):
         if params.connectionmode == 1:
-            if params.GUImode == 2 and params.sequence == 0:
-                proc.T1measurement_IR_FID()
-            elif params.GUImode == 2 and params.sequence == 1:
-                proc.T1measurement_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 2:
-                proc.T1measurement_IR_FID_Gs()
-            elif params.GUImode == 2 and params.sequence == 3:
-                proc.T1measurement_IR_SE_Gs()
-            elif params.GUImode == 2 and params.sequence == 4:
-                proc.T1measurement_Image_IR_GRE()
-            elif params.GUImode == 2 and params.sequence == 5:
-                proc.T1measurement_Image_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 6:
-                proc.T1measurement_Image_IR_GRE_Gs()
-            elif params.GUImode == 2 and params.sequence == 7:
-                proc.T1measurement_Image_IR_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 0:
-                proc.T2measurement_SE()
-            elif params.GUImode == 3 and params.sequence == 1:
-                proc.T2measurement_SIR_FID()
-            elif params.GUImode == 3 and params.sequence == 2:
-                proc.T2measurement_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 3:
-                proc.T2measurement_SIR_FID_Gs()
-            elif params.GUImode == 3 and params.sequence == 4:
-                proc.T2measurement_Image_SE()
-            elif params.GUImode == 3 and params.sequence == 5:
-                proc.T2measurement_Image_SIR_GRE()
-            elif params.GUImode == 3 and params.sequence == 6:
-                proc.T2measurement_Image_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 7:
-                proc.T2measurement_Image_SIR_GRE_Gs()
+            if params.GUImode == 2:
+                if params.sequence == 0:
+                    proc.T1measurement_IR_FID()
+                elif params.sequence == 1:
+                    proc.T1measurement_IR_SE()
+                elif params.sequence == 2:
+                    proc.T1measurement_IR_FID_Gs()
+                elif params.sequence == 3:
+                    proc.T1measurement_IR_SE_Gs()
+                elif params.sequence == 4:
+                    proc.T1measurement_Image_IR_GRE()
+                elif params.sequence == 5:
+                    proc.T1measurement_Image_IR_SE()
+                elif params.sequence == 6:
+                    proc.T1measurement_Image_IR_GRE_Gs()
+                elif params.sequence == 7:
+                    proc.T1measurement_Image_IR_SE_Gs()
+            elif params.GUImode == 3:
+                if params.sequence == 0:
+                    proc.T2measurement_SE()
+                elif params.sequence == 1:
+                    proc.T2measurement_SIR_FID()
+                elif params.sequence == 2:
+                    proc.T2measurement_SE_Gs()
+                elif params.sequence == 3:
+                    proc.T2measurement_SIR_FID_Gs()
+                elif params.sequence == 4:
+                    proc.T2measurement_Image_SE()
+                elif params.sequence == 5:
+                    proc.T2measurement_Image_SIR_GRE()
+                elif params.sequence == 6:
+                    proc.T2measurement_Image_SE_Gs()
+                elif params.sequence == 7:
+                    proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
                     if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
@@ -295,19 +313,34 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
+            params.save_header_file()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
         if self.dialog_params != None:
             self.dialog_params.load_params()
-            self.dialog_params.repaint()  
+            self.dialog_params.repaint()
+        if self.dialog_config != None:
+            self.dialog_config.load_params()
+            self.dialog_config.repaint()
             
     def load_params(self):
         self.Sequence_comboBox.clear()
         self.switch_GUImode(params.GUImode)
         
     def parameter_window(self):
-            self.dialog_params = None
+        if self.dialog_params == None:
             self.dialog_params = ParametersWindow(self)
             self.dialog_params.show()
+        else:
+            self.dialog_params.hide()
+            self.dialog_params.show()
+    
+    def config_window(self):
+        if self.dialog_config == None:
+            self.dialog_config = ConfigWindow(self)
+            self.dialog_config.show()
+        else:
+            self.dialog_config.hide()
+            self.dialog_config.show() 
         
     def set_Datapath(self):
         params.datapath = self.Datapath_lineEdit.text()
@@ -320,7 +353,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.spectrum_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
             if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
                 proc.image_3D_process()
@@ -334,7 +367,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 # proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
                                       or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
                                       or params.sequence == 19 or params.sequence == 20):
@@ -343,7 +376,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
                                       or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
                                       or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
@@ -354,83 +387,98 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
                 
         elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T1imageprocess()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
-                else: print('No File!!')
-            else: print('No File!!')
+                else: print('No file!!')
+            else: print('No file!!')
             
         elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
         elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T2imageprocess()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
-            else: print('No File!!')
+            else: print('No file!!')
             
-        elif params.GUImode == 4:
-            if params.sequence == 0 or params.sequence == 1:
-                self.datapathtemp = params.datapath
-                params.projx =  np.matrix(np.zeros((1,4)))
-                params.projy =  np.matrix(np.zeros((1,4)))
-                params.projz =  np.matrix(np.zeros((1,4)))
-                for m in range(params.projaxis.shape[0]):
-                    params.datapath = self.datapathtemp + '_' + str(m)
-                    if os.path.isfile(params.datapath + '.txt') == True:
-                        proc.spectrum_process()
-                        if m == 0:
-                            params.projx = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projx[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projx[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projx[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projx[:,3] = params.spectrumfft
-                        elif m == 1:
-                            params.projy = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projy[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projy[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projy[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projy[:,3] = params.spectrumfft
-                        elif m == 2:
-                            params.projz = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
-                            params.projz[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
-                            params.projz[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
-                            params.projz[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
-                            params.projz[:,3] = params.spectrumfft
-                    else: print('No File!!')
-                params.datapath = self.datapathtemp
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
-            elif params.sequence == 2 or params.sequence == 3:
-                proc.spectrum_process()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+        elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
+            self.datapathtemp = params.datapath
+            params.projx =  np.matrix(np.zeros((1,4)))
+            params.projy =  np.matrix(np.zeros((1,4)))
+            params.projz =  np.matrix(np.zeros((1,4)))
+            for m in range(params.projaxis.shape[0]):
+                params.datapath = self.datapathtemp + '_' + str(m)
+                if os.path.isfile(params.datapath + '.txt') == True:
+                    proc.spectrum_process()
+                    if m == 0:
+                        params.projx = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projx[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projx[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projx[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projx[:,3] = params.spectrumfft
+                    elif m == 1:
+                        params.projy = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projy[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projy[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projy[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projy[:,3] = params.spectrumfft
+                    elif m == 2:
+                        params.projz = np.matrix(np.zeros((params.timeaxis.shape[0],4)))
+                        params.projz[:,0] = np.reshape(params.mag,(params.timeaxis.shape[0],1))
+                        params.projz[:,1] = np.reshape(params.real,(params.timeaxis.shape[0],1))
+                        params.projz[:,2] = np.reshape(params.imag,(params.timeaxis.shape[0],1))
+                        params.projz[:,3] = params.spectrumfft
+                else: print('No file!!')
+            params.datapath = self.datapathtemp
+            self.dialog_plot = PlotWindow(self)
+            self.dialog_plot.show()
+        elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
+            proc.spectrum_process()
+            self.dialog_plot = PlotWindow(self)
+            self.dialog_plot.show()
                 
         params.saveFileData()
    
     def tools(self):
-        self.dialog_tools = ToolsWindow(self)
-        self.dialog_tools.show()
+        if self.dialog_tools == None:
+            self.dialog_tools = ToolsWindow(self)
+            self.dialog_tools.show()
+        else:
+            self.dialog_tools.hide()
+            self.dialog_tools.show() 
         
     def protocol(self):
-        self.dialog_prot = ProtocolWindow(self)
-        self.dialog_prot.show()
+        if self.dialog_prot == None:
+            self.dialog_prot = ProtocolWindow(self)
+            self.dialog_prot.show()
+        else:
+            self.dialog_prot.hide()
+            self.dialog_prot.show() 
+        
+    def sarmonitor(self):
+        if self.dialog_sarmonitor == None:
+            self.dialog_sarmonitor = SARMonitorWindow(self)
+            self.dialog_sarmonitor.show()
+        else:
+            self.dialog_sarmonitor.hide()
+            self.dialog_sarmonitor.show() 
 
     def update_gui(self):
         QApplication.processEvents()
@@ -461,28 +509,11 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         self.ui = loadUi('ui/parameters.ui')
         self.setWindowTitle('Parameters')
-        self.setGeometry(420, 40, 1300, 750)
+        self.setGeometry(420, 40, 1150, 710)
         
-        #self.label_3.setToolTip('<img src="tooltip/test.png">')
-        self.Frequency_doubleSpinBox.setKeyboardTracking(False)
-        self.Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label.setToolTip('Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
-        self.Center_pushButton.clicked.connect(lambda: self.frequency_center())
-        self.Center_pushButton.setToolTip('Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
-        self.auto_recenter_radioButton.toggled.connect(self.update_params)
-        self.auto_recenter_radioButton.setToolTip('A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
-        self.RF_Pulselength_spinBox.setKeyboardTracking(False)
-        self.RF_Pulselength_spinBox.valueChanged.connect(self.update_params)
-        self.label_2.setToolTip('The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
-        self.RF_Attenuation_doubleSpinBox.setKeyboardTracking(False)
-        self.RF_Attenuation_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_3.setToolTip('The attenuation of the OCRA1 RF attenuator.\nThis determinants the reference amplitude of the 90° and 180° pulse.')
         self.Samplingtime_spinBox.setKeyboardTracking(False)
         self.Samplingtime_spinBox.valueChanged.connect(self.update_params)
         self.label_6.setToolTip('The duration of the sampling window where the MRI signal is measured.')
-        self.Readout_Bandwidth_spinBox.setKeyboardTracking(False)
-        self.Readout_Bandwidth_spinBox.valueChanged.connect(self.update_params)
-        self.label_11.setToolTip('Scales the image in readout direction.\nThis happens after the reconstruction.\nLike a digital zoom. Standard is 1.')
         self.TE_doubleSpinBox.setKeyboardTracking(False)
         self.TE_doubleSpinBox.valueChanged.connect(self.update_params)
         self.label_4.setToolTip('The time between the center of the RF flip pulse and the center of the sampling window (also in FID and GRE sequences).')
@@ -492,16 +523,12 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.TR_spinBox.setKeyboardTracking(False)
         self.TR_spinBox.valueChanged.connect(self.update_params)
         self.label_5.setToolTip('The time between repetitions for aquirering k-space lines in images or averages in spectra.')
-        self.Shim_X_spinBox.setKeyboardTracking(False)
-        self.Shim_X_spinBox.valueChanged.connect(self.update_params)
-        self.Shim_Y_spinBox.setKeyboardTracking(False)
-        self.Shim_Y_spinBox.valueChanged.connect(self.update_params)
-        self.Shim_Z_spinBox.setKeyboardTracking(False)
-        self.Shim_Z_spinBox.valueChanged.connect(self.update_params)
-        self.Shim_Z2_spinBox.setKeyboardTracking(False)
-        self.Shim_Z2_spinBox.valueChanged.connect(self.update_params)
-        self.Image_Resolution_spinBox.setKeyboardTracking(False)
-        self.Image_Resolution_spinBox.valueChanged.connect(self.update_params)
+        
+        self.Image_Resolution_comboBox.clear()
+        self.Image_Resolution_comboBox.addItems(['8', '16', '32', '64', '128', '256', '512'])
+        self.Image_Resolution_comboBox.setCurrentIndex(params.imageresolution)
+        self.Image_Resolution_comboBox.currentIndexChanged.connect(self.update_params)
+
         self.label_12.setToolTip('The images resolution determents the numper of k-space lines to acquire.\nNote that a few sequences only work for the standard resolutions 8, 16, 32, 64 or 128.')
         self.TI_Start_doubleSpinBox.setKeyboardTracking(False)
         self.TI_Start_doubleSpinBox.valueChanged.connect(self.update_params)
@@ -527,36 +554,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_spinBox.valueChanged.connect(self.update_params)
         self.Average_radioButton.toggled.connect(self.update_params)
         self.Average_radioButton.setToolTip('Averaging of MRI spectra.')
-        
-        self.Image_Filter_radioButton.toggled.connect(self.update_params)
-        self.Images_Plot_radioButton.toggled.connect(self.update_params)
-        
-        self.kspace_cut_circ_radioButton.toggled.connect(self.update_params)
-        self.kspace_cut_rec_radioButton.toggled.connect(self.update_params)
-        
-        self.kSpace_Cut_Center_radioButton.toggled.connect(self.update_params)
-        self.kSpace_Cut_Outside_radioButton.toggled.connect(self.update_params)
-        self.kSpace_Cut_Center_spinBox.setKeyboardTracking(False)
-        self.kSpace_Cut_Center_spinBox.valueChanged.connect(self.update_params)
-        self.kSpace_Cut_Outside_spinBox.setKeyboardTracking(False)
-        self.kSpace_Cut_Outside_spinBox.valueChanged.connect(self.update_params)
-        
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
-        
-        self.Undersampling_Time_comboBox.clear()
-        self.Undersampling_Time_comboBox.addItems(['2', '5', '10', '50'])
-        self.Undersampling_Time_comboBox.setCurrentIndex(0)
-        
-        self.Undersampling_Phase_comboBox.clear()
-        self.Undersampling_Phase_comboBox.addItems(['2', '4', '8'])
-        self.Undersampling_Phase_comboBox.setCurrentIndex(0)
-        
-        self.Undersampling_Time_radioButton.toggled.connect(self.update_params)
-        self.Undersampling_Phase_radioButton.toggled.connect(self.update_params)
-        
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
         
         self.Auto_Gradients_radioButton.toggled.connect(self.auto_gradients)
         
@@ -613,50 +610,21 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Phase_Offset_spinBox.valueChanged.connect(self.update_params)
         self.label_48.setToolTip('Phase offset of the RF carrier signal for RF spoiling. In images the phase angle shifts with k² (WIP).')
         
-        self.GRO_Length_Scaler_doubleSpinBox.setKeyboardTracking(False)
-        self.GRO_Length_Scaler_doubleSpinBox.valueChanged.connect(self.update_params)
-        
         self.Radial_Angle_Step_spinBox.setKeyboardTracking(False)
         self.Radial_Angle_Step_spinBox.valueChanged.connect(self.update_params)
-        
-        self.ln_kSpace_Magnitude_radioButton.toggled.connect(self.update_params)
-        
-        self.AC_Apply_pushButton.clicked.connect(lambda: self.Set_AC_centerfrequency())
-        self.FA_Apply_pushButton.clicked.connect(lambda: self.Set_FA_RFattenution())
         
         self.FOV_doubleSpinBox.setKeyboardTracking(False)
         self.FOV_doubleSpinBox.valueChanged.connect(self.update_params)
         self.Slice_Thickness_doubleSpinBox.setKeyboardTracking(False)
         self.Slice_Thickness_doubleSpinBox.valueChanged.connect(self.update_params)
         
-        self.RX1_radioButton.toggled.connect(self.update_params)
-        self.RX2_radioButton.toggled.connect(self.update_params)
-        
-        self.SignalMask_doubleSpinBox.setKeyboardTracking(False)
-        self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
-        
-    def frequency_center(self):
-        params.frequency = params.centerfrequency
-        self.Frequency_doubleSpinBox.setValue(params.frequency)
-        print('Center Frequency applied!')
-        
     def load_params(self):
-        self.Frequency_doubleSpinBox.setValue(params.frequency)
-        
-        if params.autorecenter == 1: self.auto_recenter_radioButton.setChecked(True)
-        
-        self.RF_Pulselength_spinBox.setValue(params.RFpulselength)
-        self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
-        self.Readout_Bandwidth_spinBox.setValue(params.ROBWscaler)
         self.TE_doubleSpinBox.setValue(params.TE)
         self.TI_doubleSpinBox.setValue(params.TI)
         self.TR_spinBox.setValue(params.TR)
-        self.Shim_X_spinBox.setValue(params.grad[0])
-        self.Shim_Y_spinBox.setValue(params.grad[1])
-        self.Shim_Z_spinBox.setValue(params.grad[2])
-        self.Shim_Z2_spinBox.setValue(params.grad[3])
-        self.Image_Resolution_spinBox.setValue(params.nPE)
+        
+        self.Image_Resolution_comboBox.setCurrentIndex(params.imageresolution)
+        
         self.Samplingtime_spinBox.setValue(params.TS)
         self.TI_Start_doubleSpinBox.setValue(params.TIstart)
         self.TI_Stop_doubleSpinBox.setValue(params.TIstop)
@@ -670,23 +638,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if params.projaxis[2] == 1: self.Projection_Z_radioButton.setChecked(True)
         
         self.Projection_Angle_spinBox.setValue(params.projectionangle)
-        
         if params.average == 1: self.Average_radioButton.setChecked(True)
         self.Average_spinBox.setValue(params.averagecount)
-        
-        if params.imagplots == 1: self.Images_Plot_radioButton.setChecked(True)
-        if params.imagefilter == 1: self.Image_Filter_radioButton.setChecked(True)
-        
-        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
-        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
-        
-        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
-        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
-        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
-        self.kSpace_Cut_Outside_spinBox.setValue(params.cutoutsidevalue)
-        
-        if params.ustime == 1: self.Undersampling_Time_radioButton.setChecked(True)
-        if params.usphase == 1: self.Undersampling_Phase_radioButton.setChecked(True)
         
         self.GROamplitude_spinBox.setValue(params.GROamplitude)
         self.GPEstep_spinBox.setValue(params.GPEstep)
@@ -711,13 +664,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             self.Frequency_Offset_spinBox.setValue(-1*params.frequencyoffset)
             
         self.Phase_Offset_spinBox.setValue(params.phaseoffset)
-        
-        self.GRO_Length_Scaler_doubleSpinBox.setValue(params.GROpretimescaler)
-        
         self.Radial_Angle_Step_spinBox.setValue(params.radialanglestep)
-        
-        if params.lnkspacemag == 1: self.ln_kSpace_Magnitude_radioButton.setChecked(True)
-        
         self.FOV_doubleSpinBox.setValue(params.FOV)
         self.Slice_Thickness_doubleSpinBox.setValue(params.slicethickness)
         
@@ -726,11 +673,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Slice_Offset_doubleSpinBox.setValue(params.sliceoffset)
         
         if params.autofreqoffset == 1: self.Auto_Frequency_Offset_radioButton.setChecked(True)
-        
-        if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
-        if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
-        
-        self.SignalMask_doubleSpinBox.setValue(params.signalmask)
         
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
@@ -806,26 +748,31 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
         
     def update_params(self):
-        params.frequency = self.Frequency_doubleSpinBox.value()
-        if self.auto_recenter_radioButton.isChecked(): params.autorecenter = 1
-        else: params.autorecenter = 0
-        params.RFpulselength = (round(self.RF_Pulselength_spinBox.value()/10)*10)
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
         
         if params.GSamplitude == 0: params.GSposttime =0
         else: params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
-        
-        params.RFattenuation = self.RF_Attenuation_doubleSpinBox.value()
-        params.ROBWscaler = self.Readout_Bandwidth_spinBox.value()
+
         params.TE = self.TE_doubleSpinBox.value()
         params.TI = self.TI_doubleSpinBox.value()
         params.TR = self.TR_spinBox.value()
         params.TS = self.Samplingtime_spinBox.value()
-        params.grad[0] = self.Shim_X_spinBox.value()
-        params.grad[1] = self.Shim_Y_spinBox.value()
-        params.grad[2] = self.Shim_Z_spinBox.value()
-        params.grad[3] = self.Shim_Z2_spinBox.value()
-        params.nPE = self.Image_Resolution_spinBox.value()
+
+        if self.Image_Resolution_comboBox.currentIndex() == 0: params.imageresolution = 0
+        elif self.Image_Resolution_comboBox.currentIndex() == 1: params.imageresolution = 1
+        elif self.Image_Resolution_comboBox.currentIndex() == 2: params.imageresolution = 2
+        elif self.Image_Resolution_comboBox.currentIndex() == 3: params.imageresolution = 3
+        elif self.Image_Resolution_comboBox.currentIndex() == 4: params.imageresolution = 4
+        elif self.Image_Resolution_comboBox.currentIndex() == 5: params.imageresolution = 5
+        elif self.Image_Resolution_comboBox.currentIndex() == 6: params.imageresolution = 6
+
+        if params.imageresolution == 0: params.nPE = 8
+        elif params.imageresolution == 1: params.nPE = 16
+        elif params.imageresolution == 2: params.nPE = 32
+        elif params.imageresolution == 3: params.nPE = 64
+        elif params.imageresolution == 4: params.nPE = 128
+        elif params.imageresolution == 5: params.nPE = 256
+        elif params.imageresolution == 6: params.nPE = 512
         
         params.TIstart = self.TI_Start_doubleSpinBox.value()
         params.TIstop = self.TI_Stop_doubleSpinBox.value()
@@ -847,58 +794,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if self.Average_radioButton.isChecked(): params.average = 1
         else: params.average = 0
         params.averagecount = self.Average_spinBox.value()
-        
-        if self.Images_Plot_radioButton.isChecked(): params.imagplots = 1
-        else: params.imagplots = 0
-        if self.Image_Filter_radioButton.isChecked(): params.imagefilter = 1
-        else: params.imagefilter = 0
-        
-        if self.kspace_cut_circ_radioButton.isChecked(): params.cutcirc = 1
-        else: params.cutcirc = 0
-        if self.kspace_cut_rec_radioButton.isChecked(): params.cutrec = 1
-        else: params.cutrec = 0
-        
-        if self.kSpace_Cut_Center_radioButton.isChecked(): params.cutcenter = 1
-        else: params.cutcenter = 0
-        if self.kSpace_Cut_Outside_radioButton.isChecked(): params.cutoutside = 1
-        else: params.cutoutside = 0
-        params.cutcentervalue = self.kSpace_Cut_Center_spinBox.value()
-        params.cutoutsidevalue = self.kSpace_Cut_Outside_spinBox.value()
-        
-        if self.Undersampling_Time_radioButton.isChecked(): params.ustime = 1
-        else: params.ustime = 0
-        if self.Undersampling_Phase_radioButton.isChecked(): params.usphase = 1
-        else: params.usphase = 0
-        
-        if self.Undersampling_Time_comboBox.currentIndex() == 0:
-            params.ustimeidx = 2
-        elif self.Undersampling_Time_comboBox.currentIndex() == 1:
-            params.ustimeidx = 5
-        elif self.Undersampling_Time_comboBox.currentIndex() == 2:
-            params.ustimeidx = 10
-        elif self.Undersampling_Time_comboBox.currentIndex() == 3:
-            params.ustimeidx = 50
-        else: params.ustimeidx = 2
             
-        if self.Undersampling_Phase_comboBox.currentIndex() == 0:
-            params.usphaseidx = 2
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 1:
-            params.usphaseidx = 4
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 2:
-            params.usphaseidx = 8
-        else:
-            params.usphaseidx = 2
-            
-        if self.Image_Orientation_comboBox.currentIndex() == 0:
-            params.imageorientation = 0
-        elif self.Image_Orientation_comboBox.currentIndex() == 1:
-            params.imageorientation = 1
-        elif self.Image_Orientation_comboBox.currentIndex() == 2:
-            params.imageorientation = 2
+        if self.Image_Orientation_comboBox.currentIndex() == 0: params.imageorientation = 0
+        elif self.Image_Orientation_comboBox.currentIndex() == 1: params.imageorientation = 1
+        elif self.Image_Orientation_comboBox.currentIndex() == 2: params.imageorientation = 2
             
         params.FOV = self.FOV_doubleSpinBox.value()
         params.slicethickness = self.Slice_Thickness_doubleSpinBox.value()
-        params.GROpretimescaler = self.GRO_Length_Scaler_doubleSpinBox.value()
         params.SPEsteps = self.SPEsteps_spinBox.value()
         
         if params.autograd == 1:
@@ -986,28 +888,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.radialanglestep = self.Radial_Angle_Step_spinBox.value()
         params.radialanglestepradmod100 = int((math.radians(params.radialanglestep) % (2*np.pi))*100)
         
-        if self.ln_kSpace_Magnitude_radioButton.isChecked(): params.lnkspacemag = 1
-        else: params.lnkspacemag = 0
-        
-        if self.RX1_radioButton.isChecked(): params.rx1 = 1
-        else: params.rx1 = 0
-        if self.RX2_radioButton.isChecked(): params.rx2 = 1
-        else: params.rx2 = 0
-        
-        if params.rx1 == 0 and params.rx2 == 0:
-            params.rxmode = 3
-            print('\033[1m' + 'No RX port selected!' + '\033[0m')
-        elif params.rx1 == 1 and params.rx2 == 0:
-            params.rxmode = 1
-        elif params.rx1 == 0 and params.rx2 == 1:
-            params.rxmode = 2
-        elif params.rx1 == 1 and params.rx2 == 1:
-            params.rxmode = 0
-            print('\033[1m' + 'Mixed signal!' + '\033[0m')
-        print('RX mode: ',params.rxmode)
-        
-        params.signalmask = self.SignalMask_doubleSpinBox.value()
-        
         params.saveFileParameter()
         
     def update_freqoffset(self):
@@ -1024,10 +904,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             
         elif params.autofreqoffset == 1:
             
-            if params.frequencyoffsetsign == 0:   
-                self.Frequency_Offset_spinBox.setValue(params.frequencyoffset)
-            elif params.frequencyoffsetsign == 1:   
-                self.Frequency_Offset_spinBox.setValue(-params.frequencyoffset)
+            if params.frequencyoffsetsign == 0: self.Frequency_Offset_spinBox.setValue(params.frequencyoffset)
+            elif params.frequencyoffsetsign == 1: self.Frequency_Offset_spinBox.setValue(-params.frequencyoffset)
         
     def update_gradients(self):
         
@@ -1066,6 +944,247 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             self.GSPEstep_spinBox.setValue(params.GSPEstep)
         
         
+class ConfigWindow(Config_Window_Form, Config_Window_Base):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(ConfigWindow, self).__init__(parent)
+        self.setupUi(self)
+        
+        self.load_params()
+        
+        self.ui = loadUi('ui/config.ui')
+        self.setWindowTitle('Config')
+        self.setGeometry(420, 40, 770, 670)
+        
+        #self.label_3.setToolTip('<img src="tooltip/test.png">')
+        self.Frequency_doubleSpinBox.setKeyboardTracking(False)
+        self.Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.label.setToolTip('Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
+        self.Center_pushButton.clicked.connect(lambda: self.frequency_center())
+        self.Center_pushButton.setToolTip('Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
+        self.auto_recenter_radioButton.toggled.connect(self.update_params)
+        self.auto_recenter_radioButton.setToolTip('A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
+        self.RF_Pulselength_spinBox.setKeyboardTracking(False)
+        self.RF_Pulselength_spinBox.valueChanged.connect(self.update_params)
+        self.label_2.setToolTip('The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
+        self.RF_Attenuation_doubleSpinBox.setKeyboardTracking(False)
+        self.RF_Attenuation_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.label_3.setToolTip('The attenuation of the OCRA1 RF attenuator.\nThis determinants the reference amplitude of the 90° and 180° pulse.')
+        self.Readout_Bandwidth_spinBox.setKeyboardTracking(False)
+        self.Readout_Bandwidth_spinBox.valueChanged.connect(self.update_params)
+        self.label_11.setToolTip('Scales the image in readout direction.\nThis happens after the reconstruction.\nLike a digital zoom. Standard is 1.')
+        self.Shim_X_spinBox.setKeyboardTracking(False)
+        self.Shim_X_spinBox.valueChanged.connect(self.update_params)
+        self.Shim_Y_spinBox.setKeyboardTracking(False)
+        self.Shim_Y_spinBox.valueChanged.connect(self.update_params)
+        self.Shim_Z_spinBox.setKeyboardTracking(False)
+        self.Shim_Z_spinBox.valueChanged.connect(self.update_params)
+        self.Shim_Z2_spinBox.setKeyboardTracking(False)
+        self.Shim_Z2_spinBox.valueChanged.connect(self.update_params)
+        self.Gradient_Scaling_X_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_Scaling_X_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.Gradient_Scaling_Y_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_Scaling_Y_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.Gradient_Scaling_Z_doubleSpinBox.setKeyboardTracking(False)
+        self.Gradient_Scaling_Z_doubleSpinBox.valueChanged.connect(self.update_params)
+        
+        self.Image_Filter_radioButton.toggled.connect(self.update_params)
+        self.Images_Plot_radioButton.toggled.connect(self.update_params)
+        
+        self.kspace_cut_circ_radioButton.toggled.connect(self.update_params)
+        self.kspace_cut_rec_radioButton.toggled.connect(self.update_params)
+        
+        self.kSpace_Cut_Center_radioButton.toggled.connect(self.update_params)
+        self.kSpace_Cut_Outside_radioButton.toggled.connect(self.update_params)
+        self.kSpace_Cut_Center_spinBox.setKeyboardTracking(False)
+        self.kSpace_Cut_Center_spinBox.valueChanged.connect(self.update_params)
+        self.kSpace_Cut_Outside_spinBox.setKeyboardTracking(False)
+        self.kSpace_Cut_Outside_spinBox.valueChanged.connect(self.update_params)
+        
+        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
+        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
+        
+        self.Undersampling_Time_comboBox.clear()
+        self.Undersampling_Time_comboBox.addItems(['2', '5', '10', '50'])
+        self.Undersampling_Time_comboBox.setCurrentIndex(0)
+        
+        self.Undersampling_Phase_comboBox.clear()
+        self.Undersampling_Phase_comboBox.addItems(['2', '4', '8'])
+        self.Undersampling_Phase_comboBox.setCurrentIndex(0)
+        
+        self.Undersampling_Time_radioButton.toggled.connect(self.update_params)
+        self.Undersampling_Phase_radioButton.toggled.connect(self.update_params)
+        
+        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
+        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
+        
+        self.GRO_Length_Scaler_doubleSpinBox.setKeyboardTracking(False)
+        self.GRO_Length_Scaler_doubleSpinBox.valueChanged.connect(self.update_params)
+        
+        self.ln_kSpace_Magnitude_radioButton.toggled.connect(self.update_params)
+        
+        self.AC_Apply_pushButton.clicked.connect(lambda: self.Set_AC_centerfrequency())
+        self.FA_Apply_pushButton.clicked.connect(lambda: self.Set_FA_RFattenution())
+        
+        self.RX1_radioButton.toggled.connect(self.update_params)
+        self.RX2_radioButton.toggled.connect(self.update_params)
+        
+        self.SignalMask_doubleSpinBox.setKeyboardTracking(False)
+        self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
+        
+        self.GUI_Light_radioButton.clicked.connect(self.update_light)
+        self.GUI_Dark_radioButton.clicked.connect(self.update_dark)
+        
+    def frequency_center(self):
+        params.frequency = params.centerfrequency
+        self.Frequency_doubleSpinBox.setValue(params.frequency)
+        print('Center Frequency applied!')
+        
+    def load_params(self):
+        self.Frequency_doubleSpinBox.setValue(params.frequency)
+        
+        if params.autorecenter == 1: self.auto_recenter_radioButton.setChecked(True)
+        
+        self.RF_Pulselength_spinBox.setValue(params.RFpulselength)
+        self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
+        self.Readout_Bandwidth_spinBox.setValue(params.ROBWscaler)
+        self.Shim_X_spinBox.setValue(params.grad[0])
+        self.Shim_Y_spinBox.setValue(params.grad[1])
+        self.Shim_Z_spinBox.setValue(params.grad[2])
+        self.Shim_Z2_spinBox.setValue(params.grad[3])
+        self.Gradient_Scaling_X_doubleSpinBox.setValue(params.gradsens[0])
+        self.Gradient_Scaling_Y_doubleSpinBox.setValue(params.gradsens[1])
+        self.Gradient_Scaling_Z_doubleSpinBox.setValue(params.gradsens[2])
+        
+        if params.imagplots == 1: self.Images_Plot_radioButton.setChecked(True)
+        if params.imagefilter == 1: self.Image_Filter_radioButton.setChecked(True)
+        
+        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
+        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
+        
+        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
+        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
+        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
+        self.kSpace_Cut_Outside_spinBox.setValue(params.cutoutsidevalue)
+        
+        if params.ustime == 1: self.Undersampling_Time_radioButton.setChecked(True)
+        if params.usphase == 1: self.Undersampling_Phase_radioButton.setChecked(True)
+        
+        self.GRO_Length_Scaler_doubleSpinBox.setValue(params.GROpretimescaler)
+        
+        if params.lnkspacemag == 1: self.ln_kSpace_Magnitude_radioButton.setChecked(True)
+        
+        if params.rx1 == 1: self.RX1_radioButton.setChecked(True)
+        if params.rx2 == 1: self.RX2_radioButton.setChecked(True)
+        
+        self.SignalMask_doubleSpinBox.setValue(params.signalmask)
+        
+        if params.GUItheme == 0: self.GUI_Light_radioButton.setChecked(True)
+        if params.GUItheme == 1: self.GUI_Dark_radioButton.setChecked(True)
+        
+    def update_params(self):
+        params.frequency = self.Frequency_doubleSpinBox.value()
+        if self.auto_recenter_radioButton.isChecked(): params.autorecenter = 1
+        else: params.autorecenter = 0
+        params.RFpulselength = (round(self.RF_Pulselength_spinBox.value()/10)*10)
+        params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
+        
+        if params.GSamplitude == 0: params.GSposttime =0
+        else: params.GSposttime = int((200*params.GSamplitude + 4*params.flippulselength*params.GSamplitude)/2-200*params.GSamplitude/2)/(params.GSamplitude/2)
+        
+        params.RFattenuation = self.RF_Attenuation_doubleSpinBox.value()
+        params.ROBWscaler = self.Readout_Bandwidth_spinBox.value()
+        params.grad[0] = self.Shim_X_spinBox.value()
+        params.grad[1] = self.Shim_Y_spinBox.value()
+        params.grad[2] = self.Shim_Z_spinBox.value()
+        params.grad[3] = self.Shim_Z2_spinBox.value()
+        params.gradsens[0] = self.Gradient_Scaling_X_doubleSpinBox.value()
+        params.gradsens[1] = self.Gradient_Scaling_Y_doubleSpinBox.value()
+        params.gradsens[2] = self.Gradient_Scaling_Z_doubleSpinBox.value()
+        
+        if self.Images_Plot_radioButton.isChecked(): params.imagplots = 1
+        else: params.imagplots = 0
+        if self.Image_Filter_radioButton.isChecked(): params.imagefilter = 1
+        else: params.imagefilter = 0
+        
+        if self.kspace_cut_circ_radioButton.isChecked(): params.cutcirc = 1
+        else: params.cutcirc = 0
+        if self.kspace_cut_rec_radioButton.isChecked(): params.cutrec = 1
+        else: params.cutrec = 0
+        
+        if self.kSpace_Cut_Center_radioButton.isChecked(): params.cutcenter = 1
+        else: params.cutcenter = 0
+        if self.kSpace_Cut_Outside_radioButton.isChecked(): params.cutoutside = 1
+        else: params.cutoutside = 0
+        params.cutcentervalue = self.kSpace_Cut_Center_spinBox.value()
+        params.cutoutsidevalue = self.kSpace_Cut_Outside_spinBox.value()
+        
+        if self.Undersampling_Time_radioButton.isChecked(): params.ustime = 1
+        else: params.ustime = 0
+        if self.Undersampling_Phase_radioButton.isChecked(): params.usphase = 1
+        else: params.usphase = 0
+        
+        if self.Undersampling_Time_comboBox.currentIndex() == 0:
+            params.ustimeidx = 2
+        elif self.Undersampling_Time_comboBox.currentIndex() == 1:
+            params.ustimeidx = 5
+        elif self.Undersampling_Time_comboBox.currentIndex() == 2:
+            params.ustimeidx = 10
+        elif self.Undersampling_Time_comboBox.currentIndex() == 3:
+            params.ustimeidx = 50
+        else: params.ustimeidx = 2
+            
+        if self.Undersampling_Phase_comboBox.currentIndex() == 0:
+            params.usphaseidx = 2
+        elif self.Undersampling_Phase_comboBox.currentIndex() == 1:
+            params.usphaseidx = 4
+        elif self.Undersampling_Phase_comboBox.currentIndex() == 2:
+            params.usphaseidx = 8
+        else:
+            params.usphaseidx = 2
+            
+        params.GROpretimescaler = self.GRO_Length_Scaler_doubleSpinBox.value()
+        
+        if self.ln_kSpace_Magnitude_radioButton.isChecked(): params.lnkspacemag = 1
+        else: params.lnkspacemag = 0
+        
+        if self.RX1_radioButton.isChecked(): params.rx1 = 1
+        else: params.rx1 = 0
+        if self.RX2_radioButton.isChecked(): params.rx2 = 1
+        else: params.rx2 = 0
+        
+        if params.rx1 == 0 and params.rx2 == 0:
+            params.rxmode = 3
+            print('\033[1m' + 'No RX port selected!' + '\033[0m')
+        elif params.rx1 == 1 and params.rx2 == 0:
+            params.rxmode = 1
+        elif params.rx1 == 0 and params.rx2 == 1:
+            params.rxmode = 2
+        elif params.rx1 == 1 and params.rx2 == 1:
+            params.rxmode = 0
+            print('\033[1m' + 'Mixed signal!' + '\033[0m')
+
+        params.signalmask = self.SignalMask_doubleSpinBox.value()
+        
+        params.saveFileParameter()
+        
+    def update_light(self):
+        if self.GUI_Light_radioButton.isChecked():
+            params.GUItheme = 0
+            self.GUI_Dark_radioButton.setChecked(False)
+            
+        params.saveFileParameter()
+            
+    def update_dark(self):
+        if self.GUI_Dark_radioButton.isChecked():
+            params.GUItheme = 1
+            self.GUI_Light_radioButton.setChecked(False)
+            
+        params.saveFileParameter()
+        
     def Set_AC_centerfrequency(self):
         params.frequency = params.Reffrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -1089,7 +1208,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
         self.ui = loadUi('ui/tools.ui')
         self.setWindowTitle('Tools')
-        self.setGeometry(10, 40, 800, 850)
+        self.setGeometry(420, 40, 800, 850)
         
         self.AC_Start_Frequency_doubleSpinBox.setKeyboardTracking(False)
         self.AC_Start_Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
@@ -1142,17 +1261,6 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.GradientScaling_ZMeasured_doubleSpinBox.setKeyboardTracking(False)
         self.GradientScaling_ZMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
         
-        self.Gradient_XScaling_doubleSpinBox.setKeyboardTracking(False)
-        self.Gradient_XScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
-        self.Gradient_YScaling_doubleSpinBox.setKeyboardTracking(False)
-        self.Gradient_YScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
-        self.Gradient_ZScaling_doubleSpinBox.setKeyboardTracking(False)
-        self.Gradient_ZScaling_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesmanual)
-        
-        self.Apply_XScaling_pushButton.clicked.connect(lambda: self.set_gradsens_X())
-        self.Apply_YScaling_pushButton.clicked.connect(lambda: self.set_gradsens_Y())
-        self.Apply_ZScaling_pushButton.clicked.connect(lambda: self.set_gradsens_Z())
-        
     def load_params(self):
         self.AC_Start_Frequency_doubleSpinBox.setValue(params.ACstart)
         self.AC_Stop_Frequency_doubleSpinBox.setValue(params.ACstop)
@@ -1178,9 +1286,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.GradientScaling_YMeasured_doubleSpinBox.setValue(params.gradmeasured[1])
         self.GradientScaling_ZMeasured_doubleSpinBox.setValue(params.gradmeasured[2])
         
-        self.Gradient_XScaling_doubleSpinBox.setValue(params.gradsenstool[0])
-        self.Gradient_YScaling_doubleSpinBox.setValue(params.gradsenstool[1])
-        self.Gradient_ZScaling_doubleSpinBox.setValue(params.gradsenstool[2])
+        self.Gradient_XScaling_lineEdit.setText(str(round(params.gradsenstool[0],1)))
+        self.Gradient_YScaling_lineEdit.setText(str(round(params.gradsenstool[1],1)))
+        self.Gradient_ZScaling_lineEdit.setText(str(round(params.gradsenstool[2],1)))
         
     def update_params(self):
         params.ACstart = self.AC_Start_Frequency_doubleSpinBox.value()
@@ -1217,40 +1325,11 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.gradsenstool[1] = params.gradmeasured[1]/params.gradnominal[1] * params.gradsens[1]
         params.gradsenstool[2] = params.gradmeasured[2]/params.gradnominal[2] * params.gradsens[2]
 
-        self.Gradient_XScaling_doubleSpinBox.setValue(params.gradsenstool[0])
-        self.Gradient_YScaling_doubleSpinBox.setValue(params.gradsenstool[1])
-        self.Gradient_ZScaling_doubleSpinBox.setValue(params.gradsenstool[2])
+        self.Gradient_XScaling_lineEdit.setText(str(round(params.gradsenstool[0],1)))
+        self.Gradient_YScaling_lineEdit.setText(str(round(params.gradsenstool[1],1)))
+        self.Gradient_ZScaling_lineEdit.setText(str(round(params.gradsenstool[2],1)))
         
         params.saveFileParameter()
-        
-    def update_gradsenstoolvaluesmanual(self):
-        params.gradsenstool[0] = self.Gradient_XScaling_doubleSpinBox.value()
-        params.gradsenstool[1] = self.Gradient_YScaling_doubleSpinBox.value()
-        params.gradsenstool[2] = self.Gradient_ZScaling_doubleSpinBox.value()
-        
-        params.saveFileParameter()
-        
-    def set_gradsens_X(self):
-        print('Set X gradient sensitivity from ' + str(params.gradsens[0]) + 'mT/m/A to ' + str(params.gradsenstool[0]) + 'mT/m/A!')
-        
-        params.gradsens[0] = params.gradsenstool[0]
-        
-        params.saveFileParameter()
-        
-    def set_gradsens_Y(self):
-        print('Set Y gradient sensitivity from ' + str(params.gradsens[1]) + 'mT/m/A to ' + str(params.gradsenstool[1]) + 'mT/m/A!')
-        
-        params.gradsens[1] = params.gradsenstool[1]
-        
-        params.saveFileParameter()
-        
-    def set_gradsens_Z(self):
-        print('Set Z gradient sensitivity from ' + str(params.gradsens[2]) + 'mT/m/A to ' + str(params.gradsenstool[2]) + 'mT/m/A!')
-        
-        params.gradsens[2] = params.gradsenstool[2]
-        
-        params.saveFileParameter()
-        
         
     def Autocentertool(self):
         if params.connectionmode == 1:
@@ -1264,13 +1343,22 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-            self.ax.plot(params.ACvalues[0,:], params.ACvalues[1,:], 'o', color='#000000')
+            self.ax.plot(np.transpose(params.ACvalues[0,:]), np.transpose(params.ACvalues[1,:]), 'o', color='#000000')
             self.ax.set_xlabel('Frequency [MHz]')
             self.ax.set_ylabel('Signal')
             self.ax.set_title('Autocenter Signals')
+            self.major_ticks = (params.ACstart, params.Reffrequency, params.ACstop)
+            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1)
+            self.ax.set_xticks(self.major_ticks)
+            self.ax.set_xticks(self.minor_ticks, minor=True)
+            self.ax.grid(which='major', color='#888888', linestyle='-')
+            self.ax.grid(which='minor', color='#888888', linestyle=':')
+            self.ax.grid(which='both', visible = True)
+            self.ax.set_xlim((params.ACstart, params.ACstop))
+            self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.ACvalues[1,:]))))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
-            self.fig_canvas.setGeometry(820, 40, 800, 750)
+            self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
             self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
@@ -1289,13 +1377,23 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-            self.ax.plot(params.FAvalues[0,:], params.FAvalues[1,:], 'o-', color='#000000')
+            self.ax.plot(np.transpose(params.FAvalues[0,:]), np.transpose(params.FAvalues[1,:]), 'o-', color='#000000')
             self.ax.set_xlabel('Attenuation [dB]')
             self.ax.set_ylabel('Signal')
             self.ax.set_title('Flipangle Signals')
+            
+            self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), (math.ceil(params.FAstop)-math.floor(params.FAstart))+1)
+            self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop)-math.floor(params.FAstart)))*4+1)
+            self.ax.set_xticks(self.major_ticks)
+            self.ax.set_xticks(self.minor_ticks, minor=True)
+            self.ax.grid(which='major', color='#888888', linestyle='-')
+            self.ax.grid(which='minor', color='#888888', linestyle=':')
+            self.ax.grid(which='both', visible = True)
+            self.ax.set_xlim((math.floor(params.FAstart), math.ceil(params.FAstop)))
+            self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.FAvalues[1,:]))))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
-            self.fig_canvas.setGeometry(820, 40, 800, 750)
+            self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
             self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
@@ -1321,9 +1419,16 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.ax.set_ylabel('Signal')
                 self.ax.legend(['X','Y','Z','Z²'])
                 self.ax.set_title('Shim Signals')
+                self.major_ticks = np.linspace(math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10, (math.ceil(params.ToolShimStop/10) - math.floor(params.ToolShimStart/10))+1)
+                self.ax.set_xticks(self.major_ticks)
+                self.ax.grid(which='major', color='#888888', linestyle='-')
+                self.ax.grid(which='major', visible = True)
+                
+                self.ax.set_xlim((math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10))
+                self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.STvalues[1:,:]))))
                 self.fig_canvas.draw()
                 self.fig_canvas.setWindowTitle('Tool Plot')
-                self.fig_canvas.setGeometry(820, 40, 800, 750)
+                self.fig_canvas.setGeometry(420, 40, 800, 750)
                 self.fig_canvas.show()
         
                 if params.ToolShimChannel[0] == 1:
@@ -1358,23 +1463,23 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             #self.IMag_canvas.show()
             
             self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
             self.IPha_canvas.draw()
             self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.setGeometry(420, 40, 400, 355)
             self.IPha_canvas.show()
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
             self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
             self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
             self.FMB0_canvas.show()
 
         else: print('Not allowed in offline mode!')
@@ -1395,23 +1500,23 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             #self.IMag_canvas.show()
             
             self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
             self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
             self.IPha_ax.set_title('Phase Image')
             self.IPha_canvas.draw()
             self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(820, 40, 400, 355)
+            self.IPha_canvas.setGeometry(420, 40, 400, 355)
             self.IPha_canvas.show()
             
             self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); self.FMB0_ax.axis(frameon=False)
+            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
             self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
             self.FMB0_ax.set_title('\u0394 B0 Map')
             self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
             self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
             self.FMB0_canvas.draw()
             self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
             self.FMB0_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1423,25 +1528,25 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.FieldMapB1()
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
             self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.setGeometry(420, 40, 400, 355)
             self.IMag_canvas.show()
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
             self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
             self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
             self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1453,25 +1558,25 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.FieldMapB1Slice()
             
             self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
             self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 400, 355)
+            self.IMag_canvas.setGeometry(420, 40, 400, 355)
             self.IMag_canvas.show()
             
             self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); self.FMB1_ax.axis(frameon=False)
+            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
             self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
             self.FMB1_ax.set_title('Flip Angle Map')
             self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
             self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
             self.FMB1_canvas.draw()
             self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(1230, 40, 400, 355)
+            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
             self.FMB1_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1496,8 +1601,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
             self.IMag_ax.set_yticks(self.major_ticks)
             self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
             self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.IMag_ax.grid(which='both', visible = True)
             
             if params.imageorientation == 0:
                 self.IMag_ax.set_xlabel('X in mm')
@@ -1511,7 +1617,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.setGeometry(420, 40, 800, 750)
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1536,8 +1642,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
             self.IMag_ax.set_yticks(self.major_ticks)
             self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='--')
+            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
             self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+            self.IMag_ax.grid(which='both', visible = True)
             
             if params.imageorientation == 0:
                 self.IMag_ax.set_xlabel('X in mm')
@@ -1551,7 +1658,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 
             self.IMag_canvas.draw()
             self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(820, 40, 800, 750)
+            self.IMag_canvas.setGeometry(420, 40, 800, 750)
             self.IMag_canvas.show()
             
         else: print('Not allowed in offline mode!')
@@ -1685,8 +1792,60 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.Protocol_Table_tableWidget.setColumnCount(self.protocol.shape[1])
         self.Protocol_Table_tableWidget.setHorizontalHeaderLabels(('Mode','Sequence'))
         for n in range(self.protocol.shape[0]-1):
-            for m in range(self.protocol.shape[1]):
-                self.Protocol_Table_tableWidget.setItem(n,m,QTableWidgetItem(str(int(self.protocol[n,m]))))
+            
+            if self.protocol[n,0] == 0:
+                self.Prot_Table_GUImode = 'Spectroscopy'
+                self.Prot_Table_sequence = ('Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
+                                            , 'Inversion Recovery (SE)','Saturation Inversion Recovery (FID)','Saturation Inversion Recovery (SE)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                            , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                            , 'Inversion Recovery (SE, Slice)','Saturation Inversion Recovery (FID, Slice)','Saturation Inversion Recovery (SE, Slice)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                            , 'RF Testsequence', 'Gradient Testsequence')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 1:
+                self.Prot_Table_GUImode = 'Imaging'
+                self.Prot_Table_sequence = ('2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
+                                            , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                            , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                            , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                            , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                            , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                            , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                            , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                            , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 2:
+                self.Prot_Table_GUImode = 'T1 Measurement'
+                self.Prot_Table_sequence = ('Inversion Recovery (FID)', 'Inversion Recovery (SE)','Inversion Recovery (Slice, FID)' \
+                                            , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])])) 
+            elif self.protocol[n,0] == 3:
+                self.Prot_Table_GUImode = 'T2 Measurement'
+                self.Prot_Table_sequence = ('Spin Echo', 'Saturation Inversion Recovery (FID)','Spin Echo (Slice)' \
+                                            , 'Saturation Inversion Recovery (Slice, FID)','2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
+                                            ,'2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])]))   
+            elif self.protocol[n,0] == 4:
+                self.Prot_Table_GUImode = 'Projections'
+                self.Prot_Table_sequence = ('Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
+                                            , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                            , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)')
+                self.Protocol_Table_tableWidget.setItem(n,0,QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n,1,QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n,1])]))
+                    
+        self.Protocol_Table_tableWidget.resizeColumnToContents(0)
+        self.Protocol_Table_tableWidget.resizeColumnToContents(1)
+                    
         self.Protocol_Table_tableWidget.show()
         
     def protocol_save_protocol(self):
@@ -1699,22 +1858,32 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.protocol_plot_table()
         
     def protocol_load_protocol(self):
-        self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
-        self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
-        self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
-        print(self.protocol)
-        print(self.protocol.shape)
-        
-        self.protocol_plot_table()
+        if os.path.isfile(self.prot_datapath + '.txt') == True:
+            self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
+            self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0]+1, self.protocoltemp.shape[1])))
+            self.protocol[0:self.protocoltemp.shape[0],:] = self.protocoltemp[:,:]
+            print(self.protocol)
+            print(self.protocol.shape)
+            self.protocol_plot_table()
+        else: print('No protocol file!!')
         
     def protocol_execute_protocol(self):
         print('WIP')
+        
+        try:
+            shutil.copyfile('parameters.pkl',self.prot_datapath + '_parameters_temp.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+        
         for n in range(self.protocol.shape[0]-1):
-            print(n)
+            print('Protocol task: ', n)
             try:
                 shutil.copyfile(self.prot_datapath + '_' + str(n+1) + '_parameters.pkl','parameters.pkl')
                 time.sleep(0.001)
-            except: print('No parameter file.')
+            except: print('No parameter file!!')
             
             params.loadParam()
             
@@ -1723,6 +1892,15 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             self.protocol_acquire()
             
             time.sleep(params.TR/1000)
+            
+        params.datapath = self.datapathtemp
+        
+        try:
+            shutil.copyfile(self.prot_datapath + '_parameters_temp.pkl', 'parameters.pkl')
+            time.sleep(0.001)
+        except: print('No parameter file.')
+        
+        params.loadParam()
             
     def protocol_acquire(self):
         if params.connectionmode == 1:
@@ -1775,9 +1953,6 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
@@ -1795,9 +1970,6 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                     elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
@@ -1816,11 +1988,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
-                        #seq.sequence_upload()
+                        seq.sequence_upload()
                     elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                          or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                          or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
@@ -1838,16 +2007,11 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.frequency = params.centerfrequency
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
+            params.save_header_file()
         else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
 
 
@@ -1863,7 +2027,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
         self.ui = loadUi('ui/plotview.ui')
         self.setWindowTitle('Plotvalues - ' + params.datapath + '.txt')
-        self.setGeometry(10, 490, 400, 400)
+        self.setGeometry(10, 490, 400, 500)
           
         if params.GUImode == 0:
             self.spectrum_plot_init()
@@ -1888,11 +2052,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.T2_imaging_plot_init()
             
         elif params.GUImode == 4:
-            if params.sequence == 0 or params.sequence == 1:
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5:
                 params.frequencyplotrange = 250000
                 self.Frequncyaxisrange_spinBox.setValue(params.frequencyplotrange)
                 self.projection_plot_init()
-            elif params.sequence == 2 or params.sequence == 3:
+            elif params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7:
                 params.frequencyplotrange = 250000
                 self.Frequncyaxisrange_spinBox.setValue(params.frequencyplotrange)
                 self.spectrum_plot_init()
@@ -1935,8 +2099,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         params.saveFileParameter()
         
         if params.GUImode == 0:
+            self.fig_canvas.hide()
             self.spectrum_plot_init()
         elif params.GUImode == 4:
+            self.fig_canvas.hide()
             self.projection_plot_init()
             
     def spectrum_plot_init(self):
@@ -1948,16 +2114,33 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax2 = self.fig.add_subplot(2,1,2)
         
         self.ax1.plot(params.freqencyaxis, params.spectrumfft)
-        self.ax1.set_xlim([-params.frequencyplotrange/2,params.frequencyplotrange/2])
+        self.ax1.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
+        self.ax1.set_ylim([0,1.1*np.max(params.spectrumfft)])
         self.ax1.set_title('Spectrum')
         self.ax1.set_ylabel('RX Signal [arb.]')
-        self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')                         
+        self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')
+        self.major_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 11)
+        self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
+        self.ax1.set_xticks(self.major_ticks)
+        self.ax1.set_xticks(self.minor_ticks, minor=True)
+        self.ax1.grid(which='major', color='#888888', linestyle='-')
+        self.ax1.grid(which='minor', color='#888888', linestyle=':')
+        self.ax1.grid(which='both', visible = True)
+        
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.ax2.plot(params.timeaxis, params.real, label='Real')
         self.ax2.plot(params.timeaxis, params.imag, label='Imaginary')
+        self.ax2.set_xlim([0,params.timeaxis[int(params.timeaxis.shape[0]-1)]])
         self.ax2.set_title('Signal')
         self.ax2.set_ylabel('RX Signal [mV]')
         self.ax2.set_xlabel('time [ms]')
+        self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])+1)
+        self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
+        self.ax2.set_xticks(self.major_ticks)
+        self.ax2.set_xticks(self.minor_ticks, minor=True)
+        self.ax2.grid(which='major', color='#888888', linestyle='-')
+        self.ax2.grid(which='minor', color='#888888', linestyle=':')
+        self.ax2.grid(which='both', visible = True)
         self.ax2.legend()
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         
@@ -1973,36 +2156,66 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         if params.projx.shape[0] == params.freqencyaxis.shape[0]:
             self.ax1 = self.fig.add_subplot(6,1,1)
             self.ax2 = self.fig.add_subplot(6,1,2)
-            
             self.ax1.plot(params.freqencyaxis, params.projx[:,3])
-            self.ax1.set_xlim([-params.frequencyplotrange/2,params.frequencyplotrange/2])
+            self.ax1.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
+            self.ax1.set_ylim([0,1.1*np.max(params.projx[:,3])])
             self.ax1.set_title('X - Spectrum')
             self.ax1.set_ylabel('RX Signal [arb.]')
-            self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')                            
+            self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')
+            self.major_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 11)
+            self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
+            self.ax1.set_xticks(self.major_ticks)
+            self.ax1.set_xticks(self.minor_ticks, minor=True)
+            self.ax1.grid(which='major', color='#888888', linestyle='-')
+            self.ax1.grid(which='minor', color='#888888', linestyle=':')
+            self.ax1.grid(which='both', visible = True)
             self.ax2.plot(params.timeaxis, params.projx[:,0], label='Magnitude')
             self.ax2.plot(params.timeaxis, params.projx[:,1], label='Real')
             self.ax2.plot(params.timeaxis, params.projx[:,2], label='Imaginary')
+            self.ax2.set_xlim([0,params.timeaxis[int(params.timeaxis.shape[0]-1)]])
             self.ax2.set_title('X - Signal')
             self.ax2.set_ylabel('RX Signal [mV]')
             self.ax2.set_xlabel('time [ms]')
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])+1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
+            self.ax2.set_xticks(self.major_ticks)
+            self.ax2.set_xticks(self.minor_ticks, minor=True)
+            self.ax2.grid(which='major', color='#888888', linestyle='-')
+            self.ax2.grid(which='minor', color='#888888', linestyle=':')
+            self.ax2.grid(which='both', visible = True)
             self.ax2.legend()
             self.ax2.plot(params.timeaxis, params.projx[:,0], label='Magnitude')
             
         if params.projy.shape[0] == params.freqencyaxis.shape[0]:
             self.ax3 = self.fig.add_subplot(6,1,3)
             self.ax4 = self.fig.add_subplot(6,1,4)
-            
             self.ax3.plot(params.freqencyaxis, params.projy[:,3])
-            self.ax3.set_xlim([-params.frequencyplotrange/2,params.frequencyplotrange/2])
+            self.ax3.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
+            self.ax3.set_ylim([0,1.1*np.max(params.projy[:,3])])
             self.ax3.set_title('Y - Spectrum')
             self.ax3.set_ylabel('RX Signal [arb.]')
-            self.ax3.set_xlabel('$\Delta$ Frequency [Hz]')                            
+            self.ax3.set_xlabel('$\Delta$ Frequency [Hz]')
+            self.major_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 11)
+            self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
+            self.ax3.set_xticks(self.major_ticks)
+            self.ax3.set_xticks(self.minor_ticks, minor=True)
+            self.ax3.grid(which='major', color='#888888', linestyle='-')
+            self.ax3.grid(which='minor', color='#888888', linestyle=':')
+            self.ax3.grid(which='both', visible = True)
             self.ax4.plot(params.timeaxis, params.projy[:,0], label='Magnitude')
             self.ax4.plot(params.timeaxis, params.projy[:,1], label='Real')
             self.ax4.plot(params.timeaxis, params.projy[:,2], label='Imaginary')
+            self.ax4.set_xlim([0,params.timeaxis[int(params.timeaxis.shape[0]-1)]])
             self.ax4.set_title('Y - Signal')
             self.ax4.set_ylabel('RX Signal [mV]')
             self.ax4.set_xlabel('time [ms]')
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])+1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
+            self.ax4.set_xticks(self.major_ticks)
+            self.ax4.set_xticks(self.minor_ticks, minor=True)
+            self.ax4.grid(which='major', color='#888888', linestyle='-')
+            self.ax4.grid(which='minor', color='#888888', linestyle=':')
+            self.ax4.grid(which='both', visible = True)
             self.ax4.legend()
             self.ax4.plot(params.timeaxis, params.projy[:,0], label='Magnitude')
         
@@ -2010,21 +2223,37 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax5 = self.fig.add_subplot(6,1,5)
             self.ax6 = self.fig.add_subplot(6,1,6)
             self.ax5.plot(params.freqencyaxis, params.projz[:,3])
-            self.ax5.set_xlim([-params.frequencyplotrange/2,params.frequencyplotrange/2])
+            self.ax5.set_xlim([-params.frequencyplotrange/2, params.frequencyplotrange/2])
+            self.ax5.set_ylim([0,1.1*np.max(params.projz[:,3])])
             self.ax5.set_title('Z - Spectrum')
             self.ax5.set_ylabel('RX Signal [arb.]')
-            self.ax5.set_xlabel('$\Delta$ Frequency [Hz]')                            
+            self.ax5.set_xlabel('$\Delta$ Frequency [Hz]')
+            self.major_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 11)
+            self.minor_ticks = np.linspace(-params.frequencyplotrange/2, params.frequencyplotrange/2, 51)
+            self.ax5.set_xticks(self.major_ticks)
+            self.ax5.set_xticks(self.minor_ticks, minor=True)
+            self.ax5.grid(which='major', color='#888888', linestyle='-')
+            self.ax5.grid(which='minor', color='#888888', linestyle=':')
+            self.ax5.grid(which='both', visible = True)
             self.ax6.plot(params.timeaxis, params.projz[:,0], label='Magnitude')
             self.ax6.plot(params.timeaxis, params.projz[:,1], label='Real')
             self.ax6.plot(params.timeaxis, params.projz[:,2], label='Imaginary')
+            self.ax6.set_xlim([0,params.timeaxis[int(params.timeaxis.shape[0]-1)]])
             self.ax6.set_title('Z - Signal')
             self.ax6.set_ylabel('RX Signal [mV]')
             self.ax6.set_xlabel('time [ms]')
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])+1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0]-1)])), int(params.timeaxis[int(params.timeaxis.shape[0]-1)])*5+1)
+            self.ax6.set_xticks(self.major_ticks)
+            self.ax6.set_xticks(self.minor_ticks, minor=True)
+            self.ax6.grid(which='major', color='#888888', linestyle='-')
+            self.ax6.grid(which='minor', color='#888888', linestyle=':')
+            self.ax6.grid(which='both', visible = True)
             self.ax6.legend()
             self.ax6.plot(params.timeaxis, params.projz[:,0], label='Magnitude')
         
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-        self.fig_canvas.setGeometry(420, 40, 600, 750)
+        self.fig_canvas.setGeometry(420, 40, 600, 950)
         self.fig_canvas.show()
         
                     
@@ -2037,8 +2266,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_fig.set_facecolor("None")
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0]/2-params.nPE/2):int(self.projzx.shape[0]/2+params.nPE/2),int(self.projzx.shape[1]/2-params.nPE/2):int(self.projzx.shape[1]/2+params.nPE/2)], cmap='gray'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            if params.imagefilter == 1:self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0]/2-params.nPE/2):int(self.projzx.shape[0]/2+params.nPE/2),int(self.projzx.shape[1]/2-params.nPE/2):int(self.projzx.shape[1]/2+params.nPE/2)], interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0]/2-params.nPE/2):int(self.projzx.shape[0]/2+params.nPE/2),int(self.projzx.shape[1]/2-params.nPE/2):int(self.projzx.shape[1]/2+params.nPE/2)], cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
             
             self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
@@ -2056,7 +2287,16 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T1xvalues, params.T1regyvalues1, color='#00BB00', label = 'Fit')
         self.ax.set_xlabel('TI')
         self.ax.set_ylabel('Signal')
-        self.ax.legend()
+        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)+1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/200)+1)
+        self.ax.set_xticks(self.major_ticks)
+        self.ax.set_xticks(self.minor_ticks, minor=True)
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
+        self.ax.set_xlim((0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000))
+        self.ax.set_ylim(0, 1.1*np.max(params.T1yvalues1))
+        self.ax.legend(loc = 'lower right')
         self.ax.set_title('T1 = ' + str(params.T1) + 'ms, r = '+ str(round(params.T1linregres.rvalue,2)))
 
         self.fig_canvas1.setWindowTitle('Plot - ' + params.datapath + '.txt')
@@ -2073,6 +2313,14 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T1xvalues, params.T1regyvalues2, color='#00BB00', label = 'Fit')
         self.ax.set_xlabel('TI')
         self.ax.set_ylabel('ln(Signal_max - Signal)')
+        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)+1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/200)+1)
+        self.ax.set_xticks(self.major_ticks)
+        self.ax.set_xticks(self.minor_ticks, minor=True)
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
+        self.ax.set_xlim((0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0]-1)]/1000)*1000))
         self.ax.legend()
         self.ax.set_title('T1 = ' + str(params.T1) + 'ms, r = '+ str(round(params.T1linregres.rvalue,2)))
         
@@ -2082,7 +2330,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def T1_imaging_plot_init(self):
         self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
-        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], interpolation='gaussian', cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T1imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
@@ -2108,6 +2356,15 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T2xvalues, params.T2regyvalues, color='#00BB00', label = 'Fit')
         self.ax.set_xlabel('TE')
         self.ax.set_ylabel('ln(Signal)')
+        self.major_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)+1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)*1000, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/200)+1)
+        self.ax.set_xticks(self.major_ticks)
+        self.ax.set_xticks(self.minor_ticks, minor=True)
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
+        self.ax.set_xlim((0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0]-1)]/1000)*1000))
+        self.ax.set_ylim(0, 1.1*np.max(params.T2yvalues))
         self.ax.legend()
         self.ax.set_title('T2 = ' + str(params.T2) + 'ms, r = '+ str(round(params.T2linregres.rvalue,2)))
         
@@ -2117,7 +2374,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def T2_imaging_plot_init(self):
         self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
-        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
+        self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T2img_mag[0,:,:], interpolation='gaussian', cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T2imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
@@ -2139,10 +2396,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
             self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -2181,10 +2438,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
             
             gs = GridSpec(2, 2, figure=self.all_fig)
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[0,1]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[1,0]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[1,1]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[0,1]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[1,0]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[1,1]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -2211,10 +2468,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             
         gs = GridSpec(4, params.img_mag.shape[0], figure=self.all_fig)
         for n in range(params.img_mag.shape[0]):
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,n]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[1,n]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[2,n]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[3,n]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,n]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[1,n]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[2,n]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[3,n]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag[n,:,:], interpolation='gaussian', cmap='viridis')
             else: self.IMag_ax.imshow(params.img_mag[n,:,:], cmap='viridis')
@@ -2244,12 +2501,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
             self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
             
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IDiff_ax = self.IDiff_fig.add_subplot(111); self.IDiff_ax.grid(False); self.IDiff_ax.axis(frameon=False)
-            self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IDiff_ax = self.IDiff_fig.add_subplot(111); self.IDiff_ax.grid(False); #self.IDiff_ax.axis(frameon=False)
+            self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.kMag_fig.add_subplot(111); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.kPha_fig.add_subplot(111); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
@@ -2309,12 +2566,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
             
             gs = GridSpec(2, 3, figure=self.all_fig)
-            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            self.IDiff_ax = self.all_fig.add_subplot(gs[0,1]); self.IDiff_ax.grid(False); self.IDiff_ax.axis(frameon=False)
-            self.IComb_ax = self.all_fig.add_subplot(gs[0,2]); self.IComb_ax.grid(False); self.IComb_ax.axis(frameon=False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[1,0]); self.IPha_ax.grid(False); self.IPha_ax.axis(frameon=False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[1,1]); self.kMag_ax.grid(False); self.kMag_ax.axis(frameon=False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[1,2]); self.kPha_ax.grid(False); self.kPha_ax.axis(frameon=False)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IDiff_ax = self.all_fig.add_subplot(gs[0,1]); self.IDiff_ax.grid(False); #self.IDiff_ax.axis(frameon=False)
+            self.IComb_ax = self.all_fig.add_subplot(gs[0,2]); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[1,0]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            self.kMag_ax = self.all_fig.add_subplot(gs[1,1]); self.kMag_ax.grid(False); #self.kMag_ax.axis(frameon=False)
+            self.kPha_ax = self.all_fig.add_subplot(gs[1,2]); self.kPha_ax.grid(False); #self.kPha_ax.axis(frameon=False)
             
             if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='gray')
             else: self.IMag_ax.imshow(params.img_mag, cmap='gray')
@@ -2449,7 +2706,40 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         ani = animation.FuncAnimation(fig, updatefig, frames = params.kspace.shape[0], interval = params.animationstep, blit=True)
         plt.show()
         
+class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
+
+    connected = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(SARMonitorWindow, self).__init__(parent)
+        self.setupUi(self)
         
+        self.load_params()
+        
+        self.ui = loadUi('ui/sar.ui')
+        self.setWindowTitle('SAR Monitor')
+        self.setGeometry(420, 40, 400, 250)
+        
+        self.SAR_Enable_radioButton.toggled.connect(self.update_params)
+        self.SAR_Limit_doubleSpinBox.setKeyboardTracking(False)
+        self.SAR_Limit_doubleSpinBox.valueChanged.connect(self.update_params) 
+        
+    def load_params(self):
+        if params.SAR_enable == 1: self.SAR_Enable_radioButton.setChecked(True)
+        
+        self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
+        
+        if params.SAR_status == 1: self.SAR_Status_lineEdit.setText('Communication')
+        elif params.SAR_status == 2: self.SAR_Status_lineEdit.setText('Sampling')
+        else: self.SAR_Status_lineEdit.setText('Error')
+            
+    def update_params(self):
+        if self.SAR_Enable_radioButton.isChecked(): params.SAR_enable = 1
+        else: params.SAR_enable = 0
+        
+        params.SAR_limit = self.SAR_Limit_doubleSpinBox.value()
+        
+        params.saveFileParameter()
         
 
 class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
