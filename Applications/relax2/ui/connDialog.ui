@@ -22,6 +22,12 @@
     <height>250</height>
    </size>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>500</width>
+    <height>250</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>

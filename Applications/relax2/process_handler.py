@@ -484,7 +484,7 @@ class process:
         
         self.img_noisecut = np.matrix(np.zeros((params.img_mag.shape[0],params.img_mag.shape[1])))
         self.img_noisecut[:,:] = params.img_mag[:,:]
-        self.img_noisecut[self.img_noisecut >= self.img_max/2] = np.nan
+        self.img_noisecut[self.img_noisecut >= self.img_max * params.signalmask] = np.nan
         params.noise = round(np.mean(self.img_noisecut[np.isnan(self.img_noisecut) == False]), 3)
         print("Noise: ", params.noise)
         
@@ -1108,10 +1108,10 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.IR_FID_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_FID()
@@ -1124,6 +1124,7 @@ class process:
         params.T1values[1,:] = self.T1peakvalues
         
         params.TI = self.TItemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps,2)))
         self.datatxt1 = np.transpose(params.T1values)
@@ -1154,10 +1155,10 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.IR_SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1170,6 +1171,7 @@ class process:
         params.T1values[1,:] = self.T1peakvalues
         
         params.TI = self.TItemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps,2)))
         self.datatxt1 = np.transpose(params.T1values)
@@ -1200,10 +1202,10 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.IR_FID_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_FID_Gs()
@@ -1216,6 +1218,7 @@ class process:
         params.T1values[1,:] = self.T1peakvalues
         
         params.TI = self.TItemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps,2)))
         self.datatxt1 = np.transpose(params.T1values)
@@ -1246,10 +1249,10 @@ class process:
             print(n+1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n],1)
             params.TI = self.T1steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.IR_SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
@@ -1262,6 +1265,7 @@ class process:
         params.T1values[1,:] = self.T1peakvalues
         
         params.TI = self.TItemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps,2)))
         self.datatxt1 = np.transpose(params.T1values)
@@ -1283,7 +1287,7 @@ class process:
         
         self.minindex = np.argmin(params.T1yvalues1)
         if self.minindex >=1:
-            params.T1yvalues2[0:self.minindex-1] = -params.T1yvalues1[0:self.minindex-1]
+            params.T1yvalues2[0:self.minindex] = -params.T1yvalues1[0:self.minindex]
         self.T1ymax = np.max(params.T1yvalues2)
 
         params.T1yvalues2[:] = np.log(self.T1ymax - params.T1yvalues2)
@@ -1292,9 +1296,8 @@ class process:
         params.T1linregres = linregress(params.T1xvalues[np.isnan(params.T1yvalues2) == False], params.T1yvalues2[np.isnan(params.T1yvalues2) == False])
         params.T1regyvalues2 = params.T1linregres.slope * params.T1xvalues + params.T1linregres.intercept
         params.T1 = round(-(1/params.T1linregres.slope),2)
-        params.T1regyvalues1 = abs(self.T1ymax * (1-2*np.exp(-(params.T1xvalues/params.T1))))
-        
-        print(params.T1linregres)
+        params.T1regyvalues1 = abs(self.T1ymax - np.exp(params.T1regyvalues2))
+
         print('T1 calculated!')
         
     def T1measurement_Image_IR_GRE(self):
@@ -1555,10 +1558,10 @@ class process:
             print(n+1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n],1)
             params.TE = self.T2steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1571,6 +1574,7 @@ class process:
         params.T2values[1,:] = self.T2peakvalues
         
         params.TE = self.TEtemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps,2)))
         self.datatxt1 = np.transpose(params.T2values)
@@ -1601,10 +1605,10 @@ class process:
             print(n+1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n],1)
             params.TE = self.T2steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.SIR_FID_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1617,6 +1621,7 @@ class process:
         params.T2values[1,:] = self.T2peakvalues
         
         params.TE = self.TEtemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps,2)))
         self.datatxt1 = np.transpose(params.T2values)
@@ -1647,10 +1652,10 @@ class process:
             print(n+1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n],1)
             params.TE = self.T2steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
@@ -1663,6 +1668,7 @@ class process:
         params.T2values[1,:] = self.T2peakvalues
         
         params.TE = self.TEtemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps,2)))
         self.datatxt1 = np.transpose(params.T2values)
@@ -1693,10 +1699,10 @@ class process:
             print(n+1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n],1)
             params.TE = self.T2steps[n]
-            if abs(params.centerfrequency-params.frequency) < 0.0005:
+            if params.SNR >= 100:
                 params.frequency = params.centerfrequency
-                print('Autorecenter to:', params.frequency)
-            params.saveFileParameter()
+                print('Recenter to: ', params.frequency)
+                params.saveFileParameter()
             seq.SIR_FID_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
@@ -1709,6 +1715,7 @@ class process:
         params.T2values[1,:] = self.T2peakvalues
         
         params.TE = self.TEtemp
+        params.saveFileParameter()
         
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps,2)))
         self.datatxt1 = np.transpose(params.T2values)
