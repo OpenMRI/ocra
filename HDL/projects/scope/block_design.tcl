@@ -2,6 +2,10 @@ global board_name
 global project_name
 
 set ps_preset boards/${board_name}/ps_${project_name}.xml
+set pl_param_fd [open boards/${board_name}/pl_${project_name}.json "r"]
+set pl_param_str [read $pl_param_fd]
+close $pl_param_fd
+set pl_param_dict [json::json2dict $pl_param_str]
 
 # Create processing_system7
 cell xilinx.com:ip:processing_system7:5.5 ps_0 {
@@ -27,9 +31,8 @@ cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N] [get_bd_pins rst_0/ext_reset_in]
 connect_bd_net [get_bd_pins ps_0/FCLK_CLK0]     [get_bd_pins rst_0/slowest_sync_clk]
 
-# Create clk_wiz
 cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
-  PRIMITIVE PLL
+  PRIMITIVE MMCM
   PRIM_IN_FREQ.VALUE_SRC USER
   PRIM_IN_FREQ 125.0
   PRIM_SOURCE Differential_clock_capable_pin
@@ -44,15 +47,40 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_n adc_clk_n_i
 }
 
+if {[dict get $pl_param_dict use_sata_clock] == "TRUE"} {
+  cell xilinx.com:ip:clk_wiz:6.0 pll_fclk_0 {
+    PRIMITIVE PLL
+    PRIM_IN_FREQ.VALUE_SRC USER
+    PRIM_IN_FREQ 125.0
+    PRIM_SOURCE Differential_clock_capable_pin
+    CLKOUT1_USED true
+    CLKOUT1_REQUESTED_OUT_FREQ 125.0
+    USE_RESET false
+  } {
+    clk_in1_p sata_s2_b_p
+    clk_in1_n sata_s2_b_n
+  }
+  set fclk /pll_fclk_0/clk_out1
+  set fclk_locked /pll_fclk_0/locked
+} else {
+  set fclk /pll_0/clk_out1
+  set fclk_locked /pll_0/locked
+}
+
 # clocks and resets
-set ps_clk /ps_0/FCLK_CLK0
+set ps_clk     /ps_0/FCLK_CLK0
 set ps_aresetn /rst_0/peripheral_aresetn
 set ps_reset   /rst_0/peripheral_reset
+set adc_clk    /pll_0/clk_out1
+set dac_clk    /pll_0/clk_out1
+set dac_clk_locked /pll_0/locked
+set dac_ddr_clk /pll_0/clk_out2
 
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_125_0
 connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N] [get_bd_pins rst_125_0/ext_reset_in]
-connect_bd_net [get_bd_pins pll_0/clk_out1]     [get_bd_pins rst_125_0/slowest_sync_clk]
-set fclk /pll_0/clk_out1
+connect_bd_net [get_bd_pins $fclk] [get_bd_pins rst_125_0/slowest_sync_clk]
+connect_bd_net [get_bd_pins $fclk_locked] [get_bd_pins rst_125_0/dcm_locked]
+
 set f_aresetn /rst_125_0/peripheral_aresetn
 set f_reset   /rst_125_0/peripheral_reset
 
@@ -100,24 +128,13 @@ cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
 
 # Create axis_red_pitaya_adc
 cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
-  aclk pll_0/clk_out1
+  aclk $adc_clk
   adc_dat_a adc_dat_a_i
   adc_dat_b adc_dat_b_i
   adc_csn adc_csn_o
     adc_channel_switch cfg_adc_switch/Dout
 }
 
-# Create axis_red_pitaya_dac
-cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
-  aclk pll_0/clk_out1
-  ddr_clk pll_0/clk_out2
-  locked pll_0/locked
-  dac_clk dac_clk_o
-  dac_rst dac_rst_o
-  dac_sel dac_sel_o
-  dac_wrt dac_wrt_o
-  dac_dat dac_dat_o
-}
 
 
 # Create xlconstant
@@ -125,43 +142,68 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 cell xilinx.com:ip:xlconstant:1.1 const_sts_0
 set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_cells const_sts_0]
 
-# Removed this connection from rx:
-# slice_0/Din rst_slice_0/Dout
-module rx_0 {
-  source projects/scope/rx2.tcl
-} {
-  rate_slice/Din cfg_slice_0/Dout
-  fifo_0/S_AXIS adc_0/M_AXIS
-  fifo_0/s_axis_aclk pll_0/clk_out1
-  fifo_0/s_axis_aresetn const_0/dout
-}
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
-  Clk_xbar $ps_clk
-  Master  {/rx_0/axi_datamover_0/M_AXI_S2MM}
-  Slave   {/ps_0/S_AXI_HP0}
-  intc_ip {New AXI Interconnect}
-} [get_bd_intf_pins ps_0/S_AXI_HP0]
-connect_bd_intf_net [get_bd_intf_pins rx_0/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_0/axi_datamover_0/M_AXI_S2MM]
-set_property range 1G [get_bd_addr_segs {rx_0/axi_datamover_0/Data_S2MM/SEG_ps_0_HP0_DDR_LOWOCM}]
-
-#  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout  
-module tx_0 {
-  source projects/scope/tx6.tcl
-} {
-  slice_1/Din cfg_slice_1/Dout
-  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout
-  fifo_1/M_AXIS dac_0/S_AXIS
-  fifo_1/m_axis_aclk pll_0/clk_out1
-  fifo_1/m_axis_aresetn const_0/dout
-}
-
 module nco_0 {
     source projects/scope/nco.tcl
 } {
   slice_1/Din cfg_slice_0/Dout
-  bcast_nco/M00_AXIS rx_0/mult_0/S_AXIS_B
-  bcast_nco/M01_AXIS tx_0/mult_0/S_AXIS_B
 }
+save_bd_design
+
+for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+    module rx_${i} {
+      source projects/scope/rx2.tcl
+    } {
+      mult_0/S_AXIS_B nco_0/bcast_nco/M0${i}_AXIS
+      rate_slice/Din cfg_slice_0/Dout
+      fifo_0/S_AXIS adc_0/M_AXIS
+      fifo_0/s_axis_aclk $adc_clk
+      fifo_0/s_axis_aresetn const_0/dout
+    }
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+      Clk_xbar $ps_clk
+      Master  {/rx_0/axi_datamover_0/M_AXI_S2MM}
+      Slave   {/ps_0/S_AXI_HP0}
+      intc_ip {New AXI Interconnect}
+    } [get_bd_intf_pins ps_0/S_AXI_HP0]
+    connect_bd_intf_net [get_bd_intf_pins rx_0/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_0/axi_datamover_0/M_AXI_S2MM]
+    set_property range 1G [get_bd_addr_segs {rx_0/axi_datamover_0/Data_S2MM/SEG_ps_0_HP0_DDR_LOWOCM}]
+}
+
+# Transmit
+if { [dict get $pl_param_dict has_tx] == "TRUE"} {
+  # Create axis_red_pitaya_dac
+  cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
+    aclk $dac_clk
+    ddr_clk $dac_ddr_clk
+    locked $dac_clk_locked
+    dac_clk dac_clk_o
+    dac_rst dac_rst_o
+    dac_sel dac_sel_o
+    dac_wrt dac_wrt_o
+    dac_dat dac_dat_o
+  }
+
+  set nco_tx_idx [dict get $pl_param_dict rx_channel_count]
+  module tx_0 {
+    source projects/scope/tx6.tcl
+  } {
+    slice_1/Din cfg_slice_1/Dout
+    axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout
+    fifo_1/M_AXIS dac_0/S_AXIS
+    fifo_1/m_axis_aclk $dac_clk
+    fifo_1/m_axis_aresetn const_0/dout
+    mult_0/S_AXIS_B nco_0/bcast_nco/M0${nco_tx_idx}_AXIS
+  }
+  # Create all required interconnections
+  apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+    Master /ps_0/M_AXI_GP0
+    Clk        Auto
+  } [get_bd_intf_pins tx_0/writer_0/S_AXI]
+
+  set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+  set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+}
+
 
 # Create axi_sts_register
 cell pavel-demin:user:axi_sts_register:1.0 sts_0 {
@@ -202,14 +244,6 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0]
 set_property OFFSET 0x40010000 [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0]
 
-# Create all required interconnections
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
-  Master /ps_0/M_AXI_GP0
-  Clk        Auto
-} [get_bd_intf_pins tx_0/writer_0/S_AXI]
-
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
-set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 
 # Create Memory for pulse sequence
 cell xilinx.com:ip:blk_mem_gen:8.4 sequence_memory {
@@ -248,6 +282,14 @@ set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_r
 create_bd_cell -type module -reference sync_external_pulse detect_unpause_pulse_0
 connect_bd_net [get_bd_pins detect_unpause_pulse_0/aclk]    [get_bd_pins $fclk]
 connect_bd_net [get_bd_pins detect_unpause_pulse_0/aresetn] [get_bd_pins $f_aresetn]
+
+cell xilinx.com:ip:util_ds_buf ibufds_trigger_0 {
+    C_BUF_TYPE IBUFDS
+} {
+    IBUF_DS_P sata_s1_b_p
+    IBUF_DS_N sata_s1_b_n
+}
+connect_bd_net [get_bd_pins ibufds_trigger_0/IBUF_OUT] [get_bd_pins detect_unpause_pulse_0/external_input]
 
 # Create microsequencer
 cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
@@ -308,33 +350,28 @@ connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_slice_0/Dout]
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 trigger_slice_0
 set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {7} CONFIG.DIN_TO {0} CONFIG.DOUT_WIDTH {8}] [get_bd_cells trigger_slice_0]
 connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins trigger_slice_0/Din]
-connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins tx_0/slice_0/Din]
 connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins rx_0/slice_0/Din]
 
 # connect the tx_offset
-connect_bd_net [get_bd_pins micro_sequencer/tx_offset] [get_bd_pins tx_0/reader_0/current_offset]
-
+if { [dict get $pl_param_dict has_tx] == "TRUE"} {
+  connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins tx_0/slice_0/Din]
+  connect_bd_net [get_bd_pins micro_sequencer/tx_offset] [get_bd_pins tx_0/reader_0/current_offset]
+}
 # TW add one output register stage
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells sequence_memory]
 
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
 # Delete input/output port
-delete_bd_objs [get_bd_ports exp_p_tri_io_*]
-delete_bd_objs [get_bd_ports exp_n_tri_io_*]
+delete_bd_objs [get_bd_ports exp_p_tri_io*]
+delete_bd_objs [get_bd_ports exp_n_tri_io*]
 
 # Create newoutput port
-for {set i 0} {$i < 4} {incr i} {
-    create_bd_port -dir O exp_p_tri_io_$i
-}
-for {set i 4} {$i < 8} {incr i} {
-    create_bd_port -dir I exp_p_tri_io_$i
-}
+create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
 
 # Create output port for the SPI stuff
-for {set i 0} {$i < 8} {incr i} {
-    create_bd_port -dir O exp_n_tri_io_$i
-}
+create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
+
 
 # 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
 #          and the txgate will use the eight' pin on the n side
@@ -345,24 +382,35 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 txgate_slice_0
 set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {4} CONFIG.DIN_TO {4} CONFIG.DOUT_WIDTH {1}] [get_bd_cells txgate_slice_0]
 connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins txgate_slice_0/Din]
 
+save_bd_design
 # Input / Output
 cell xilinx.com:ip:xlconstant:1.1 const_low
 cell xilinx.com:ip:xlconstant:1.1 const_high
 set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {0}] [get_bd_cells const_low]
 set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {1}] [get_bd_cells const_high]
-# exp_p_tri_io [3:0] - output
-connect_bd_net [get_bd_ports exp_p_tri_io_0] [get_bd_pins serial_attenuator/attn_clk]
-connect_bd_net [get_bd_ports exp_p_tri_io_1] [get_bd_pins serial_attenuator/attn_serial]
-connect_bd_net [get_bd_ports exp_p_tri_io_2] [get_bd_pins serial_attenuator/attn_le]
-connect_bd_net [get_bd_ports exp_p_tri_io_3] [get_bd_pins const_low/Dout]
-# exp_p_tri_io [7:4] - input
-connect_bd_net [get_bd_ports exp_p_tri_io_4] [get_bd_pins detect_unpause_pulse_0/external_input]
+# exp_p_tri_io [7:0] - output
+cell xilinx.com:ip:xlconcat:2.1 pio_concat_0 {
+    NUM_PORTS 8
+}
+connect_bd_net [get_bd_pins pio_concat_0/In0] [get_bd_pins serial_attenuator/attn_clk]
+connect_bd_net [get_bd_pins pio_concat_0/In1] [get_bd_pins serial_attenuator/attn_serial]
+connect_bd_net [get_bd_pins pio_concat_0/In2] [get_bd_pins serial_attenuator/attn_le]
+connect_bd_net [get_bd_pins pio_concat_0/In3] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins pio_concat_0/In4] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins pio_concat_0/In5] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins pio_concat_0/In6] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins pio_concat_0/In7] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins pio_concat_0/Dout]
 # exp_n_tri_io [7:0] - output
-connect_bd_net [get_bd_ports exp_n_tri_io_0] [get_bd_pins const_low/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_1] [get_bd_pins const_high/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_2] [get_bd_pins const_high/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_3] [get_bd_pins const_low/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_4] [get_bd_pins const_low/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_5] [get_bd_pins const_low/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_6] [get_bd_pins const_low/Dout]
-connect_bd_net [get_bd_ports exp_n_tri_io_7] [get_bd_pins txgate_slice_0/Dout]
+cell xilinx.com:ip:xlconcat:2.1 nio_concat_0 {
+    NUM_PORTS 8
+}
+connect_bd_net [get_bd_pins nio_concat_0/In0] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In1] [get_bd_pins const_high/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In2] [get_bd_pins const_high/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In3] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In4] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In5] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In6] [get_bd_pins const_low/Dout]
+connect_bd_net [get_bd_pins nio_concat_0/In7] [get_bd_pins txgate_slice_0/Dout]
+connect_bd_net [get_bd_pins exp_n_tri_io] [get_bd_pins nio_concat_0/Dout]

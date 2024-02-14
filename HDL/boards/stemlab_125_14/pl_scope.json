@@ -1,0 +1,5 @@
+{
+    "has_tx": "TRUE",
+    "rx_channel_count": "1",
+    "use_sata_clock": "TRUE"
+}
