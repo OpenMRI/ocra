@@ -30,24 +30,9 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N] [get_bd_pins rst_0/ext_reset_in]
 connect_bd_net [get_bd_pins ps_0/FCLK_CLK0]     [get_bd_pins rst_0/slowest_sync_clk]
+cell xilinx.com:ip:xlconstant:1.1 const_0
 
-cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
-  PRIMITIVE MMCM
-  PRIM_IN_FREQ.VALUE_SRC USER
-  PRIM_IN_FREQ 125.0
-  PRIM_SOURCE Differential_clock_capable_pin
-  CLKOUT1_USED true
-  CLKOUT1_REQUESTED_OUT_FREQ 125.0
-  CLKOUT2_USED true
-  CLKOUT2_REQUESTED_OUT_FREQ 250.0
-  CLKOUT2_REQUESTED_PHASE -90.0
-  USE_RESET false
-} {
-  clk_in1_p adc_clk_p_i
-  clk_in1_n adc_clk_n_i
-}
-
-if {[dict get $pl_param_dict use_sata_clock] == "TRUE"} {
+if {[dict get $pl_param_dict fclk_source] == "SATA"} {
   cell xilinx.com:ip:clk_wiz:6.0 pll_fclk_0 {
     PRIMITIVE PLL
     PRIM_IN_FREQ.VALUE_SRC USER
@@ -63,18 +48,14 @@ if {[dict get $pl_param_dict use_sata_clock] == "TRUE"} {
   set fclk /pll_fclk_0/clk_out1
   set fclk_locked /pll_fclk_0/locked
 } else {
-  set fclk /pll_0/clk_out1
-  set fclk_locked /pll_0/locked
+  set fclk /ps_0/FCLK_CLK0
+  set fclk_locked const_0/dout
 }
 
 # clocks and resets
 set ps_clk     /ps_0/FCLK_CLK0
 set ps_aresetn /rst_0/peripheral_aresetn
 set ps_reset   /rst_0/peripheral_reset
-set adc_clk    /pll_0/clk_out1
-set dac_clk    /pll_0/clk_out1
-set dac_clk_locked /pll_0/locked
-set dac_ddr_clk /pll_0/clk_out2
 
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_125_0
 connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N] [get_bd_pins rst_125_0/ext_reset_in]
@@ -125,20 +106,59 @@ cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
   Din cfg_0/cfg_data
 }
 # ADC
-
-# Create axis_red_pitaya_adc
-cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
-  aclk $adc_clk
-  adc_dat_a adc_dat_a_i
-  adc_dat_b adc_dat_b_i
-  adc_csn adc_csn_o
-    adc_channel_switch cfg_adc_switch/Dout
+module rp_adc_0 {
+    source projects/scope/rp_adc.tcl
+} {
+    aresetn         ps_0/FCLK_RESET0_N
+    channel_switch  cfg_adc_switch/Dout
 }
 
+if { $board_name == "stemlab_125_14_4in"} {
+    connect_bd_net [get_bd_pins rp_adc_0/adc_0_clk_p]       [get_bd_ports adc_clk_0_p_i]
+    connect_bd_net [get_bd_pins rp_adc_0/adc_0_clk_n]       [get_bd_ports adc_clk_0_n_i]
+    connect_bd_net [get_bd_pins rp_adc_0/adc_1_clk_p]       [get_bd_ports adc_clk_1_p_i]
+    connect_bd_net [get_bd_pins rp_adc_0/adc_1_clk_n]       [get_bd_ports adc_clk_1_n_i]
+    connect_bd_net [get_bd_pins rp_adc_0/s_axi_aclk]        [get_bd_pins $fclk]
+    connect_bd_net [get_bd_pins rp_adc_0/s_axi_aresetn]     [get_bd_pins $f_aresetn]
+    connect_bd_net [get_bd_pins rp_adc_0/adc_0_data_i]      [get_bd_ports adc_dat_i_0]        
+    connect_bd_net [get_bd_pins rp_adc_0/adc_1_data_i]      [get_bd_ports adc_dat_i_1]        
+    connect_bd_net [get_bd_pins rp_adc_0/adc_2_data_i]      [get_bd_ports adc_dat_i_2]        
+    connect_bd_net [get_bd_pins rp_adc_0/adc_3_data_i]      [get_bd_ports adc_dat_i_3]
+    save_bd_design
+    # TODO
+    # add addressing for the tunable phase
+    # add spi control for the ADC initialization
+    # enable HP1, HP2, HP3
 
+} else {
+    cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
+      PRIMITIVE MMCM
+      PRIM_IN_FREQ.VALUE_SRC USER
+      PRIM_IN_FREQ 125.0
+      PRIM_SOURCE Differential_clock_capable_pin
+      CLKOUT1_USED true
+      CLKOUT1_REQUESTED_OUT_FREQ 125.0
+      CLKOUT2_USED true
+      CLKOUT2_REQUESTED_OUT_FREQ 250.0
+      CLKOUT2_REQUESTED_PHASE -90.0
+      USE_RESET false
+    } {
+      clk_in1_p adc_clk_p_i
+      clk_in1_n adc_clk_n_i
+    }
+    set adc_clk    /pll_0/clk_out1
+    set dac_clk    /pll_0/clk_out1
+    set dac_clk_locked /pll_0/locked
+    set dac_ddr_clk /pll_0/clk_out2
+    connect_bd_net [get_bd_pins rp_adc_0/adc_clk]           [get_bd_pins  $adc_clk]           
+    connect_bd_net [get_bd_pins rp_adc_0/adc_clk_locked]    [get_bd_pins  $dac_clk_locked]    
+    connect_bd_net [get_bd_pins rp_adc_0/adc_csn_o]         [get_bd_ports adc_csn_o]          
+    connect_bd_net [get_bd_pins rp_adc_0/adc_0_data_i]      [get_bd_ports adc_dat_a_i]        
+    connect_bd_net [get_bd_pins rp_adc_0/adc_1_data_i]      [get_bd_ports adc_dat_b_i]        
+}
 
 # Create xlconstant
-cell xilinx.com:ip:xlconstant:1.1 const_0
+
 cell xilinx.com:ip:xlconstant:1.1 const_sts_0
 set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_cells const_sts_0]
 
@@ -153,11 +173,11 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     module rx_${i} {
       source projects/scope/rx2.tcl
     } {
-      mult_0/S_AXIS_B nco_0/bcast_nco/M0${i}_AXIS
-      rate_slice/Din cfg_slice_0/Dout
-      fifo_0/S_AXIS adc_0/M_AXIS
-      fifo_0/s_axis_aclk $adc_clk
-      fifo_0/s_axis_aresetn const_0/dout
+      mult_0/S_AXIS_B       nco_0/bcast_nco/M0${i}_AXIS
+      rate_slice/Din        cfg_slice_0/Dout
+      fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
+      fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
+      fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
     }
     apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
       Clk_xbar $ps_clk

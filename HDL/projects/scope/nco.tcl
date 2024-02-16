@@ -25,7 +25,7 @@ cell xilinx.com:ip:dds_compiler:6.0 dds_nco {
   SPURIOUS_FREE_DYNAMIC_RANGE 138
   FREQUENCY_RESOLUTION 0.2
   PHASE_INCREMENT Streaming
-  HAS_TREADY true
+  HAS_TREADY false
   HAS_PHASE_OUT false
   PHASE_WIDTH 30
   OUTPUT_WIDTH 24
@@ -43,10 +43,16 @@ cell xilinx.com:ip:axis_broadcaster:1.1 bcast_nco {
   M_TDATA_NUM_BYTES.VALUE_SRC USER
   S_TDATA_NUM_BYTES 6
   M_TDATA_NUM_BYTES 6
+  HAS_TREADY 0
+  NUM_MI 5
   M00_TDATA_REMAP {tdata[47:0]}
   M01_TDATA_REMAP {tdata[47:0]}
+  M02_TDATA_REMAP {tdata[47:0]}
+  M03_TDATA_REMAP {tdata[47:0]}
+  M04_TDATA_REMAP {tdata[47:0]}
 } {
   S_AXIS dds_nco/M_AXIS_DATA
   aclk $fclk
   aresetn $f_aresetn
 }
+save_bd_design

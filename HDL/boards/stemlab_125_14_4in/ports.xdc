@@ -47,10 +47,10 @@ set_property PACKAGE_PIN V20     [get_ports {adc_dat_i_3[6]}]
 # clock input
 set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports {adc_clk_*_i}]
 
-set_property PACKAGE_PIN U18           [get_ports {adc_clk_0_p_i}] #P
-set_property PACKAGE_PIN U19           [get_ports {adc_clk_0_n_i}] #N
-set_property PACKAGE_PIN N20           [get_ports {adc_clk_1_p_i}] #P
-set_property PACKAGE_PIN P20           [get_ports {adc_clk_1_n_i}] #N
+set_property PACKAGE_PIN U18           [get_ports {adc_clk_0_p_i}]; #P
+set_property PACKAGE_PIN U19           [get_ports {adc_clk_0_n_i}]; #N
+set_property PACKAGE_PIN N20           [get_ports {adc_clk_1_p_i}]; #P
+set_property PACKAGE_PIN P20           [get_ports {adc_clk_1_n_i}]; #N
 
 ### PWM
 set_property IOSTANDARD LVCMOS18 [get_ports {dac_pwm_o[*]}]
