@@ -11,11 +11,17 @@ set pl_param_dict [json::json2dict $pl_param_str]
 cell xilinx.com:ip:processing_system7:5.5 ps_0 {
   PCW_IMPORT_BOARD_PRESET $ps_preset
   PCW_USE_S_AXI_HP0 1
+  PCW_USE_S_AXI_HP1 1
+  PCW_USE_S_AXI_HP2 1
+  PCW_USE_S_AXI_HP3 1
   PCW_USE_FABRIC_INTERRUPT 1
   PCW_IRQ_F2P_INTR 1 
 } {
   M_AXI_GP0_ACLK ps_0/FCLK_CLK0
   S_AXI_HP0_ACLK ps_0/FCLK_CLK0
+  S_AXI_HP1_ACLK ps_0/FCLK_CLK0
+  S_AXI_HP2_ACLK ps_0/FCLK_CLK0
+  S_AXI_HP3_ACLK ps_0/FCLK_CLK0
 }
 
 
@@ -125,10 +131,29 @@ if { $board_name == "stemlab_125_14_4in"} {
     connect_bd_net [get_bd_pins rp_adc_0/adc_2_data_i]      [get_bd_ports adc_dat_i_2]        
     connect_bd_net [get_bd_pins rp_adc_0/adc_3_data_i]      [get_bd_ports adc_dat_i_3]
     save_bd_design
-    # TODO
-    # add addressing for the tunable phase
-    # add spi control for the ADC initialization
-    # enable HP1, HP2, HP3
+    
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+        Master  /ps_0/M_AXI_GP0
+        Clk     Auto
+    } [get_bd_intf_pins /rp_adc_0/adc_0/pll_adc_0/s_axi_lite]
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+        Master  /ps_0/M_AXI_GP0
+        Clk     Auto
+    } [get_bd_intf_pins /rp_adc_0/adc_1/pll_adc_0/s_axi_lite]
+    set_property RANGE 64K          [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg}]
+    set_property offset 0x40100000  [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg}]
+    set_property RANGE 64K          [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg_1}]
+    set_property offset 0x40110000  [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg_1}]
+
+    cell open-mri:user:red_pitaya_adc_spi:1.0 adc_spi_0 {
+    } {
+        sclk    spi_clk_o
+        sdio    spi_mosi_o
+        aclk    $fclk
+        aresetn $f_aresetn
+    }
+    connect_bd_net [get_bd_pins adc_spi_0/n_cs] [get_bd_ports spi_csa_o]
+    connect_bd_net [get_bd_pins adc_spi_0/n_cs] [get_bd_ports spi_csb_o]
 
 } else {
     cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
@@ -179,14 +204,26 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
       fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
     }
-    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config [subst {
       Clk_xbar $ps_clk
-      Master  {/rx_0/axi_datamover_0/M_AXI_S2MM}
-      Slave   {/ps_0/S_AXI_HP0}
+      Master  /rx_${i}/axi_datamover_0/M_AXI_S2MM
+      Slave   /ps_0/S_AXI_HP${i}
       intc_ip {New AXI Interconnect}
-    } [get_bd_intf_pins ps_0/S_AXI_HP0]
-    connect_bd_intf_net [get_bd_intf_pins rx_0/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_0/axi_datamover_0/M_AXI_S2MM]
-    set_property range 1G [get_bd_addr_segs {rx_0/axi_datamover_0/Data_S2MM/SEG_ps_0_HP0_DDR_LOWOCM}]
+    }] [get_bd_intf_pins ps_0/S_AXI_HP${i}]
+    connect_bd_intf_net [get_bd_intf_pins rx_${i}/axi_sniffer_0/S_AXI] -boundary_type upper [get_bd_intf_pins rx_${i}/axi_datamover_0/M_AXI_S2MM]
+    set_property range 1G [get_bd_addr_segs rx_${i}/axi_datamover_0/Data_S2MM/SEG_ps_0_HP${i}_DDR_LOWOCM]
+
+    if {$i==0} {
+        set suffix ""
+    } else {
+        set suffix _$i
+    }
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+      Master    /ps_0/M_AXI_GP0
+      Clk       Auto
+    } [get_bd_intf_pins rx_${i}/axis_dma_rx_0/S_AXI]
+    set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
+    set_property OFFSET 0x4001${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
 }
 
 # Transmit
@@ -255,14 +292,6 @@ set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_sts_0_reg0]
 set_property OFFSET 0x40001000 [get_bd_addr_segs ps_0/Data/SEG_sts_0_reg0]
 save_bd_design
 
-# Create all required interconnections
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
-  Master /ps_0/M_AXI_GP0
-  Clk        Auto
-} [get_bd_intf_pins rx_0/axis_dma_rx_0/S_AXI]
-
-set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0]
-set_property OFFSET 0x40010000 [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0]
 
 
 # Create Memory for pulse sequence

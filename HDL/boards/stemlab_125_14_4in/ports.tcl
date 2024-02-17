@@ -11,6 +11,11 @@ create_bd_port -dir I adc_clk_0_n_i
 create_bd_port -dir I adc_clk_1_p_i
 create_bd_port -dir I adc_clk_1_n_i
 
+create_bd_port -dir O spi_csa_o
+create_bd_port -dir O spi_csb_o
+create_bd_port -dir O spi_clk_o
+create_bd_port -dir O spi_mosi_o
+
 ### PWM
 create_bd_port -dir O -from 3 -to 0 dac_pwm_o
 

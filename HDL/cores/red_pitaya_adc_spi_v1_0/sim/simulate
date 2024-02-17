@@ -1,0 +1,5 @@
+#!/bin/bash
+rm -rf webtalk* testsim* *jou *log *pb *.dir
+xvlog -sv -f filelist.f -work local_sim_test #xvlog - parse the sources and dump into a library local_sim_test
+xelab local_sim_test.testbench_top -s testsim -timescale 1ns/100ps -cov_db_dir covreport -debug typical #elaborate
+xsim -t probes.tcl testsim

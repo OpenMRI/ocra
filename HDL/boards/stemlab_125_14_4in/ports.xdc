@@ -44,6 +44,15 @@ set_property PACKAGE_PIN T20     [get_ports {adc_dat_i_3[4]}]
 set_property PACKAGE_PIN U20     [get_ports {adc_dat_i_3[5]}]
 set_property PACKAGE_PIN V20     [get_ports {adc_dat_i_3[6]}]
 
+# SPI Interface
+set_property IOSTANDARD  LVCMOS18 [get_ports spi_*_o]
+set_property SLEW        FAST     [get_ports spi_*_o]
+set_property DRIVE       8        [get_ports spi_*_o]
+set_property PACKAGE_PIN P15      [get_ports spi_csa_o]
+set_property PACKAGE_PIN P16      [get_ports spi_csb_o]
+set_property PACKAGE_PIN P18      [get_ports spi_clk_o]
+set_property PACKAGE_PIN N17      [get_ports spi_mosi_o]
+
 # clock input
 set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports {adc_clk_*_i}]
 
