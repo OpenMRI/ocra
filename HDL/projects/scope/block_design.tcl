@@ -399,8 +399,9 @@ connect_bd_net [get_bd_ports led_o] [get_bd_pins xled_slice_0/Dout]
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 trigger_slice_0
 set_property -dict [list CONFIG.DIN_WIDTH {64} CONFIG.DIN_FROM {7} CONFIG.DIN_TO {0} CONFIG.DOUT_WIDTH {8}] [get_bd_cells trigger_slice_0]
 connect_bd_net [get_bd_pins micro_sequencer/pulse] [get_bd_pins trigger_slice_0/Din]
-connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins rx_0/slice_0/Din]
-
+for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+    connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins rx_${i}/slice_0/Din]
+}
 # connect the tx_offset
 if { [dict get $pl_param_dict has_tx] == "TRUE"} {
   connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins tx_0/slice_0/Din]
