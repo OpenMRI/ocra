@@ -1,5 +1,5 @@
 {
     "has_tx": "FALSE",
-    "rx_channel_count": "4",
+    "rx_channel_count": "3",
     "fclk_source": "SATA"
 }
