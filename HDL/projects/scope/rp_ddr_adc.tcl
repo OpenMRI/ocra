@@ -30,6 +30,7 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_adc_0 {
     USE_DYN_RECONFIG true
     CLKOUT1_USED true
     CLKOUT1_REQUESTED_OUT_FREQ 125.0
+    CLKOUT1_REQUESTED_PHASE 135.0
 } {
     clk_in1 ibufds_bufg_0/clk
     s_axi_lite s_axi

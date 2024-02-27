@@ -12,7 +12,10 @@ module axis_red_pitaya_adc_ddr #(
     input wire [DDR_DATA_WIDTH-1:0]    adc_dat_in_1,
 
     output wire [2*DDR_DATA_WIDTH-1:0] adc_dat_out_0,
-    output wire [2*DDR_DATA_WIDTH-1:0] adc_dat_out_1
+    output wire [2*DDR_DATA_WIDTH-1:0] adc_dat_out_1,
+
+    output wire                        test_pattern_valid_0,
+    output wire                        test_pattern_valid_1
 );
     localparam                   ADC_DATA_WIDTH = DDR_DATA_WIDTH*2;
     wire [  DDR_DATA_WIDTH-1:0]    adc_dat_in  [1:0];
@@ -42,5 +45,22 @@ module axis_red_pitaya_adc_ddr #(
         end
     end
     endgenerate
-  
+
+    validate_pattern #(
+        .DATA_WIDTH(ADC_DATA_WIDTH)
+    ) validate_pattern_inst_0 (
+        .clk    (aclk),
+        .resetn (aresetn),
+        .data   (adc_dat_out[0]),
+        .valid  (test_pattern_valid_0)
+    );
+    validate_pattern #(
+        .DATA_WIDTH(ADC_DATA_WIDTH)
+    ) validate_pattern_inst_1 (
+        .clk    (aclk),
+        .resetn (aresetn),
+        .data   (adc_dat_out[1]),
+        .valid  (test_pattern_valid_1)
+    );
+
 endmodule
