@@ -19,6 +19,10 @@ if { $board_name == "stemlab_125_14_4in"} {
     create_bd_pin -dir O adc_1_resetn
     create_bd_pin -dir O adc_2_resetn
     create_bd_pin -dir O adc_3_resetn
+    create_bd_pin -dir O valid_pattern_0
+    create_bd_pin -dir O valid_pattern_1
+    create_bd_pin -dir O valid_pattern_2
+    create_bd_pin -dir O valid_pattern_3
     create_bd_pin -dir I -from 7 -to 0 adc_0_data_i
     create_bd_pin -dir I -from 7 -to 0 adc_1_data_i
     create_bd_pin -dir I -from 7 -to 0 adc_2_data_i
@@ -43,6 +47,8 @@ if { $board_name == "stemlab_125_14_4in"} {
         channel_switch  channel_switch
         M0_AXIS         M0_AXIS
         M1_AXIS         M1_AXIS
+        valid_pattern_0 valid_pattern_0
+        valid_pattern_1 valid_pattern_1
     }
     connect_bd_net      [get_bd_pins adc_0_clk]         [get_bd_pins adc_0/adc_clk]
     connect_bd_net      [get_bd_pins adc_1_clk]         [get_bd_pins adc_0/adc_clk]
@@ -62,6 +68,8 @@ if { $board_name == "stemlab_125_14_4in"} {
         channel_switch  channel_switch
         M0_AXIS         M2_AXIS
         M1_AXIS         M3_AXIS
+        valid_pattern_0 valid_pattern_2
+        valid_pattern_1 valid_pattern_3
     }
     connect_bd_net      [get_bd_pins adc_2_clk]         [get_bd_pins adc_1/adc_clk]
     connect_bd_net      [get_bd_pins adc_3_clk]         [get_bd_pins adc_1/adc_clk]
@@ -69,6 +77,7 @@ if { $board_name == "stemlab_125_14_4in"} {
     connect_bd_net      [get_bd_pins adc_3_resetn]      [get_bd_pins adc_1/adc_resetn] 
 } else {
     #io
+    create_bd_pin -dir I f_clk
     create_bd_pin -dir I adc_clk
     create_bd_pin -dir I adc_clk_locked
     create_bd_pin -dir I aresetn
@@ -87,14 +96,21 @@ if { $board_name == "stemlab_125_14_4in"} {
         dcm_locked          adc_clk_locked
         peripheral_aresetn  adc_0_resetn
     }
-
+    cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
+        CDC_TYPE xpm_cdc_array_single
+        WIDTH 2
+    } {
+        src_in channel_switch
+        dest_clk adc_clk
+        src_clk f_clk
+    }
     # Create axis_red_pitaya_adc
     cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
         aclk adc_clk
         adc_dat_a adc_0_data_i
         adc_dat_b adc_1_data_i
         adc_csn adc_csn_o
-        adc_channel_switch channel_switch
+        adc_channel_switch xpm_cdc_gen_0/dest_out
         M_AXIS M0_AXIS
     }
 

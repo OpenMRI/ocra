@@ -72,45 +72,51 @@ set f_aresetn /rst_125_0/peripheral_aresetn
 set f_reset   /rst_125_0/peripheral_reset
 
 # Create axi_cfg_register
-cell pavel-demin:user:axi_cfg_register:1.0 cfg_0 {
-  CFG_DATA_WIDTH 128
-  AXI_ADDR_WIDTH 32
-  AXI_DATA_WIDTH 32
+cell open-mri:user:axi_config_registers:1.0 cfg8 {
+    AXI_ADDR_WIDTH 5
+    AXI_DATA_WIDTH 32
 } {
-  aclk $fclk
-  aresetn $f_aresetn
+  S_AXI_ACLK $fclk
+  S_AXI_ARESETN $f_aresetn
 }
 
 # Create slice with the TX configuration, which uses the bottom 32 bits
 cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_0
 }
 
 # Create slice with the RX configuration and NCO configuration
 # RX seems to use the bottom 16 bit of the upper 32 bit
 # NCO uses the bottom 32 bit
-# Bits 63 to 48 seem free, USING bits 49,48 FOR ADC switch then
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_0 {
-  DIN_WIDTH 128 DIN_FROM 95 DIN_TO 32 DOUT_WIDTH 64
+cell xilinx.com:ip:xlslice:1.0 nco_slice_0 {
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_1
+}
+
+cell xilinx.com:ip:xlslice:1.0 rx_slice_0 {
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+} {
+  Din cfg8/config_2
 }
 
 # ADC switch slice
 cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
-  DIN_WIDTH 128 DIN_FROM 49 DIN_TO 48 DOUT_WIDTH 2
+  DIN_WIDTH 32 DIN_FROM 1 DIN_TO 0 DOUT_WIDTH 2
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_4
 }
+
 
 # Create another slice with data for the TX, which is another 32 bit
 cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 128 DIN_FROM 127 DIN_TO 96 DOUT_WIDTH 32
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg_0/cfg_data
+  Din cfg8/config_3
 }
+
 # ADC
 module rp_adc_0 {
     source projects/scope/rp_adc.tcl
@@ -145,16 +151,72 @@ if { $board_name == "stemlab_125_14_4in"} {
     set_property RANGE 64K          [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg_1}]
     set_property offset 0x40110000  [get_bd_addr_segs {ps_0/Data/SEG_pll_adc_0_Reg_1}]
 
+    # Manual SPI Write to ADC
+    cell open-mri:user:axi_config_registers:1.0 axi_config_adc_spi_0 {
+        AXI_ADDR_WIDTH 5
+        AXI_DATA_WIDTH 32
+    } {
+        S_AXI_ACLK $fclk
+        S_AXI_ARESETN $f_aresetn
+    }
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+        Master  /ps_0/M_AXI_GP0
+        Clk     Auto
+    } [get_bd_intf_pins axi_config_adc_spi_0/s_axi]
+    set_property offset 0x40002000 [get_bd_addr_segs {ps_0/Data/SEG_axi_config_adc_spi_0_reg0}]
+    set_property range  4K         [get_bd_addr_segs {ps_0/Data/SEG_axi_config_adc_spi_0_reg0}]
+    cell xilinx.com:ip:xlslice:1.0 adc_spi_wrdata_0 {
+        DIN_WIDTH 32 DIN_FROM 15 DIN_TO 0 DOUT_WIDTH 16
+    } {
+        Din axi_config_adc_spi_0/config_0
+    }
+    cell xilinx.com:ip:xlslice:1.0 adc_spi_wr_0 {
+        DIN_WIDTH 32 DIN_FROM 0 DIN_TO 0 DOUT_WIDTH 1
+    } {
+        Din axi_config_adc_spi_0/config_1
+    }
+    # SPI Write to ADC
     cell open-mri:user:red_pitaya_adc_spi:1.0 adc_spi_0 {
     } {
         sclk    spi_clk_o
         sdio    spi_mosi_o
         aclk    $fclk
         aresetn $f_aresetn
+        spi_data adc_spi_wrdata_0/Dout
+        spi_wr   adc_spi_wr_0/Dout
     }
     connect_bd_net [get_bd_pins adc_spi_0/n_cs] [get_bd_ports spi_csa_o]
     connect_bd_net [get_bd_pins adc_spi_0/n_cs] [get_bd_ports spi_csb_o]
-
+    # Pattern Validation
+    cell xilinx.com:ip:xlconstant:1.1 const_28_0 {
+        CONST_WIDTH 28
+        CONST_VAL 0
+    } {}
+    cell xilinx.com:ip:xlconcat:2.1 pattern_valid_concat_0 {
+        NUM_PORTS 5
+    } {
+        In0 rp_adc_0/valid_pattern_0
+        In1 rp_adc_0/valid_pattern_1
+        In2 rp_adc_0/valid_pattern_2
+        In3 rp_adc_0/valid_pattern_3
+        In4 const_28_0/Dout
+    }
+    cell pavel-demin:user:axi_sts_register:1.0 adc_sts_0 {
+        STS_DATA_WIDTH 32
+        AXI_ADDR_WIDTH 32
+        AXI_DATA_WIDTH 32
+    } {
+        aclk $fclk
+        aresetn $f_aresetn
+        sts_data pattern_valid_concat_0/Dout
+    }
+    # Create all required interconnections
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+      Master /ps_0/M_AXI_GP0
+      Clk        Auto
+    } [get_bd_intf_pins adc_sts_0/S_AXI]
+    set_property range 4K [get_bd_addr_segs {ps_0/Data/SEG_adc_sts_0_reg0}]
+    set_property offset 0x40003000 [get_bd_addr_segs {ps_0/Data/SEG_adc_sts_0_reg0}]
 } else {
     cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
       PRIMITIVE MMCM
@@ -175,6 +237,7 @@ if { $board_name == "stemlab_125_14_4in"} {
     set dac_clk    /pll_0/clk_out1
     set dac_clk_locked /pll_0/locked
     set dac_ddr_clk /pll_0/clk_out2
+    connect_bd_net [get_bd_pins rp_adc_0/f_clk]             [get_bd_pins  $f_clk]           
     connect_bd_net [get_bd_pins rp_adc_0/adc_clk]           [get_bd_pins  $adc_clk]           
     connect_bd_net [get_bd_pins rp_adc_0/adc_clk_locked]    [get_bd_pins  $dac_clk_locked]    
     connect_bd_net [get_bd_pins rp_adc_0/adc_csn_o]         [get_bd_ports adc_csn_o]          
@@ -190,7 +253,7 @@ set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_c
 module nco_0 {
     source projects/scope/nco.tcl
 } {
-  slice_1/Din cfg_slice_0/Dout
+  slice_1/Din nco_slice_0/Dout
 }
 save_bd_design
 
@@ -199,7 +262,7 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
       source projects/scope/rx2.tcl
     } {
       mult_0/S_AXIS_B       nco_0/bcast_nco/M0${i}_AXIS
-      rate_slice/Din        cfg_slice_0/Dout
+      rate_slice/Din        rx_slice_0/Dout
       fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
       fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
@@ -277,10 +340,10 @@ save_bd_design
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
   Master     /ps_0/M_AXI_GP0
   Clk        Auto
-} [get_bd_intf_pins cfg_0/S_AXI]
+} [get_bd_intf_pins cfg8/S_AXI]
 
-set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
-set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg_0_reg0]
+set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_cfg8_reg0]
+set_property OFFSET 0x40000000 [get_bd_addr_segs ps_0/Data/SEG_cfg8_reg0]
 
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {

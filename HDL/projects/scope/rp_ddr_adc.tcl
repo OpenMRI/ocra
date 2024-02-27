@@ -7,6 +7,8 @@ create_bd_pin -dir I s_axi_aresetn
 create_bd_pin -dir I aresetn
 create_bd_pin -dir O adc_clk
 create_bd_pin -dir O adc_resetn
+create_bd_pin -dir O valid_pattern_0
+create_bd_pin -dir O valid_pattern_1
 create_bd_pin -dir I -from 7 -to 0 adc_0_data_i
 create_bd_pin -dir I -from 7 -to 0 adc_1_data_i
 create_bd_pin -dir I -from 1 -to 0 channel_switch
@@ -56,24 +58,48 @@ cell open-mri:user:axis_red_pitaya_adc_ddr:1.0 adc_ddr_0 {
     adc_dat_in_0 adc_0_data_i
     adc_dat_in_1 adc_1_data_i
 }
+cell xilinx.com:ip:xpm_cdc_gen:1.0 valid_pattern_cdc_0 {
+    CDC_TYPE xpm_cdc_single
+} {
+    src_clk $aclk
+    src_in adc_ddr_0/test_pattern_valid_0
+    dest_clk s_axi_aclk
+    dest_out valid_pattern_0
+}
+cell xilinx.com:ip:xpm_cdc_gen:1.0 valid_pattern_cdc_1 {
+    CDC_TYPE xpm_cdc_single
+} {
+    src_clk $aclk
+    src_in adc_ddr_0/test_pattern_valid_1
+    dest_clk s_axi_aclk
+    dest_out valid_pattern_1
+}
+
 cell xilinx.com:ip:xlconstant:1.1 xlconstant_0 {
   CONST_VAL 0x2000
   CONST_WIDTH 14
 } {
 }
-
+cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
+    CDC_TYPE xpm_cdc_array_single
+    WIDTH 2
+} {
+    src_in channel_switch
+    dest_clk $aclk
+    src_clk s_axi_aclk
+}
 # Create axis_red_pitaya_adc
 cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
     aclk $aclk
     adc_dat_a adc_ddr_0/adc_dat_out_0
     adc_dat_b xlconstant_0/Dout
-    adc_channel_switch channel_switch
+    adc_channel_switch xpm_cdc_gen_0/dest_out
     m_axis M0_AXIS
 }
 cell open-mri:user:axis_red_pitaya_adc:3.0 adc_1 {} {
     aclk $aclk
     adc_dat_a adc_ddr_0/adc_dat_out_1
     adc_dat_b xlconstant_0/Dout
-    adc_channel_switch channel_switch
+    adc_channel_switch xpm_cdc_gen_0/dest_out
     m_axis M1_AXIS
 }
