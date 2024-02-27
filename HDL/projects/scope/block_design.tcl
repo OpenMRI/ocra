@@ -237,7 +237,7 @@ if { $board_name == "stemlab_125_14_4in"} {
     set dac_clk    /pll_0/clk_out1
     set dac_clk_locked /pll_0/locked
     set dac_ddr_clk /pll_0/clk_out2
-    connect_bd_net [get_bd_pins rp_adc_0/f_clk]             [get_bd_pins  $f_clk]           
+    connect_bd_net [get_bd_pins rp_adc_0/f_clk]             [get_bd_pins  $fclk]           
     connect_bd_net [get_bd_pins rp_adc_0/adc_clk]           [get_bd_pins  $adc_clk]           
     connect_bd_net [get_bd_pins rp_adc_0/adc_clk_locked]    [get_bd_pins  $dac_clk_locked]    
     connect_bd_net [get_bd_pins rp_adc_0/adc_csn_o]         [get_bd_ports adc_csn_o]          
@@ -250,23 +250,29 @@ if { $board_name == "stemlab_125_14_4in"} {
 cell xilinx.com:ip:xlconstant:1.1 const_sts_0
 set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_cells const_sts_0]
 
-module nco_0 {
-    source projects/scope/nco.tcl
-} {
-  slice_1/Din nco_slice_0/Dout
+if { [dict get $pl_param_dict modulated] == "TRUE"} {
+    module nco_0 {
+        source projects/scope/nco.tcl
+    } {
+      slice_1/Din nco_slice_0/Dout
+    }
+    save_bd_design
 }
-save_bd_design
 
 for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     module rx_${i} {
       source projects/scope/rx2.tcl
     } {
-      mult_0/S_AXIS_B       nco_0/bcast_nco/M0${i}_AXIS
       rate_slice/Din        rx_slice_0/Dout
       fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
       fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
     }
+    # Connect NCO if necessary      
+    if { [dict get $pl_param_dict modulated] == "TRUE"} {
+        connect_bd_intf_net [get_bd_intf_pins rx_${i}/mult_0/S_AXIS_B] [get_bd_intf_pins nco_0/bcast_nco/M0${i}_AXIS]
+    }
+
     apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config [subst {
       Clk_xbar $ps_clk
       Master  /rx_${i}/axi_datamover_0/M_AXI_S2MM

@@ -49,7 +49,7 @@ module axis_red_pitaya_adc_ddr #(
     validate_pattern #(
         .DATA_WIDTH(ADC_DATA_WIDTH)
     ) validate_pattern_inst_0 (
-        .clk    (aclk),
+        .aclk   (aclk),
         .resetn (aresetn),
         .data   (adc_dat_out[0]),
         .valid  (test_pattern_valid_0)
@@ -57,7 +57,7 @@ module axis_red_pitaya_adc_ddr #(
     validate_pattern #(
         .DATA_WIDTH(ADC_DATA_WIDTH)
     ) validate_pattern_inst_1 (
-        .clk    (aclk),
+        .aclk   (aclk),
         .resetn (aresetn),
         .data   (adc_dat_out[1]),
         .valid  (test_pattern_valid_1)

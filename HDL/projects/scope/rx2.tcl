@@ -1,6 +1,7 @@
 global fclk
 global f_aresetn
 global f_reset
+global pl_param_dict
 
 # Create xlslice
 # Trigger slice on Bit 1 (RX pulse)
@@ -25,39 +26,53 @@ cell xilinx.com:ip:axis_clock_converter:1.1 fifo_0 {
   m_axis_aresetn $f_aresetn
 }
 
-# Create axis_lfsr
-cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
-  aclk $fclk
-  aresetn $f_aresetn
-}
-
-# Create cmpy
-cell xilinx.com:ip:cmpy:6.0 mult_0 {
-  FLOWCONTROL Blocking
-  APORTWIDTH.VALUE_SRC USER
-  BPORTWIDTH.VALUE_SRC USER
-  APORTWIDTH 16
-  BPORTWIDTH 24
-  ROUNDMODE Random_Rounding
-  OUTPUTWIDTH 26
-} {
-  S_AXIS_A fifo_0/M_AXIS
-  S_AXIS_CTRL lfsr_0/M_AXIS
-  aclk $fclk
-}
-
-# Create axis_broadcaster
-cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
-  S_TDATA_NUM_BYTES.VALUE_SRC USER
-  M_TDATA_NUM_BYTES.VALUE_SRC USER
-  S_TDATA_NUM_BYTES 8
-  M_TDATA_NUM_BYTES 3
-  M00_TDATA_REMAP {tdata[23:0]}
-  M01_TDATA_REMAP {tdata[55:32]}
-} {
-  S_AXIS mult_0/M_AXIS_DOUT
-  aclk $fclk
-  aresetn $f_aresetn
+if { [dict get $pl_param_dict modulated] == "TRUE"} {
+    # Create axis_lfsr
+    cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
+      aclk $fclk
+      aresetn $f_aresetn
+    }
+    # Create cmpy
+    cell xilinx.com:ip:cmpy:6.0 mult_0 {
+      FLOWCONTROL Blocking
+      APORTWIDTH.VALUE_SRC USER
+      BPORTWIDTH.VALUE_SRC USER
+      APORTWIDTH 16
+      BPORTWIDTH 24
+      ROUNDMODE Random_Rounding
+      OUTPUTWIDTH 26
+    } {
+      S_AXIS_A fifo_0/M_AXIS
+      S_AXIS_CTRL lfsr_0/M_AXIS
+      aclk $fclk
+    }
+    # Create axis_broadcaster
+    cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
+      S_TDATA_NUM_BYTES.VALUE_SRC USER
+      M_TDATA_NUM_BYTES.VALUE_SRC USER
+      S_TDATA_NUM_BYTES 8
+      M_TDATA_NUM_BYTES 3
+      M00_TDATA_REMAP {tdata[23:0]}
+      M01_TDATA_REMAP {tdata[55:32]}
+    } {
+      S_AXIS mult_0/M_AXIS_DOUT
+      aclk $fclk
+      aresetn $f_aresetn
+    }
+} else {
+    # Create axis_broadcaster
+    cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
+      S_TDATA_NUM_BYTES.VALUE_SRC USER
+      M_TDATA_NUM_BYTES.VALUE_SRC USER
+      S_TDATA_NUM_BYTES 4
+      M_TDATA_NUM_BYTES 3
+      M00_TDATA_REMAP {tdata[15:0],  8'b0}
+      M01_TDATA_REMAP {tdata[31:16], 8'b0}
+    } {
+      S_AXIS fifo_0/M_AXIS
+      aclk $fclk
+      aresetn $f_aresetn
+    }
 }
 
 # Create axis_variable

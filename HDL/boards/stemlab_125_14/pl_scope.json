@@ -1,5 +1,6 @@
 {
     "has_tx": "TRUE",
+    "modulated": "TRUE",
     "rx_channel_count": "1",
     "fclk_source": "SATA"
 }
