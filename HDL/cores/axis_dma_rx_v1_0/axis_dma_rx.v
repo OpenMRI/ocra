@@ -393,7 +393,7 @@ module axis_dma_rx #
         - [19:0] - Acquisition Length
       6 - 0x18: RW
         - [3:0] - Number of Buffers to be used 
-      7 - 0x1C: RO - Reserved
+      7 - 0x1C: RO - Transfer Counter. This counter can be polled in place of the interrupt.
       8 - 0x20: RW - Buffer 0 Address
       9 - 0x24: RW - Buffer 1 Address
       ...
@@ -448,6 +448,8 @@ module axis_dma_rx #
     reg [7:0] bresp_error_q;
     reg [31:0] cmd_status_q;
 
+    reg [31:0] trf_cnt_q, trf_cnt_d;
+
     // Output Stream to Data Mover
     reg data_tvalid_en_q, data_tvalid_en_d;
     wire data_tvalid = data_tvalid_en_q & s_axis_tvalid;
@@ -464,6 +466,7 @@ module axis_dma_rx #
             interrupt_q     <= 1'b0;
             interrupt_2q    <= 1'b0;
             s2mm_bresp_q    <= 2'b0;
+            trf_cnt_q       <= 32'h0;
         end else begin
             state_q         <= state_d;
             buffer_idx_q    <= buffer_idx_d;
@@ -474,6 +477,7 @@ module axis_dma_rx #
             interrupt_q     <= interrupt_d;
             interrupt_2q    <= interrupt_q;
             s2mm_bresp_q    <= axi_mm_bready && axi_mm_bready ? axi_mm_bresp : s2mm_bresp_q;
+            trf_cnt_q       <= trf_cnt_d;
         end
     end
 
@@ -521,7 +525,7 @@ module axis_dma_rx #
       slv_reg[4][3:0]   = {3'b0, s2mm_err};
       slv_reg[4][7:4]   = {3'b0, state_q == ERROR};
       slv_reg[4][31:8]  = 24'h0;
-      slv_reg[7]        = 32'h0;
+      slv_reg[7]        = trf_cnt_q;
     end
     // Status Registers Write from Logic. In the event of write collision, the AXI4-Lite interface takes precedence.
     always @(*) begin
@@ -542,6 +546,7 @@ module axis_dma_rx #
       data_tvalid_en_d= data_tvalid_en_q;
       interrupt_d     = 1'b0;
       update_status_register = 1'b0;
+      trf_cnt_d       = trf_cnt_q;
       case(state_q)
         //IDLE
         IDLE: begin
@@ -591,6 +596,7 @@ module axis_dma_rx #
             buffer_idx_d = ({1'b0, buffer_idx_q} + 4'd1) == buffer_count ? 3'd0 : buffer_idx_q + 3'd1;
             update_status_register = 1'b1;
             interrupt_d   = 1'b1;
+            trf_cnt_d = trf_cnt_q + 32'b1;
             //Check for potential error conditions
             if (status_okay_n || btt_mismatch || tlast_n || bresp_detected) begin
               state_d = ERROR;
