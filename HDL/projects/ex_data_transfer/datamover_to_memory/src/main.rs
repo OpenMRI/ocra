@@ -3,6 +3,7 @@ use std::ptr;
 use memmap2::{MmapMut, MmapOptions};
 use anyhow::Result;
 use std::{time, thread};
+use std::io::{Read, Write, Seek, SeekFrom};
 
 struct MemoryMap {
     map: MmapMut,
@@ -42,6 +43,7 @@ impl MemoryMap {
 struct DmaController {
     mmap: MemoryMap,
     irq_count: u32,
+    irq_file: Option<File>,
 }
 impl DmaController {
     const SOFT_RESET_OFFSET: usize = 0x0;
@@ -56,20 +58,34 @@ impl DmaController {
         Ok(DmaController {
             mmap: mmap,
             irq_count: 0,
+            irq_file: None,
         })
+    }
+    pub fn configure_interrupt_file(&mut self, file: File) {
+        self.irq_file = Some(file);
     }
     pub fn update_irq_count(&mut self) -> Result<()> {
         self.irq_count = self.mmap.read(Self::IRQ_COUNT_OFFSET)?;
         println!("IRQ Count: 0x{:08x}", self.irq_count);
+        if self.irq_file.is_some() {
+            self.irq_file.as_mut().unwrap().seek(SeekFrom::Start(0))?;
+            self.irq_file.as_mut().unwrap().write(&1u32.to_le_bytes()).unwrap();
+        }
         Ok(())
     }
     pub fn wait_for_completion(&mut self) -> Result<()> {
-        loop {
-            let current_irq_count = self.mmap.read(Self::IRQ_COUNT_OFFSET)?;
-            if self.irq_count != current_irq_count {
-                break;
+        if self.irq_file.is_some() {
+            let mut buf = [0u8; 4];
+            self.irq_file.as_mut().unwrap().read_exact(&mut buf)?;
+        }
+        else {
+            loop {
+                let current_irq_count = self.mmap.read(Self::IRQ_COUNT_OFFSET)?;
+                if self.irq_count != current_irq_count {
+                    break;
+                }
+                thread::sleep(time::Duration::from_micros(1));
             }
-            thread::sleep(time::Duration::from_micros(1));
         }
         Ok(())
     }
@@ -191,6 +207,13 @@ fn main() {
     let mut dma_ctrl: DmaController = DmaController::new(&file, DMA_RX_BASE_ADDR, DMA_RX_SIZE).unwrap();
     let mut cfg_ctrl: ConfigController = ConfigController::new(&file, CFG_BASE_ADDR, CFG_SIZE).unwrap();
     let mut ram_ctrl: MemoryController = MemoryController::new(&file, RAM_BASE_ADDR, RAM_SIZE).unwrap();
+
+    let irq_file: File = OpenOptions::new()
+                           .read(true)
+                           .write(true)
+                           .open("/dev/uio0".to_string())
+                           .unwrap();
+    let _ = dma_ctrl.configure_interrupt_file(irq_file);
 
     //reset the dma controller
     println!("Resetting the DMA controller");
