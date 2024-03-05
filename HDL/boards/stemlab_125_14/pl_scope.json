@@ -1,4 +1,5 @@
 {
+    "mode": "ADVANCED",
     "has_tx": "TRUE",
     "modulated": "TRUE",
     "rx_channel_count": "1",
