@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module axis_dma_rx #
+module axis_acq_trigger #
 (
     parameter integer C_S_AXI_DATA_WIDTH = 32,
     parameter integer C_S_AXI_ADDR_WIDTH = 16,
@@ -13,34 +13,15 @@ module axis_dma_rx #
     input       [C_AXIS_TDATA_WIDTH-1:0]         s_axis_tdata,
     input                                        s_axis_tvalid,
     output                                       s_axis_tready,
+    //Output Stream
+    output      [C_AXIS_TDATA_WIDTH-1:0]         m_axis_tdata,
+    output                                       m_axis_tvalid,
+    input                                        m_axis_tready,
 
     input                                        gate,
-    input       [19:0]                           acq_len_in,
-    input                                        s2mm_err,
-    output                                       i_rq,
-
-    //Snooping the BRESP interface
-    input       [1:0]                            axi_mm_bresp,
-    input                                        axi_mm_bvalid,
-    input                                        axi_mm_bready,
-
-    //Data Mover Interfaces
-    //Command
-    output                                       m_axis_s2mm_cmd_tvalid,
-    input                                        m_axis_s2mm_cmd_tready,
-    output      [71 : 0]                         m_axis_s2mm_cmd_tdata,
-    //Status
-    input                                        s_axis_s2mm_sts_tvalid,
-    output                                       s_axis_s2mm_sts_tready,
-    input       [31: 0]                          s_axis_s2mm_sts_tdata,
-    input       [3 : 0]                          s_axis_s2mm_sts_tkeep,
-    input                                        s_axis_s2mm_sts_tlast,
-    //Output Stream to Memory
-    output      [C_AXIS_TDATA_WIDTH-1: 0]        m_axis_s2mm_tdata,
-    output      [(C_AXIS_TDATA_WIDTH/8)-1 : 0]   m_axis_s2mm_tkeep,
-    output                                       m_axis_s2mm_tlast,
-    output                                       m_axis_s2mm_tvalid,
-    input                                        m_axis_s2mm_tready,
+    output                                       resetn_out,
+    output                                       gate_out,
+    output      [19:0]                           acq_len_out,
 
     //AXI4-Lite Interface
     input       [C_S_AXI_ADDR_WIDTH-1 : 0]       S_AXI_AWADDR,
@@ -85,8 +66,9 @@ module axis_dma_rx #
     // ADDR_LSB = 3 for 64 bits (n downto 3)
     localparam integer           ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
     localparam integer           OPT_MEM_ADDR_BITS = 4;
-    localparam integer           REG_TOTAL = 16;
-    localparam                   WR_ACCESS = 16'b1111_1111_0110_0011;
+    localparam integer           REG_TOTAL = 10;
+    localparam                   WR_ACCESS = 10'b01_1111_1111;
+    localparam                   MAX_WINDOW_COUNT = 4;
     //----------------------------------------------
     //-- Signals for user logic register space example
     //------------------------------------------------
@@ -326,12 +308,6 @@ module axis_dma_rx #
           4'h7   : reg_data_out <= slv_reg[7];
           4'h8   : reg_data_out <= slv_reg[8];
           4'h9   : reg_data_out <= slv_reg[9];
-          4'hA   : reg_data_out <= slv_reg[10];
-          4'hB   : reg_data_out <= slv_reg[11];
-          4'hC   : reg_data_out <= slv_reg[12];
-          4'hD   : reg_data_out <= slv_reg[13];
-          4'hE   : reg_data_out <= slv_reg[14];
-          4'hF   : reg_data_out <= slv_reg[15];
           default : reg_data_out <= 0;
      endcase
       end
@@ -356,183 +332,91 @@ module axis_dma_rx #
       end 
 
     // Add user logic here
-
-    localparam IDLE         = 3'd0;
-    localparam LOAD_COMMAND = 3'd1;
-    localparam SEND_SAMPLE  = 3'd2;
-    localparam STATUS       = 3'd3;
-    localparam ERROR        = 3'd4;
-    localparam MAX_BTT      = 23'h7FFFFF;
+    localparam IDLE         = 2'd0;
+    localparam DATA_OFF     = 2'd1;
+    localparam DATA_ON      = 2'd2;
+    localparam ERROR        = 2'd3;
     /*
       Register Map:
-      0 - 0x00: RW
+      0 - 0x00: Acquisition Width 0
+        - [31:0] - Acquisition Width 0
+      1 - 0x04: Acquisition Delay 0
+        - [31:0] - Acquisition Delay 0
+      2 - 0x08: Acquisition Width 1
+        - [31:0] - Acquisition Width 1
+      3 - 0x0C: Acquisition Delay 1
+        - [31:0] - Acquisition Delay 2
+      4 - 0x10: Acquisition Width 2
+        - [31:0] - Acquisition Width 2
+      5 - 0x14: Acquisition Delay 2
+        - [31:0] - Acquisition Delay
+      6 - 0x18: Acquisition Width 3
+        - [31:0] - Acquisition Width 3
+      7 - 0x1C: Acquisition Delay 3
+        - [31:0] - Acquisition Delay 3
+      8 - 0x20: Soft Reset
         - [0] - Soft Reset
-      1 - 0x04: RW
-        - [7:0] - Buffer Written Flags.
-                  1 indicates that the buffer has been written to.
-                  SW should clear this bit.
-      2 - 0x08: RO - Error Status Bits - This should be read by the interrupt handler. If a non-zero value was read, the state machine should be reset.
-        - [7:0] - TLAST flags
-                  1 indicates that the buffer was not terminated by TLAST. This means that the transfer was ended prematurely.
-        - [15:8]- Size mismatch flags
-                  1 indicates that the transferred data was not equal to the expected size.
-        - [23:16] - Data Mover Transfer Error
-                  1 indicates that the datamover reported a failure during the data transfer. Register 0x1C should be read to determine the cause.
-        - [31:24] - Invalid BRESP
-                  1 indicates that an invalid BRESP code was detected outside of datamover's reported status.
-      3 - 0x0C: RO - Status Interface - https://docs.xilinx.com/r/en-US/pg022_axi_datamover/Status-Interface.
-        - [3:0] - Buffer 0
-        - [7:4] - Buffer 1
-        ...
-        - [31:28] - Buffer 7
-      4 - 0x10: RO - More status bits. This should also be read by the interrupt handler. Nonzero is error.
-        - [0]  - S2MM Error
-                  1 indicates that the datamover IP core has detected an error. This requires a hard reset.
-        - [4]  - Error State
-                  1 indicates that the state machine is in an error state.
-      5 - 0x14: RW
-        - [19:0] - Acquisition Length
-        - [24] - Use Acquisition Length Value from Register. 0 - Use the value from the register. 1 - Use input value.
-      6 - 0x18: RW
-        - [3:0] - Number of Buffers to be used 
-      7 - 0x1C: RO - Transfer Counter. This counter can be polled in place of the interrupt.
-      8 - 0x20: RW - Buffer 0 Address
-      9 - 0x24: RW - Buffer 1 Address
-      ...
-      15 - 0x3C: RW - Buffer 7 Address
     */
 
     // State machine logic
-    reg [2:0] state_q, state_d;
-    reg [2:0] buffer_idx_q, buffer_idx_d;
-
+    reg [1:0] state_q, state_d;
+    reg [1:0] cnt_q, cnt_d;
+    wire      tvalid_en = state_q == DATA_ON || state_q == ERROR; // tvalid is active when error is detected to ensure the existing transfer is completed
     // Soft Reset
-    wire soft_reset = slv_reg[0][0];
-
-    // Data
-    wire [3:0]  buffer_count    = slv_reg[6][3:0];
-    wire [19:0] reg_acq_len     = slv_reg[5][19:0];
-    wire        use_reg_acq_len = slv_reg[5][24];
-    reg  [19:0] acq_len_q;
-    wire [19:0] acq_len = use_reg_acq_len ? reg_acq_len : acq_len_in;
-    reg  [19:0] sample_count_q, sample_count_d;
-
-    // Command
-    wire [22:0] expected_btt = {acq_len_q, 3'b000};
-    wire [31:0] cmd_address = buffer_idx_q == 3'd0 ? slv_reg[8] :
-                              buffer_idx_q == 3'd1 ? slv_reg[9] :
-                              buffer_idx_q == 3'd2 ? slv_reg[10] :
-                              buffer_idx_q == 3'd3 ? slv_reg[11] :
-                              buffer_idx_q == 3'd4 ? slv_reg[12] :
-                              buffer_idx_q == 3'd5 ? slv_reg[13] :
-                              buffer_idx_q == 3'd6 ? slv_reg[14] : slv_reg[15];
-    reg cmd_tvalid_q, cmd_tvalid_d;
-
-    // Status
-    reg status_tready_q, status_tready_d;
-
-    // 
-    reg update_status_register;
-    reg interrupt_q, interrupt_d, interrupt_2q;
-    reg [1:0] s2mm_bresp_q;
-    wire [7:0] index_bit_select = buffer_idx_q == 3'd0 ? 8'b1 :
-                                  buffer_idx_q == 3'd1 ? 8'b10 :
-                                  buffer_idx_q == 3'd2 ? 8'b100 :
-                                  buffer_idx_q == 3'd3 ? 8'b1000 :
-                                  buffer_idx_q == 3'd4 ? 8'b10000 :
-                                  buffer_idx_q == 3'd5 ? 8'b100000 :
-                                  buffer_idx_q == 3'd6 ? 8'b1000000 : 8'b10000000;
-    wire status_okay_n  = s_axis_s2mm_sts_tdata[7:4]  != 4'h8;          //Status Bits
-    wire btt_mismatch   = s_axis_s2mm_sts_tdata[30:8] != expected_btt;  //Length of data transferred
-    wire tlast_n        = s_axis_s2mm_sts_tdata[31]   != 1'b1;          //Terminated not by TLAST - overflow. This should never happen.
-    wire bresp_detected = s2mm_bresp_q[1] == 1'b1 && !status_okay_n;    //BRESP detected but datamover is not reporting an error;
-
-    reg [7:0] tlast_error_q;
-    reg [7:0] size_mismatch_q;
-    reg [7:0] datamover_error_q;
-    reg [7:0] bresp_error_q;
-    reg [31:0] cmd_status_q;
-
-    reg [31:0] trf_cnt_q, trf_cnt_d;
-
-    // Output Stream to Data Mover
-    reg data_tvalid_en_q, data_tvalid_en_d;
-    wire data_tvalid = data_tvalid_en_q & s_axis_tvalid;
-    wire data_tlast  = sample_count_q == (acq_len-20'd1);
-
+    wire soft_reset = slv_reg[8][0];
+    // Acquisition
+    wire [31:0] acq    [0:MAX_WINDOW_COUNT-1];
+    wire [31:0] drop   [0:MAX_WINDOW_COUNT-1];
+    reg  [31:0] acq_q  [0:MAX_WINDOW_COUNT-1];
+    reg  [31:0] drop_q [0:MAX_WINDOW_COUNT-1];
+    reg  [31:0] sample_count_q, sample_count_d;
+    reg  [31:0] max_len_q, max_len_d;
+    reg  [31:0] acq_len_out_q, acq_len_out_d;
+    reg         gate_out_q, gate_out_d;
+    reg         overflow_q;
+    wire        overflow_d = m_axis_tvalid && !m_axis_tready;
+    genvar i;
+    generate
+        for(i=0; i<MAX_WINDOW_COUNT; i=i+1) begin
+            assign acq[i]  = slv_reg[i*2];
+            assign drop[i] = slv_reg[i*2+1];
+            always @(posedge aclk) begin
+                if (aresetn == 1'b0 || soft_reset) begin
+                    acq_q [i] <= 32'h0;
+                    drop_q[i] <= 32'h0;
+                end else begin
+                    acq_q [i] <= gate? acq [i]: acq_q [i];
+                    drop_q[i] <= gate? drop[i]: drop_q[i];
+                end
+            end
+        end
+    endgenerate
+    
     always @(posedge aclk) begin
         if (aresetn == 1'b0 || soft_reset) begin
             state_q         <= IDLE;
-            buffer_idx_q    <= 3'd0;
-            sample_count_q  <= 20'd0;
-            cmd_tvalid_q    <= 1'b0;
-            status_tready_q <= 1'b0;
-            data_tvalid_en_q <= 1'b0;
-            interrupt_q     <= 1'b0;
-            interrupt_2q    <= 1'b0;
-            s2mm_bresp_q    <= 2'b0;
-            trf_cnt_q       <= 32'h0;
-            acq_len_q       <= 20'd0;
+            cnt_q           <= 2'd0;
+            sample_count_q  <= 32'h0;
+            max_len_q       <= 32'h0;
+            acq_len_out_q   <= 32'h0;
+            gate_out_q      <= 1'b0;
+            overflow_q      <= 1'b0;
         end else begin
             state_q         <= state_d;
-            buffer_idx_q    <= buffer_idx_d;
+            cnt_q           <= cnt_d;
             sample_count_q  <= sample_count_d;
-            cmd_tvalid_q    <= cmd_tvalid_d;
-            status_tready_q <= status_tready_d;
-            data_tvalid_en_q <= data_tvalid_en_d;
-            interrupt_q     <= interrupt_d;
-            interrupt_2q    <= interrupt_q;
-            s2mm_bresp_q    <= axi_mm_bready && axi_mm_bready ? axi_mm_bresp : s2mm_bresp_q;
-            trf_cnt_q       <= trf_cnt_d;
-            acq_len_q       <= gate ? acq_len : acq_len_q;
+            max_len_q       <= max_len_d;
+            acq_len_out_q   <= acq_len_out_d;
+            gate_out_q      <= gate_out_d;
+            overflow_q      <= overflow_d;
         end
     end
 
-    // Status Register
-    genvar i;
-    generate
-      for(i=0; i<8; i=i+1) begin
-        always @(posedge aclk) begin
-          if (aresetn == 1'b0 || soft_reset) begin
-            cmd_status_q[i*4+:4] <= 4'd0;
-            tlast_error_q[i] <= 1'b0;
-            size_mismatch_q[i] <= 1'b0;
-            datamover_error_q[i] <= 1'b0;
-            bresp_error_q[i] <= 1'b0;
-          end else if(update_status_register && i == buffer_idx_q) begin
-            cmd_status_q[i*4+:4] <= s_axis_s2mm_sts_tdata[7:4];
-            tlast_error_q[i] <= tlast_n;
-            size_mismatch_q[i] <= btt_mismatch;
-            datamover_error_q[i] <= status_okay_n;
-            bresp_error_q[i] <= bresp_detected;
-          end else begin
-            cmd_status_q[i*4+:4] <= cmd_status_q[i*4+:4];
-            tlast_error_q[i] <= tlast_error_q[i];
-            size_mismatch_q[i] <= size_mismatch_q[i];
-            datamover_error_q[i] <= datamover_error_q[i];
-            bresp_error_q[i] <= bresp_error_q[i];
-          end
-        end
-      end
-    endgenerate
     // RO Registers
     always @(*) begin
-      slv_reg[2][7:0]   = tlast_error_q;
-      slv_reg[2][15:8]  = size_mismatch_q;
-      slv_reg[2][23:16] = datamover_error_q;
-      slv_reg[2][31:24] = bresp_error_q;
-      slv_reg[3][3:0]   = cmd_status_q[0*4+:4];
-      slv_reg[3][7:4]   = cmd_status_q[1*4+:4];
-      slv_reg[3][11:8]  = cmd_status_q[2*4+:4];
-      slv_reg[3][15:12] = cmd_status_q[3*4+:4];
-      slv_reg[3][19:16] = cmd_status_q[4*4+:4];
-      slv_reg[3][23:20] = cmd_status_q[5*4+:4];
-      slv_reg[3][27:24] = cmd_status_q[6*4+:4];
-      slv_reg[3][31:28] = cmd_status_q[7*4+:4];
-      slv_reg[4][3:0]   = {3'b0, s2mm_err};
-      slv_reg[4][7:4]   = {3'b0, state_q == ERROR};
-      slv_reg[4][31:8]  = 24'h0;
-      slv_reg[7]        = trf_cnt_q;
+      slv_reg[9][7:0]       = {7'b0, overflow_q};
+      slv_reg[9][15:0]      = {6'b0, state_q};
+      slv_reg[9][31:16]     = 16'b0;
     end
     // Status Registers Write from Logic. In the event of write collision, the AXI4-Lite interface takes precedence.
     always @(*) begin
@@ -540,111 +424,78 @@ module axis_dma_rx #
       for(j = 0; j < REG_TOTAL; j = j+1) begin
         slv_reg_d[j] = slv_reg[j];
       end
-      slv_reg_d[1] = update_status_register? {slv_reg[1][31:8], slv_reg[1][7:0] | index_bit_select} : slv_reg[1];
     end
-
 
     always @(*) begin
       state_d         = state_q;
-      buffer_idx_d    = buffer_idx_q;
+      cnt_d           = cnt_q;
       sample_count_d  = sample_count_q;
-      cmd_tvalid_d    = cmd_tvalid_q;
-      status_tready_d = status_tready_q;
-      data_tvalid_en_d= data_tvalid_en_q;
-      interrupt_d     = 1'b0;
-      update_status_register = 1'b0;
-      trf_cnt_d       = trf_cnt_q;
+      max_len_d       = max_len_q;
+      acq_len_out_d   = acq_len_out_q;
+      gate_out_d      = 1'b0;
       case(state_q)
         //IDLE
         IDLE: begin
-          if (gate == 1'b1 && buffer_count != 4'd0 && acq_len != 20'd0) begin
-            state_d       = LOAD_COMMAND;
-            cmd_tvalid_d  = 1'b1;
-          end else if(s2mm_err) begin
-            state_d       = ERROR;
-            interrupt_d   = 1'b1;
+          if (gate == 1'b1 && acq[0] != 32'h0) begin
+            state_d       = DATA_OFF;
+            cnt_d         = 2'd0;
+            max_len_d     = drop[0] - 32'd1;
+            sample_count_d = 32'd0;
+            acq_len_out_d = acq[0];
+            gate_out_d    = 1'b1;
           end else begin
             state_d       = IDLE;
           end
         end
 
-        //LOAD_COMMAND
-        LOAD_COMMAND: begin
-          if (m_axis_s2mm_cmd_tready == 1'b1) begin
-            state_d    = SEND_SAMPLE;
-            cmd_tvalid_d  = 1'b0;
-            data_tvalid_en_d = 1'b1;
-          end else begin
-            state_d = LOAD_COMMAND;
+        //DATA OFF
+        DATA_OFF: begin
+          if ((s_axis_tvalid == 1'b1 && sample_count_q == max_len_q) || drop_q[cnt_q] == 32'h0) begin
+            state_d    = DATA_ON;
+            max_len_d  = acq_q[cnt_q] - 32'd1;
+            sample_count_d = 32'd0;
+            cnt_d      = cnt_q + 2'd1;
+          end else if (s_axis_tvalid == 1'b1) begin
+            sample_count_d = sample_count_q + 32'd1;
           end
         end
 
-        //SEND_SAMPLE
-        SEND_SAMPLE: begin
-          if (m_axis_s2mm_tready && s_axis_tvalid) begin
-            if(data_tlast) begin
-              state_d = STATUS;
-              data_tvalid_en_d = 1'b0;
-              status_tready_d = 1'b1;
-              sample_count_d = 20'd0;
-            end else begin
-              state_d = SEND_SAMPLE;
-              sample_count_d = sample_count_q + 20'd1;
-            end
-          end else begin
-            state_d = SEND_SAMPLE;
-          end
-        end
-
-        //STATUS
-        STATUS: begin
-          if (s_axis_s2mm_sts_tvalid == 1'b1) begin
-            status_tready_d = 1'b0;
-            buffer_idx_d = ({1'b0, buffer_idx_q} + 4'd1) == buffer_count ? 3'd0 : buffer_idx_q + 3'd1;
-            update_status_register = 1'b1;
-            interrupt_d   = 1'b1;
-            trf_cnt_d = trf_cnt_q + 32'b1;
-            //Check for potential error conditions
-            if (status_okay_n || btt_mismatch || tlast_n || bresp_detected) begin
-              state_d = ERROR;
-            end else begin
-              state_d = IDLE;
-            end
-          end else begin
-            state_d = STATUS;
-          end
-        end
-
-        //ERROR
-        ERROR: begin
-          if (soft_reset) begin
-            state_d = IDLE;
-          end else begin
+        //DATA ON
+        DATA_ON: begin
+          if (s_axis_tvalid && !m_axis_tready) begin
             state_d = ERROR;
           end
+          else if (s_axis_tvalid == 1'b1 && sample_count_q == max_len_q) begin
+            //If next window of acquisition is empty, or if this is the last window, then go to IDLE
+            if (&cnt_q || acq_q[cnt_q] == 32'h0) begin
+                state_d = IDLE;
+                cnt_d   = 2'd0;
+            end else begin
+                state_d = DATA_OFF;
+                max_len_d = drop_q[cnt_q] - 32'd1;
+                sample_count_d = 32'd0;
+                acq_len_out_d = acq_q[cnt_q];
+                gate_out_d    = 1'b1;
+            end
+          end else if (s_axis_tvalid == 1'b1) begin
+            sample_count_d = sample_count_q + 32'd1;
+          end
         end
+
+        ERROR: state_d = ERROR;
 
         default: begin
           state_d = IDLE;
+          cnt_d   = 2'd0;
         end
       endcase
     end
 
   // Output Assignment
-  // Received Data
   assign s_axis_tready          = 1'b1;
-  // Command
-  //                               USER&CACHE   RSVD     TAG                   ADDR         FLAGS        INCR  BTT
-  assign m_axis_s2mm_cmd_tdata  = {8'b00000000, 4'b0000, {1'b0, buffer_idx_q}, cmd_address, 8'b00000000, 1'b1, MAX_BTT};
-  assign m_axis_s2mm_cmd_tvalid = cmd_tvalid_q;
-  // Status
-  assign s_axis_s2mm_sts_tready = status_tready_q;
-  // Output Stream to Data Mover
-  assign m_axis_s2mm_tdata      = s_axis_tdata;
-  assign m_axis_s2mm_tkeep      = {C_AXIS_TDATA_WIDTH/8{1'b1}};
-  assign m_axis_s2mm_tlast      = data_tlast;
-  assign m_axis_s2mm_tvalid     = data_tvalid;
-  // Interrupt
-  assign i_rq                   = interrupt_2q | interrupt_q;
-
+  assign m_axis_tvalid          = tvalid_en & s_axis_tvalid;
+  assign m_axis_tdata           = s_axis_tdata;
+  assign resetn_out             = aresetn && !soft_reset;
+  assign gate_out               = gate_out_q;
+  assign acq_len_out            = acq_len_out_q;
 endmodule

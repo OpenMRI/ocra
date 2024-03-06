@@ -5,7 +5,7 @@
     fragment@3 {
         target = <&amba>;
         overlay3: __overlay__ {
-            ms_halt: ms_halt {
+            ms_trstart: ms_trstart {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 29 1>;
@@ -15,12 +15,16 @@
                 interrupt-parent = <0x1>;
                 interrupts = <0 30 1>;
             };
-            dma_rx_irq: dma_rx_irq {
+            ms_halt: ms_halt {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 31 1>;
             };
-
+            dma_rx_0_irq: dma_rx_0_irq {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 32 1>;
+            };
         };
     };
 };

@@ -228,7 +228,6 @@ cell xilinx.com:ip:axis_dwidth_converter:1.1 conv_1 {
   aresetn $f_aresetn
 }
 
-
 cell open-mri:user:axis_dma_rx:1.0 axis_dma_rx_0 {
   C_S_AXI_ADDR_WIDTH 16
   C_S_AXI_DATA_WIDTH 32
@@ -236,9 +235,9 @@ cell open-mri:user:axis_dma_rx:1.0 axis_dma_rx_0 {
 } {
   aclk      $fclk
   aresetn   $f_aresetn
-  S_AXIS    conv_1/M_AXIS
-  gate      slice_0/Dout
 }
+#  S_AXIS    conv_1/M_AXIS
+#  gate      slice_0/Dout
 
 cell xilinx.com:ip:axi_datamover:5.1 axi_datamover_0 {
   c_include_mm2s            Omit
@@ -268,3 +267,31 @@ cell open-mri:user:axi_sniffer:1.0 axi_sniffer_0 {
   bready    axis_dma_rx_0/axi_mm_bready
 }
 set_property CONFIG.PROTOCOL AXI4 [get_bd_intf_pins /rx_0/axi_sniffer_0/S_AXI]
+save_bd_design
+if { [dict get $pl_param_dict mode] == "SIMPLE"} {
+    cell open-mri:user:axis_acq_trigger:1.0 axis_acq_trigger_0 {
+        C_S_AXI_ADDR_WIDTH 12
+        C_S_AXI_DATA_WIDTH 32
+        C_AXIS_TDATA_WIDTH 64
+    } {
+        aclk      $fclk
+        aresetn   $f_aresetn
+        S_AXIS    conv_1/M_AXIS
+        acq_len_out axis_dma_rx_0/acq_len_in
+    }
+    save_bd_design
+    cell xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_0 {
+        TDATA_NUM_BYTES 8
+        FIFO_DEPTH 16
+    } {
+        s_axis_aclk $fclk
+        s_axis_aresetn axis_acq_trigger_0/resetn_out
+        s_axis axis_acq_trigger_0/M_AXIS
+        m_axis axis_dma_rx_0/S_AXIS
+    }
+    save_bd_design
+    connect_bd_net [get_bd_pins axis_acq_trigger_0/gate_out] [get_bd_pins axis_dma_rx_0/gate]
+} else {
+    connect_bd_intf_net [get_bd_intf_pins conv_1/M_AXIS] [get_bd_intf_pins axis_dma_rx_0/S_AXIS]
+    connect_bd_net [get_bd_pins slice_0/Dout]  [get_bd_pins axis_dma_rx_0/gate]
+}

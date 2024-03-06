@@ -426,12 +426,18 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 
+# Create IRQ concatenator
+set irq_width [expr 3 + [dict get $pl_param_dict rx_channel_count]]
 cell xilinx.com:ip:xlconcat:2.1 irq_concat_0 {
-    NUM_PORTS 3
+    NUM_PORTS $irq_width
 }
-connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/irq_halt]
+connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/irq_trstart]
 connect_bd_net [get_bd_pins irq_concat_0/In1] [get_bd_pins micro_sequencer/irq_litr]
-connect_bd_net [get_bd_pins irq_concat_0/In2] [get_bd_pins rx_0/axis_dma_rx_0/i_rq]
+connect_bd_net [get_bd_pins irq_concat_0/In2] [get_bd_pins micro_sequencer/irq_halt]
+for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+    connect_bd_net [get_bd_pins irq_concat_0/In[expr 3+$i]] [get_bd_pins /rx_${i}/axis_dma_rx_0/i_rq]
+    #connect_bd_net [get_bd_pins irq_concat_0/In3] [get_bd_pins rx_0/axis_dma_rx_0/i_rq]
+}
 connect_bd_net [get_bd_pins irq_concat_0/Dout] [get_bd_pins /ps_0/IRQ_F2P]
 
 # Create RF attenuator

@@ -1,5 +1,5 @@
 {
-    "mode": "ADVANCED",
+    "mode": "SIMPLE",
     "has_tx": "TRUE",
     "modulated": "TRUE",
     "rx_channel_count": "1",

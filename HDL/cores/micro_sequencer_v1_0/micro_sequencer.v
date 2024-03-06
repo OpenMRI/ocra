@@ -64,6 +64,7 @@ module micro_sequencer #
     output reg [63:0] 			      pulse,
     input 				      cfg,
 	input                             unpause,
+	output		 	 	 	 	 	  irq_trstart,
 	output		 	 	 	 	 	  irq_halt,
 	output		 	 	 	 	 	  irq_litr,
 	
@@ -220,6 +221,7 @@ module micro_sequencer #
    reg [BRAM_ADDR_WIDTH-1:0] 	       NextPC;
    reg [63:0] 	       opA, opB; 	       
 	
+   reg irq_trstart_q, irq_trstart_2q;
    reg irq_halt_q, irq_halt_2q;
    reg irq_litr_q, irq_litr_2q;
    wire buffer_ready;
@@ -702,6 +704,7 @@ module micro_sequencer #
    // State machine without any pipelining
    task taskExecute; begin
       tick <= tick+1;
+	  irq_trstart_q <= 0;
 	  irq_halt_q <= 0;
 	  irq_litr_q <= 0;
 	  clear_buffer_flag <= 0;
@@ -948,6 +951,7 @@ module micro_sequencer #
 	   stallTimerReg <= 40'hffffffffff;
 	   tx_offset <= 0;
 	   grad_offset <= 0;
+	   irq_trstart_q <= 0;
 	   irq_halt_q <= 0;
 	   irq_litr_q <= 0;
 	   clear_buffer_flag <= 0;
@@ -960,6 +964,7 @@ module micro_sequencer #
 	   state <= Fetch;
 	   pulse[15:8] <= 8'b10101010;
 	   slv_reg1 <= 8'h88; //slv_reg0;
+       irq_trstart_q <= 1'b1;
 	end 
       else if (inExe == 1)
 	begin
@@ -1017,9 +1022,11 @@ module micro_sequencer #
 	assign  slv_reg0_d[7:0]  = slv_reg0[7:0];
     assign  buffer_ready = slv_reg0[8];
 	always @(posedge aclk) begin
+		irq_trstart_2q <= irq_trstart_q;
 		irq_halt_2q <= irq_halt_q;
 		irq_litr_2q <= irq_litr_q;
 	end	
+	assign irq_trstart = irq_trstart_2q || irq_trstart_q;
 	assign irq_halt = irq_halt_2q || irq_halt_q;
 	assign irq_litr = irq_litr_2q || irq_litr_q;
    //
