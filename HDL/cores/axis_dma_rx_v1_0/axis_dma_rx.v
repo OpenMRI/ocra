@@ -392,7 +392,7 @@ module axis_dma_rx #
                   1 indicates that the state machine is in an error state.
       5 - 0x14: RW
         - [19:0] - Acquisition Length
-        - [24] - Use Acquisition Length Value from Register. 0 - Use the value from the register. 1 - Use input value.
+        - [24] - Use Acquisition Length Value from Register. 1 - Use the value from the register. 0 - Use input value.
       6 - 0x18: RW
         - [3:0] - Number of Buffers to be used 
       7 - 0x1C: RO - Transfer Counter. This counter can be polled in place of the interrupt.

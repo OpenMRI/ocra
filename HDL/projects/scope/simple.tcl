@@ -323,6 +323,12 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     } [get_bd_intf_pins rx_${i}/axis_dma_rx_0/S_AXI]
     set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
     set_property OFFSET 0x4001${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+      Master    /ps_0/M_AXI_GP0
+      Clk       Auto
+    } [get_bd_intf_pins rx_${i}/axis_acq_trigger_0/S_AXI]
+    set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_axis_acq_trigger_0_reg0${suffix}]
+    set_property OFFSET 0x4006${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_acq_trigger_0_reg0${suffix}]
 }
 
 # Create axi_sts_register
