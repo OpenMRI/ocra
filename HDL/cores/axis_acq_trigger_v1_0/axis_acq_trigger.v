@@ -467,7 +467,7 @@ module axis_acq_trigger #
           end
           else if (s_axis_tvalid == 1'b1 && sample_count_q == max_len_q) begin
             //If next window of acquisition is empty, or if this is the last window, then go to IDLE
-            if (&cnt_q || acq_q[cnt_q] == 32'h0) begin
+            if (cnt_q == 2'b00 || acq_q[cnt_q] == 32'h0) begin
                 state_d = IDLE;
                 cnt_d   = 2'd0;
             end else begin
