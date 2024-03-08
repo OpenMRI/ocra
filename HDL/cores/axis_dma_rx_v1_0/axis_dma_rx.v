@@ -16,6 +16,7 @@ module axis_dma_rx #
 
     input                                        gate,
     input       [19:0]                           acq_len_in,
+    output                                       acq_len_rd_en,
     input                                        s2mm_err,
     output                                       i_rq,
 
@@ -415,6 +416,7 @@ module axis_dma_rx #
     wire        use_reg_acq_len = slv_reg[5][24];
     reg  [19:0] acq_len_q;
     wire [19:0] acq_len = use_reg_acq_len ? reg_acq_len : acq_len_in;
+    reg  acq_len_rd_en_q, acq_len_rd_en_d;
     reg  [19:0] sample_count_q, sample_count_d;
 
     // Command
@@ -458,7 +460,7 @@ module axis_dma_rx #
     // Output Stream to Data Mover
     reg data_tvalid_en_q, data_tvalid_en_d;
     wire data_tvalid = data_tvalid_en_q & s_axis_tvalid;
-    wire data_tlast  = sample_count_q == (acq_len-20'd1);
+    wire data_tlast  = sample_count_q == (acq_len_q-20'd1);
 
     always @(posedge aclk) begin
         if (aresetn == 1'b0 || soft_reset) begin
@@ -473,6 +475,7 @@ module axis_dma_rx #
             s2mm_bresp_q    <= 2'b0;
             trf_cnt_q       <= 32'h0;
             acq_len_q       <= 20'd0;
+            acq_len_rd_en_q <= 1'b0;
         end else begin
             state_q         <= state_d;
             buffer_idx_q    <= buffer_idx_d;
@@ -485,6 +488,7 @@ module axis_dma_rx #
             s2mm_bresp_q    <= axi_mm_bready && axi_mm_bready ? axi_mm_bresp : s2mm_bresp_q;
             trf_cnt_q       <= trf_cnt_d;
             acq_len_q       <= gate ? acq_len : acq_len_q;
+            acq_len_rd_en_q <= acq_len_rd_en_d;
         end
     end
 
@@ -554,12 +558,14 @@ module axis_dma_rx #
       interrupt_d     = 1'b0;
       update_status_register = 1'b0;
       trf_cnt_d       = trf_cnt_q;
+      acq_len_rd_en_d = 1'b0;
       case(state_q)
         //IDLE
         IDLE: begin
           if (gate == 1'b1 && buffer_count != 4'd0 && acq_len != 20'd0) begin
             state_d       = LOAD_COMMAND;
             cmd_tvalid_d  = 1'b1;
+            acq_len_rd_en_d = 1'b1;
           end else if(s2mm_err) begin
             state_d       = ERROR;
             interrupt_d   = 1'b1;
@@ -646,5 +652,5 @@ module axis_dma_rx #
   assign m_axis_s2mm_tvalid     = data_tvalid;
   // Interrupt
   assign i_rq                   = interrupt_2q | interrupt_q;
-
+  assign acq_len_rd_en          = acq_len_rd_en_q;
 endmodule

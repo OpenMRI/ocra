@@ -277,7 +277,6 @@ if { [dict get $pl_param_dict mode] == "SIMPLE"} {
         aclk      $fclk
         aresetn   $f_aresetn
         S_AXIS    conv_1/M_AXIS
-        acq_len_out axis_dma_rx_0/acq_len_in
     }
     save_bd_design
     cell xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_0 {
@@ -290,7 +289,32 @@ if { [dict get $pl_param_dict mode] == "SIMPLE"} {
         m_axis axis_dma_rx_0/S_AXIS
     }
     save_bd_design
-    connect_bd_net [get_bd_pins axis_acq_trigger_0/gate_out] [get_bd_pins axis_dma_rx_0/gate]
+    cell xilinx.com:ip:util_vector_logic:2.0 fifo_reset_0 {
+        C_OPERATION not
+        C_SIZE 1
+    } {
+        Op1 axis_acq_trigger_0/resetn_out
+    }
+    cell xilinx.com:ip:util_vector_logic:2.0 gate_out_0 {
+        C_OPERATION not
+        C_SIZE 1
+    } {
+        Res axis_dma_rx_0/gate
+    }
+    cell xilinx.com:ip:fifo_generator:13.2 fifo_acq_len_0 {
+        Fifo_Implementation Common_Clock_Distributed_RAM
+        Input_Data_Width 20
+        Input_Depth 16
+        Performance_Options First_Word_Fall_Through
+    } {
+        din   axis_acq_trigger_0/acq_len_out
+        wr_en axis_acq_trigger_0/gate_out
+        empty gate_out_0/Op1
+        dout  axis_dma_rx_0/acq_len_in
+        rd_en axis_dma_rx_0/acq_len_rd_en
+        clk  $fclk
+        srst fifo_reset_0/Res
+    }
 } else {
     connect_bd_intf_net [get_bd_intf_pins conv_1/M_AXIS] [get_bd_intf_pins axis_dma_rx_0/S_AXIS]
     connect_bd_net [get_bd_pins slice_0/Dout]  [get_bd_pins axis_dma_rx_0/gate]
