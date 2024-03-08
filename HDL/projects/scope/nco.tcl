@@ -23,11 +23,11 @@ cell pavel-demin:user:axis_constant:1.0 phase_nco {
 cell xilinx.com:ip:dds_compiler:6.0 dds_nco {
   DDS_CLOCK_RATE 125
   SPURIOUS_FREE_DYNAMIC_RANGE 138
-  FREQUENCY_RESOLUTION 0.2
+  FREQUENCY_RESOLUTION 0.05
   PHASE_INCREMENT Streaming
   HAS_TREADY false
   HAS_PHASE_OUT false
-  PHASE_WIDTH 30
+  PHASE_WIDTH 32
   OUTPUT_WIDTH 24
   DSP48_USE Minimal
   NEGATIVE_SINE true
