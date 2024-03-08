@@ -380,8 +380,13 @@ connect_bd_net [get_bd_pins irq_concat_0/Dout] [get_bd_pins /ps_0/IRQ_F2P]
 
 # the LEDs
 cell xilinx.com:ip:xlconstant:1.1 const_led_high
-set_property -dict [list CONFIG.CONST_WIDTH {8} CONFIG.CONST_VAL {0xFF}] [get_bd_cells const_led_high]
-connect_bd_net [get_bd_ports led_o] [get_bd_pins const_led_high/Dout]
+set_property -dict [list CONFIG.CONST_WIDTH {7} CONFIG.CONST_VAL {0x7F}] [get_bd_cells const_led_high]
+cell xilinx.com:ip:xlconcat:2.1 led_concat_0 {
+    NUM_PORTS 2
+}
+connect_bd_net [get_bd_pins led_concat_0/In0] [get_bd_pins ibufds_trigger_0/IBUF_OUT]
+connect_bd_net [get_bd_pins led_concat_0/In1] [get_bd_pins const_led_high/Dout]
+connect_bd_net [get_bd_ports led_o] [get_bd_pins led_concat_0/Dout]
 
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
