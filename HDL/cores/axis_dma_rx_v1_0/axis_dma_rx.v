@@ -3,7 +3,8 @@ module axis_dma_rx #
 (
     parameter integer C_S_AXI_DATA_WIDTH = 32,
     parameter integer C_S_AXI_ADDR_WIDTH = 16,
-    parameter integer C_AXIS_TDATA_WIDTH = 64
+    parameter integer C_AXIS_TDATA_WIDTH = 64,
+    parameter EXTERNAL_FRAMING_LOGIC = 0
 )
 (
     input wire                                   aclk,
@@ -638,7 +639,12 @@ module axis_dma_rx #
 
   // Output Assignment
   // Received Data
-  assign s_axis_tready          = 1'b1;
+  generate
+      if(EXTERNAL_FRAMING_LOGIC == 1)
+          assign s_axis_tready          = m_axis_s2mm_tready && state_q == SEND_SAMPLE;
+      else
+          assign s_axis_tready          = 1'b1;
+  endgenerate
   // Command
   //                               USER&CACHE   RSVD     TAG                   ADDR         FLAGS        INCR  BTT
   assign m_axis_s2mm_cmd_tdata  = {8'b00000000, 4'b0000, {1'b0, buffer_idx_q}, cmd_address, 8'b00000000, 1'b1, MAX_BTT};

@@ -8,6 +8,7 @@ set_property DESCRIPTION $display_name $core
 core_parameter C_S_AXI_DATA_WIDTH {AXI DATA WIDTH} {Width of the AXI data bus.}
 core_parameter C_S_AXI_ADDR_WIDTH {AXI ADDR WIDTH} {Width of the AXI address bus.}
 core_parameter C_AXIS_TDATA_WIDTH {AXIS DATA WIDTH} {Width of the AXIS data bus.}
+core_parameter EXTERNAL_FRAMING_LOGIC {EXTERNAL FRAMING LOGIC} {Acquisition Framing Logic is external to the core.}
 
 # AXI4-Lite Slave Interface to control the core
 set bus [ipx::get_bus_interfaces -of_objects $core S_AXI]

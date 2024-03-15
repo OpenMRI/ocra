@@ -263,7 +263,9 @@ if { [dict get $pl_param_dict mode] == "SIMPLE"} {
         clk  $fclk
         srst fifo_reset_0/Res
     }
+    set_property CONFIG.EXTERNAL_FRAMING_LOGIC {1} [get_bd_cells axis_dma_rx_0]
 } else {
     connect_bd_intf_net [get_bd_intf_pins comb_0/M_AXIS] [get_bd_intf_pins axis_dma_rx_0/S_AXIS]
     connect_bd_net [get_bd_pins slice_0/Dout]  [get_bd_pins axis_dma_rx_0/gate]
+    set_property CONFIG.EXTERNAL_FRAMING_LOGIC {0} [get_bd_cells axis_dma_rx_0]
 }
