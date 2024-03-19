@@ -10,6 +10,7 @@
 
 import sys
 import pickle
+import json
 from PyQt5.QtCore import QFile, QTextStream
 from cycler import cycler
 
@@ -691,7 +692,99 @@ class Parameters:
         file.write('SAR status: ' + str(self.SAR_status) + '\n')
         
         file.close()
-        
+
+    def save_header_file_json(self):
+        filename = params.datapath + '_Header.json'
+
+        header_dict = {
+            'Hosts': self.hosts,
+            'Connection mode': self.connectionmode,
+            'GUI mode': self.GUImode,
+            'Sequence': self.sequence,
+            'Sequence file': self.sequencefile,
+            'Data path': self.datapath,
+            'Frequency [MHz]': self.frequency,
+            'Auto recenter': self.autorecenter,
+            'RF frequency offset [Hz]':
+                -self.frequencyoffset if self.frequencyoffsetsign == 1
+                else self.frequencyoffset,
+            'RF phase offset [°]': self.phaseoffset,
+            'RF phase offset [rad]': self.phaseoffsetradmod100,
+            'RF pulse length [µs]': self.RFpulselength,
+            'RF pulse amplitude': self.RFpulseamplitude,
+            'Flip angle (time) [°]': self.flipangletime,
+            'Flip angle (amplitude) [°]': self.flipangleamplitude,
+            'Flip pulse length [µs]': self.flippulselength,
+            'Flip pulse amplitude': self.flippulseamplitude,
+            'RF attenuation [dB]': self.RFattenuation,
+            'RX port 1': self.rx1,
+            'RX port 2': self.rx2,
+            'RX mode': self.rxmode,
+            'RX scaling': self.RXscaling,
+            'TS [ms]': self.TS,
+            'Readout bandwidth scaling': self.ROBWscaler,
+            'TE [ms]': self.TE,
+            'TI [ms]': self.TI,
+            'TR [ms]': self.TR,
+            'Shim values [mA]': list(self.grad),
+            'Gradient orientation': list(self.Gradientorientation),
+            'Image orientation': 'XY' if self.imageorientation == 0
+            else ('YZ'
+                  if self.imageorientation == 1
+                  else 'ZX'),
+            'Image resolution index': self.imageresolution,
+            'Image resolution [pixel]': self.nPE,
+            'Frequency range [Hz]': self.frequencyrange,
+            'Samples': self.samples,
+            'Sampledelay': self.sampledelay,
+            'Timestamp': self.dataTimestamp,
+            'TI start [ms]': self.TIstart,
+            'TI stop [ms]': self.TIstop,
+            'TI steps': self.TIsteps,
+            'TE start [ms]': self.TEstart,
+            'TE stop [ms]': self.TEstop,
+            'TE steps': self.TEsteps,
+            'Projection axes': list(self.projaxis),
+            'Average': self.average,
+            'Number of averages': self.averagecount,
+            'Projection gradient amplitude [mA]': list(self.Gproj),
+            'Projection angle [°]': self.projectionangle,
+            'Projection angle [rad]': self.projectionangleradmod100,
+            'Readout gradient amplitude [mA]': self.GROamplitude,
+            'Phase gradient step amplitude [mA]': self.GPEstep,
+            'Slice gradient amplitude [mA]': self.GSamplitude,
+            '3D phase gradient step amplitude [mA]:': self.GSPEstep,
+            '3D phase steps': self.SPEsteps,
+            'Diffusion gradient amplitude [mA]': self.Gdiffamplitude,
+            'Crusher gradient amplitude [mA]': self.crusheramplitude,
+            'Spoiler gradient amplitude [mA]': self.spoileramplitude,
+            'Readout gradient prephaser duration [µs]': self.GROpretime,
+            'Readout gradient prephaser duration scaling': self.GROpretimescaler,
+            'Slice gradient rephaser time [µs]': self.GSposttime,
+            'Crusher gradient duration [µs]': self.crushertime,
+            'Spoiler gradient duration [µs]': self.spoilertime,
+            'Diffusion gradient duration [µs]': self.diffusiontime,
+            'Fluid compensation readout gradient prephaser 1 duration [µs]':
+                self.GROfcpretime1,
+            'Fluid compensation readout gradient prephaser 2 duration [µs]':
+                self.GROfcpretime2,
+            'Radial angle [°]': self.radialanglestep,
+            'Radial angle [rad]': self.radialanglestepradmod100,
+            'Auto gradients': self.autograd,
+            'FOV [mm]': self.FOV,
+            'Slice/Slab thickness [mm]': self.slicethickness,
+            'Gradient sensitivity [mT/m/A]': list(self.gradsens),
+            'Auto frequency offset': self.autofreqoffset,
+            'Slice offset [mm]': self.sliceoffset,
+            'SAR enable': self.SAR_enable,
+            'SAR limit [W]': self.SAR_limit,
+            'SAR status': self.SAR_status
+        }
+
+        out_file = open(filename, "w")
+
+        json.dump(header_dict, out_file, ensure_ascii=False, indent=4)
+
     def load_GUItheme(self):
         file = QFile(':/' + self.GUIthemestr[self.GUItheme] + '.qss')
         file.open(QFile.ReadOnly | QFile.Text)
