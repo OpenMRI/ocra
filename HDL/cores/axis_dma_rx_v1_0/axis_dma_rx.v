@@ -365,6 +365,8 @@ module axis_dma_rx #
     localparam STATUS       = 3'd3;
     localparam ERROR        = 3'd4;
     localparam MAX_BTT      = 23'h7FFFFF;
+    localparam MAX_TRANSFER_SIZE = 20'd4095; //in words
+    localparam ADDRESS_INCREMENT = (MAX_TRANSFER_SIZE+20'd1)<<3; // in bytes
     /*
       Register Map:
       0 - 0x00: RW
@@ -415,20 +417,23 @@ module axis_dma_rx #
     wire [3:0]  buffer_count    = slv_reg[6][3:0];
     wire [19:0] reg_acq_len     = slv_reg[5][19:0];
     wire        use_reg_acq_len = slv_reg[5][24];
-    reg  [19:0] acq_len_q;
+    reg  [19:0] acq_len_q, acq_len_d;
     wire [19:0] acq_len = use_reg_acq_len ? reg_acq_len : acq_len_in;
     reg  acq_len_rd_en_q, acq_len_rd_en_d;
     reg  [19:0] sample_count_q, sample_count_d;
+    reg buffer_done_q, buffer_done_d;
 
     // Command
-    wire [22:0] expected_btt = {acq_len_q, 3'b000};
-    wire [31:0] cmd_address = buffer_idx_q == 3'd0 ? slv_reg[8] :
+    //wire [22:0] expected_btt = {acq_len_q, 3'b000};
+    reg [22:0] expected_btt_q, expected_btt_d;
+    wire [31:0] cmd_address_sel = buffer_idx_q == 3'd0 ? slv_reg[8] :
                               buffer_idx_q == 3'd1 ? slv_reg[9] :
                               buffer_idx_q == 3'd2 ? slv_reg[10] :
                               buffer_idx_q == 3'd3 ? slv_reg[11] :
                               buffer_idx_q == 3'd4 ? slv_reg[12] :
                               buffer_idx_q == 3'd5 ? slv_reg[13] :
                               buffer_idx_q == 3'd6 ? slv_reg[14] : slv_reg[15];
+    reg [31:0] cmd_address_q, cmd_address_d;
     reg cmd_tvalid_q, cmd_tvalid_d;
 
     // Status
@@ -446,7 +451,7 @@ module axis_dma_rx #
                                   buffer_idx_q == 3'd5 ? 8'b100000 :
                                   buffer_idx_q == 3'd6 ? 8'b1000000 : 8'b10000000;
     wire status_okay_n  = s_axis_s2mm_sts_tdata[7:4]  != 4'h8;          //Status Bits
-    wire btt_mismatch   = s_axis_s2mm_sts_tdata[30:8] != expected_btt;  //Length of data transferred
+    wire btt_mismatch   = s_axis_s2mm_sts_tdata[30:8] != expected_btt_q;  //Length of data transferred
     wire tlast_n        = s_axis_s2mm_sts_tdata[31]   != 1'b1;          //Terminated not by TLAST - overflow. This should never happen.
     wire bresp_detected = s2mm_bresp_q[1] == 1'b1 && !status_okay_n;    //BRESP detected but datamover is not reporting an error;
 
@@ -461,7 +466,9 @@ module axis_dma_rx #
     // Output Stream to Data Mover
     reg data_tvalid_en_q, data_tvalid_en_d;
     wire data_tvalid = data_tvalid_en_q & s_axis_tvalid;
-    wire data_tlast  = sample_count_q == (acq_len_q-20'd1);
+    wire last_sample_of_acquisition = sample_count_q == (acq_len_q-20'd1);
+    wire last_sample_of_current_transfer = sample_count_q == MAX_TRANSFER_SIZE;
+    wire data_tlast  = last_sample_of_acquisition || last_sample_of_current_transfer; 
 
     always @(posedge aclk) begin
         if (aresetn == 1'b0 || soft_reset) begin
@@ -477,6 +484,9 @@ module axis_dma_rx #
             trf_cnt_q       <= 32'h0;
             acq_len_q       <= 20'd0;
             acq_len_rd_en_q <= 1'b0;
+            cmd_address_q   <= 32'h0;
+            expected_btt_q  <= 23'h0;
+            buffer_done_q   <= 1'b0;
         end else begin
             state_q         <= state_d;
             buffer_idx_q    <= buffer_idx_d;
@@ -488,8 +498,12 @@ module axis_dma_rx #
             interrupt_2q    <= interrupt_q;
             s2mm_bresp_q    <= axi_mm_bready && axi_mm_bready ? axi_mm_bresp : s2mm_bresp_q;
             trf_cnt_q       <= trf_cnt_d;
-            acq_len_q       <= gate ? acq_len : acq_len_q;
+            //acq_len_q       <= gate ? acq_len : acq_len_q;
+            acq_len_q       <= acq_len_d;
             acq_len_rd_en_q <= acq_len_rd_en_d;
+            cmd_address_q   <= cmd_address_d;
+            expected_btt_q  <= expected_btt_d;
+            buffer_done_q   <= buffer_done_d;
         end
     end
 
@@ -560,6 +574,10 @@ module axis_dma_rx #
       update_status_register = 1'b0;
       trf_cnt_d       = trf_cnt_q;
       acq_len_rd_en_d = 1'b0;
+      acq_len_d       = acq_len_q;
+      cmd_address_d   = cmd_address_q;
+      expected_btt_d  = expected_btt_q;
+      buffer_done_d   = buffer_done_q;
       case(state_q)
         //IDLE
         IDLE: begin
@@ -567,6 +585,8 @@ module axis_dma_rx #
             state_d       = LOAD_COMMAND;
             cmd_tvalid_d  = 1'b1;
             acq_len_rd_en_d = 1'b1;
+            acq_len_d = acq_len;
+            cmd_address_d = cmd_address_sel;
           end else if(s2mm_err) begin
             state_d       = ERROR;
             interrupt_d   = 1'b1;
@@ -594,7 +614,18 @@ module axis_dma_rx #
               data_tvalid_en_d = 1'b0;
               status_tready_d = 1'b1;
               sample_count_d = 20'd0;
-            end else begin
+              cmd_address_d = cmd_address_q + {12'b0, ADDRESS_INCREMENT};
+              if (!last_sample_of_acquisition) begin
+                buffer_done_d = 1'b0;
+                expected_btt_d = {3'b0, ADDRESS_INCREMENT};
+                acq_len_d = acq_len_q - (MAX_TRANSFER_SIZE+20'd1);
+              end
+              else begin
+                buffer_done_d = 1'b1;
+                expected_btt_d = {acq_len_q, 3'b000};
+              end
+            end
+            else begin
               state_d = SEND_SAMPLE;
               sample_count_d = sample_count_q + 20'd1;
             end
@@ -607,15 +638,20 @@ module axis_dma_rx #
         STATUS: begin
           if (s_axis_s2mm_sts_tvalid == 1'b1) begin
             status_tready_d = 1'b0;
-            buffer_idx_d = ({1'b0, buffer_idx_q} + 4'd1) == buffer_count ? 3'd0 : buffer_idx_q + 3'd1;
-            update_status_register = 1'b1;
-            interrupt_d   = 1'b1;
-            trf_cnt_d = trf_cnt_q + 32'b1;
             //Check for potential error conditions
             if (status_okay_n || btt_mismatch || tlast_n || bresp_detected) begin
               state_d = ERROR;
-            end else begin
+              update_status_register = 1'b1;
+              interrupt_d   = 1'b1;
+            end else if (buffer_done_q) begin
               state_d = IDLE;
+              buffer_idx_d = ({1'b0, buffer_idx_q} + 4'd1) == buffer_count ? 3'd0 : buffer_idx_q + 3'd1;
+              interrupt_d   = 1'b1;
+              trf_cnt_d = trf_cnt_q + 32'b1;
+              update_status_register = 1'b1;
+            end else begin
+              state_d = LOAD_COMMAND;
+              cmd_tvalid_d = 1'b1;
             end
           end else begin
             state_d = STATUS;
@@ -647,7 +683,7 @@ module axis_dma_rx #
   endgenerate
   // Command
   //                               USER&CACHE   RSVD     TAG                   ADDR         FLAGS        INCR  BTT
-  assign m_axis_s2mm_cmd_tdata  = {8'b00000000, 4'b0000, {1'b0, buffer_idx_q}, cmd_address, 8'b00000000, 1'b1, MAX_BTT};
+  assign m_axis_s2mm_cmd_tdata  = {8'b00000000, 4'b0000, {1'b0, buffer_idx_q}, cmd_address_q, 8'b00000000, 1'b1, MAX_BTT};
   assign m_axis_s2mm_cmd_tvalid = cmd_tvalid_q;
   // Status
   assign s_axis_s2mm_sts_tready = status_tready_q;
