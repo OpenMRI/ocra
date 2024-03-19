@@ -103,6 +103,10 @@ proc get_slice_pin {pin_name from to {cell_name ""}} {
     return $cell_name/Dout
 }
 
+set non_ip_rtl_files [glob -nocomplain projects/$project_name/*.v projects/$project_name/*.sv projects/$project_name/rtl/*.sv projects/$project_name/rtl/*.v]
+if {[llength $non_ip_rtl_files] > 0} {
+  add_files -norecurse $non_ip_rtl_files
+}
 
 source projects/$project_name/block_design.tcl
 
