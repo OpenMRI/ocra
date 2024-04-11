@@ -313,8 +313,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            params.save_header_file()
-        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+            params.save_header_file_json()
+        else:
+            print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+            params.save_header_file_json()
         if self.dialog_params != None:
             self.dialog_params.load_params()
             self.dialog_params.repaint()
@@ -2011,8 +2013,10 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            params.save_header_file()
-        else: print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+            params.save_header_file_json()
+        else:
+            print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+            params.save_header_file_json()
 
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
