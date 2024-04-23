@@ -313,10 +313,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            params.save_header_file_json()
+            if params.headerfileformat == 0: params.save_header_file_txt()
+            else: params.save_header_file_json()
         else:
             print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
-            params.save_header_file_json()
         if self.dialog_params != None:
             self.dialog_params.load_params()
             self.dialog_params.repaint()
@@ -1040,6 +1040,12 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.GUI_Light_radioButton.clicked.connect(self.update_light)
         self.GUI_Dark_radioButton.clicked.connect(self.update_dark)
         
+        self.Header_File_Format_comboBox.clear()
+        self.Header_File_Format_comboBox.addItems(['.txt', '.json'])
+        self.Header_File_Format_comboBox.setCurrentIndex(params.headerfileformat)
+        
+        self.Header_File_Format_comboBox.currentIndexChanged.connect(self.update_params)
+        
     def frequency_center(self):
         params.frequency = params.centerfrequency
         self.Frequency_doubleSpinBox.setValue(params.frequency)
@@ -1170,6 +1176,11 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
             print('\033[1m' + 'Mixed signal!' + '\033[0m')
 
         params.signalmask = self.SignalMask_doubleSpinBox.value()
+        
+        if self.Header_File_Format_comboBox.currentIndex() == 0:
+            params.headerfileformat = 0
+        elif self.Header_File_Format_comboBox.currentIndex() == 1:
+            params.headerfileformat = 1
         
         params.saveFileParameter()
         
@@ -2013,10 +2024,10 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
-            params.save_header_file_json()
+            if params.headerfileformat == 0: params.save_header_file_txt()
+            else: params.save_header_file_json()
         else:
             print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
-            params.save_header_file_json()
 
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):

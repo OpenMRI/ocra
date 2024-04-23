@@ -189,6 +189,7 @@ class Parameters:
         self.SAR_enable = 0
         self.SAR_limit = 1
         self.SAR_status = 0
+        self.headerfileformat = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -317,7 +318,8 @@ class Parameters:
                          self.signalmask, \
                          self.SAR_enable, \
                          self.SAR_limit, \
-                         self.SAR_status], file)
+                         self.SAR_status, \
+                         self.headerfileformat], file)
        
         print("Parameters saved!")
         
@@ -487,7 +489,8 @@ class Parameters:
                 self.signalmask, \
                 self.SAR_enable, \
                 self.SAR_limit, \
-                self.SAR_status = pickle.load(file)
+                self.SAR_status, \
+                self.headerfileformat = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
@@ -554,7 +557,7 @@ class Parameters:
         print("Gradient Orientation:\t\t", self.Gradientorientation)
         print("Image Resolution:\t\t", self.nPE)
         
-    def save_header_file(self):
+    def save_header_file_txt(self):
         file = open(params.datapath + '_Header.txt','w')
 
         file.write('Hosts: ' + str(self.hosts) + '\n')
@@ -690,6 +693,10 @@ class Parameters:
         file.write('SAR enable: ' + str(self.SAR_enable) + '\n')
         file.write('SAR limit [W]: ' + str(self.SAR_limit) + '\n')
         file.write('SAR status: ' + str(self.SAR_status) + '\n')
+        if self.headerfileformat == 0:
+            file.write('Header File Format: .txt\n')
+        elif self.headerfileformat == 1:
+            file.write('Header File Format: .json\n')
         
         file.close()
 
@@ -778,7 +785,9 @@ class Parameters:
             'Slice offset [mm]': self.sliceoffset,
             'SAR enable': self.SAR_enable,
             'SAR limit [W]': self.SAR_limit,
-            'SAR status': self.SAR_status
+            'SAR status': self.SAR_status,
+            'Header File Format': '.txt' if self.headerfileformat == 0
+            else ('.json')
         }
 
         out_file = open(filename, "w")
