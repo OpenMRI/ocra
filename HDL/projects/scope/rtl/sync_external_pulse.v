@@ -25,7 +25,7 @@ module sync_external_pulse (
                                    (counter != 16'b0) ? counter + 16'd1 : 16'b0;
             zero_q              <= (counter == 16'b0) ? 1'b1 : 1'b0;
             zero_2q             <= zero_q;
-            pulse_detected_q    <= (zero_q == 1'b1 && zero_2q == 1'b0) ? 1'b1 : 1'b0;
+            pulse_detected_q    <= (zero_q == 1'b0 && zero_2q == 1'b1) ? 1'b1 : 1'b0;
             pulse_detected_2q   <= pulse_detected_q;
         end
     end
