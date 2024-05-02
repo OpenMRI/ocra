@@ -415,7 +415,7 @@ module axis_acq_trigger #
     // RO Registers
     always @(*) begin
       slv_reg[9][7:0]       = {7'b0, overflow_q};
-      slv_reg[9][15:0]      = {6'b0, state_q};
+      slv_reg[9][15:8]      = {6'b0, state_q};
       slv_reg[9][31:16]     = 16'b0;
     end
     // Status Registers Write from Logic. In the event of write collision, the AXI4-Lite interface takes precedence.
