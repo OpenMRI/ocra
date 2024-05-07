@@ -275,9 +275,6 @@ cell xilinx.com:ip:util_vector_logic:2.0 gate_0 {
     Op2 detect_gate_0/pulse_detected
 }
 
-# Create xlconstant
-cell xilinx.com:ip:xlconstant:1.1 const_sts_0
-set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_cells const_sts_0]
 
 if { [dict get $pl_param_dict modulated] == "TRUE"} {
     module nco_0 {
@@ -288,7 +285,12 @@ if { [dict get $pl_param_dict modulated] == "TRUE"} {
     save_bd_design
 }
 
-for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+set rx_status_width [expr 1 + [dict get $pl_param_dict rx_channel_count]]
+cell xilinx.com:ip:xlconcat:2.1 rx_status_concat_0 {
+    NUM_PORTS $rx_status_width
+}
+set rx_channel_count [dict get $pl_param_dict rx_channel_count]
+for {set i 0} {$i < $rx_channel_count} {incr i} {
     module rx_${i} {
       source projects/scope/rx2.tcl
     } {
@@ -297,6 +299,7 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
       fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
       fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
+      axis_dma_rx_0/busy    rx_status_concat_0/In${i}
     }
     # Connect NCO if necessary      
     if { [dict get $pl_param_dict modulated] == "TRUE"} {
@@ -331,6 +334,15 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     set_property OFFSET 0x4006${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_acq_trigger_0_reg0${suffix}]
 }
 
+# Create xlconstant
+
+cell xilinx.com:ip:xlconstant:1.1 const_sts_0 {
+  CONST_WIDTH [expr 32 - $rx_channel_count]
+  CONST_VAL 0
+} {
+}
+connect_bd_net [get_bd_pins const_sts_0/Dout] [get_bd_pins rx_status_concat_0/In$rx_channel_count]
+
 # Create axi_sts_register
 cell pavel-demin:user:axi_sts_register:1.0 sts_0 {
   STS_DATA_WIDTH 32
@@ -339,7 +351,7 @@ cell pavel-demin:user:axi_sts_register:1.0 sts_0 {
 } {
   aclk $fclk
   aresetn $f_aresetn
-  sts_data const_sts_0/dout
+  sts_data rx_status_concat_0/dout
 }
 save_bd_design
 # Create all required interconnections

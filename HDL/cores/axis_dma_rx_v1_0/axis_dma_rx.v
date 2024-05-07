@@ -20,6 +20,7 @@ module axis_dma_rx #
     output                                       acq_len_rd_en,
     input                                        s2mm_err,
     output                                       i_rq,
+    output                                       busy,
 
     //Snooping the BRESP interface
     input       [1:0]                            axi_mm_bresp,
@@ -422,6 +423,7 @@ module axis_dma_rx #
     reg  acq_len_rd_en_q, acq_len_rd_en_d;
     reg  [19:0] sample_count_q, sample_count_d;
     reg buffer_done_q, buffer_done_d;
+    reg busy_q;
 
     // Command
     //wire [22:0] expected_btt = {acq_len_q, 3'b000};
@@ -487,6 +489,7 @@ module axis_dma_rx #
             cmd_address_q   <= 32'h0;
             expected_btt_q  <= 23'h0;
             buffer_done_q   <= 1'b0;
+            busy_q          <= 1'b0;
         end else begin
             state_q         <= state_d;
             buffer_idx_q    <= buffer_idx_d;
@@ -504,6 +507,7 @@ module axis_dma_rx #
             cmd_address_q   <= cmd_address_d;
             expected_btt_q  <= expected_btt_d;
             buffer_done_q   <= buffer_done_d;
+            busy_q          <= state_q != IDLE;
         end
     end
 
@@ -695,4 +699,6 @@ module axis_dma_rx #
   // Interrupt
   assign i_rq                   = interrupt_2q | interrupt_q;
   assign acq_len_rd_en          = acq_len_rd_en_q;
+  // State check
+  assign busy                   = busy_q;
 endmodule
