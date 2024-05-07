@@ -549,7 +549,7 @@ module axis_dma_rx #
       slv_reg[3][27:24] = cmd_status_q[6*4+:4];
       slv_reg[3][31:28] = cmd_status_q[7*4+:4];
       slv_reg[4][3:0]   = {3'b0, s2mm_err};
-      slv_reg[4][7:4]   = {3'b0, state_q == ERROR};
+      slv_reg[4][7:4]   = {1'b0, state_q};
       slv_reg[4][31:8]  = 24'h0;
       slv_reg[7]        = trf_cnt_q;
     end
