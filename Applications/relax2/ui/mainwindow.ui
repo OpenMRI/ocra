@@ -217,47 +217,6 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="3" alignment="Qt::AlignHCenter">
-         <widget class="QPushButton" name="Tools_pushButton">
-          <property name="minimumSize">
-           <size>
-            <width>150</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>150</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Tools</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="3">
-         <widget class="QPushButton" name="Protocol_pushButton">
-          <property name="minimumSize">
-           <size>
-            <width>150</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>150</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="text">
-           <string>Protocol</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="2">
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
@@ -296,6 +255,28 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="5" column="3">
+         <widget class="QPushButton" name="Protocol_pushButton">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Protocol</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -443,8 +424,8 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <item row="0" column="5">
-         <spacer name="horizontalSpacer_6">
+        <item row="0" column="2">
+         <spacer name="horizontalSpacer_5">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -456,8 +437,46 @@
           </property>
          </spacer>
         </item>
-        <item row="0" column="2">
-         <spacer name="horizontalSpacer_5">
+        <item row="0" column="1">
+         <widget class="QPushButton" name="Config_pushButton">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Config</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <widget class="QPushButton" name="SAR_Monitor_pushButton">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SAR Monitor</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="5">
+         <spacer name="horizontalSpacer_6">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -482,8 +501,8 @@
           </property>
          </spacer>
         </item>
-        <item row="0" column="4">
-         <widget class="QPushButton" name="SAR_Monitor_pushButton">
+        <item row="1" column="4">
+         <widget class="QPushButton" name="Motor_Tools_pushButton">
           <property name="minimumSize">
            <size>
             <width>150</width>
@@ -497,12 +516,12 @@
            </size>
           </property>
           <property name="text">
-           <string>SAR Monitor</string>
+           <string>Motor Tools</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QPushButton" name="Config_pushButton">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="Tools_pushButton">
           <property name="minimumSize">
            <size>
             <width>150</width>
@@ -516,7 +535,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Config</string>
+           <string>Tools</string>
           </property>
          </widget>
         </item>

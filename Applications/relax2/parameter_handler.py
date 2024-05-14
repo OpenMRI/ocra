@@ -190,6 +190,15 @@ class Parameters:
         self.SAR_limit = 1
         self.SAR_status = 0
         self.headerfileformat = 0
+        self.motor_available = 0
+        self.motor_port = []
+        self.motor_axis_length = 0
+        self.motor_movement_direction = 0
+        self.motor_start_position = 0
+        self.motor_end_position = 100
+        self.motor_total_image_length = 100
+        self.motor_movement_step = 10
+        self.motor_image_count = 10
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -319,7 +328,16 @@ class Parameters:
                          self.SAR_enable, \
                          self.SAR_limit, \
                          self.SAR_status, \
-                         self.headerfileformat], file)
+                         self.headerfileformat, \
+                         self.motor_available, \
+                         self.motor_port, \
+                         self.motor_axis_length, \
+                         self.motor_movement_direction, \
+                         self.motor_start_position, \
+                         self.motor_end_position, \
+                         self.motor_total_image_length, \
+                         self.motor_movement_step, \
+                         self.motor_image_count], file)
        
         print("Parameters saved!")
         
@@ -490,7 +508,16 @@ class Parameters:
                 self.SAR_enable, \
                 self.SAR_limit, \
                 self.SAR_status, \
-                self.headerfileformat = pickle.load(file)
+                self.headerfileformat, \
+                self.motor_available, \
+                self.motor_port , \
+                self.motor_axis_length, \
+                self.motor_movement_direction, \
+                self.motor_start_position, \
+                self.motor_end_position, \
+                self.motor_total_image_length, \
+                self.motor_movement_step, \
+                self.motor_image_count = pickle.load(file)
              
                 print("Internal GUI parameter successfully restored from file.")
                 
@@ -697,6 +724,15 @@ class Parameters:
             file.write('Header File Format: .txt\n')
         elif self.headerfileformat == 1:
             file.write('Header File Format: .json\n')
+        file.write('Motor available: ' + str(self.motor_available) + '\n')
+        file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
+        file.write('Motor axis length: ' + str(self.motor_axis_length) + '\n')
+        file.write('Motor movement direction: ' + str(self.motor_movement_direction) + '\n')
+        file.write('Motor start position: ' + str(self.motor_start_position) + '\n')
+        file.write('Motor end position: ' + str(self.motor_end_position) + '\n')
+        file.write('Motor total image length: ' + str(self.motor_total_image_length) + '\n')
+        file.write('Motor movement step: ' + str(self.motor_movement_step) + '\n')
+        file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
         
         file.close()
 
@@ -787,7 +823,17 @@ class Parameters:
             'SAR limit [W]': self.SAR_limit,
             'SAR status': self.SAR_status,
             'Header File Format': '.txt' if self.headerfileformat == 0
-            else ('.json')
+            else ('.json'),
+            'Motor available': self.motor_available,
+            'Motor COM Port': self.motor_port,
+            'Motor axis length': self.motor_axis_length,
+            'Motor movement direction': self.motor_movement_direction,
+            'Motor start position': self.motor_start_position,
+            'Motor end position': self.motor_end_position,
+            'Motor total image length':self.motor_total_image_length,
+            'Motor movement step': self.motor_movement_step,
+            'Motor image count': self.motor_image_count
+        
         }
 
         out_file = open(filename, "w")

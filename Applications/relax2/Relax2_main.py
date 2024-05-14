@@ -20,9 +20,10 @@ from datetime import datetime
 
 # import PyQt5 packages
 from PyQt5 import QtWidgets
+from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths
+from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths, QIODevice
 from PyQt5.QtGui import QRegExpValidator, QPixmap
 
 import matplotlib.pyplot as plt
@@ -51,7 +52,7 @@ Plot_Window_Form, Plot_Window_Base = loadUiType('ui/plotview.ui')
 Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
 Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
 SAR_Window_Form, SAR_Window_Base = loadUiType('ui/sar.ui')
-
+Motor_Window_Form, Motor_Window_Base = loadUiType('ui/motor_tools.ui')
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
     def __init__(self, parent = None):
@@ -63,6 +64,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.dialog_tools = None
         self.dialog_prot = None
         self.dialog_sarmonitor = None
+        self.dialog_motortools = None
 
         self.ui = loadUi('ui/mainwindow.ui')
         self.setWindowTitle('Relax 2.0')
@@ -88,6 +90,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.lnkspacemag = 0
         params.ToolShimChannel = [0, 0, 0, 0]
         params.SAR_status = 1
+        params.motor_available = 0
+        
+        self.motor_connect()
         
         if params.GSamplitude == 0:
             params.GSposttime = 0
@@ -113,8 +118,98 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
         self.Config_pushButton.clicked.connect(lambda: self.config_window())
         self.SAR_Monitor_pushButton.clicked.connect(lambda: self.sarmonitor())
+        self.Motor_Tools_pushButton.clicked.connect(lambda: self.motor_tools())
         
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
+        
+    def motor_connect(self):
+        self.device = None
+        if not (params.motor_port != [] and self.check_motor_port(motor_port=params.motor_port)):
+            ports = QSerialPortInfo.availablePorts()
+            port_available = False
+
+            while len(ports) > 0 and not port_available:
+                if self.check_motor_port(ports[0].portName()):
+                    port_available = True
+                    params.motor_available = 1
+                    params.motor_port = ports[0].portName()
+                else:
+                    ports.remove(ports[0])
+        else:
+            params.motor_available = 1
+            
+        self.Motor_Tools_pushButton.setEnabled(params.motor_available)
+        
+    def check_motor_port(self, motor_port=None):
+        device = QSerialPort()
+        device.setPortName(motor_port)
+
+        if device.open(QIODevice.ReadWrite):
+            device.setBaudRate(QSerialPort.BaudRate.Baud115200)
+            device.setDataBits(QSerialPort.DataBits.Data8)
+            device.setParity(QSerialPort.Parity.NoParity)
+            device.setStopBits(QSerialPort.StopBits.OneStop)
+            device.setFlowControl(QSerialPort.FlowControl.NoFlowControl)
+            device.setDataTerminalReady(True)
+
+            device.waitForReadyRead(100)
+
+            msg_s = "M115\n"
+            device.write(msg_s.encode('utf-8'))
+            device.waitForBytesWritten()
+
+            ident_byte_array = device.readAll()
+            while "\n" not in ident_byte_array.data().decode():
+                device.waitForReadyRead(10)
+                ident_byte_array.append(device.readAll())
+
+            if "MRI-Patient-Motor-Control" in ident_byte_array.data().decode('utf8', errors='ignore'):
+                params.motor_port = motor_port
+                params.motor_axis_length = float(ident_byte_array.data().decode('utf8', errors='ignore').split(" ")[2])
+
+                time.sleep(0.1)
+
+                home_s = "G28\n"
+                device.write(home_s.encode('utf-8'))
+                device.waitForBytesWritten()
+
+                time.sleep(0.1)
+
+                time.sleep(0.1)
+
+                response_s = "M118 R0: finished moving\n"
+                device.write(response_s.encode('utf-8'))
+                device.waitForBytesWritten()
+
+                response_byte_array = device.readAll()
+                while "\n" not in response_byte_array.data().decode('utf8', errors='ignore'):
+                    device.waitForReadyRead(10)
+                    response_byte_array.append(device.readAll())
+
+                self.device = device
+                self.device.errorOccurred.connect(lambda error: self.motor_error(error))
+
+                return True
+            else:
+                device.close()
+                return False
+
+    def motor_error(self, error):
+        self.device.blockSignals(True)
+
+        if error != 12 and error != 0:
+            if self.dialog_motortools is not None:
+                self.dialog_motortools.hide()
+                self.dialog_motortools = None
+
+            params.motor_available = False
+            self.Motor_Tools_pushButton.setEnabled(False)
+
+            print("Motor Control: Error detected, Control will be unavailable until at least the next restart of "
+                  "relax2, Error Number: ", error)
+        else:
+            self.device.clearError()
+            self.device.blockSignals(False)
 
     def establish_conn(self):
         self.dialog_con = ConnectionDialog(self)
@@ -349,7 +444,16 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.dialog_config.show()
         else:
             self.dialog_config.hide()
-            self.dialog_config.show() 
+            self.dialog_config.show()
+            
+    def motor_tools(self):
+        if self.dialog_motortools == None:
+            self.dialog_motortools = MotorToolsWindow(self)
+            self.dialog_motortools.setup_device(self.device)
+            self.dialog_motortools.show()
+        else:
+            self.dialog_motortools.hide()
+            self.dialog_motortools.show()
         
     def set_Datapath(self):
         params.datapath = self.Datapath_lineEdit.text()
@@ -627,6 +731,77 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Slice_Thickness_doubleSpinBox.setKeyboardTracking(False)
         self.Slice_Thickness_doubleSpinBox.valueChanged.connect(self.update_params)
         
+        self.Motor_Start_Position_doubleSpinBox.setKeyboardTracking(False)
+        self.Motor_Start_Position_doubleSpinBox.valueChanged.connect(self.update_motor_start_position)
+        self.Motor_End_Position_doubleSpinBox.setKeyboardTracking(False)
+        self.Motor_End_Position_doubleSpinBox.valueChanged.connect(self.update_motor_end_Position)
+        self.Motor_Total_Image_Length_doubleSpinBox.setKeyboardTracking(False)
+        self.Motor_Total_Image_Length_doubleSpinBox.valueChanged.connect(self.update_motor_total_image_length)
+        self.Motor_Movement_Step_doubleSpinBox.setKeyboardTracking(False)
+        self.Motor_Movement_Step_doubleSpinBox.valueChanged.connect(self.update_motor_movement_step)
+        self.Motor_Image_Count_spinBox.setKeyboardTracking(False)
+        self.Motor_Image_Count_spinBox.valueChanged.connect(self.update_motor_image_count)
+        self.Motor_Start_Here_pushButton.clicked.connect(lambda: self.motor_start_here())
+        self.Motor_End_Here_pushButton.clicked.connect(lambda: self.motor_end_here())
+        
+    def update_motor_start_position(self):
+        #print('update_motor_start_position')
+        params.motor_start_position = self.Motor_Start_Position_doubleSpinBox.value()
+        params.motor_total_image_length = params.motor_end_position - params.motor_start_position
+        self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
+        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        
+        params.saveFileParameter()
+        
+    def update_motor_end_Position(self):
+        #print('update_motor_end_Position')
+        params.motor_end_position = self.Motor_End_Position_doubleSpinBox.value()
+        params.motor_total_image_length = params.motor_end_position - params.motor_start_position
+        self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
+        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        
+        params.saveFileParameter()
+        
+    def update_motor_total_image_length(self):
+        #print('update_motor_total_image_length')
+        params.motor_total_image_length = self.Motor_Total_Image_Length_doubleSpinBox.value()
+        params.motor_end_position = params.motor_start_position + params.motor_total_image_length
+        self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
+        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        
+        params.saveFileParameter()
+        
+    def update_motor_movement_step(self):
+        #print('update_motor_movement_step')
+        params.motor_movement_step = self.Motor_Movement_Step_doubleSpinBox.value()
+        params.motor_total_image_length = params.motor_image_count * params.motor_movement_step
+        self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
+        params.motor_end_position = params.motor_start_position + params.motor_total_image_length
+        self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
+        
+        params.saveFileParameter()
+        
+    def update_motor_image_count(self):
+        #print('update_motor_image_count')
+        params.motor_image_count = self.Motor_Image_Count_spinBox.value()
+        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        
+        params.saveFileParameter()
+        
+    def motor_start_here(self):
+        #print('motor_start_here')
+        
+        params.saveFileParameter()
+        
+    def motor_end_here(self):
+        #print('motor_end_here')
+        
+        params.saveFileParameter()
+        
     def load_params(self):
         self.TE_doubleSpinBox.setValue(params.TE)
         self.TI_doubleSpinBox.setValue(params.TI)
@@ -682,6 +857,12 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Slice_Offset_doubleSpinBox.setValue(params.sliceoffset)
         
         if params.autofreqoffset == 1: self.Auto_Frequency_Offset_radioButton.setChecked(True)
+        
+        self.Motor_Start_Position_doubleSpinBox.setValue(params.motor_start_position)
+        self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
+        self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
+        self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        self.Motor_Image_Count_spinBox.setValue(params.motor_image_count)
         
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
@@ -2770,6 +2951,111 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
         params.saveFileParameter()
         
+class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
+    connect = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(MotorToolsWindow, self).__init__(parent)
+        self.setupUi(self)
+
+        # self.load_params()
+
+        self.ui = loadUi('ui/motor_tools.ui')
+        self.setWindowTitle('Motor Tools')
+        self.setGeometry(420, 40, 400, 330)
+
+        self.device = None
+
+    def setup_device(self, device):
+        self.device = device
+
+        self.Motor_MaxLength_lineEdit.setText(str(params.motor_axis_length))
+        self.Motor_MaxLength_lineEdit.setStyleSheet("color: white;")
+
+        self.device.waitForReadyRead(100)
+
+        position_s = "M114\n"
+        self.device.write(position_s.encode('utf-8'))
+        self.device.waitForBytesWritten()
+        device_position_b = self.device.readAll()
+        while "\n" not in device_position_b.data().decode():
+            self.device.waitForReadyRead(10)
+            device_position_b.append(self.device.readAll())
+        device_position_s = device_position_b.data().decode()
+        self.Motor_Position_lineEdit.setText(device_position_s)
+        self.Motor_MoveTo_doubleSpinBox.setValue(float(device_position_s))
+        self.motor_position_lineEdit.setStyleSheet("color: white;")
+
+        self.Motor_Apply_pushButton.clicked.connect(lambda: self.apply())
+        self.Motor_Home_pushButton.clicked.connect(lambda: self.home())
+        self.device.readyRead.connect(lambda: self.handle_read())
+
+        self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="to"))
+        self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="by"))
+        self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length)
+                                                   - float(device_position_s))
+        self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0 - float(device_position_s)))
+        self.Motor_MoveTo_doubleSpinBox.setMaximum(float(params.motor_axis_length))
+        self.Motor_MoveTo_doubleSpinBox.setMinimum(0)
+
+    def home(self):
+        home_s = "G28\n"
+        self.device.write(home_s.encode('utf-8'))
+        self.device.waitForBytesWritten()
+
+        time.sleep(0.1)
+
+        response_s = "M118 R0: finished moving\n"
+        self.device.write(response_s.encode('utf-8'))
+        self.device.waitForBytesWritten()
+
+        self.Motor_Position_lineEdit.setText(str(0.00))
+        self.Motor_MoveTo_doubleSpinBox.setValue(0)
+        self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length))
+        self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0))
+
+        self.setEnabled(False)
+        print("Motor Control - Homing Message send to device")
+
+    def apply(self):
+        new_position = self.Motor_MoveTo_doubleSpinBox.value()
+
+        if new_position != float(self.Motor_Position_lineEdit.text()):
+            apply_s = "G0 " + str(new_position) + "\n"
+            self.device.write(apply_s.encode('utf-8'))
+            self.device.waitForBytesWritten()
+
+            time.sleep(0.1)
+
+            response_s = "M118 R0: finished moving\n"
+            self.device.write(response_s.encode('utf-8'))
+            self.device.waitForBytesWritten()
+
+            self.setEnabled(False)
+            self.Motor_Position_lineEdit.setText(str(new_position))
+            self.new_move_value(box="to")
+            self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length) - new_position)
+            self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0 - new_position))
+            # print("Motor Control - Message sent: " + apply_s)
+
+    def handle_read(self):
+        if self.device.canReadLine():
+            msg = bytes(self.device.readLine()).decode('utf-8', errors='ignore')
+            # print("Motor Control - Message received: " + msg)
+            if "R0" in msg:
+                self.setEnabled(True)
+
+    def new_move_value(self, box=None):
+        self.Motor_MoveBy_doubleSpinBox.blockSignals(True)
+        self.Motor_MoveTo_doubleSpinBox.blockSignals(True)
+        if box == "to":
+            self.Motor_MoveBy_doubleSpinBox.setValue(self.Motor_MoveTo_doubleSpinBox.value()
+                                                     - float(self.Motor_Position_lineEdit.text()))
+        elif box == "by":
+            self.Motor_MoveTo_doubleSpinBox.setValue(self.Motor_MoveBy_doubleSpinBox.value()
+                                                     + float(self.Motor_Position_lineEdit.text()))
+        self.Motor_MoveBy_doubleSpinBox.blockSignals(False)
+        self.Motor_MoveTo_doubleSpinBox.blockSignals(False)
 
 class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
