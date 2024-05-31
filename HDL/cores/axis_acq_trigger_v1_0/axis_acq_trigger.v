@@ -385,8 +385,8 @@ module axis_acq_trigger #
                     acq_q [i] <= 32'h0;
                     drop_q[i] <= 32'h0;
                 end else begin
-                    acq_q [i] <= gate? acq [i]: acq_q [i];
-                    drop_q[i] <= gate? drop[i]: drop_q[i];
+                    acq_q [i] <= gate && state_q == IDLE ? acq [i]: acq_q [i];
+                    drop_q[i] <= gate && state_q == IDLE ? drop[i]: drop_q[i];
                 end
             end
         end

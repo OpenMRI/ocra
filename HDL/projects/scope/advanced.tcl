@@ -289,6 +289,12 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     } [get_bd_intf_pins rx_${i}/axis_dma_rx_0/S_AXI]
     set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
     set_property OFFSET 0x6000${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_dma_rx_0_reg0${suffix}]
+    apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+      Master    /ps_0/M_AXI_GP0
+      Clk       Auto
+    } [get_bd_intf_pins rx_${i}/trigger_core_0/S_AXI]
+    set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0${suffix}]
+    set_property OFFSET 0x4006${i}000  [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0${suffix}]
 }
 
 # Transmit
@@ -406,11 +412,12 @@ cell xilinx.com:ip:util_ds_buf ibufds_trigger_0 {
 connect_bd_net [get_bd_pins ibufds_trigger_0/IBUF_OUT] [get_bd_pins detect_unpause_pulse_0/external_input]
 
 # Create microsequencer
-cell open-mri:user:micro_sequencer:1.0 micro_sequencer {
+cell open-mri:user:micro_sequencer:1.1 micro_sequencer {
   C_S_AXI_DATA_WIDTH 32
   C_S_AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 64
   BRAM_ADDR_WIDTH 13
+  MS_RASTER_CLOCK_PERIOD 1250
 } {
   BRAM_PORTA sequence_memory/BRAM_PORTB
   S_AXI_ACLK $fclk
@@ -427,18 +434,21 @@ set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 
 # Create IRQ concatenator
-set irq_width [expr 3 + [dict get $pl_param_dict rx_channel_count]]
+set irq_width [expr 1 + [dict get $pl_param_dict rx_channel_count]]
 cell xilinx.com:ip:xlconcat:2.1 irq_concat_0 {
     NUM_PORTS $irq_width
 }
-connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/irq_trstart]
-connect_bd_net [get_bd_pins irq_concat_0/In1] [get_bd_pins micro_sequencer/irq_litr]
-connect_bd_net [get_bd_pins irq_concat_0/In2] [get_bd_pins micro_sequencer/irq_halt]
+connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/ps_interrupts]
 for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
-    connect_bd_net [get_bd_pins irq_concat_0/In[expr 3+$i]] [get_bd_pins /rx_${i}/axis_dma_rx_0/i_rq]
-    #connect_bd_net [get_bd_pins irq_concat_0/In3] [get_bd_pins rx_0/axis_dma_rx_0/i_rq]
+    connect_bd_net [get_bd_pins irq_concat_0/In[expr 1+$i]] [get_bd_pins /rx_${i}/axis_dma_rx_0/i_rq]
 }
 connect_bd_net [get_bd_pins irq_concat_0/Dout] [get_bd_pins /ps_0/IRQ_F2P]
+
+# Timer from the sequencer to the receivers
+for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+    connect_bd_net [get_bd_pins micro_sequencer/timer_enable] [get_bd_pins /rx_${i}/trigger_core_0/timer_enable]
+}
+
 
 # Create RF attenuator
 cell open-mri:user:axi_serial_attenuator:1.0 serial_attenuator {
@@ -455,6 +465,26 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 } [get_bd_intf_pins serial_attenuator/S_AXI]
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
 set_property OFFSET 0x40050000 [get_bd_addr_segs ps_0/Data/SEG_serial_attenuator_reg0]
+save_bd_design
+
+# micro-sequencer's axi-write core
+set_property -dict [list CONFIG.NUM_SI {2} ] [get_bd_cells ps_0_axi_periph]
+cell open-mri:user:axi_lite_master:1.0 axi_lite_master_0 {
+} {
+    aclk            $fclk
+    aresetn         $f_aresetn
+    wdata_i         micro_sequencer/axi_wdata
+    waddr_i         micro_sequencer/axi_waddr
+    write_i         micro_sequencer/axi_write
+    wstrb_i         micro_sequencer/axi_wstrb
+    busy_o          micro_sequencer/axi_write_busy
+    write_failure_o micro_sequencer/axi_write_failed
+}
+connect_bd_intf_net [get_bd_intf_pins axi_lite_master_0/M_AXI] -boundary_type upper [get_bd_intf_pins ps_0_axi_periph/S01_AXI]
+connect_bd_net      [get_bd_pins ps_0_axi_periph/S01_ACLK]    [get_bd_pins $fclk]
+connect_bd_net      [get_bd_pins ps_0_axi_periph/S01_ARESETN] [get_bd_pins $f_aresetn]
+#automatically copies all of the address segments
+assign_bd_address
 
 #
 # hook up the event pulses to something

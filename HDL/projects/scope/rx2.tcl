@@ -214,10 +214,10 @@ cell open-mri:user:axi_sniffer:1.0 axi_sniffer_0 {
   bvalid    axis_dma_rx_0/axi_mm_bvalid
   bready    axis_dma_rx_0/axi_mm_bready
 }
-set_property CONFIG.PROTOCOL AXI4 [get_bd_intf_pins /rx_0/axi_sniffer_0/S_AXI]
+set_property CONFIG.PROTOCOL AXI4 [get_bd_intf_pins axi_sniffer_0/S_AXI]
 save_bd_design
 if { [dict get $pl_param_dict mode] == "SIMPLE"} {
-    cell open-mri:user:axis_acq_trigger:1.0 axis_acq_trigger_0 {
+    cell open-mri:user:axis_acq_trigger:1.0 trigger_core_0 {
         C_S_AXI_ADDR_WIDTH 12
         C_S_AXI_DATA_WIDTH 32
         C_AXIS_TDATA_WIDTH 64
@@ -227,45 +227,53 @@ if { [dict get $pl_param_dict mode] == "SIMPLE"} {
         S_AXIS    comb_0/M_AXIS
     }
     save_bd_design
-    cell xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_0 {
-        TDATA_NUM_BYTES 8
-        FIFO_DEPTH 16
+} else {
+    cell open-mri:user:axis_rx_trigger:1.0 trigger_core_0 {
+        C_S_AXI_ADDR_WIDTH 12
+        C_S_AXI_DATA_WIDTH 32
+        C_AXIS_TDATA_WIDTH 64
     } {
-        s_axis_aclk $fclk
-        s_axis_aresetn axis_acq_trigger_0/resetn_out
-        s_axis axis_acq_trigger_0/M_AXIS
-        m_axis axis_dma_rx_0/S_AXIS
+        aclk      $fclk
+        aresetn   $f_aresetn
+        S_AXIS    comb_0/M_AXIS
+        gate      slice_0/Dout
     }
     save_bd_design
-    cell xilinx.com:ip:util_vector_logic:2.0 fifo_reset_0 {
-        C_OPERATION not
-        C_SIZE 1
-    } {
-        Op1 axis_acq_trigger_0/resetn_out
-    }
-    cell xilinx.com:ip:util_vector_logic:2.0 gate_out_0 {
-        C_OPERATION not
-        C_SIZE 1
-    } {
-        Res axis_dma_rx_0/gate
-    }
-    cell xilinx.com:ip:fifo_generator:13.2 fifo_acq_len_0 {
-        Fifo_Implementation Common_Clock_Distributed_RAM
-        Input_Data_Width 20
-        Input_Depth 16
-        Performance_Options First_Word_Fall_Through
-    } {
-        din   axis_acq_trigger_0/acq_len_out
-        wr_en axis_acq_trigger_0/gate_out
-        empty gate_out_0/Op1
-        dout  axis_dma_rx_0/acq_len_in
-        rd_en axis_dma_rx_0/acq_len_rd_en
-        clk  $fclk
-        srst fifo_reset_0/Res
-    }
-    set_property CONFIG.EXTERNAL_FRAMING_LOGIC {1} [get_bd_cells axis_dma_rx_0]
-} else {
-    connect_bd_intf_net [get_bd_intf_pins comb_0/M_AXIS] [get_bd_intf_pins axis_dma_rx_0/S_AXIS]
-    connect_bd_net [get_bd_pins slice_0/Dout]  [get_bd_pins axis_dma_rx_0/gate]
-    set_property CONFIG.EXTERNAL_FRAMING_LOGIC {0} [get_bd_cells axis_dma_rx_0]
 }
+cell xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_0 {
+    TDATA_NUM_BYTES 8
+    FIFO_DEPTH 16
+} {
+    s_axis_aclk $fclk
+    s_axis_aresetn trigger_core_0/resetn_out
+    s_axis trigger_core_0/M_AXIS
+    m_axis axis_dma_rx_0/S_AXIS
+}
+save_bd_design
+cell xilinx.com:ip:util_vector_logic:2.0 fifo_reset_0 {
+    C_OPERATION not
+    C_SIZE 1
+} {
+    Op1 trigger_core_0/resetn_out
+}
+cell xilinx.com:ip:util_vector_logic:2.0 gate_out_0 {
+    C_OPERATION not
+    C_SIZE 1
+} {
+    Res axis_dma_rx_0/gate
+}
+cell xilinx.com:ip:fifo_generator:13.2 fifo_acq_len_0 {
+    Fifo_Implementation Common_Clock_Distributed_RAM
+    Input_Data_Width 20
+    Input_Depth 16
+    Performance_Options First_Word_Fall_Through
+} {
+    din   trigger_core_0/acq_len_out
+    wr_en trigger_core_0/gate_out
+    empty gate_out_0/Op1
+    dout  axis_dma_rx_0/acq_len_in
+    rd_en axis_dma_rx_0/acq_len_rd_en
+    clk  $fclk
+    srst fifo_reset_0/Res
+}
+set_property CONFIG.EXTERNAL_FRAMING_LOGIC {1} [get_bd_cells axis_dma_rx_0]

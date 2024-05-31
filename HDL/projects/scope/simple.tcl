@@ -294,7 +294,7 @@ for {set i 0} {$i < $rx_channel_count} {incr i} {
     module rx_${i} {
       source projects/scope/rx2.tcl
     } {
-      axis_acq_trigger_0/gate gate_0/Res
+      trigger_core_0/gate   gate_0/Res
       rate_slice/Din        rx_slice_0/Dout
       fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
@@ -329,9 +329,9 @@ for {set i 0} {$i < $rx_channel_count} {incr i} {
     apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
       Master    /ps_0/M_AXI_GP0
       Clk       Auto
-    } [get_bd_intf_pins rx_${i}/axis_acq_trigger_0/S_AXI]
-    set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_axis_acq_trigger_0_reg0${suffix}]
-    set_property OFFSET 0x4006${i}000  [get_bd_addr_segs ps_0/Data/SEG_axis_acq_trigger_0_reg0${suffix}]
+    } [get_bd_intf_pins rx_${i}/trigger_core_0/S_AXI]
+    set_property RANGE  4K             [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0${suffix}]
+    set_property OFFSET 0x4006${i}000  [get_bd_addr_segs ps_0/Data/SEG_trigger_core_0_reg0${suffix}]
 }
 
 # Create xlconstant

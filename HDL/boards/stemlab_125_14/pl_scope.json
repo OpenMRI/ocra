@@ -1,7 +1,7 @@
 {
-    "mode": "SIMPLE",
+    "mode": "ADVANCED",
     "has_tx": "TRUE",
     "modulated": "TRUE",
-    "rx_channel_count": "1",
+    "rx_channel_count": "2",
     "fclk_source": "SATA"
 }

@@ -34,8 +34,8 @@ module axis_red_pitaya_adc_2ch #
     assign sign_b = ~data_b[ADC_DATA_WIDTH-1];
 
     always @(posedge aclk) begin
-        int_dat_a_reg <= adc_dat_a;
-        int_dat_b_reg <= adc_dat_b;
+        data_a <= adc_dat_a;
+        data_b <= adc_dat_b;
     end
 
     assign adc_csn = 1'b1;
