@@ -192,8 +192,11 @@ class Parameters:
         self.headerfileformat = 0
         self.motor_available = 0
         self.motor_port = []
-        self.motor_axis_length = 0
+        self.motor_axis_limit_negative = 0
+        self.motor_axis_limit_positive = 197
         self.motor_movement_direction = 0
+        self.motor_actual_position = 0
+        self.motor_goto_position = 0
         self.motor_start_position = 0
         self.motor_end_position = 100
         self.motor_total_image_length = 100
@@ -331,8 +334,11 @@ class Parameters:
                          self.headerfileformat, \
                          self.motor_available, \
                          self.motor_port, \
-                         self.motor_axis_length, \
+                         self.motor_axis_limit_negative, \
+                         self.motor_axis_limit_positive, \
                          self.motor_movement_direction, \
+                         self.motor_actual_position, \
+                         self.motor_goto_position, \
                          self.motor_start_position, \
                          self.motor_end_position, \
                          self.motor_total_image_length, \
@@ -511,8 +517,11 @@ class Parameters:
                 self.headerfileformat, \
                 self.motor_available, \
                 self.motor_port , \
-                self.motor_axis_length, \
+                self.motor_axis_limit_negative, \
+                self.motor_axis_limit_positive, \
                 self.motor_movement_direction, \
+                self.motor_actual_position, \
+                self.motor_goto_position, \
                 self.motor_start_position, \
                 self.motor_end_position, \
                 self.motor_total_image_length, \
@@ -726,8 +735,11 @@ class Parameters:
             file.write('Header File Format: .json\n')
         file.write('Motor available: ' + str(self.motor_available) + '\n')
         file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
-        file.write('Motor axis length: ' + str(self.motor_axis_length) + '\n')
+        file.write('Motor axis limit negative: ' + str(self.motor_axis_limit_negative) + '\n')
+        file.write('Motor axis limit positive: ' + str(self.motor_axis_limit_positive) + '\n')
         file.write('Motor movement direction: ' + str(self.motor_movement_direction) + '\n')
+        file.write('Motor actual position: ' + str(self.motor_actual_position) + '\n')
+        file.write('Motor goto position: ' + str(self.motor_goto_position) + '\n')
         file.write('Motor start position: ' + str(self.motor_start_position) + '\n')
         file.write('Motor end position: ' + str(self.motor_end_position) + '\n')
         file.write('Motor total image length: ' + str(self.motor_total_image_length) + '\n')
@@ -826,8 +838,11 @@ class Parameters:
             else ('.json'),
             'Motor available': self.motor_available,
             'Motor COM Port': self.motor_port,
-            'Motor axis length': self.motor_axis_length,
+            'Motor axis limit negative': self.motor_axis_limit_negative,
+            'Motor axis limit positive': self.motor_axis_limit_positive,
             'Motor movement direction': self.motor_movement_direction,
+            'Motor actual position': self.motor_actual_position,
+            'Motor goto position': self.motor_goto_position,
             'Motor start position': self.motor_start_position,
             'Motor end position': self.motor_end_position,
             'Motor total image length':self.motor_total_image_length,

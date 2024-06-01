@@ -428,6 +428,101 @@ class process:
         
         print("Image data processed!")
             
+    def image_stiching_2D(self):
+        print("image_stiching_2D")
+        
+        #For Loop: Motor movement here
+        
+        #TODO: Datapath extend for each image
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE()
+            spectrum_process()
+            spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
+            time.sleep(params.TR/1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            seq.sequence_upload()
+        else: seq.sequence_upload()
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+        
+    def image_stiching_2D_slice(self):
+        print("image_stiching_2D_slice")
+        
+        #For Loop: Motor movement here
+        
+        #TODO: Datapath extend for each image
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE_Gs()
+            spectrum_process()
+            spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
+            time.sleep(params.TR/1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            seq.sequence_upload()
+        else: seq.sequence_upload()
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+        
+    def image_stiching_3D_slab(self):
+        print("image_stiching_3D_slab")
+        
+        #For Loop: Motor movement here
+        
+        #TODO: Datapath extend for each image
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE_Gs()
+            spectrum_process()
+            spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            if self.dialog_params != None:
+                self.dialog_params.load_params()
+                self.dialog_params.repaint()
+            time.sleep(params.TR/1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            seq.sequence_upload()
+        else: seq.sequence_upload()
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
         
     def spectrum_analytics(self): 
 

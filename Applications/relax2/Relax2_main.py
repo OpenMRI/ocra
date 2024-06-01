@@ -72,7 +72,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
         
-        params.connectionmode = 0
         params.projaxis = np.zeros(3)
         params.ustime = 0
         params.usphase = 0
@@ -91,6 +90,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.ToolShimChannel = [0, 0, 0, 0]
         params.SAR_status = 1
         params.motor_available = 0
+        params.motor_actual_position = 0
+        params.motor_goto_position = 0
         
         self.motor_connect()
         
@@ -107,9 +108,12 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Mode_T1_Measurement_pushButton.clicked.connect(lambda: self.switch_GUImode(2))
         self.Mode_T2_Measurement_pushButton.clicked.connect(lambda: self.switch_GUImode(3))
         self.Mode_Projections_pushButton.clicked.connect(lambda: self.switch_GUImode(4))
+        self.Mode_Image_Stiching_pushButton.clicked.connect(lambda: self.switch_GUImode(5))
         self.Tools_pushButton.clicked.connect(lambda: self.tools())
         self.Protocol_pushButton.clicked.connect(lambda: self.protocol())
         
+        self.Sequence_comboBox.clear()
+        self.Sequence_comboBox.addItems(['Please select mode!'])
         self.Sequence_comboBox.currentIndexChanged.connect(self.set_sequence)
         
         self.Parameters_pushButton.clicked.connect(lambda: self.parameter_window())
@@ -153,17 +157,24 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             device.setDataTerminalReady(True)
 
             device.waitForReadyRead(100)
+            
+            time.sleep(2)
 
             msg_s = "M115\n"
             device.write(msg_s.encode('utf-8'))
             device.waitForBytesWritten()
-
+            
+            motor_search_start_time = time.process_time()
+            motor_search_timeout = False
             ident_byte_array = device.readAll()
-            while "\n" not in ident_byte_array.data().decode():
+            while "\n" not in ident_byte_array.data().decode() and not motor_search_timeout:
                 device.waitForReadyRead(10)
                 ident_byte_array.append(device.readAll())
+                if time.process_time() > (motor_search_start_time + 0.1):
+                    motor_search_timeout = True
+                    print("Motor Search: No connection to " + device.port + " possible.")
 
-            if "MRI-Patient-Motor-Control" in ident_byte_array.data().decode('utf8', errors='ignore'):
+            if not motor_search_timeout and "MRI-Patient-Motor-Control" in ident_byte_array.data().decode('utf8', errors='ignore'):
                 params.motor_port = motor_port
                 params.motor_axis_length = float(ident_byte_array.data().decode('utf8', errors='ignore').split(" ")[2])
 
@@ -172,8 +183,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 home_s = "G28\n"
                 device.write(home_s.encode('utf-8'))
                 device.waitForBytesWritten()
-
-                time.sleep(0.1)
 
                 time.sleep(0.1)
 
@@ -278,6 +287,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Projection_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
+        elif params.GUImode == 5:
+            self.Sequence_comboBox.clear()
+            self.Sequence_comboBox.addItems(['2D Image Stiching (SE)', '2D Image Stiching (Slice, SE)', '3D Image Stichung (3D FFT, Slab)'])
+            self.Sequence_comboBox.setCurrentIndex(0)
+            self.Datapath_lineEdit.setText('rawdata/Image_Stiching_rawdata')
+            params.datapath = self.Datapath_lineEdit.text()
+            
         
     def set_sequence(self, idx):
         params.sequence = idx
@@ -286,146 +302,159 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.saveFileParameter()
         
     def acquire(self):
-        if params.connectionmode == 1:
-            if params.GUImode == 2:
-                if params.sequence == 0:
-                    proc.T1measurement_IR_FID()
-                elif params.sequence == 1:
-                    proc.T1measurement_IR_SE()
-                elif params.sequence == 2:
-                    proc.T1measurement_IR_FID_Gs()
-                elif params.sequence == 3:
-                    proc.T1measurement_IR_SE_Gs()
-                elif params.sequence == 4:
-                    proc.T1measurement_Image_IR_GRE()
-                elif params.sequence == 5:
-                    proc.T1measurement_Image_IR_SE()
-                elif params.sequence == 6:
-                    proc.T1measurement_Image_IR_GRE_Gs()
-                elif params.sequence == 7:
-                    proc.T1measurement_Image_IR_SE_Gs()
-            elif params.GUImode == 3:
-                if params.sequence == 0:
-                    proc.T2measurement_SE()
-                elif params.sequence == 1:
-                    proc.T2measurement_SIR_FID()
-                elif params.sequence == 2:
-                    proc.T2measurement_SE_Gs()
-                elif params.sequence == 3:
-                    proc.T2measurement_SIR_FID_Gs()
-                elif params.sequence == 4:
-                    proc.T2measurement_Image_SE()
-                elif params.sequence == 5:
-                    proc.T2measurement_Image_SIR_GRE()
-                elif params.sequence == 6:
-                    proc.T2measurement_Image_SE_Gs()
-                elif params.sequence == 7:
-                    proc.T2measurement_Image_SIR_GRE_Gs()
-            elif params.GUImode == 1:
-                if params.autorecenter == 1:
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
-                    params.frequencyoffset = 0
-                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
-                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
-                       or params.sequence == 15:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.FID_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_FID()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
-                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                         or params.sequence == 32:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.FID_Gs_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_FID_Gs()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
-                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
-                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
-                         or params.sequence == 16:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.SE_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_SE()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
-                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
-                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                         or params.sequence == 36:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.SE_Gs_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_SE_Gs()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        if self.dialog_params != None:
-                            self.dialog_params.load_params()
-                            self.dialog_params.repaint()
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                else: seq.sequence_upload()
+        self.Acquire_pushButton.setEnabled(False)
+        self.repaint()
+        
+        if params.GUImode == 2:
+            if params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
+        elif params.GUImode == 3:
+            if params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
+        elif params.GUImode == 5:
+            if params.sequence == 0:
+                proc.image_stiching_2D()
+            if params.sequence == 1:
+                proc.image_stiching_2D_slice()
+            if params.sequence == 2:
+                proc.image_stiching_3D_slab()
+        elif params.GUImode == 1:
+            if params.autorecenter == 1:
+                self.frequencyoffsettemp = 0
+                self.frequencyoffsettemp = params.frequencyoffset
+                params.frequencyoffset = 0
+                if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                    or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                    or params.sequence == 15:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    if self.dialog_params != None:
+                        self.dialog_params.load_params()
+                        self.dialog_params.repaint()
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                    or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                    or params.sequence == 32:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    if self.dialog_params != None:
+                        self.dialog_params.load_params()
+                        self.dialog_params.repaint()
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                    or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                    or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                    or params.sequence == 16:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    if self.dialog_params != None:
+                        self.dialog_params.load_params()
+                        self.dialog_params.repaint()
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                    or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                    or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                    or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                    or params.sequence == 36:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    if self.dialog_params != None:
+                        self.dialog_params.load_params()
+                        self.dialog_params.repaint()
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
             else: seq.sequence_upload()
-            if params.headerfileformat == 0: params.save_header_file_txt()
-            else: params.save_header_file_json()
-        else:
-            print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+        else: seq.sequence_upload()
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+            
         if self.dialog_params != None:
+            self.dialog_params.setEnabled(True)
             self.dialog_params.load_params()
             self.dialog_params.repaint()
+            
         if self.dialog_config != None:
             self.dialog_config.load_params()
             self.dialog_config.repaint()
             
+        self.Acquire_pushButton.setEnabled(True)
+        self.repaint()
+        
     def load_params(self):
         self.Sequence_comboBox.clear()
         self.switch_GUImode(params.GUImode)
@@ -448,8 +477,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             
     def motor_tools(self):
         if self.dialog_motortools == None:
-            self.dialog_motortools = MotorToolsWindow(self)
-            self.dialog_motortools.setup_device(self.device)
+            self.dialog_motortools = MotorToolsWindow(self, device=self.device)
+            # self.dialog_motortools.setup_device(self.device)
             self.dialog_motortools.show()
         else:
             self.dialog_motortools.hide()
@@ -744,23 +773,39 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Motor_Start_Here_pushButton.clicked.connect(lambda: self.motor_start_here())
         self.Motor_End_Here_pushButton.clicked.connect(lambda: self.motor_end_here())
         
+        self.Motor_Start_Position_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
+        self.Motor_Start_Position_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
+        self.Motor_End_Position_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
+        self.Motor_End_Position_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
+        
+        #self.update_motor_start_position()
+        
     def update_motor_start_position(self):
         #print('update_motor_start_position')
         params.motor_start_position = self.Motor_Start_Position_doubleSpinBox.value()
-        params.motor_total_image_length = params.motor_end_position - params.motor_start_position
+        
+        self.Motor_Total_Image_Length_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_start_position)
+        self.Motor_Total_Image_Length_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_start_position)
+        
+        params.motor_total_image_length = round(params.motor_end_position - params.motor_start_position,1)
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
         params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        params.motor_end_position = params.motor_start_position + params.motor_total_image_length
+        self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
         
         params.saveFileParameter()
         
     def update_motor_end_Position(self):
         #print('update_motor_end_Position')
         params.motor_end_position = self.Motor_End_Position_doubleSpinBox.value()
-        params.motor_total_image_length = params.motor_end_position - params.motor_start_position
+        
+        params.motor_total_image_length = round(params.motor_end_position - params.motor_start_position,1)
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
         params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
+        params.motor_start_position = params.motor_end_position - params.motor_total_image_length
+        self.Motor_Start_Position_doubleSpinBox.setValue(params.motor_start_position)
         
         params.saveFileParameter()
         
@@ -794,13 +839,19 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
     def motor_start_here(self):
         #print('motor_start_here')
+        if params.motor_actual_position != params.motor_end_position:
+            params.motor_start_position = params.motor_actual_position
+            self.Motor_Start_Position_doubleSpinBox.setValue(params.motor_start_position)
         
-        params.saveFileParameter()
+            params.saveFileParameter()
         
     def motor_end_here(self):
         #print('motor_end_here')
+        if params.motor_actual_position != params.motor_start_position:
+            params.motor_end_position = params.motor_actual_position
+            self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
         
-        params.saveFileParameter()
+            params.saveFileParameter()
         
     def load_params(self):
         self.TE_doubleSpinBox.setValue(params.TE)
@@ -1411,6 +1462,17 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.setWindowTitle('Tools')
         self.setGeometry(420, 40, 800, 850)
         
+
+        self.Autocenter_pushButton.setEnabled(params.connectionmode)
+        self.Flipangle_pushButton.setEnabled(params.connectionmode)
+        self.Tool_Shim_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_B0_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_B0_Slice_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_B1_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_B1_Slice_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_Gradient_pushButton.setEnabled(params.connectionmode)
+        self.Field_Map_Gradient_Slice_pushButton.setEnabled(params.connectionmode)
+        
         self.AC_Start_Frequency_doubleSpinBox.setKeyboardTracking(False)
         self.AC_Start_Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
         self.AC_Stop_Frequency_doubleSpinBox.setKeyboardTracking(False)
@@ -1533,336 +1595,312 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.saveFileParameter()
         
     def Autocentertool(self):
-        if params.connectionmode == 1:
-            self.flippulselengthtemp = params.flippulselength
-            params.flippulselength = params.RFpulselength
+        self.flippulselengthtemp = params.flippulselength
+        params.flippulselength = params.RFpulselength
         
-            proc.Autocentertool()
+        proc.Autocentertool()
             
-            self.fig = Figure()
-            self.fig.set_facecolor("None")
-            self.fig_canvas = FigureCanvas(self.fig)
+        self.fig = Figure()
+        self.fig.set_facecolor("None")
+        self.fig_canvas = FigureCanvas(self.fig)
         
-            self.ax = self.fig.add_subplot(111);
-            self.ax.plot(np.transpose(params.ACvalues[0,:]), np.transpose(params.ACvalues[1,:]), 'o', color='#000000')
-            self.ax.set_xlabel('Frequency [MHz]')
-            self.ax.set_ylabel('Signal')
-            self.ax.set_title('Autocenter Signals')
-            self.major_ticks = (params.ACstart, params.Reffrequency, params.ACstop)
-            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1)
-            self.ax.set_xticks(self.major_ticks)
-            self.ax.set_xticks(self.minor_ticks, minor=True)
-            self.ax.grid(which='major', color='#888888', linestyle='-')
-            self.ax.grid(which='minor', color='#888888', linestyle=':')
-            self.ax.grid(which='both', visible = True)
-            self.ax.set_xlim((params.ACstart, params.ACstop))
-            self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.ACvalues[1,:]))))
-            self.fig_canvas.draw()
-            self.fig_canvas.setWindowTitle('Tool Plot')
-            self.fig_canvas.setGeometry(420, 40, 800, 750)
-            self.fig_canvas.show()
-            self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
+        self.ax = self.fig.add_subplot(111);
+        self.ax.plot(np.transpose(params.ACvalues[0,:]), np.transpose(params.ACvalues[1,:]), 'o', color='#000000')
+        self.ax.set_xlabel('Frequency [MHz]')
+        self.ax.set_ylabel('Signal')
+        self.ax.set_title('Autocenter Signals')
+        self.major_ticks = (params.ACstart, params.Reffrequency, params.ACstop)
+        self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop*1.0e6-params.ACstart*1.0e6))/(params.ACstepwidth))+1)
+        self.ax.set_xticks(self.major_ticks)
+        self.ax.set_xticks(self.minor_ticks, minor=True)
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
+        self.ax.set_xlim((params.ACstart, params.ACstop))
+        self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.ACvalues[1,:]))))
+        self.fig_canvas.draw()
+        self.fig_canvas.setWindowTitle('Tool Plot')
+        self.fig_canvas.setGeometry(420, 40, 800, 750)
+        self.fig_canvas.show()
+        self.AC_Reffrequency_lineEdit.setText(str(params.Reffrequency))
         
-            params.flippulselength = self.flippulselengthtemp
-        else: print('Not allowed in offline mode!')
+        params.flippulselength = self.flippulselengthtemp
         
     def Flipangletool(self):
-        if params.connectionmode == 1:
-            self.flippulselengthtemp = params.flippulselength
-            params.flippulselength = params.RFpulselength
+        self.flippulselengthtemp = params.flippulselength
+        params.flippulselength = params.RFpulselength
         
-            proc.Flipangletool()
+        proc.Flipangletool()
         
+        self.fig = Figure()
+        self.fig.set_facecolor("None")
+        self.fig_canvas = FigureCanvas(self.fig)
+        
+        self.ax = self.fig.add_subplot(111);
+        self.ax.plot(np.transpose(params.FAvalues[0,:]), np.transpose(params.FAvalues[1,:]), 'o-', color='#000000')
+        self.ax.set_xlabel('Attenuation [dB]')
+        self.ax.set_ylabel('Signal')
+        self.ax.set_title('Flipangle Signals')
+            
+        self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), (math.ceil(params.FAstop)-math.floor(params.FAstart))+1)
+        self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop)-math.floor(params.FAstart)))*4+1)
+        self.ax.set_xticks(self.major_ticks)
+        self.ax.set_xticks(self.minor_ticks, minor=True)
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='minor', color='#888888', linestyle=':')
+        self.ax.grid(which='both', visible = True)
+        self.ax.set_xlim((math.floor(params.FAstart), math.ceil(params.FAstop)))
+        self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.FAvalues[1,:]))))
+        self.fig_canvas.draw()
+        self.fig_canvas.setWindowTitle('Tool Plot')
+        self.fig_canvas.setGeometry(420, 40, 800, 750)
+        self.fig_canvas.show()
+        self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
+        
+        params.flippulselength = self.flippulselengthtemp
+        
+    def Shimtool(self):
+        if params.ToolShimChannel != [0, 0, 0, 0]:
+        
+            proc.Shimtool()
+                
             self.fig = Figure()
             self.fig.set_facecolor("None")
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
-            self.ax.plot(np.transpose(params.FAvalues[0,:]), np.transpose(params.FAvalues[1,:]), 'o-', color='#000000')
-            self.ax.set_xlabel('Attenuation [dB]')
+            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[1,:]), 'o-', color='#0072BD')
+            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[2,:]), 'o-', color='#D95319')
+            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[3,:]), 'o-', color='#EDB120')
+            self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[4,:]), 'o-', color='#7E2F8E')
+            self.ax.set_xlabel('Shim [mA]')
             self.ax.set_ylabel('Signal')
-            self.ax.set_title('Flipangle Signals')
-            
-            self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), (math.ceil(params.FAstop)-math.floor(params.FAstart))+1)
-            self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop)-math.floor(params.FAstart)))*4+1)
+            self.ax.legend(['X','Y','Z','Z²'])
+            self.ax.set_title('Shim Signals')
+            self.major_ticks = np.linspace(math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10, (math.ceil(params.ToolShimStop/10) - math.floor(params.ToolShimStart/10))+1)
             self.ax.set_xticks(self.major_ticks)
-            self.ax.set_xticks(self.minor_ticks, minor=True)
             self.ax.grid(which='major', color='#888888', linestyle='-')
-            self.ax.grid(which='minor', color='#888888', linestyle=':')
-            self.ax.grid(which='both', visible = True)
-            self.ax.set_xlim((math.floor(params.FAstart), math.ceil(params.FAstop)))
-            self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.FAvalues[1,:]))))
+            self.ax.grid(which='major', visible = True)
+                
+            self.ax.set_xlim((math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10))
+            self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.STvalues[1:,:]))))
             self.fig_canvas.draw()
             self.fig_canvas.setWindowTitle('Tool Plot')
             self.fig_canvas.setGeometry(420, 40, 800, 750)
             self.fig_canvas.show()
-            self.FA_RefRFattenuation_lineEdit.setText(str(params.RefRFattenuation))
         
-            params.flippulselength = self.flippulselengthtemp
-        else: print('Not allowed in offline mode!')
+            if params.ToolShimChannel[0] == 1:
+                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[1,:])]))
+            else: self.Tool_Shim_X_Ref_lineEdit.setText(' ')
+            if params.ToolShimChannel[1] == 1:
+                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[2,:])]))
+            else: self.Tool_Shim_Y_Ref_lineEdit.setText(' ')
+            if params.ToolShimChannel[2] == 1:
+                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[3,:])]))
+            else: self.Tool_Shim_Z_Ref_lineEdit.setText(' ')
+            if params.ToolShimChannel[3] == 1:
+                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[4,:])]))
+            else: self.Tool_Shim_Z2_Ref_lineEdit.setText(' ')
         
-    def Shimtool(self):
-        if params.connectionmode == 1:
-            if params.ToolShimChannel != [0, 0, 0, 0]:
-        
-                proc.Shimtool()
-                
-                self.fig = Figure()
-                self.fig.set_facecolor("None")
-                self.fig_canvas = FigureCanvas(self.fig)
-        
-                self.ax = self.fig.add_subplot(111);
-                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[1,:]), 'o-', color='#0072BD')
-                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[2,:]), 'o-', color='#D95319')
-                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[3,:]), 'o-', color='#EDB120')
-                self.ax.plot(np.transpose(params.STvalues[0,:]), np.transpose(params.STvalues[4,:]), 'o-', color='#7E2F8E')
-                self.ax.set_xlabel('Shim [mA]')
-                self.ax.set_ylabel('Signal')
-                self.ax.legend(['X','Y','Z','Z²'])
-                self.ax.set_title('Shim Signals')
-                self.major_ticks = np.linspace(math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10, (math.ceil(params.ToolShimStop/10) - math.floor(params.ToolShimStart/10))+1)
-                self.ax.set_xticks(self.major_ticks)
-                self.ax.grid(which='major', color='#888888', linestyle='-')
-                self.ax.grid(which='major', visible = True)
-                
-                self.ax.set_xlim((math.floor(params.ToolShimStart/10)*10, math.ceil(params.ToolShimStop/10)*10))
-                self.ax.set_ylim((0, 1.1*np.max(np.transpose(params.STvalues[1:,:]))))
-                self.fig_canvas.draw()
-                self.fig_canvas.setWindowTitle('Tool Plot')
-                self.fig_canvas.setGeometry(420, 40, 800, 750)
-                self.fig_canvas.show()
-        
-                if params.ToolShimChannel[0] == 1:
-                    self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[1,:])]))
-                else: self.Tool_Shim_X_Ref_lineEdit.setText(' ')
-                if params.ToolShimChannel[1] == 1:
-                    self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[2,:])]))
-                else: self.Tool_Shim_Y_Ref_lineEdit.setText(' ')
-                if params.ToolShimChannel[2] == 1:
-                    self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[3,:])]))
-                else: self.Tool_Shim_Z_Ref_lineEdit.setText(' ')
-                if params.ToolShimChannel[3] == 1:
-                    self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0,np.argmax(params.STvalues[4,:])]))
-                else: self.Tool_Shim_Z2_Ref_lineEdit.setText(' ')
-        
-            else: print('Please select gradient channel')
-        else: print('Not allowed in offline mode!')
+        else: print('Please select gradient channel')
 
     def Field_Map_B0(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_B0' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_B0' + '\033[0m')
             
-            proc.FieldMapB0()
+        proc.FieldMapB0()
             
-            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
-            #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            #self.IMag_ax.set_title('Magnitude Image')
-            #self.IMag_canvas.draw()
-            #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            #self.IMag_canvas.setGeometry(820, 40, 400, 355)
-            #self.IMag_canvas.show()
+        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+        #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        #self.IMag_ax.set_title('Magnitude Image')
+        #self.IMag_canvas.draw()
+        #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        #self.IMag_canvas.setGeometry(820, 40, 400, 355)
+        #self.IMag_canvas.show()
             
-            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
-            self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
-            self.IPha_ax.set_title('Phase Image')
-            self.IPha_canvas.draw()
-            self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(420, 40, 400, 355)
-            self.IPha_canvas.show()
+        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+        self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+        self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
+        self.IPha_ax.set_title('Phase Image')
+        self.IPha_canvas.draw()
+        self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IPha_canvas.setGeometry(420, 40, 400, 355)
+        self.IPha_canvas.show()
             
-            self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
-            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
-            self.FMB0_ax.set_title('\u0394 B0 Map')
-            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
-            self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
-            self.FMB0_canvas.draw()
-            self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
-            self.FMB0_canvas.show()
-
-        else: print('Not allowed in offline mode!')
+        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+        self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
+        self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+        self.FMB0_ax.set_title('\u0394 B0 Map')
+        self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
+        self.FMB0_fig_cbar.set_label('\u0394 B0 in µT', rotation=90)
+        self.FMB0_canvas.draw()
+        self.FMB0_canvas.setWindowTitle('Tool Plot')
+        self.FMB0_canvas.setGeometry(830, 40, 400, 355)
+        self.FMB0_canvas.show()
 
     def Field_Map_B0_Slice(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
             
-            proc.FieldMapB0Slice()
+        proc.FieldMapB0Slice()
             
-            #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
-            #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-            #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            #self.IMag_ax.set_title('Magnitude Image')
-            #self.IMag_canvas.draw()
-            #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            #self.IMag_canvas.setGeometry(820, 40, 400, 355)
-            #self.IMag_canvas.show()
+        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
+        #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        #self.IMag_ax.set_title('Magnitude Image')
+        #self.IMag_canvas.draw()
+        #self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        #self.IMag_canvas.setGeometry(820, 40, 400, 355)
+        #self.IMag_canvas.show()
             
-            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
-            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
-            self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
-            self.IPha_ax.set_title('Phase Image')
-            self.IPha_canvas.draw()
-            self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(420, 40, 400, 355)
-            self.IPha_canvas.show()
+        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+        self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+        self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
+        self.IPha_ax.set_title('Phase Image')
+        self.IPha_canvas.draw()
+        self.IPha_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IPha_canvas.setGeometry(420, 40, 400, 355)
+        self.IPha_canvas.show()
             
-            self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
-            self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
-            self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
-            self.FMB0_ax.set_title('\u0394 B0 Map')
-            self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
-            self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
-            self.FMB0_canvas.draw()
-            self.FMB0_canvas.setWindowTitle('Tool Plot')
-            self.FMB0_canvas.setGeometry(830, 40, 400, 355)
-            self.FMB0_canvas.show()
-            
-        else: print('Not allowed in offline mode!')
+        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+        self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
+        self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
+        self.FMB0_ax.set_title('\u0394 B0 Map')
+        self.FMB0_fig_cbar = self.FMB0_fig.colorbar(self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'))
+        self.FMB0_fig_cbar.set_label('\u0394 B0 in uT', rotation=90)
+        self.FMB0_canvas.draw()
+        self.FMB0_canvas.setWindowTitle('Tool Plot')
+        self.FMB0_canvas.setGeometry(830, 40, 400, 355)
+        self.FMB0_canvas.show()
 
     def Field_Map_B1(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_B1' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_B1' + '\033[0m')
             
-            proc.FieldMapB1()
+        proc.FieldMapB1()
             
-            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
-            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
-            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
-            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            self.IMag_ax.set_title('Magnitude Image')
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 400, 355)
-            self.IMag_canvas.show()
+        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+        self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+        if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+        else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+        self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        self.IMag_ax.set_title('Magnitude Image')
+        self.IMag_canvas.draw()
+        self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IMag_canvas.setGeometry(420, 40, 400, 355)
+        self.IMag_canvas.show()
             
-            self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
-            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
-            self.FMB1_ax.set_title('Flip Angle Map')
-            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
-            self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
-            self.FMB1_canvas.draw()
-            self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
-            self.FMB1_canvas.show()
-            
-        else: print('Not allowed in offline mode!')
+        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
+        self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
+        self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+        self.FMB1_ax.set_title('Flip Angle Map')
+        self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
+        self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
+        self.FMB1_canvas.draw()
+        self.FMB1_canvas.setWindowTitle('Tool Plot')
+        self.FMB1_canvas.setGeometry(830, 40, 400, 355)
+        self.FMB1_canvas.show()
 
     def Field_Map_B1_Slice(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
             
-            proc.FieldMapB1Slice()
+        proc.FieldMapB1Slice()
             
-            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
-            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
-            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
-            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
-            self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            self.IMag_ax.set_title('Magnitude Image')
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 400, 355)
-            self.IMag_canvas.show()
+        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+        if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+        else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+        self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        self.IMag_ax.set_title('Magnitude Image')
+        self.IMag_canvas.draw()
+        self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IMag_canvas.setGeometry(420, 40, 400, 355)
+        self.IMag_canvas.show()
             
-            self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
-            self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
-            self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
-            self.FMB1_ax.set_title('Flip Angle Map')
-            self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
-            self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
-            self.FMB1_canvas.draw()
-            self.FMB1_canvas.setWindowTitle('Tool Plot')
-            self.FMB1_canvas.setGeometry(830, 40, 400, 355)
-            self.FMB1_canvas.show()
-            
-        else: print('Not allowed in offline mode!')
+        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
+        self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
+        self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
+        self.FMB1_ax.set_title('Flip Angle Map')
+        self.FMB1_fig_cbar = self.FMB1_fig.colorbar(self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'))
+        self.FMB1_fig_cbar.set_label('\u03B1 in deg', rotation=90)
+        self.FMB1_canvas.draw()
+        self.FMB1_canvas.setWindowTitle('Tool Plot')
+        self.FMB1_canvas.setGeometry(830, 40, 400, 355)
+        self.FMB1_canvas.show()
 
     def Field_Map_Gradient(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
             
-            proc.FieldMapGradient()
+        proc.FieldMapGradient()
             
-            self.IMag_fig = Figure()
-            self.IMag_canvas = FigureCanvas(self.IMag_fig)
-            self.IMag_fig.set_facecolor("None")
-            self.IMag_ax = self.IMag_fig.add_subplot(111)
-            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
-            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
-            self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            self.IMag_ax.set_title('Magnitude Image')
-            self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
-            self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
-            self.IMag_ax.set_xticks(self.major_ticks)
-            self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
-            self.IMag_ax.set_yticks(self.major_ticks)
-            self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-            self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
-            self.IMag_ax.grid(which='both', visible = True)
+        self.IMag_fig = Figure()
+        self.IMag_canvas = FigureCanvas(self.IMag_fig)
+        self.IMag_fig.set_facecolor("None")
+        self.IMag_ax = self.IMag_fig.add_subplot(111)
+        if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+        else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+        self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        self.IMag_ax.set_title('Magnitude Image')
+        self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
+        self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
+        self.IMag_ax.set_xticks(self.major_ticks)
+        self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
+        self.IMag_ax.set_yticks(self.major_ticks)
+        self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
+        self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+        self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.IMag_ax.grid(which='both', visible = True)
             
-            if params.imageorientation == 0:
-                self.IMag_ax.set_xlabel('X in mm')
-                self.IMag_ax.set_ylabel('Y in mm')
-            elif params.imageorientation == 1:
-                self.IMag_ax.set_xlabel('Y in mm')
-                self.IMag_ax.set_ylabel('Z in mm')
-            elif params.imageorientation == 2:
-                self.IMag_ax.set_xlabel('Z in mm')
-                self.IMag_ax.set_ylabel('X in mm')
+        if params.imageorientation == 0:
+            self.IMag_ax.set_xlabel('X in mm')
+            self.IMag_ax.set_ylabel('Y in mm')
+        elif params.imageorientation == 1:
+            self.IMag_ax.set_xlabel('Y in mm')
+            self.IMag_ax.set_ylabel('Z in mm')
+        elif params.imageorientation == 2:
+            self.IMag_ax.set_xlabel('Z in mm')
+            self.IMag_ax.set_ylabel('X in mm')
                 
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 800, 750)
-            self.IMag_canvas.show()
-            
-        else: print('Not allowed in offline mode!')
+        self.IMag_canvas.draw()
+        self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IMag_canvas.setGeometry(420, 40, 800, 750)
+        self.IMag_canvas.show()
 
     def Field_Map_Gradient_Slice(self):
-        if params.connectionmode == 1:
-            print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
+        print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
             
-            proc.FieldMapGradientSlice()
+        proc.FieldMapGradientSlice()
             
-            self.IMag_fig = Figure()
-            self.IMag_canvas = FigureCanvas(self.IMag_fig)
-            self.IMag_fig.set_facecolor("None")
-            self.IMag_ax = self.IMag_fig.add_subplot(111)
-            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
-            else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
-            self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
-            self.IMag_ax.set_title('Magnitude Image')
-            self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
-            self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
-            self.IMag_ax.set_xticks(self.major_ticks)
-            self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
-            self.IMag_ax.set_yticks(self.major_ticks)
-            self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
-            self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-            self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
-            self.IMag_ax.grid(which='both', visible = True)
+        self.IMag_fig = Figure()
+        self.IMag_canvas = FigureCanvas(self.IMag_fig)
+        self.IMag_fig.set_facecolor("None")
+        self.IMag_ax = self.IMag_fig.add_subplot(111)
+        if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+        else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
+        self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        self.IMag_ax.set_title('Magnitude Image')
+        self.major_ticks = np.linspace(math.ceil((-params.FOV/2)),math.floor((params.FOV/2)),math.floor((params.FOV/2))-math.ceil((-params.FOV/2))+1)
+        self.minor_ticks = np.linspace((math.ceil((-params.FOV/2)*5))/5,(math.floor((params.FOV/2)*5))/5,math.floor((params.FOV/2)*5)-math.ceil((-params.FOV/2)*5)+1)
+        self.IMag_ax.set_xticks(self.major_ticks)
+        self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
+        self.IMag_ax.set_yticks(self.major_ticks)
+        self.IMag_ax.set_yticks(self.minor_ticks, minor=True)
+        self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+        self.IMag_ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+        self.IMag_ax.grid(which='both', visible = True)
             
-            if params.imageorientation == 0:
-                self.IMag_ax.set_xlabel('X in mm')
-                self.IMag_ax.set_ylabel('Y in mm')
-            elif params.imageorientation == 1:
-                self.IMag_ax.set_xlabel('Y in mm')
-                self.IMag_ax.set_ylabel('Z in mm')
-            elif params.imageorientation == 2:
-                self.IMag_ax.set_xlabel('Z in mm')
-                self.IMag_ax.set_ylabel('X in mm')
+        if params.imageorientation == 0:
+            self.IMag_ax.set_xlabel('X in mm')
+            self.IMag_ax.set_ylabel('Y in mm')
+        elif params.imageorientation == 1:
+            self.IMag_ax.set_xlabel('Y in mm')
+            self.IMag_ax.set_ylabel('Z in mm')
+        elif params.imageorientation == 2:
+            self.IMag_ax.set_xlabel('Z in mm')
+            self.IMag_ax.set_ylabel('X in mm')
                 
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 800, 750)
-            self.IMag_canvas.show()
-            
-        else: print('Not allowed in offline mode!')
+        self.IMag_canvas.draw()
+        self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
+        self.IMag_canvas.setGeometry(420, 40, 800, 750)
+        self.IMag_canvas.show()
         
 class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
 
@@ -1878,6 +1916,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.ui = loadUi('ui/protocol.ui')
         self.setWindowTitle('Protocol')
         self.setGeometry(420, 40, 800, 850)
+        
+        self.Protocol_Execute_Protocol_pushButton.setEnabled(params.connectionmode)
         
         self.Protocol_Datapath_lineEdit.setText(self.prot_datapath)
         self.Protocol_Datapath_lineEdit.editingFinished.connect(lambda: self.set_protocol_datapath())
@@ -2071,6 +2111,9 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
     def protocol_execute_protocol(self):
         print('WIP')
         
+        self.Protocol_Execute_Protocol_pushButton.setEnabled(False)
+        self.repaint()
+        
         try:
             shutil.copyfile('parameters.pkl',self.prot_datapath + '_parameters_temp.pkl')
             time.sleep(0.001)
@@ -2102,127 +2145,127 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         except: print('No parameter file.')
         
         params.loadParam()
-            
+        
+        self.Protocol_Execute_Protocol_pushButton.setEnabled(True)
+        self.repaint()
+        
     def protocol_acquire(self):
-        if params.connectionmode == 1:
-            if params.GUImode == 2 and params.sequence == 0:
-                proc.T1measurement_IR_FID()
-            elif params.GUImode == 2 and params.sequence == 1:
-                proc.T1measurement_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 2:
-                proc.T1measurement_IR_FID_Gs()
-            elif params.GUImode == 2 and params.sequence == 3:
-                proc.T1measurement_IR_SE_Gs()
-            elif params.GUImode == 2 and params.sequence == 4:
-                proc.T1measurement_Image_IR_GRE()
-            elif params.GUImode == 2 and params.sequence == 5:
-                proc.T1measurement_Image_IR_SE()
-            elif params.GUImode == 2 and params.sequence == 6:
-                proc.T1measurement_Image_IR_GRE_Gs()
-            elif params.GUImode == 2 and params.sequence == 7:
-                proc.T1measurement_Image_IR_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 0:
-                proc.T2measurement_SE()
-            elif params.GUImode == 3 and params.sequence == 1:
-                proc.T2measurement_SIR_FID()
-            elif params.GUImode == 3 and params.sequence == 2:
-                proc.T2measurement_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 3:
-                proc.T2measurement_SIR_FID_Gs()
-            elif params.GUImode == 3 and params.sequence == 4:
-                proc.T2measurement_Image_SE()
-            elif params.GUImode == 3 and params.sequence == 5:
-                proc.T2measurement_Image_SIR_GRE()
-            elif params.GUImode == 3 and params.sequence == 6:
-                proc.T2measurement_Image_SE_Gs()
-            elif params.GUImode == 3 and params.sequence == 7:
-                proc.T2measurement_Image_SIR_GRE_Gs()
-            elif params.GUImode == 1:
-                if params.autorecenter == 1:
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
-                    params.frequencyoffset = 0
-                    if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
-                       or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
-                       or params.sequence == 15:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.FID_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_FID()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
-                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                         or params.sequence == 32:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.FID_Gs_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_FID_Gs()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
-                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
-                         or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
-                         or params.sequence == 16:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.SE_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_SE()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                    elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
-                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
-                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                         or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                         or params.sequence == 36:
-                        seq.RXconfig_upload()
-                        seq.Gradients_upload()
-                        seq.Frequency_upload()
-                        seq.RFattenuation_upload()
-                        seq.SE_Gs_setup()
-                        seq.Sequence_upload()
-                        seq.acquire_spectrum_SE_Gs()
-                        proc.spectrum_process()
-                        proc.spectrum_analytics()
-                        params.frequency = params.centerfrequency
-                        params.saveFileParameter()
-                        print('Autorecenter to:', params.frequency)
-                        time.sleep(params.TR/1000)
-                        params.frequencyoffset = self.frequencyoffsettemp
-                        seq.sequence_upload()
-                else: seq.sequence_upload()
+        if params.GUImode == 2 and params.sequence == 0:
+            proc.T1measurement_IR_FID()
+        elif params.GUImode == 2 and params.sequence == 1:
+            proc.T1measurement_IR_SE()
+        elif params.GUImode == 2 and params.sequence == 2:
+            proc.T1measurement_IR_FID_Gs()
+        elif params.GUImode == 2 and params.sequence == 3:
+            proc.T1measurement_IR_SE_Gs()
+        elif params.GUImode == 2 and params.sequence == 4:
+            proc.T1measurement_Image_IR_GRE()
+        elif params.GUImode == 2 and params.sequence == 5:
+            proc.T1measurement_Image_IR_SE()
+        elif params.GUImode == 2 and params.sequence == 6:
+            proc.T1measurement_Image_IR_GRE_Gs()
+        elif params.GUImode == 2 and params.sequence == 7:
+            proc.T1measurement_Image_IR_SE_Gs()
+        elif params.GUImode == 3 and params.sequence == 0:
+            proc.T2measurement_SE()
+        elif params.GUImode == 3 and params.sequence == 1:
+            proc.T2measurement_SIR_FID()
+        elif params.GUImode == 3 and params.sequence == 2:
+            proc.T2measurement_SE_Gs()
+        elif params.GUImode == 3 and params.sequence == 3:
+            proc.T2measurement_SIR_FID_Gs()
+        elif params.GUImode == 3 and params.sequence == 4:
+            proc.T2measurement_Image_SE()
+        elif params.GUImode == 3 and params.sequence == 5:
+            proc.T2measurement_Image_SIR_GRE()
+        elif params.GUImode == 3 and params.sequence == 6:
+            proc.T2measurement_Image_SE_Gs()
+        elif params.GUImode == 3 and params.sequence == 7:
+            proc.T2measurement_Image_SIR_GRE_Gs()
+        elif params.GUImode == 1:
+            if params.autorecenter == 1:
+                self.frequencyoffsettemp = 0
+                self.frequencyoffsettemp = params.frequencyoffset
+                params.frequencyoffset = 0
+                if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
+                   or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
+                   or params.sequence == 15:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
+                     or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
+                     or params.sequence == 32:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
+                     or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
+                     or params.sequence == 11 or params.sequence == 13 or params.sequence == 14 \
+                     or params.sequence == 16:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
+                elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
+                     or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
+                     or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
+                     or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
+                     or params.sequence == 36:
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    time.sleep(params.TR/1000)
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    seq.sequence_upload()
             else: seq.sequence_upload()
-            if params.headerfileformat == 0: params.save_header_file_txt()
-            else: params.save_header_file_json()
-        else:
-            print('\033[1m' + 'Not allowed in offline mode!' + '\033[0m')
+        else: seq.sequence_upload()
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
 
 
 class PlotWindow(Plot_Window_Form, Plot_Window_Base):
@@ -2954,51 +2997,56 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
 class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
     connect = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, device=None):
         super(MotorToolsWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.device = device
 
         # self.load_params()
 
         self.ui = loadUi('ui/motor_tools.ui')
         self.setWindowTitle('Motor Tools')
-        self.setGeometry(420, 40, 400, 330)
-
-        self.device = None
-
-    def setup_device(self, device):
-        self.device = device
-
-        self.Motor_MaxLength_lineEdit.setText(str(params.motor_axis_length))
-        self.Motor_MaxLength_lineEdit.setStyleSheet("color: white;")
-
-        self.device.waitForReadyRead(100)
-
-        position_s = "M114\n"
-        self.device.write(position_s.encode('utf-8'))
-        self.device.waitForBytesWritten()
-        device_position_b = self.device.readAll()
-        while "\n" not in device_position_b.data().decode():
-            self.device.waitForReadyRead(10)
-            device_position_b.append(self.device.readAll())
-        device_position_s = device_position_b.data().decode()
-        self.Motor_Position_lineEdit.setText(device_position_s)
-        self.Motor_MoveTo_doubleSpinBox.setValue(float(device_position_s))
-        self.motor_position_lineEdit.setStyleSheet("color: white;")
-
+        self.setGeometry(420, 40, 400, 370)
+        
+        # setup_device()
+        
+        self.Motor_Limit_Negative_lineEdit.setText(str(params.motor_axis_limit_negative))
+        self.Motor_Limit_Positive_lineEdit.setText(str(params.motor_axis_limit_positive))
+        
+        self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="to"))
+        self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="by"))
+        self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_actual_position)
+        self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_actual_position)
+        self.Motor_MoveTo_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
+        self.Motor_MoveTo_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
+        
+        self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
+        self.Motor_MoveTo_doubleSpinBox.setValue(params.motor_goto_position)
+        
         self.Motor_Apply_pushButton.clicked.connect(lambda: self.apply())
         self.Motor_Home_pushButton.clicked.connect(lambda: self.home())
         self.device.readyRead.connect(lambda: self.handle_read())
 
-        self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="to"))
-        self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="by"))
-        self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length)
-                                                   - float(device_position_s))
-        self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0 - float(device_position_s)))
-        self.Motor_MoveTo_doubleSpinBox.setMaximum(float(params.motor_axis_length))
-        self.Motor_MoveTo_doubleSpinBox.setMinimum(0)
+        
+
+#     def setup_device(self, device):
+#         self.device.waitForReadyRead(100)
+# 
+#         position_s = "M114\n"
+#         self.device.write(position_s.encode('utf-8'))
+#         self.device.waitForBytesWritten()
+#         device_position_b = self.device.readAll()
+#         while "\n" not in device_position_b.data().decode():
+#             self.device.waitForReadyRead(10)
+#             device_position_b.append(self.device.readAll())
+#         device_position_s = device_position_b.data().decode()
+#         
+#         self.device = device
 
     def home(self):
+        self.Motor_Home_pushButton.setEnabled(False)
+        self.Motor_Apply_pushButton.setEnabled(False)
         home_s = "G28\n"
         self.device.write(home_s.encode('utf-8'))
         self.device.waitForBytesWritten()
@@ -3008,20 +3056,20 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         response_s = "M118 R0: finished moving\n"
         self.device.write(response_s.encode('utf-8'))
         self.device.waitForBytesWritten()
+        
+        params.motor_actual_position = params.motor_axis_limit_negative
 
-        self.Motor_Position_lineEdit.setText(str(0.00))
-        self.Motor_MoveTo_doubleSpinBox.setValue(0)
-        self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length))
-        self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0))
+        self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
+        self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
+        self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
 
-        self.setEnabled(False)
         print("Motor Control - Homing Message send to device")
 
     def apply(self):
-        new_position = self.Motor_MoveTo_doubleSpinBox.value()
-
-        if new_position != float(self.Motor_Position_lineEdit.text()):
-            apply_s = "G0 " + str(new_position) + "\n"
+        self.Motor_Home_pushButton.setEnabled(False)
+        self.Motor_Apply_pushButton.setEnabled(False)
+        if params.motor_goto_position != params.motor_actual_position:
+            apply_s = "G0 " + str(params.motor_goto_position) + "\n"
             self.device.write(apply_s.encode('utf-8'))
             self.device.waitForBytesWritten()
 
@@ -3030,12 +3078,13 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
             response_s = "M118 R0: finished moving\n"
             self.device.write(response_s.encode('utf-8'))
             self.device.waitForBytesWritten()
-
-            self.setEnabled(False)
-            self.Motor_Position_lineEdit.setText(str(new_position))
+            
+            #self.setEnabled(False)
+            params.motor_actual_position = params.motor_goto_position
+            self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
             self.new_move_value(box="to")
-            self.Motor_MoveBy_doubleSpinBox.setMaximum(float(params.motor_axis_length) - new_position)
-            self.Motor_MoveBy_doubleSpinBox.setMinimum(float(0 - new_position))
+            self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_actual_position)
+            self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_actual_position)
             # print("Motor Control - Message sent: " + apply_s)
 
     def handle_read(self):
@@ -3043,19 +3092,21 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
             msg = bytes(self.device.readLine()).decode('utf-8', errors='ignore')
             # print("Motor Control - Message received: " + msg)
             if "R0" in msg:
-                self.setEnabled(True)
+                #self.setEnabled(True)
+                self.Motor_Home_pushButton.setEnabled(True)
+                self.Motor_Apply_pushButton.setEnabled(True)
 
     def new_move_value(self, box=None):
         self.Motor_MoveBy_doubleSpinBox.blockSignals(True)
         self.Motor_MoveTo_doubleSpinBox.blockSignals(True)
         if box == "to":
-            self.Motor_MoveBy_doubleSpinBox.setValue(self.Motor_MoveTo_doubleSpinBox.value()
-                                                     - float(self.Motor_Position_lineEdit.text()))
+            self.Motor_MoveBy_doubleSpinBox.setValue(self.Motor_MoveTo_doubleSpinBox.value() - float(self.Motor_Position_lineEdit.text()))
         elif box == "by":
-            self.Motor_MoveTo_doubleSpinBox.setValue(self.Motor_MoveBy_doubleSpinBox.value()
-                                                     + float(self.Motor_Position_lineEdit.text()))
+            self.Motor_MoveTo_doubleSpinBox.setValue(self.Motor_MoveBy_doubleSpinBox.value() + float(self.Motor_Position_lineEdit.text()))
         self.Motor_MoveBy_doubleSpinBox.blockSignals(False)
         self.Motor_MoveTo_doubleSpinBox.blockSignals(False)
+        
+        params.motor_goto_position = self.Motor_MoveTo_doubleSpinBox.value()
 
 class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
@@ -3092,22 +3143,25 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         connection = seq.conn_client()
 
         if connection:
-            params.connectionmode = 1
+            params.connectionmode = True
             params.saveFileParameter()
             self.status_label.setText('Connected.')
             self.connected.emit()
             self.mainwindow.show()
+            self.mainwindow.Acquire_pushButton.setEnabled(params.connectionmode)
             self.close()
+            
 
         elif not connection:
-            params.connectionmode = 0
+            params.connectionmode = False
             params.saveFileParameter()
             self.status_label.setText('Not connected.')
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
+            
         else:
-            params.connectionmode = 0
+            params.connectionmode = False
             params.saveFileParameter()
             self.status_label.setText('Not connected with status: '+str(connection))
             self.conn_btn.setText('Retry')
@@ -3135,7 +3189,10 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         print(params.hosts)
         
     def offlinemode(self):
+        params.connectionmode = False
+        params.saveFileParameter()
         self.mainwindow.show()
+        self.mainwindow.Acquire_pushButton.setEnabled(params.connectionmode)
         self.close()
 
 def run():

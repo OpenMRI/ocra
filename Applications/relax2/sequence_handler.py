@@ -176,8 +176,7 @@ class sequence:
                 self.grad_test_setup()
                 self.Sequence_upload()
                 self.acquire_grad_test()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
             
         elif params.GUImode == 1:       
             if params.sequence == 0:
@@ -363,8 +362,7 @@ class sequence:
                 self.Image_3D_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_TSE_Gs()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
                 
         if params.GUImode == 4:
             if params.sequence == 0:
@@ -399,8 +397,25 @@ class sequence:
                 self.Image_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_projection_SE_angle_Gs()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
+            
+        if params.GUImode == 5:     
+            if params.sequence == 0:
+                # Image Stiching 2D Spin Echo
+                self.Image_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
+            elif params.sequence == 1:
+                # Image Stiching 2D Spin Echo (Slice)
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs()
+            elif params.sequence == 2:
+                # 3D FFT Spin Echo (Slab)
+                self.Image_3D_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_3D_SE_Gs()
+            else: print('Sequence not defined!')
         
     def conn_client(self):
         socket.connectToHost(params.ip, 1001)
