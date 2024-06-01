@@ -94,8 +94,20 @@
         <property name="sizeConstraint">
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
+        <property name="leftMargin">
+         <number>5</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
         <property name="spacing">
-         <number>6</number>
+         <number>5</number>
         </property>
         <item row="0" column="1" alignment="Qt::AlignHCenter">
          <widget class="QPushButton" name="Mode_Spectroscopy_pushButton">
@@ -295,6 +307,21 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>5</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
+        <property name="spacing">
+         <number>5</number>
+        </property>
         <item row="1" column="0">
          <widget class="QComboBox" name="Sequence_comboBox">
           <property name="minimumSize">
@@ -357,6 +384,21 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_6">
+        <property name="leftMargin">
+         <number>5</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
+        <property name="spacing">
+         <number>5</number>
+        </property>
         <item row="2" column="0">
          <widget class="QPushButton" name="Acquire_pushButton">
           <property name="minimumSize">
@@ -403,7 +445,7 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>20</height>
+            <height>10</height>
            </size>
           </property>
          </spacer>
@@ -412,6 +454,21 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_3">
+        <property name="leftMargin">
+         <number>5</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
+        <property name="spacing">
+         <number>5</number>
+        </property>
         <item row="0" column="2">
          <spacer name="horizontalSpacer_5">
           <property name="orientation">

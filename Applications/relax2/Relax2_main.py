@@ -488,7 +488,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.datapath = self.Datapath_lineEdit.text()
         print('Datapath:', params.datapath)
         
-    def dataprocess(self): 
+    def dataprocess(self):
+        self.Data_Process_pushButton.setEnabled(False)
+        self.repaint()
+        
         if params.GUImode == 0:
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.spectrum_process()
@@ -597,6 +600,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.dialog_plot.show()
                 
         params.saveFileData()
+        
+        self.Data_Process_pushButton.setEnabled(True)
+        self.repaint()
    
     def tools(self):
         if self.dialog_tools == None:
@@ -651,7 +657,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         self.ui = loadUi('ui/parameters.ui')
         self.setWindowTitle('Parameters')
-        self.setGeometry(420, 40, 1150, 710)
+        self.setGeometry(420, 40, 1150, 770)
         
         self.Samplingtime_spinBox.setKeyboardTracking(False)
         self.Samplingtime_spinBox.valueChanged.connect(self.update_params)
@@ -1595,6 +1601,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.saveFileParameter()
         
     def Autocentertool(self):
+        self.Autocenter_pushButton.setEnabled(False)
+        self.repaint()
+        
         self.flippulselengthtemp = params.flippulselength
         params.flippulselength = params.RFpulselength
         
@@ -1626,7 +1635,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
         params.flippulselength = self.flippulselengthtemp
         
+        self.Autocenter_pushButton.setEnabled(True)
+        self.repaint()
+        
     def Flipangletool(self):
+        self.Flipangle_pushButton.setEnabled(False)
+        self.repaint()
+        
         self.flippulselengthtemp = params.flippulselength
         params.flippulselength = params.RFpulselength
         
@@ -1659,7 +1674,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
         params.flippulselength = self.flippulselengthtemp
         
+        self.Flipangle_pushButton.setEnabled(True)
+        self.repaint()
+        
     def Shimtool(self):
+        self.Tool_Shim_pushButton.setEnabled(False)
+        self.repaint()
+        
         if params.ToolShimChannel != [0, 0, 0, 0]:
         
             proc.Shimtool()
@@ -1703,8 +1724,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             else: self.Tool_Shim_Z2_Ref_lineEdit.setText(' ')
         
         else: print('Please select gradient channel')
+        
+        self.Tool_Shim_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_B0(self):
+        self.Field_Map_B0_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_B0' + '\033[0m')
             
         proc.FieldMapB0()
@@ -1737,8 +1764,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.FMB0_canvas.setWindowTitle('Tool Plot')
         self.FMB0_canvas.setGeometry(830, 40, 400, 355)
         self.FMB0_canvas.show()
+        
+        self.Field_Map_B0_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_B0_Slice(self):
+        self.Field_Map_B0_Slice_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
             
         proc.FieldMapB0Slice()
@@ -1771,8 +1804,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.FMB0_canvas.setWindowTitle('Tool Plot')
         self.FMB0_canvas.setGeometry(830, 40, 400, 355)
         self.FMB0_canvas.show()
+        
+        self.Field_Map_B0_Slice_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_B1(self):
+        self.Field_Map_B1_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_B1' + '\033[0m')
             
         proc.FieldMapB1()
@@ -1798,8 +1837,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.FMB1_canvas.setWindowTitle('Tool Plot')
         self.FMB1_canvas.setGeometry(830, 40, 400, 355)
         self.FMB1_canvas.show()
+        
+        self.Field_Map_B1_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_B1_Slice(self):
+        self.Field_Map_B1_Slice_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
             
         proc.FieldMapB1Slice()
@@ -1825,8 +1870,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.FMB1_canvas.setWindowTitle('Tool Plot')
         self.FMB1_canvas.setGeometry(830, 40, 400, 355)
         self.FMB1_canvas.show()
+        
+        self.Field_Map_B1_Slice_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_Gradient(self):
+        self.Field_Map_Gradient_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
             
         proc.FieldMapGradient()
@@ -1863,8 +1914,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
         self.IMag_canvas.setGeometry(420, 40, 800, 750)
         self.IMag_canvas.show()
+        
+        self.Field_Map_Gradient_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_Gradient_Slice(self):
+        self.Field_Map_Gradient_Slice_pushButton.setEnabled(False)
+        self.repaint()
+        
         print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
             
         proc.FieldMapGradientSlice()
@@ -1901,6 +1958,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
         self.IMag_canvas.setGeometry(420, 40, 800, 750)
         self.IMag_canvas.show()
+        
+        self.Field_Map_Gradient_Slice_pushButton.setEnabled(True)
+        self.repaint()
         
 class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
 
@@ -2281,6 +2341,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ui = loadUi('ui/plotview.ui')
         self.setWindowTitle('Plotvalues - ' + params.datapath + '.txt')
         self.setGeometry(10, 490, 400, 500)
+        
+        self.Animate_pushButton.setEnabled(False)
           
         if params.GUImode == 0:
             self.spectrum_plot_init()
@@ -2291,6 +2353,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.imaging_diff_plot_init()
             else:
                 self.imaging_plot_init()
+                self.Animate_pushButton.setEnabled(True)
                 
         elif params.GUImode == 2:
             if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3:
@@ -2324,6 +2387,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.Animation_Step_spinBox.setKeyboardTracking(False)
         self.Animation_Step_spinBox.valueChanged.connect(self.update_params)
         self.Animate_pushButton.clicked.connect(lambda: self.animate())
+        
+        
 
     def load_params(self):
         if params.GUImode == 0:

@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>1150</width>
-    <height>710</height>
+    <height>770</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1150</width>
-    <height>710</height>
+    <height>770</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1150</width>
-    <height>710</height>
+    <height>770</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,24 +31,24 @@
      <x>0</x>
      <y>0</y>
      <width>1151</width>
-     <height>711</height>
+     <height>771</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>0</number>
+     <number>5</number>
     </property>
     <property name="topMargin">
-     <number>0</number>
+     <number>5</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>5</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>5</number>
     </property>
     <property name="spacing">
-     <number>0</number>
+     <number>5</number>
     </property>
     <item row="30" column="2">
      <widget class="QSpinBox" name="GDiffamplitude_spinBox">
