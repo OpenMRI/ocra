@@ -72,7 +72,7 @@ module micro_sequencer_core #(
     input  logic                                abort_seq_i,        //Request to abort as soon as the current sequence block is completed
     input  logic                                buffer_ready_i,     //Next Buffer is Ready
     input  logic  [BRAM_ADDR_WIDTH-1:0]         mem_addr_offset_i,  //Address Offset on Double Buffering Mode
-    input  logic                                ms_raster_trigger_i,//Raster Clock Trigger for Double Buffer Transition
+    input  logic                                ms_ext_tr_trigger_i,//Clock Trigger for Double Buffer Transition
 
     input  logic                                unpause_strobe_i,   //Unpause
 
@@ -584,7 +584,7 @@ module micro_sequencer_core #(
                 end // end Stall
                 
                 WaitForRaster: begin
-                    if (ms_raster_trigger_i) begin
+                    if (ms_ext_tr_trigger_i) begin
                         // Double Buffer Transition
                         if (double_buffer_i && buffer_ready_i) begin
                             state_d         = Fetch;

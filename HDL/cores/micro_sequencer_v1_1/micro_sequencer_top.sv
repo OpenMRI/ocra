@@ -55,7 +55,7 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     input wire                          m_axi_write_failed,
     output wire                         tr_start,
     output wire                         sequencer_active,
-    input wire                          unpause, 
+    input wire                          external_trigger, 
     input wire                          S_AXI_ACLK,
     input wire                          S_AXI_ARESETN,
     input wire [C_S_AXI_ADDR_WIDTH-1 : 0] S_AXI_AWADDR,
@@ -91,13 +91,8 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     localparam integer                   ADDR_LSB          = (C_S_AXI_DATA_WIDTH/32) + 1;
     localparam integer                   OPT_MEM_ADDR_BITS = $clog2(NumOfReg);
 
-    localparam [7:0] RasterDuration = MS_RASTER_CLOCK_PERIOD;
+    localparam [$clog2(MS_RASTER_CLOCK_PERIOD)-1:0] RasterDuration = MS_RASTER_CLOCK_PERIOD;
 
-    //typedef enum logic [$clog2(NumOfReg)-1:0] {
-    //    Configuration   = 'h0,
-    //    Buffer          = 'h1,
-    //    Status          = 'h2
-    //} register_e;
     typedef enum {
         Configuration   = 0,    //RW
         Buffer          = 1,    //RW
@@ -156,9 +151,8 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     logic                               axi_read;
     logic [C_S_AXI_ADDR_WIDTH-1 : 0]    axi_read_address;
     logic [C_S_AXI_DATA_WIDTH-1 : 0]    axi_read_data;
-    //Micro Sequencer Raster Clock
-    logic [$clog2(MS_RASTER_CLOCK_PERIOD)-1:0] ms_raster_clk_counter;
-    logic                               ms_raster_trigger;
+    //Micro Sequencer External Trigger
+    logic                               ms_ext_tr_trigger;
     //Micro Sequencer AXI Write
     logic [C_S_AXI_ADDR_WIDTH-1:0]      int_lut_data;
     logic [$clog2(ADDRESS_LUT_DEPTH)-1:0]int_lut_addr;
@@ -246,9 +240,9 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
         .buffer_ready_i     (buffer_ready           ),  //Next Buffer is Ready
         .abort_seq_i        (abort_seq              ),  //Request to abort as soon as the current sequence block is completed
         .mem_addr_offset_i  (buffer_address_offset  ),  //Address Offset on Double Buffering Mode
-        .ms_raster_trigger_i(ms_raster_trigger      ),
+        .ms_ext_tr_trigger_i(ms_ext_tr_trigger      ),
 
-        .unpause_strobe_i   (unpause_strobe || unpause),
+        .unpause_strobe_i   (unpause_strobe         ),
         .current_bram_addr_o(current_instruction_addr),
         .current_state_o    (current_state          ),
         .current_opcode_o   (current_opcode         ),
@@ -270,7 +264,7 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     );
 
     pulse_extender #(
-        .Width(8)
+        .Width($clog2(MS_RASTER_CLOCK_PERIOD))
     ) pulse_extender_tr_start (
         .pulse_extend_o     (tr_start               ),
         .pulse_i            (ms_interrupt_start     ),
@@ -387,18 +381,16 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     //Micro Sequencer Raster Clock and Delayed Ms Start/Stop
     always_ff @(posedge aclk) begin
         if (!aresetn) begin
-            ms_raster_clk_counter   <= '0;
             ms_stop                 <= 'b1;
             ms_start                <= 'b0;
         end
         else begin
-            ms_raster_clk_counter   <= ms_raster_clk_counter == (MS_RASTER_CLOCK_PERIOD-1)? 'd0 : ms_raster_clk_counter + 'd1;
             ms_stop                 <= seq_state_ctrl == Stop || !ms_start;
-            ms_start                <= (seq_state_ctrl == Start && ms_raster_trigger) ||
+            ms_start                <= (seq_state_ctrl == Start && ms_ext_tr_trigger) ||
                                        (seq_state_ctrl == Start && ms_start);
         end
     end
-    assign ms_raster_trigger = ms_raster_clk_counter == 'd0;
+    assign ms_ext_tr_trigger = external_trigger;
 
     //Internal AXI Write Memory
     always_ff @(posedge aclk)

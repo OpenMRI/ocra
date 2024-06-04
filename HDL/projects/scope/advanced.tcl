@@ -399,9 +399,9 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 set_property OFFSET 0x40030000 [get_bd_addr_segs ps_0/Data/SEG_sequence_writer_reg0]
 
-create_bd_cell -type module -reference sync_external_pulse detect_unpause_pulse_0
-connect_bd_net [get_bd_pins detect_unpause_pulse_0/aclk]    [get_bd_pins $fclk]
-connect_bd_net [get_bd_pins detect_unpause_pulse_0/aresetn] [get_bd_pins $f_aresetn]
+create_bd_cell -type module -reference sync_external_pulse detect_tr_start_pulse_0
+connect_bd_net [get_bd_pins detect_tr_start_pulse_0/aclk]    [get_bd_pins $fclk]
+connect_bd_net [get_bd_pins detect_tr_start_pulse_0/aresetn] [get_bd_pins $f_aresetn]
 
 cell xilinx.com:ip:util_ds_buf ibufds_trigger_0 {
     C_BUF_TYPE IBUFDS
@@ -409,7 +409,7 @@ cell xilinx.com:ip:util_ds_buf ibufds_trigger_0 {
     IBUF_DS_P sata_s1_b_p
     IBUF_DS_N sata_s1_b_n
 }
-connect_bd_net [get_bd_pins ibufds_trigger_0/IBUF_OUT] [get_bd_pins detect_unpause_pulse_0/external_input]
+connect_bd_net [get_bd_pins ibufds_trigger_0/IBUF_OUT] [get_bd_pins detect_tr_start_pulse_0/external_input]
 
 # Create microsequencer
 cell open-mri:user:micro_sequencer:1.1 micro_sequencer {
@@ -422,7 +422,7 @@ cell open-mri:user:micro_sequencer:1.1 micro_sequencer {
   BRAM_PORTA sequence_memory/BRAM_PORTB
   S_AXI_ACLK $fclk
   S_AXI_ARESETN $f_aresetn
-  unpause detect_unpause_pulse_0/pulse_detected
+  external_trigger detect_tr_start_pulse_0/pulse_detected
 }
 # Create all required interconnections
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
