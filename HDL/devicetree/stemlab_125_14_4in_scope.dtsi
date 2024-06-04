@@ -20,22 +20,22 @@
                 interrupt-parent = <0x1>;
                 interrupts = <0 31 1>;
             };
-            dma_rx_0_irq: dma_rx_0_irq {
+            ms_paused: ms_paused {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 32 1>;
             };
-            dma_rx_1_irq: dma_rx_1_irq {
+            dma_rx_0_irq: dma_rx_0_irq {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 33 1>;
             };
-            dma_rx_2_irq: dma_rx_2_irq {
+            dma_rx_1_irq: dma_rx_1_irq {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 34 1>;
             };
-            dma_rx_3_irq: dma_rx_3_irq {
+            dma_rx_2_irq: dma_rx_2_irq {
                 compatible = "generic-uio";
                 interrupt-parent = <0x1>;
                 interrupts = <0 35 1>;
