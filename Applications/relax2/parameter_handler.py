@@ -29,7 +29,7 @@ class Parameters:
         self.ip = []
 
     def var_init(self):
-        print("Setting default parameters.")
+        print('Setting default parameters.')
         self.hosts = ['192.168.1.84']
         self.GUItheme = 1
         self.connectionmode = 0
@@ -38,7 +38,7 @@ class Parameters:
         self.sequencefile = ''
         self.datapath = ''
         self.frequency = 11.3
-        self.autorecenter = 0
+        self.autorecenter = 1
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
         self.phaseoffset = 0
@@ -88,6 +88,9 @@ class Parameters:
         self.img = []
         self.img_mag = []
         self.img_pha = []
+        self.img_st = []
+        self.img_st_mag = []
+        self.img_st_pha = []
         self.ACstart = 11.2
         self.ACstop = 11.4
         self.ACstepwidth = 5000
@@ -189,7 +192,7 @@ class Parameters:
         self.SAR_enable = 0
         self.SAR_limit = 1
         self.SAR_status = 0
-        self.headerfileformat = 0
+        self.headerfileformat = 1
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -345,7 +348,7 @@ class Parameters:
                          self.motor_movement_step, \
                          self.motor_image_count], file)
        
-        print("Parameters saved!")
+        print('Parameters saved!')
         
     def saveFileData(self):  
         with open('data.pkl', 'wb') as file:
@@ -361,6 +364,9 @@ class Parameters:
                          self.img, \
                          self.img_mag, \
                          self.img_pha, \
+                         self.img_st, \
+                         self.img_st_mag, \
+                         self.img_st_pha, \
                          self.T1values, \
                          self.T1xvalues, \
                          self.T1yvalues1, \
@@ -383,7 +389,7 @@ class Parameters:
                          self.B1alphamap, \
                          self.B1alphamapmasked], file)
        
-        print("Data saved!")
+        print('Data saved!')
 
     def loadParam(self):
         try:
@@ -528,10 +534,10 @@ class Parameters:
                 self.motor_movement_step, \
                 self.motor_image_count = pickle.load(file)
              
-                print("Internal GUI parameter successfully restored from file.")
+                print('Internal GUI parameter successfully restored from file.')
                 
         except:
-            print("Parameter could not have been restored, setting default.")
+            print('Parameter could not have been restored, setting default.')
             self.var_init()
             
     def loadData(self):
@@ -549,6 +555,9 @@ class Parameters:
                 self.img, \
                 self.img_mag, \
                 self.img_pha, \
+                self.img_st, \
+                self.img_st_mag, \
+                self.img_st_pha, \
                 self.T1values, \
                 self.T1xvalues, \
                 self.T1yvalues1, \
@@ -571,27 +580,27 @@ class Parameters:
                 self.B1alphamap, \
                 self.B1alphamapmasked = pickle.load(file)
              
-                print("Internal GUI Data successfully restored from file.")
+                print('Internal GUI Data successfully restored from file.')
                 
         except:
-            print("Data could not have been restored, setting default.")
+            print('Data could not have been restored, setting default.')
             self.var_init()
 
     def dispVars(self):
-        print("Parameters to save:")
-        print("GUImode:\t\t\t", self.GUImode)
-        print("Sequence:\t\t\t", self.sequence)
-        print("Frequency:\t\t\t", self.frequency, "MHz")
-        print("RF Pulselength:\t\t\t", self.RFpulselength, "µs")
-        print("RF Attenuation:\t\t\t", self.RFattenuation, "dB")
-        print("Sampling Time TS:\t\t", self.TS, "ms")
-        print("Readout BW scaler:\t\t", self.ROBWscaler)
-        print("Echo Time TE:\t\t\t",self.TE, "ms")
-        print("Inversion Time TI:\t\t",self.TI, "ms")
-        print("Repetition Time TR:\t\t", self.TR, "ms")
-        print("Gradients (x, y, z, z2):\t", self.grad, "mA")
-        print("Gradient Orientation:\t\t", self.Gradientorientation)
-        print("Image Resolution:\t\t", self.nPE)
+        print('Parameters to save:')
+        print('GUImode:\t\t\t', self.GUImode)
+        print('Sequence:\t\t\t', self.sequence)
+        print('Frequency:\t\t\t', self.frequency, 'MHz')
+        print('RF Pulselength:\t\t\t', self.RFpulselength, 'µs')
+        print('RF Attenuation:\t\t\t', self.RFattenuation, 'dB')
+        print('Sampling Time TS:\t\t', self.TS, 'ms')
+        print('Readout BW scaler:\t\t', self.ROBWscaler)
+        print('Echo Time TE:\t\t\t',self.TE, 'ms')
+        print('Inversion Time TI:\t\t',self.TI, 'ms')
+        print('Repetition Time TR:\t\t', self.TR, 'ms')
+        print('Gradients (x, y, z, z2):\t', self.grad, 'mA')
+        print('Gradient Orientation:\t\t', self.Gradientorientation)
+        print('Image Resolution:\t\t', self.nPE)
         
     def save_header_file_txt(self):
         file = open(params.datapath + '_Header.txt','w')
@@ -851,7 +860,7 @@ class Parameters:
         
         }
 
-        out_file = open(filename, "w")
+        out_file = open(filename, 'w')
 
         json.dump(header_dict, out_file, ensure_ascii=False, indent=4)
 

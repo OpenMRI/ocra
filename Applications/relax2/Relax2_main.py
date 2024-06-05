@@ -41,7 +41,7 @@ plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['axes.grid'] = True
 plt.rcParams['figure.autolayout'] = True
 plt.rcParams['figure.dpi'] = 75
-plt.rcParams['legend.loc'] = "upper right"
+plt.rcParams['legend.loc'] = 'upper right'
 plt.rcParams['toolbar'] = 'toolbar2'
 
 Main_Window_Form, Main_Window_Base = loadUiType('ui/mainwindow.ui')
@@ -160,38 +160,38 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             
             time.sleep(2)
 
-            msg_s = "M115\n"
+            msg_s = 'M115\n'
             device.write(msg_s.encode('utf-8'))
             device.waitForBytesWritten()
             
             motor_search_start_time = time.process_time()
             motor_search_timeout = False
             ident_byte_array = device.readAll()
-            while "\n" not in ident_byte_array.data().decode() and not motor_search_timeout:
+            while '\n' not in ident_byte_array.data().decode() and not motor_search_timeout:
                 device.waitForReadyRead(10)
                 ident_byte_array.append(device.readAll())
                 if time.process_time() > (motor_search_start_time + 0.1):
                     motor_search_timeout = True
-                    print("Motor Search: No connection to " + device.port + " possible.")
+                    print('Motor Search: No connection to ' + device.port + ' possible.')
 
-            if not motor_search_timeout and "MRI-Patient-Motor-Control" in ident_byte_array.data().decode('utf8', errors='ignore'):
+            if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8', errors='ignore'):
                 params.motor_port = motor_port
-                params.motor_axis_length = float(ident_byte_array.data().decode('utf8', errors='ignore').split(" ")[2])
+                params.motor_axis_length = float(ident_byte_array.data().decode('utf8', errors='ignore').split(' ')[2])
 
                 time.sleep(0.1)
 
-                home_s = "G28\n"
+                home_s = 'G28\n'
                 device.write(home_s.encode('utf-8'))
                 device.waitForBytesWritten()
 
                 time.sleep(0.1)
 
-                response_s = "M118 R0: finished moving\n"
+                response_s = 'M118 R0: finished moving\n'
                 device.write(response_s.encode('utf-8'))
                 device.waitForBytesWritten()
 
                 response_byte_array = device.readAll()
-                while "\n" not in response_byte_array.data().decode('utf8', errors='ignore'):
+                while '\n' not in response_byte_array.data().decode('utf8', errors='ignore'):
                     device.waitForReadyRead(10)
                     response_byte_array.append(device.readAll())
 
@@ -214,8 +214,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.motor_available = False
             self.Motor_Tools_pushButton.setEnabled(False)
 
-            print("Motor Control: Error detected, Control will be unavailable until at least the next restart of "
-                  "relax2, Error Number: ", error)
+            print('Motor Control: Error detected, Control will be unavailable until at least the next restart of '
+                  'relax2, Error Number: ', error)
         else:
             self.device.clearError()
             self.device.blockSignals(False)
@@ -231,7 +231,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def switch_GUImode(self, mode):
         params.GUImode = mode
         
-        print("GUImode:\t", params.GUImode)
+        print('GUImode:\t', params.GUImode)
         
         if params.GUImode == 0:
             self.Sequence_comboBox.clear()
@@ -297,7 +297,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
     def set_sequence(self, idx):
         params.sequence = idx
-        if params.sequence != -1: print("Sequence:\t", params.sequence)
+        if params.sequence != -1: print('Sequence:\t', params.sequence)
         
         params.saveFileParameter()
         
@@ -500,12 +500,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 self.dialog_plot.show()
             else: print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
-            if os.path.isfile(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt') == True:
-                proc.image_3D_process()
-                # proc.image_3D_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
-            else: print('No 3D File!! \'Path/Filename_3D_slices\', \'_3D_slices\' will add automatically, Parameter: 3D Slab Steps needs to match \'slices\'')
+            if os.path.isfile(params.datapath + '.txt') == True:
+                if os.path.isfile(params.datapath + '_Header.json') == True:
+                    proc.image_3D_json_process()
+                    #proc.image_3D_analytics()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+                elif os.path.isfile(params.datapath + '_Header.txt') == True:
+                    proc.image_3D_txt_process()
+                    #proc.image_3D_analytics()
+                    #self.dialog_plot = PlotWindow(self)
+                    #self.dialog_plot.show()
+                else: print('No 3D header file!!')
+            else: print('No 3D File!!')
         elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_diff_process()
@@ -532,7 +539,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.image_analytics()
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
-            else: print('No file!!')
                 
         elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
@@ -598,6 +604,29 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             proc.spectrum_process()
             self.dialog_plot = PlotWindow(self)
             self.dialog_plot.show()
+            
+        elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1):
+            if os.path.isfile(params.datapath + '_1.txt') == True:
+                if os.path.isfile(params.datapath + '_Header.json') == True:
+                    proc.image_stiching_2D_json_process()
+                elif os.path.isfile(params.datapath + '_Header.txt') == True:
+                    proc.image_stiching_2D_txt_process()
+                else: print('No header file!!')
+                proc.image_analytics()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No file!!')
+        elif params.GUImode == 5 and params.sequence == 2:
+            if os.path.isfile(params.datapath + '_1.txt') == True:
+                if os.path.isfile(params.datapath + '_Header.json') == True:
+                    proc.image_stiching_3D_json_process()
+                elif os.path.isfile(params.datapath + '_Header.txt') == True:
+                    proc.image_stiching_3D_txt_process()
+                else: print('No header file!!')
+                # proc.image_analytics()
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No file!!')
                 
         params.saveFileData()
         
@@ -725,10 +754,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         self.GSPEstep_spinBox.setKeyboardTracking(False)
         self.GSPEstep_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_39.setToolTip('Amplitude of a 3D "slice" phase gradient step.\nThe total amplitude add up to (3D slab steps / 2) * 3D "slice" phase gradient step.')
+        self.label_39.setToolTip('Amplitude of a 3D slice phase gradient step.\nThe total amplitude add up to (3D slab steps / 2) * 3D slice phase gradient step.')
         self.SPEsteps_spinBox.setKeyboardTracking(False)
         self.SPEsteps_spinBox.valueChanged.connect(self.update_params)
-        self.label_40.setToolTip('Number of 3D FFT "slices".')
+        self.label_40.setToolTip('Number of 3D FFT slices.')
         
         self.GDiffamplitude_spinBox.setKeyboardTracking(False)
         self.GDiffamplitude_spinBox.valueChanged.connect(self.update_params)
@@ -795,7 +824,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         params.motor_total_image_length = round(params.motor_end_position - params.motor_start_position,1)
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
-        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        params.motor_movement_step = params.motor_total_image_length / (params.motor_image_count - 1)
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
         params.motor_end_position = params.motor_start_position + params.motor_total_image_length
         self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
@@ -808,7 +837,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         
         params.motor_total_image_length = round(params.motor_end_position - params.motor_start_position,1)
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
-        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        params.motor_movement_step = params.motor_total_image_length / (params.motor_image_count - 1)
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
         params.motor_start_position = params.motor_end_position - params.motor_total_image_length
         self.Motor_Start_Position_doubleSpinBox.setValue(params.motor_start_position)
@@ -820,7 +849,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.motor_total_image_length = self.Motor_Total_Image_Length_doubleSpinBox.value()
         params.motor_end_position = params.motor_start_position + params.motor_total_image_length
         self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
-        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        params.motor_movement_step = params.motor_total_image_length / (params.motor_image_count - 1)
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
         
         params.saveFileParameter()
@@ -828,7 +857,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
     def update_motor_movement_step(self):
         #print('update_motor_movement_step')
         params.motor_movement_step = self.Motor_Movement_Step_doubleSpinBox.value()
-        params.motor_total_image_length = params.motor_image_count * params.motor_movement_step
+        params.motor_total_image_length = (params.motor_image_count - 1) * params.motor_movement_step
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
         params.motor_end_position = params.motor_start_position + params.motor_total_image_length
         self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
@@ -838,7 +867,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
     def update_motor_image_count(self):
         #print('update_motor_image_count')
         params.motor_image_count = self.Motor_Image_Count_spinBox.value()
-        params.motor_movement_step = params.motor_total_image_length / params.motor_image_count
+        params.motor_movement_step = params.motor_total_image_length / (params.motor_image_count - 1)
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
         
         params.saveFileParameter()
@@ -1205,7 +1234,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.setWindowTitle('Config')
         self.setGeometry(420, 40, 770, 670)
         
-        #self.label_3.setToolTip('<img src="tooltip/test.png">')
+        #self.label_3.setToolTip('<img src='tooltip/test.png'>')
         self.Frequency_doubleSpinBox.setKeyboardTracking(False)
         self.Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
         self.label.setToolTip('Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
@@ -1610,7 +1639,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.Autocentertool()
             
         self.fig = Figure()
-        self.fig.set_facecolor("None")
+        self.fig.set_facecolor('None')
         self.fig_canvas = FigureCanvas(self.fig)
         
         self.ax = self.fig.add_subplot(111);
@@ -1648,7 +1677,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.Flipangletool()
         
         self.fig = Figure()
-        self.fig.set_facecolor("None")
+        self.fig.set_facecolor('None')
         self.fig_canvas = FigureCanvas(self.fig)
         
         self.ax = self.fig.add_subplot(111);
@@ -1686,7 +1715,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.Shimtool()
                 
             self.fig = Figure()
-            self.fig.set_facecolor("None")
+            self.fig.set_facecolor('None')
             self.fig_canvas = FigureCanvas(self.fig)
         
             self.ax = self.fig.add_subplot(111);
@@ -1736,7 +1765,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         proc.FieldMapB0()
             
-        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None')
         #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
         #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
         #self.IMag_ax.set_title('Magnitude Image')
@@ -1745,7 +1774,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         #self.IMag_canvas.setGeometry(820, 40, 400, 355)
         #self.IMag_canvas.show()
             
-        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor('None')
         self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
         self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
         self.IPha_ax.set_title('Phase Image')
@@ -1754,7 +1783,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IPha_canvas.setGeometry(420, 40, 400, 355)
         self.IPha_canvas.show()
             
-        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor('None')
         self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
         self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
         self.FMB0_ax.set_title('\u0394 B0 Map')
@@ -1776,7 +1805,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         proc.FieldMapB0Slice()
             
-        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        #self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None')
         #self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
         #self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
         #self.IMag_ax.set_title('Magnitude Image')
@@ -1785,7 +1814,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         #self.IMag_canvas.setGeometry(820, 40, 400, 355)
         #self.IMag_canvas.show()
             
-        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None")
+        self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor('None')
         self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
         self.IPha_ax.imshow(params.img_pha, cmap='gray'); self.IPha_ax.axis('off'); self.IPha_ax.set_aspect(1.0/self.IPha_ax.get_data_ratio())
         self.IPha_ax.set_title('Phase Image')
@@ -1794,7 +1823,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IPha_canvas.setGeometry(420, 40, 400, 355)
         self.IPha_canvas.show()
             
-        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor("None")
+        self.FMB0_fig = Figure(); self.FMB0_canvas = FigureCanvas(self.FMB0_fig); self.FMB0_fig.set_facecolor('None')
         self.FMB0_ax = self.FMB0_fig.add_subplot(111); self.FMB0_ax.grid(False); #self.FMB0_ax.axis(frameon=False)
         self.FMB0_ax.imshow(params.B0DeltaB0mapmasked, cmap='jet'); self.FMB0_ax.axis('off'); self.FMB0_ax.set_aspect(1.0/self.FMB0_ax.get_data_ratio())
         self.FMB0_ax.set_title('\u0394 B0 Map')
@@ -1816,7 +1845,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         proc.FieldMapB1()
             
-        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
+        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None');
         self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
         if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
         else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -1827,7 +1856,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_canvas.setGeometry(420, 40, 400, 355)
         self.IMag_canvas.show()
             
-        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None");
+        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor('None');
         self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
         self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
         self.FMB1_ax.set_title('Flip Angle Map')
@@ -1849,7 +1878,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         proc.FieldMapB1Slice()
             
-        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None")
+        self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
         if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
         else: self.IMag_ax.imshow(params.img_mag, cmap='viridis')
@@ -1860,7 +1889,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_canvas.setGeometry(420, 40, 400, 355)
         self.IMag_canvas.show()
             
-        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor("None")
+        self.FMB1_fig = Figure(); self.FMB1_canvas = FigureCanvas(self.FMB1_fig); self.FMB1_fig.set_facecolor('None')
         self.FMB1_ax = self.FMB1_fig.add_subplot(111); self.FMB1_ax.grid(False); #self.FMB1_ax.axis(frameon=False)
         self.FMB1_ax.imshow(params.B1alphamapmasked, cmap='jet'); self.FMB1_ax.axis('off'); self.FMB1_ax.set_aspect(1.0/self.FMB1_ax.get_data_ratio())
         self.FMB1_ax.set_title('Flip Angle Map')
@@ -1884,7 +1913,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
-        self.IMag_fig.set_facecolor("None")
+        self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
         else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
@@ -1928,7 +1957,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
-        self.IMag_fig.set_facecolor("None")
+        self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
         else: self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV/2),(params.FOV/2),(-params.FOV/2),(params.FOV/2)])
@@ -2376,6 +2405,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 params.frequencyplotrange = 250000
                 self.Frequncyaxisrange_spinBox.setValue(params.frequencyplotrange)
                 self.spectrum_plot_init()
+        
+        elif params.GUImode == 5:
+            if params.sequence == 0 or params.sequence == 1:
+                self.imaging_stiching_plot_init()
+            elif params.sequence == 2:
+                self.imaging_stiching_3D_plot_init()
 
         self.Frequncyaxisrange_spinBox.setKeyboardTracking(False)
         self.Frequncyaxisrange_spinBox.valueChanged.connect(self.update_params)
@@ -2408,7 +2443,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.Noise_lineEdit.setText(str(params.noise))
             self.SNR_lineEdit.setText(str(params.SNR))
             self.Animation_Step_spinBox.setValue(params.animationstep)
-
+        elif params.GUImode == 5:
+            self.Frequncyaxisrange_spinBox.setEnabled(False)
+            self.Frequncyaxisrange_spinBox.setValue(250000)
+            self.Peak_lineEdit.setText(str(params.peakvalue))
+            self.Noise_lineEdit.setText(str(params.noise))
+            self.SNR_lineEdit.setText(str(params.SNR))
+            self.Animation_Step_spinBox.setValue(params.animationstep)
         
     def update_params(self):
         params.frequencyplotrange = self.Frequncyaxisrange_spinBox.value()
@@ -2425,7 +2466,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             
     def spectrum_plot_init(self):
         self.fig = Figure()   
-        self.fig.set_facecolor("None")
+        self.fig.set_facecolor('None')
         self.fig_canvas = FigureCanvas(self.fig)
         
         self.ax1 = self.fig.add_subplot(2,1,1)
@@ -2468,7 +2509,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def projection_plot_init(self):
         self.fig = Figure()   
-        self.fig.set_facecolor("None")
+        self.fig.set_facecolor('None')
         self.fig_canvas = FigureCanvas(self.fig)
         
         if params.projx.shape[0] == params.freqencyaxis.shape[0]:
@@ -2581,7 +2622,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.projzx = params.projx[:,3] * np.transpose(params.projz[:,3])
                 
             self.IMag_fig = Figure()
-            self.IMag_fig.set_facecolor("None")
+            self.IMag_fig.set_facecolor('None')
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             
             self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
@@ -2596,7 +2637,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             
     def T1_plot_init(self):
         self.fig1 = Figure()
-        self.fig1.set_facecolor("None")
+        self.fig1.set_facecolor('None')
         self.fig_canvas1 = FigureCanvas(self.fig1)
         
         self.ax = self.fig1.add_subplot(111);
@@ -2622,7 +2663,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas1.show()
         
         self.fig2 = Figure()
-        self.fig2.set_facecolor("None")
+        self.fig2.set_facecolor('None')
         self.fig_canvas2 = FigureCanvas(self.fig2)
         
         self.ax = self.fig2.add_subplot(111);
@@ -2647,7 +2688,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas2.show()
         
     def T1_imaging_plot_init(self):
-        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor('None');
         self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0]-1,:,:], interpolation='gaussian', cmap='gray')
@@ -2665,7 +2706,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         
     def T2_plot_init(self):
         self.fig = Figure()
-        self.fig.set_facecolor("None")
+        self.fig.set_facecolor('None')
         self.fig_canvas = FigureCanvas(self.fig)
         
         self.ax = self.fig.add_subplot(111);
@@ -2691,7 +2732,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.fig_canvas.show()
         
     def T2_imaging_plot_init(self):
-        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
+        self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor('None');
         self.IComb_ax = self.IComb_fig.add_subplot(111); self.IComb_ax.grid(False); #self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
             self.IComb_ax.imshow(params.T2img_mag[0,:,:], interpolation='gaussian', cmap='gray')
@@ -2709,10 +2750,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
     def imaging_plot_init(self):
         if params.imagplots == 1:
-            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
-            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None");
-            self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
-            self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None');
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor('None');
+            self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor('None');
+            self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor('None');
             
             self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
@@ -2753,7 +2794,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kPha_canvas.show()
             
         else:
-            self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
+            self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor('None');
             
             gs = GridSpec(2, 2, figure=self.all_fig)
             self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
@@ -2781,8 +2822,54 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_canvas.setGeometry(420, 40, 800, 750)
             self.all_canvas.show()
             
+    def imaging_stiching_plot_init(self):
+        if params.imagplots == 1:
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None');
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor('None');
+            
+            self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.IPha_fig.add_subplot(111); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_st_mag[:,:], interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_st_mag[:,:], cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.axis('equal')
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IPha_ax.imshow(params.img_st_pha[:,:], cmap='gray');
+            self.IPha_ax.axis('off'); self.IPha_ax.axis('equal')
+            self.IPha_ax.set_title('Phase Image')
+        
+            self.IMag_canvas.draw()
+            self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+            self.IMag_canvas.setGeometry(420, 40, 400, 355)
+            self.IPha_canvas.draw()
+            self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+            self.IPha_canvas.setGeometry(830, 40, 400, 355)
+
+            self.IMag_canvas.show()
+            self.IPha_canvas.show()
+            
+        else:
+            self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor('None');
+            
+            gs = GridSpec(1, 2, figure=self.all_fig)
+            self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[0,1]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            
+            if params.imagefilter == 1:self.IMag_ax.imshow(params.img_st_mag[:,:], interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_st_mag[:,:], cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.axis('equal')
+            self.IMag_ax.set_title('Magnitude Image')
+            self.IPha_ax.imshow(params.img_st_pha[:,:], cmap='gray');
+            self.IPha_ax.axis('off'); self.IPha_ax.axis('equal')
+            self.IPha_ax.set_title('Phase Image')
+            
+            self.all_canvas.draw()
+            self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+            self.all_canvas.setGeometry(420, 40, 800, 750)
+            self.all_canvas.show()
+            
     def imaging_3D_plot_init(self):
-        self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
+        self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor('None');
             
         gs = GridSpec(4, params.img_mag.shape[0], figure=self.all_fig)
         for n in range(params.img_mag.shape[0]):
@@ -2810,14 +2897,34 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.all_canvas.setGeometry(420, 40, 800, 750)
         self.all_canvas.show()
         
+    def imaging_stiching_3D_plot_init(self):
+        self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor('None');
+        gs = GridSpec(params.img_st_mag.shape[0], 2, figure=self.all_fig)
+            
+        for n in range (params.img_st_mag.shape[0]):
+            self.IMag_ax = self.all_fig.add_subplot(gs[n,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
+            self.IPha_ax = self.all_fig.add_subplot(gs[n,1]); self.IPha_ax.grid(False); #self.IPha_ax.axis(frameon=False)
+            if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap='viridis')
+            else: self.IMag_ax.imshow(params.img_st_mag[n,:,:], cmap='viridis')
+            self.IMag_ax.axis('off'); self.IMag_ax.axis('equal')
+            if n ==0: self.IMag_ax.set_title('Magnitude Image')
+            self.IPha_ax.imshow(params.img_st_pha[n,:,:], cmap='gray');
+            self.IPha_ax.axis('off'); self.IPha_ax.axis('equal')
+            if n ==0: self.IPha_ax.set_title('Phase Image')
+         
+        self.all_canvas.draw()
+        self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+        self.all_canvas.setGeometry(420, 40, 800, 750)
+        self.all_canvas.show()
+        
     def imaging_diff_plot_init(self):
         if params.imagplots == 1:
-            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor("None");
-            self.IDiff_fig = Figure(); self.IDiff_canvas = FigureCanvas(self.IDiff_fig); self.IDiff_fig.set_facecolor("None");
-            self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor("None");
-            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor("None");
-            self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor("None");
-            self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor("None");
+            self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None');
+            self.IDiff_fig = Figure(); self.IDiff_canvas = FigureCanvas(self.IDiff_fig); self.IDiff_fig.set_facecolor('None');
+            self.IComb_fig = Figure(); self.IComb_canvas = FigureCanvas(self.IComb_fig); self.IComb_fig.set_facecolor('None');
+            self.IPha_fig = Figure(); self.IPha_canvas = FigureCanvas(self.IPha_fig); self.IPha_fig.set_facecolor('None');
+            self.kMag_fig = Figure(); self.kMag_canvas = FigureCanvas(self.kMag_fig); self.kMag_fig.set_facecolor('None');
+            self.kPha_fig = Figure(); self.kPha_canvas = FigureCanvas(self.kPha_fig); self.kPha_fig.set_facecolor('None');
             
             self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
             self.IDiff_ax = self.IDiff_fig.add_subplot(111); self.IDiff_ax.grid(False); #self.IDiff_ax.axis(frameon=False)
@@ -2881,7 +2988,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kPha_canvas.show()
             
         else:
-            self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor("None");
+            self.all_fig = Figure(); self.all_canvas = FigureCanvas(self.all_fig); self.all_fig.set_facecolor('None');
             
             gs = GridSpec(2, 3, figure=self.all_fig)
             self.IMag_ax = self.all_fig.add_subplot(gs[0,0]); self.IMag_ax.grid(False); #self.IMag_ax.axis(frameon=False)
@@ -3079,8 +3186,8 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         self.Motor_Limit_Negative_lineEdit.setText(str(params.motor_axis_limit_negative))
         self.Motor_Limit_Positive_lineEdit.setText(str(params.motor_axis_limit_positive))
         
-        self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="to"))
-        self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box="by"))
+        self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='to'))
+        self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='by'))
         self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_actual_position)
         self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_actual_position)
         self.Motor_MoveTo_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
@@ -3098,11 +3205,11 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
 #     def setup_device(self, device):
 #         self.device.waitForReadyRead(100)
 # 
-#         position_s = "M114\n"
+#         position_s = 'M114\n'
 #         self.device.write(position_s.encode('utf-8'))
 #         self.device.waitForBytesWritten()
 #         device_position_b = self.device.readAll()
-#         while "\n" not in device_position_b.data().decode():
+#         while '\n' not in device_position_b.data().decode():
 #             self.device.waitForReadyRead(10)
 #             device_position_b.append(self.device.readAll())
 #         device_position_s = device_position_b.data().decode()
@@ -3112,13 +3219,13 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
     def home(self):
         self.Motor_Home_pushButton.setEnabled(False)
         self.Motor_Apply_pushButton.setEnabled(False)
-        home_s = "G28\n"
+        home_s = 'G28\n'
         self.device.write(home_s.encode('utf-8'))
         self.device.waitForBytesWritten()
 
         time.sleep(0.1)
 
-        response_s = "M118 R0: finished moving\n"
+        response_s = 'M118 R0: finished moving\n'
         self.device.write(response_s.encode('utf-8'))
         self.device.waitForBytesWritten()
         
@@ -3128,35 +3235,35 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
         self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
 
-        print("Motor Control - Homing Message send to device")
+        print('Motor Control - Homing Message send to device')
 
     def apply(self):
         self.Motor_Home_pushButton.setEnabled(False)
         self.Motor_Apply_pushButton.setEnabled(False)
         if params.motor_goto_position != params.motor_actual_position:
-            apply_s = "G0 " + str(params.motor_goto_position) + "\n"
+            apply_s = 'G0 ' + str(params.motor_goto_position) + '\n'
             self.device.write(apply_s.encode('utf-8'))
             self.device.waitForBytesWritten()
 
             time.sleep(0.1)
 
-            response_s = "M118 R0: finished moving\n"
+            response_s = 'M118 R0: finished moving\n'
             self.device.write(response_s.encode('utf-8'))
             self.device.waitForBytesWritten()
             
             #self.setEnabled(False)
             params.motor_actual_position = params.motor_goto_position
             self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
-            self.new_move_value(box="to")
+            self.new_move_value(box='to')
             self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_actual_position)
             self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_actual_position)
-            # print("Motor Control - Message sent: " + apply_s)
+            # print('Motor Control - Message sent: ' + apply_s)
 
     def handle_read(self):
         if self.device.canReadLine():
             msg = bytes(self.device.readLine()).decode('utf-8', errors='ignore')
-            # print("Motor Control - Message received: " + msg)
-            if "R0" in msg:
+            # print('Motor Control - Message received: ' + msg)
+            if 'R0' in msg:
                 #self.setEnabled(True)
                 self.Motor_Home_pushButton.setEnabled(True)
                 self.Motor_Apply_pushButton.setEnabled(True)
@@ -3164,9 +3271,9 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
     def new_move_value(self, box=None):
         self.Motor_MoveBy_doubleSpinBox.blockSignals(True)
         self.Motor_MoveTo_doubleSpinBox.blockSignals(True)
-        if box == "to":
+        if box == 'to':
             self.Motor_MoveBy_doubleSpinBox.setValue(self.Motor_MoveTo_doubleSpinBox.value() - float(self.Motor_Position_lineEdit.text()))
-        elif box == "by":
+        elif box == 'by':
             self.Motor_MoveTo_doubleSpinBox.setValue(self.Motor_MoveBy_doubleSpinBox.value() + float(self.Motor_Position_lineEdit.text()))
         self.Motor_MoveBy_doubleSpinBox.blockSignals(False)
         self.Motor_MoveTo_doubleSpinBox.blockSignals(False)
@@ -3236,7 +3343,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.status_label.setVisible(True)
 
     def add_IP(self):
-        print("Add ip address.")
+        print('Add ip address.')
         ip = self.ip_box.currentText()
 
         if not ip in params.hosts: self.ip_box.addItem(ip)
@@ -3262,10 +3369,10 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
 def run():
 
-    print("\n________________________________________________________\n",\
-    "Relax 2.0. \n",\
-    "Programmed by Marcus Prier and David Schote, Magdeburg, 2021\n",\
-    "\n________________________________________________________\n")
+    print('\n________________________________________________________\n',\
+    'Relax 2.0. \n',\
+    'Programmed by Marcus Prier and David Schote, Magdeburg, 2021\n',\
+    '\n________________________________________________________\n')
 
     app = QApplication(sys.argv)
     gui = MainWindow()

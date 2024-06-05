@@ -19,6 +19,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 import numpy as np
 import math
+import json
 #import pandas as pd
 from scipy.stats import linregress
 
@@ -60,7 +61,7 @@ class process:
 
         params.spectrumfft = np.transpose(np.mean(abs(self.fft), axis = 0))
 
-        print("Spectrum data processed!")
+        print('Spectrum data processed!')
         
     def image_process(self):
         # Load kspace from file
@@ -132,13 +133,23 @@ class process:
         params.img_mag = self.img_mag_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
         params.img_pha = self.img_pha_full[:,self.kspace_centerx-int(params.kspace.shape[0]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[0]/2*params.ROBWscaler)]
          
-        print("Image data processed!")
+        print('Image data processed!')
             
-    def image_3D_process(self):
+    def image_3D_json_process(self):
+        
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
+        
+        self.SPEstepstemp = 0
+        self.SPEstepstemp = params.SPEsteps
+        
+        params.SPEsteps = int(jsonparams['3D phase steps'])
+        
         # Load kspace from file
-        self.procdata = np.genfromtxt(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt', dtype = np.complex64)
+        self.procdata = np.genfromtxt(params.datapath + '.txt', dtype = np.complex64)
         self.kspacetemp = np.transpose(self.procdata)
-        params.kspace = np.array(np.zeros((int(params.SPEsteps), int(self.kspacetemp.shape[0]/params.SPEsteps), int(self.kspacetemp.shape[1])), dtype = np.complex64))
+        
+        params.kspace = np.array(np.zeros((params.SPEsteps, int(self.kspacetemp.shape[0]/params.SPEsteps), int(self.kspacetemp.shape[1])), dtype = np.complex64))
 
         for n in range(params.SPEsteps):
             self.kspacetemp2 = self.kspacetemp[int(n*self.kspacetemp.shape[0]/params.SPEsteps):int(n*self.kspacetemp.shape[0]/params.SPEsteps+self.kspacetemp.shape[0]/params.SPEsteps),:]
@@ -210,7 +221,13 @@ class process:
         params.img = I[:,:,self.kspace_centerx-int(params.kspace.shape[1]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[1]/2*params.ROBWscaler)]
         params.img_mag = self.img_mag_full[:,:,self.kspace_centerx-int(params.kspace.shape[1]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[1]/2*params.ROBWscaler)]
         params.img_pha = self.img_pha_full[:,:,self.kspace_centerx-int(params.kspace.shape[1]/2*params.ROBWscaler):self.kspace_centerx+int(params.kspace.shape[1]/2*params.ROBWscaler)]#print(params.img_mag.shape)
-        print("3D Image data processed!")
+        
+        params.SPEsteps = self.SPEstepstemp
+        
+        print('3D Image data processed!')
+        
+    def image_3D_txt_process(self):
+        print('WIP')
         
     def image_diff_process(self):
         # Load kspace from file
@@ -348,7 +365,7 @@ class process:
         
         params.img_mag_diff = params.img_mag - self.img_magdiff
         
-        print("Diffusion Image data processed!")
+        print('Diffusion Image data processed!')
         
     def radial_process(self):
         # Load kspace from file
@@ -426,14 +443,14 @@ class process:
         #np.savetxt(params.datapath + '_Magnitude_Image.txt', params.img_mag)
         #np.savetxt(params.datapath + '_Phase_Image.txt', params.pha_mag)
         
-        print("Image data processed!")
+        print('Image data processed!')
             
     def image_stiching_2D(self):
-        print("image_stiching_2D")
+        print('image_stiching_2D')
         
-        #For Loop: Motor movement here
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
         
-        #TODO: Datapath extend for each image
         if params.autorecenter == 1:
             self.frequencyoffsettemp = 0
             self.frequencyoffsettemp = params.frequencyoffset
@@ -445,27 +462,49 @@ class process:
             seq.SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
-            spectrum_process()
-            spectrum_analytics()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
             params.frequency = params.centerfrequency
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
             time.sleep(params.TR/1000)
             params.frequencyoffset = self.frequencyoffsettemp
-            seq.sequence_upload()
-        else: seq.sequence_upload()
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+                
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+                
+                time.sleep(params.TR/1000)
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+                
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+                
+                time.sleep(params.TR/1000)
+        
+
+        params.datapath = self.datapathtemp
+        
         if params.headerfileformat == 0: params.save_header_file_txt()
         else: params.save_header_file_json()
+        
+        print('Stiched images acquired!')
         
     def image_stiching_2D_slice(self):
-        print("image_stiching_2D_slice")
+        print('image_stiching_2D_slice')
         
-        #For Loop: Motor movement here
-        
-        #TODO: Datapath extend for each image
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+            
         if params.autorecenter == 1:
             self.frequencyoffsettemp = 0
             self.frequencyoffsettemp = params.frequencyoffset
@@ -477,27 +516,158 @@ class process:
             seq.SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
-            spectrum_process()
-            spectrum_analytics()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
             params.frequency = params.centerfrequency
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
             time.sleep(params.TR/1000)
             params.frequencyoffset = self.frequencyoffsettemp
-            seq.sequence_upload()
-        else: seq.sequence_upload()
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+                
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+        
+                time.sleep(params.TR/1000)
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+                
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+                
+                time.sleep(params.TR/1000)
+            
+        params.datapath = self.datapathtemp
+        
         if params.headerfileformat == 0: params.save_header_file_txt()
         else: params.save_header_file_json()
+        
+        print('Stiched slice images acquired!')
+        
+    def image_stiching_2D_json_process(self):
+        
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+        
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
+        
+        self.imageorientationtemp = ''
+        self.imageorientationtemp = params.imageorientation
+        self.nPEtemp = 0
+        self.nPEtemp = params.nPE
+        self.FOVtemp = 0
+        self.FOVtemp = params.FOV
+        self.motor_image_counttemp = 0
+        self.motor_image_counttemp = params.motor_image_count
+        self.motor_movement_steptemp = 0
+        self.motor_movement_steptemp = params.motor_movement_step
+        
+        params.imageorientation = jsonparams['Image orientation']
+        params.nPE = int(jsonparams['Image resolution [pixel]'])
+        params.FOV = jsonparams['FOV [mm]']
+        params.motor_image_count = int(jsonparams['Motor image count'])
+        params.motor_movement_step = jsonparams['Motor movement step']
+        
+        if params.imageorientation == 'XY':
+            self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
+            self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+            self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
+            
+            if params.motor_movement_step <= params.FOV:
+                params.img_st = np.array(np.zeros((self.imagecrop_total_pixel, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((self.imagecrop_total_pixel, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((self.imagecrop_total_pixel, params.nPE)))
+            else:
+                params.img_st = np.array(np.zeros((self.imageexp_total_pixel, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
+                
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                
+                proc.image_process()
+                
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel),:] = params.img[int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel),:]
+                    params.img_st_mag[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel),:] = params.img_mag[int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel),:]
+                    params.img_st_pha[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel),:] = params.img_pha[int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel),:]
+                else:
+                    params.img_st[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img[:, :]
+                    params.img_st_mag[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img_mag[:, :]
+                    params.img_st_pha[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img_pha[:, :]
+        
+        elif params.imageorientation == 'YZ':
+            self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
+            self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+            self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
+            
+            if params.motor_movement_step <= params.FOV:
+                params.img_st = np.array(np.zeros((params.nPE, self.imagecrop_total_pixel), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.nPE, self.imagecrop_total_pixel)))
+                params.img_st_pha = np.array(np.zeros((params.nPE, self.imagecrop_total_pixel)))
+            else:
+                params.img_st = np.array(np.zeros((params.nPE, self.imageexp_total_pixel), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
+                params.img_st_pha = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
+        
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                
+                proc.image_process()
+                
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                    params.img_st_mag[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img_mag[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                    params.img_st_pha[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img_pha[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                else:
+                    params.img_st[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img[:, :]
+                    params.img_st_mag[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img_mag[:, :]
+                    params.img_st_pha[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img_pha[:, :]
+        
+        elif params.imageorientation == 'ZX':
+            
+            params.img_st = np.array(np.zeros((params.nPE, params.motor_image_count*params.nPE), dtype = np.complex64))
+            params.img_st_mag = np.array(np.zeros((params.nPE, params.motor_image_count*params.nPE)))
+            params.img_st_pha = np.array(np.zeros((params.nPE, params.motor_image_count*params.nPE)))
+        
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                
+                proc.image_process()
+                
+                params.img_st[:, n*params.nPE:int(n*params.nPE+params.nPE)] = params.img[:, :]
+                params.img_st_mag[:, n*params.nPE:int(n*params.nPE+params.nPE)] = params.img_mag[:, :]
+                params.img_st_pha[:, n*params.nPE:int(n*params.nPE+params.nPE)] = params.img_pha[:, :]
+
+        params.datapath = self.datapathtemp
+        print(params.datapath)
+        
+        params.imageorientation = self.imageorientationtemp
+        params.nPE = self.nPEtemp
+        params.FOV = self.FOVtemp
+        params.motor_image_count = self.motor_image_counttemp
+        params.motor_movement_step = self.motor_movement_steptemp
+        
+        print('Image stiching data processed!')
+        
+    def image_stiching_2D_txt_process(self):
+        print('WIP')
         
     def image_stiching_3D_slab(self):
-        print("image_stiching_3D_slab")
+        print('image_stiching_3D_slab')
         
-        #For Loop: Motor movement here
-        
-        #TODO: Datapath extend for each image
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+            
         if params.autorecenter == 1:
             self.frequencyoffsettemp = 0
             self.frequencyoffsettemp = params.frequencyoffset
@@ -509,43 +679,197 @@ class process:
             seq.SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
-            spectrum_process()
-            spectrum_analytics()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
             params.frequency = params.centerfrequency
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
-            if self.dialog_params != None:
-                self.dialog_params.load_params()
-                self.dialog_params.repaint()
             time.sleep(params.TR/1000)
             params.frequencyoffset = self.frequencyoffsettemp
-            seq.sequence_upload()
-        else: seq.sequence_upload()
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+    
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+                
+                time.sleep(params.TR/1000)
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+                print(n+1, '/', params.motor_image_count)
+                #Motor move
+                seq.sequence_upload()
+                
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+                
+                time.sleep(params.TR/1000)
+            
+        params.datapath = self.datapathtemp
+        
         if params.headerfileformat == 0: params.save_header_file_txt()
         else: params.save_header_file_json()
+        
+        print('Stiched 3D slabs acquired!')
+        
+    def image_stiching_3D_json_process(self):
+        
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+        
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
+        
+        self.imageorientationtemp = ''
+        self.imageorientationtemp = params.imageorientation
+        self.nPEtemp = 0
+        self.nPEtemp = params.nPE
+        self.FOVtemp = 0
+        self.FOVtemp = params.FOV
+        self.motor_image_counttemp = 0
+        self.motor_image_counttemp = params.motor_image_count
+        self.motor_movement_steptemp = 0
+        self.motor_movement_steptemp = params.motor_movement_step
+        self.SPEstepstemp2 = 0
+        self.SPEstepstemp2 = params.SPEsteps
+        self.slicethicknesstemp = 0
+        self.slicethicknesstemp = params.slicethickness
+        
+        params.imageorientation = jsonparams['Image orientation']
+        params.nPE = int(jsonparams['Image resolution [pixel]'])
+        params.FOV = jsonparams['FOV [mm]']
+        params.motor_image_count = jsonparams['Motor image count']
+        params.motor_movement_step = jsonparams['Motor movement step']
+        params.SPEsteps = int(jsonparams['3D phase steps'])
+        params.slicethickness = jsonparams['Slice/Slab thickness [mm]']
+        
+        if params.imageorientation == 'XY':
+            self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
+            self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+            self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
+            
+            if params.motor_movement_step <= params.FOV:
+
+                params.img_st = np.array(np.zeros((params.SPEsteps, self.imagecrop_total_pixel, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.SPEsteps, self.imagecrop_total_pixel, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imagecrop_total_pixel, params.nPE)))
+            else:
+                params.img_st = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
+                
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+
+                proc.image_3D_json_process()
+                
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :] = params.img[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel), :]
+                    params.img_st_mag[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :] = params.img_mag[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel), :]
+                    params.img_st_pha[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :] = params.img_pha[:, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel), :]
+                else:
+                    params.img_st[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img[:, :, :]
+                    params.img_st_mag[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img_mag[:, :, :]
+                    params.img_st_pha[:, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE), :] = params.img_pha[:, :, :]
+
+        elif params.imageorientation == 'YZ':
+            self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
+            self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+            self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
+            
+            if params.motor_movement_step <= params.FOV:
+
+                params.img_st = np.array(np.zeros((params.SPEsteps, params.nPE, self.imagecrop_total_pixel), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.SPEsteps, params.nPE, self.imagecrop_total_pixel)))
+                params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imagecrop_total_pixel)))
+            else:
+                params.img_st = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
+                params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
+                
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+
+                proc.image_3D_json_process()
+                
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img[:, :, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                    params.img_st_mag[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img_mag[:, :, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                    params.img_st_pha[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel)] = params.img_pha[:, :, int(params.nPE/2-self.imagecrop_image_pixel/2):int(params.nPE/2-self.imagecrop_image_pixel/2+self.imagecrop_image_pixel)]
+                else:
+                    params.img_st[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img[:, :, :]
+                    params.img_st_mag[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img_mag[:, :, :]
+                    params.img_st_pha[:, :, int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.nPE)] = params.img_pha[:, :, :]
+
+        elif params.imageorientation == 'ZX':
+            self.imagecrop_image_pixel = int((params.motor_movement_step * params.SPEsteps) / params.slicethickness)
+            self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+            self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.SPEsteps)
+
+            
+            if params.motor_movement_step <= params.slicethickness:
+                params.img_st = np.array(np.zeros((self.imagecrop_total_pixel, params.nPE, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((self.imagecrop_total_pixel ,params.nPE, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((self.imagecrop_total_pixel ,params.nPE, params.nPE)))
+            else:
+                params.img_st = np.array(np.zeros((self.imageexp_total_pixel, params.nPE, params.nPE), dtype = np.complex64))
+                params.img_st_mag = np.array(np.zeros((self.imageexp_total_pixel ,params.nPE, params.nPE)))
+                params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel ,params.nPE, params.nPE)))
+                
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n+1))
+
+                proc.image_3D_json_process()
+                
+                if params.motor_movement_step <= params.slicethickness:
+                    params.img_st[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :, :] = params.img[int(params.SPEsteps/2-self.imagecrop_image_pixel/2):int(params.SPEsteps/2-self.imagecrop_image_pixel/2)+self.imagecrop_image_pixel, :, :]
+                    params.img_st_mag[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :, :] = params.img_mag[int(params.SPEsteps/2-self.imagecrop_image_pixel/2):int(params.SPEsteps/2-self.imagecrop_image_pixel/2)+self.imagecrop_image_pixel, :, :]
+                    params.img_st_pha[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+self.imagecrop_image_pixel), :, :] = params.img_pha[int(params.SPEsteps/2-self.imagecrop_image_pixel/2):int(params.SPEsteps/2-self.imagecrop_image_pixel/2)+self.imagecrop_image_pixel, :, :]
+                else:
+                    params.img_st[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.SPEsteps), :, :] = params.img[:, :, :]
+                    params.img_st_mag[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.SPEsteps), :, :] = params.img_mag[:, :, :]
+                    params.img_st_pha[int(n*self.imagecrop_image_pixel):int(n*self.imagecrop_image_pixel+params.SPEsteps), :, :] = params.img_pha[:, :, :]
+                    
+        params.datapath = self.datapathtemp
+        
+        params.imageorientation = self.imageorientationtemp
+        params.nPE = self.nPEtemp
+        params.FOV = self.FOVtemp
+        params.motor_image_count = self.motor_image_counttemp
+        params.motor_movement_step = self.motor_movement_steptemp
+        params.SPEsteps = self.SPEstepstemp2
+        params.slicethickness = self.slicethicknesstemp
+        
+        print('3D Image stiching data processed!')
+        
+    def image_stiching_3D_txt_process(self):
+        print('WIP')
         
     def spectrum_analytics(self): 
 
         params.peakvalue = round(np.max(params.spectrumfft), 3)
-        print("Signal: ", params.peakvalue)
+        print('Signal: ', params.peakvalue)
         self.maxindex = np.argmax(params.spectrumfft)
-        #print("Maxindex: ", self.maxindex)
+        #print('Maxindex: ', self.maxindex)
         self.lowerspectum = params.spectrumfft[1:self.maxindex]
         self.upperspectum = params.spectrumfft[self.maxindex+1:params.spectrumfft.shape[0]]
-        #print("lowerspectum: ", self.lowerspectum)
-        #print("upperspectum: ", self.upperspectum)
+        #print('lowerspectum: ', self.lowerspectum)
+        #print('upperspectum: ', self.upperspectum)
         self.absinvhalflowerspectum = abs(self.lowerspectum - params.peakvalue/2)
         self.absinvhalfupperspectum = abs(self.upperspectum - params.peakvalue/2)
-        #print("absinvhalflowerspectum: ", self.absinvhalflowerspectum)
-        #print("absinvhalfupperspectum: ", self.absinvhalfupperspectum)
+        #print('absinvhalflowerspectum: ', self.absinvhalflowerspectum)
+        #print('absinvhalfupperspectum: ', self.absinvhalfupperspectum)
         
         self.lowerindex = np.argmin(self.absinvhalflowerspectum)
         self.upperindex = np.argmin(self.absinvhalfupperspectum)+self.maxindex
-        #print("lowerindex: ", self.lowerindex)
-        #print("upperindex: ", self.upperindex)
+        #print('lowerindex: ', self.lowerindex)
+        #print('upperindex: ', self.upperindex)
         
         params.FWHM = int(round((self.upperindex - self.lowerindex) * (params.frequencyrange / params.spectrumfft.shape[0])))
-        #print("FWHM: ", params.FWHM)
+        #print('FWHM: ', params.FWHM)
         
         self.lowerlowerindex = self.maxindex - ((self.maxindex - self.lowerindex)*5)
         self.upperupperindex = self.maxindex + ((self.upperindex - self.maxindex)*5)
@@ -553,20 +877,20 @@ class process:
 
         self.noisevector = np.concatenate((params.spectrumfft[0:self.lowerlowerindex],params.spectrumfft[self.upperupperindex:params.spectrumfft.shape[0]]))
         params.noise = round(np.mean(self.noisevector), 3)
-        print("Noise: ", params.noise)
+        print('Noise: ', params.noise)
         
         params.SNR = round(params.peakvalue / params.noise, 1)
         if np.isnan(params.SNR) == True:
             params.SNR = 0.001
-        print("SNR: ", params.SNR)
+        print('SNR: ', params.SNR)
 
         params.centerfrequency = round(params.frequency + ((self.maxindex - params.spectrumfft.shape[0]/2) * params.frequencyrange / params.spectrumfft.shape[0] ) / 1.0e6, 6)
         
         params.inhomogeneity = int(round(params.FWHM/params.centerfrequency))
         
-        print("B0 inhomogeneity: ", params.inhomogeneity, "ppm")
-        #print("Center Frequency: ", params.centerfrequency)
-        print("Data analysed!")
+        print('B0 inhomogeneity: ', params.inhomogeneity, 'ppm')
+        #print('Center Frequency: ', params.centerfrequency)
+        print('Data analysed!')
         
     def image_analytics(self):
         self.img_max = np.max(np.amax(params.img_mag))
@@ -575,18 +899,18 @@ class process:
         self.img_phantomcut[:,:] = params.img_mag[:,:]
         self.img_phantomcut[self.img_phantomcut < self.img_max/2] = np.nan
         params.peakvalue = round(np.mean(self.img_phantomcut[np.isnan(self.img_phantomcut) == False]), 3)
-        print("Signal: ", params.peakvalue)
+        print('Signal: ', params.peakvalue)
         
         self.img_noisecut = np.matrix(np.zeros((params.img_mag.shape[0],params.img_mag.shape[1])))
         self.img_noisecut[:,:] = params.img_mag[:,:]
         self.img_noisecut[self.img_noisecut >= self.img_max * params.signalmask] = np.nan
         params.noise = round(np.mean(self.img_noisecut[np.isnan(self.img_noisecut) == False]), 3)
-        print("Noise: ", params.noise)
+        print('Noise: ', params.noise)
         
         params.SNR = round(params.peakvalue / params.noise, 1)
         if np.isnan(params.SNR) == True:
             params.SNR = 0.001
-        print("SNR: ", params.SNR)
+        print('SNR: ', params.SNR)
         
         
     def Autocentertool(self):
