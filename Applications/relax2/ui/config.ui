@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>770</width>
-    <height>670</height>
+    <height>720</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>770</width>
-    <height>670</height>
+    <height>720</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>770</width>
-    <height>670</height>
+    <height>720</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
      <x>0</x>
      <y>0</y>
      <width>771</width>
-     <height>671</height>
+     <height>721</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -50,6 +50,242 @@
     <property name="spacing">
      <number>0</number>
     </property>
+    <item row="1" column="4">
+     <widget class="QLabel" name="label_11">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Readout BW Scaler</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>90° Ref. Pulselength [µs]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="5">
+     <widget class="QComboBox" name="Undersampling_Time_comboBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="26" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_10">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="GUI_Light_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Light</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="GUI_Dark_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Dark</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="6" column="2">
+     <widget class="QSpinBox" name="RF_Pulselength_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>10</number>
+      </property>
+      <property name="maximum">
+       <number>200</number>
+      </property>
+      <property name="singleStep">
+       <number>10</number>
+      </property>
+      <property name="value">
+       <number>80</number>
+      </property>
+     </widget>
+    </item>
+    <item row="26" column="2">
+     <widget class="QDoubleSpinBox" name="Gradient_Scaling_X_doubleSpinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="minimum">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.200000000000000</double>
+      </property>
+      <property name="value">
+       <double>30.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>RF Attenuation [dB]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="5">
+     <widget class="QComboBox" name="Undersampling_Phase_comboBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="25" column="2">
+     <widget class="QSpinBox" name="Shim_Z2_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>-1000</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="0">
      <widget class="QRadioButton" name="auto_recenter_radioButton">
       <property name="minimumSize">
@@ -77,46 +313,86 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="2">
-     <widget class="QPushButton" name="Center_pushButton">
+    <item row="26" column="0">
+     <widget class="QLabel" name="label_4">
       <property name="minimumSize">
        <size>
-        <width>150</width>
+        <width>200</width>
         <height>30</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>150</width>
+        <width>200</width>
         <height>30</height>
        </size>
       </property>
       <property name="text">
-       <string>Recenter</string>
+       <string>Scaling X [mT/m/A]</string>
       </property>
-      <property name="autoDefault">
-       <bool>false</bool>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="11" column="5">
-     <widget class="QComboBox" name="Undersampling_Time_comboBox">
+    <item row="17" column="4">
+     <widget class="QLabel" name="label_31">
       <property name="minimumSize">
        <size>
-        <width>150</width>
+        <width>200</width>
         <height>30</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>150</width>
+        <width>200</width>
         <height>30</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>k-Space Cut</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
     </item>
-    <item row="2" column="2">
-     <widget class="QDoubleSpinBox" name="Frequency_doubleSpinBox">
+    <item row="19" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="kSpace_Cut_Center_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Center to 0 [%]</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="19" column="2">
+     <widget class="QSpinBox" name="Shim_X_spinBox">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -132,25 +408,16 @@
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
-      <property name="decimals">
-       <number>6</number>
-      </property>
       <property name="minimum">
-       <double>1.000000000000000</double>
+       <number>-1000</number>
       </property>
       <property name="maximum">
-       <double>40.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.005000000000000</double>
-      </property>
-      <property name="value">
-       <double>10.000000000000000</double>
+       <number>1000</number>
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_14">
+    <item row="25" column="0">
+     <widget class="QLabel" name="label_10">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -163,22 +430,16 @@
         <height>30</height>
        </size>
       </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
       <property name="text">
-       <string>Generell</string>
+       <string>Shim Z² [mA]</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="0" column="4">
-     <widget class="QLabel" name="label_15">
+    <item row="28" column="0">
+     <widget class="QLabel" name="label_6">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -191,14 +452,55 @@
         <height>30</height>
        </size>
       </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
+      <property name="text">
+       <string>Scaling Z [mT/m/A]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
       </property>
       <property name="text">
-       <string>Reconstruction</string>
+       <string>RF Frequency [MHz]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Shim X [mA]</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -256,8 +558,135 @@
       </item>
      </layout>
     </item>
-    <item row="26" column="2">
-     <widget class="QDoubleSpinBox" name="Gradient_Scaling_X_doubleSpinBox">
+    <item row="0" column="4">
+     <widget class="QLabel" name="label_15">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Reconstruction</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_36">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>RF Transmit</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="27" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Scaling Y [mT/m/A]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="5">
+     <widget class="QSpinBox" name="kSpace_Cut_Outside_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Shim Y [mA]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QDoubleSpinBox" name="Frequency_doubleSpinBox">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -274,21 +703,24 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
       <property name="decimals">
-       <number>1</number>
+       <number>6</number>
       </property>
       <property name="minimum">
-       <double>0.100000000000000</double>
+       <double>1.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>40.000000000000000</double>
       </property>
       <property name="singleStep">
-       <double>0.200000000000000</double>
+       <double>0.005000000000000</double>
       </property>
       <property name="value">
-       <double>30.000000000000000</double>
+       <double>10.000000000000000</double>
       </property>
      </widget>
     </item>
-    <item row="1" column="4">
-     <widget class="QLabel" name="label_11">
+    <item row="25" column="4">
+     <widget class="QLabel" name="label_12">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -302,12 +734,99 @@
        </size>
       </property>
       <property name="text">
-       <string>Readout BW Scaler</string>
+       <string>GUI Theme</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
+    </item>
+    <item row="27" column="4">
+     <widget class="QLabel" name="label_38">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>Imaging</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="5">
+     <widget class="QSpinBox" name="kSpace_Cut_Center_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="Images_Plot_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Individual Plots</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item row="28" column="2">
      <widget class="QDoubleSpinBox" name="Gradient_Scaling_Z_doubleSpinBox">
@@ -343,6 +862,177 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="Image_Filter_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Image Filter</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="28" column="5">
+     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="maximum">
+       <double>2.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="2">
+     <widget class="QSpinBox" name="Shim_Y_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>-1000</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="ln_kSpace_Magnitude_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>ln (k-Space Mag)</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="5" column="2">
+     <widget class="QPushButton" name="AC_Apply_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Set to Tool Ref</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="0">
+     <widget class="QLabel" name="label_40">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>RF Receive</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
     <item row="9" column="2">
      <widget class="QDoubleSpinBox" name="RF_Attenuation_doubleSpinBox">
       <property name="minimumSize">
@@ -371,54 +1061,65 @@
       </property>
      </widget>
     </item>
-    <item row="26" column="0">
-     <widget class="QLabel" name="label_4">
+    <item row="27" column="2">
+     <widget class="QDoubleSpinBox" name="Gradient_Scaling_Y_doubleSpinBox">
       <property name="minimumSize">
        <size>
-        <width>200</width>
+        <width>150</width>
         <height>30</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>200</width>
+        <width>150</width>
         <height>30</height>
        </size>
       </property>
-      <property name="text">
-       <string>Scaling X [mT/m/A]</string>
-      </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="minimum">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.200000000000000</double>
+      </property>
+      <property name="value">
+       <double>30.000000000000000</double>
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_36">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
+    <item row="16" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <property name="spacing">
+       <number>0</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
-      <property name="text">
-       <string>RF Transmit</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+      <item>
+       <widget class="QRadioButton" name="Undersampling_Phase_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Phase</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item row="2" column="4">
      <widget class="QLabel" name="label_28">
@@ -464,46 +1165,8 @@
       </property>
      </widget>
     </item>
-    <item row="16" column="5">
-     <widget class="QComboBox" name="Undersampling_Phase_comboBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2">
-     <widget class="QPushButton" name="AC_Apply_pushButton">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Set to Tool Ref</string>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="18" column="0">
-     <widget class="QLabel" name="label_37">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_14">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -518,320 +1181,33 @@
       </property>
       <property name="font">
        <font>
-        <italic>true</italic>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="text">
-       <string>Gradients</string>
+       <string>Generell</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="27" column="2">
-     <widget class="QDoubleSpinBox" name="Gradient_Scaling_Y_doubleSpinBox">
-      <property name="minimumSize">
+    <item row="2" column="3">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
        <size>
-        <width>150</width>
-        <height>30</height>
+        <width>20</width>
+        <height>20</height>
        </size>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="minimum">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.200000000000000</double>
-      </property>
-      <property name="value">
-       <double>30.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="22" column="0">
-     <widget class="QLabel" name="label_9">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Shim Z [mA]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Shim X [mA]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="25" column="2">
-     <widget class="QSpinBox" name="Shim_Z2_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>-1000</number>
-      </property>
-      <property name="maximum">
-       <number>1000</number>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="2">
-     <widget class="QSpinBox" name="Shim_X_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>-1000</number>
-      </property>
-      <property name="maximum">
-       <number>1000</number>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="5">
-     <widget class="QDoubleSpinBox" name="SignalMask_doubleSpinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="maximum">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.050000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.500000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="22" column="2">
-     <widget class="QSpinBox" name="Shim_Z_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>-1000</number>
-      </property>
-      <property name="maximum">
-       <number>1000</number>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="4">
-     <widget class="QLabel" name="label_31">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
-      <property name="text">
-       <string>k-Space Cut</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="25" column="0">
-     <widget class="QLabel" name="label_10">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Shim Z² [mA]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="20" column="5">
-     <widget class="QSpinBox" name="kSpace_Cut_Outside_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>100</number>
-      </property>
-      <property name="value">
-       <number>10</number>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="4">
-     <widget class="QLabel" name="label_30">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
-      <property name="text">
-       <string>Undersampling</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="28" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Scaling Z [mT/m/A]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+     </spacer>
     </item>
     <item row="17" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
@@ -884,8 +1260,8 @@
       </item>
      </layout>
     </item>
-    <item row="16" column="0">
-     <widget class="QLabel" name="label_40">
+    <item row="18" column="0">
+     <widget class="QLabel" name="label_37">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -904,232 +1280,10 @@
        </font>
       </property>
       <property name="text">
-       <string>RF Receive</string>
+       <string>Gradients</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="27" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Scaling Y [mT/m/A]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="20" column="0">
-     <widget class="QLabel" name="label_8">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Shim Y [mA]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="20" column="2">
-     <widget class="QSpinBox" name="Shim_Y_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>-1000</number>
-      </property>
-      <property name="maximum">
-       <number>1000</number>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>90° Ref. Pulselength [µs]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>RF Attenuation [dB]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
-      </property>
-      <property name="text">
-       <string>RF Frequency [MHz]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="2">
-     <widget class="QSpinBox" name="RF_Pulselength_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>10</number>
-      </property>
-      <property name="maximum">
-       <number>200</number>
-      </property>
-      <property name="singleStep">
-       <number>10</number>
-      </property>
-      <property name="value">
-       <number>80</number>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="5">
-     <widget class="QSpinBox" name="Readout_Bandwidth_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>4</number>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="5">
-     <widget class="QSpinBox" name="kSpace_Cut_Center_spinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>100</number>
-      </property>
-      <property name="value">
-       <number>10</number>
       </property>
      </widget>
     </item>
@@ -1161,21 +1315,136 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="3">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="20" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <property name="spacing">
+       <number>0</number>
       </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
+      <item>
+       <widget class="QRadioButton" name="kSpace_Cut_Outside_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Outside to 0 [%]</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="5">
+     <widget class="QDoubleSpinBox" name="SignalMask_doubleSpinBox">
+      <property name="minimumSize">
        <size>
-        <width>20</width>
-        <height>20</height>
+        <width>150</width>
+        <height>30</height>
        </size>
       </property>
-     </spacer>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.050000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.500000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="5">
+     <widget class="QSpinBox" name="Readout_Bandwidth_spinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>4</number>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="4">
+     <widget class="QLabel" name="label_30">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>Undersampling</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QPushButton" name="Center_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Recenter</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
     </item>
     <item row="11" column="4">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1206,216 +1475,6 @@
       </item>
      </layout>
     </item>
-    <item row="16" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="Undersampling_Phase_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Phase</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="19" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="kSpace_Cut_Center_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Center to 0 [%]</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="20" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_6">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="kSpace_Cut_Outside_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Outside to 0 [%]</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="3" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_7">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="Image_Filter_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>Image Filter</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="5" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_8">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="Images_Plot_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>Individual Plots</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="6" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_9">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QRadioButton" name="ln_kSpace_Magnitude_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>ln (k-Space Mag)</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="25" column="4">
-     <widget class="QLabel" name="label_12">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>GUI Theme</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
     <item row="28" column="4">
      <widget class="QLabel" name="label_47">
       <property name="minimumSize">
@@ -1443,8 +1502,30 @@
       </property>
      </widget>
     </item>
-    <item row="28" column="5">
-     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
+    <item row="22" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Shim Z [mA]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="22" column="2">
+     <widget class="QSpinBox" name="Shim_Z_spinBox">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -1460,19 +1541,16 @@
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
+      <property name="minimum">
+       <number>-1000</number>
+      </property>
       <property name="maximum">
-       <double>2.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.010000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
+       <number>1000</number>
       </property>
      </widget>
     </item>
-    <item row="27" column="4">
-     <widget class="QLabel" name="label_38">
+    <item row="29" column="4">
+     <widget class="QLabel" name="label_13">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -1485,69 +1563,29 @@
         <height>30</height>
        </size>
       </property>
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
       <property name="text">
-       <string>Imaging</string>
+       <string>Header File Format</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="26" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_10">
-      <property name="spacing">
-       <number>0</number>
+    <item row="29" column="5">
+     <widget class="QComboBox" name="Header_File_Format_comboBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
       </property>
-      <item>
-       <widget class="QRadioButton" name="GUI_Light_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>70</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Light</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="GUI_Dark_radioButton">
-        <property name="minimumSize">
-         <size>
-          <width>70</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Dark</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
