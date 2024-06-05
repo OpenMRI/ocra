@@ -176,24 +176,40 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
             if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8', errors='ignore'):
                 params.motor_port = motor_port
-                params.motor_axis_length = float(ident_byte_array.data().decode('utf8', errors='ignore').split(' ')[2])
 
                 time.sleep(0.1)
 
-                home_s = 'G28\n'
-                device.write(home_s.encode('utf-8'))
+                cmd_axis_length_s = "M203 " + str(params.motor_axis_limit_negative) + " " + str(params.motor_axis_limit_positive) + "\n"
+                device.write(cmd_axis_length_s.encode('utf-8'))
                 device.waitForBytesWritten()
 
                 time.sleep(0.1)
 
-                response_s = 'M118 R0: finished moving\n'
-                device.write(response_s.encode('utf-8'))
+                cmd_response_s = "M118 R0: finished\n"
+                device.write(cmd_response_s.encode('utf-8'))
                 device.waitForBytesWritten()
 
                 response_byte_array = device.readAll()
-                while '\n' not in response_byte_array.data().decode('utf8', errors='ignore'):
+                while "\n" not in response_byte_array.data().decode('utf8', errors='ignore'):
                     device.waitForReadyRead(10)
                     response_byte_array.append(device.readAll())
+
+                time.sleep(0.1)
+
+                cmd_home_s = "G28\n"
+                device.write(cmd_home_s.encode('utf-8'))
+                device.waitForBytesWritten()
+
+                time.sleep(0.1)
+
+                device.write(cmd_response_s.encode('utf-8'))
+                device.waitForBytesWritten()
+
+                response_byte_array = device.readAll()
+                while "\n" not in response_byte_array.data().decode('utf8', errors='ignore'):
+                    device.waitForReadyRead(10)
+                    response_byte_array.append(device.readAll())
+
 
                 self.device = device
                 self.device.errorOccurred.connect(lambda error: self.motor_error(error))
