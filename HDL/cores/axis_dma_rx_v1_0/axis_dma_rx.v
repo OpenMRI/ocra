@@ -21,6 +21,7 @@ module axis_dma_rx #
     input                                        s2mm_err,
     output                                       i_rq,
     output                                       busy,
+    output                                       soft_reset,
 
     //Snooping the BRESP interface
     input       [1:0]                            axi_mm_bresp,
@@ -412,7 +413,7 @@ module axis_dma_rx #
     reg [2:0] buffer_idx_q, buffer_idx_d;
 
     // Soft Reset
-    wire soft_reset = slv_reg[0][0];
+    assign soft_reset = slv_reg[0][0];
 
     // Data
     wire [3:0]  buffer_count    = slv_reg[6][3:0];
@@ -697,7 +698,7 @@ module axis_dma_rx #
   assign m_axis_s2mm_tlast      = data_tlast;
   assign m_axis_s2mm_tvalid     = data_tvalid;
   // Interrupt
-  assign i_rq                   = interrupt_2q | interrupt_q;
+  assign i_rq                   = interrupt_2q;
   assign acq_len_rd_en          = acq_len_rd_en_q;
   // State check
   assign busy                   = busy_q;

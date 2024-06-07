@@ -3,5 +3,7 @@
     "has_tx": "TRUE",
     "modulated": "TRUE",
     "rx_channel_count": "2",
-    "fclk_source": "SATA"
+    "fclk_source": "SATA",
+    "device_class_id": "0x00001002",
+    "device_version": "0x00000001"
 }

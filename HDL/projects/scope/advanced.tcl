@@ -241,10 +241,40 @@ if { $board_name == "stemlab_125_14_4in"} {
     connect_bd_net [get_bd_pins rp_adc_0/adc_1_data_i]      [get_bd_ports adc_dat_b_i]        
 }
 
-# Create xlconstant
+# Status Register
+# [31:00] - Device Class ID
+# [64:32] - Device Version
+# [96:65] - DMA status bits per each channel
+# [127:97] - Pollable Rx IRQ Counter
+cell xilinx.com:ip:xlconcat:2.1 const_sts_0 {
+    NUM_PORTS 4
+}
+cell xilinx.com:ip:xlconstant:1.1 device_class_id_const_0 {
+  CONST_WIDTH 32
+  CONST_VAL [dict get $pl_param_dict device_class_id]
+} {
+}
+cell xilinx.com:ip:xlconstant:1.1 device_version_const_0 {
+  CONST_WIDTH 32
+  CONST_VAL [dict get $pl_param_dict device_version]
+} {
+}
+connect_bd_net [get_bd_pins device_class_id_const_0/Dout] [get_bd_pins const_sts_0/In0]
+connect_bd_net [get_bd_pins device_version_const_0/Dout]  [get_bd_pins const_sts_0/In1]
 
-cell xilinx.com:ip:xlconstant:1.1 const_sts_0
-set_property -dict [list CONFIG.CONST_WIDTH {32} CONFIG.CONST_VAL {0}] [get_bd_cells const_sts_0]
+set rx_channel_count [dict get $pl_param_dict rx_channel_count]
+cell xilinx.com:ip:xlconcat:2.1 rx_status_concat_0 {
+    NUM_PORTS [expr 1 + $rx_channel_count]
+} {
+    Dout const_sts_0/In2
+}
+
+cell xilinx.com:ip:xlconstant:1.1 const_pad_dma_sts_0 {
+  CONST_WIDTH [expr 32 - $rx_channel_count]
+  CONST_VAL 0
+} {
+    Dout rx_status_concat_0/In$rx_channel_count
+}
 
 if { [dict get $pl_param_dict modulated] == "TRUE"} {
     module nco_0 {
@@ -255,6 +285,7 @@ if { [dict get $pl_param_dict modulated] == "TRUE"} {
     save_bd_design
 }
 
+
 for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
     module rx_${i} {
       source projects/scope/rx2.tcl
@@ -263,6 +294,7 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
       fifo_0/S_AXIS         rp_adc_0/M${i}_AXIS
       fifo_0/s_axis_aclk    rp_adc_0/adc_${i}_clk
       fifo_0/s_axis_aresetn rp_adc_0/adc_${i}_resetn
+      axis_dma_rx_0/busy    rx_status_concat_0/In${i}
     }
     # Connect NCO if necessary      
     if { [dict get $pl_param_dict modulated] == "TRUE"} {
@@ -335,7 +367,7 @@ if { [dict get $pl_param_dict has_tx] == "TRUE"} {
 
 # Create axi_sts_register
 cell pavel-demin:user:axi_sts_register:1.0 sts_0 {
-  STS_DATA_WIDTH 32
+  STS_DATA_WIDTH 128
   AXI_ADDR_WIDTH 32
   AXI_DATA_WIDTH 32
 } {
@@ -433,15 +465,28 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
 set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 set_property OFFSET 0x40040000 [get_bd_addr_segs ps_0/Data/SEG_micro_sequencer_reg0]
 
+# Aggregate all rx irq
+set rx_irq_width [dict get $pl_param_dict rx_channel_count]
+cell xilinx.com:ip:xlconcat:2.1 rx_irq_concat_0 {
+    NUM_PORTS $rx_irq_width
+}
+for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
+    connect_bd_net [get_bd_pins rx_irq_concat_0/In$i] [get_bd_pins /rx_${i}/axis_dma_rx_0/i_rq]
+}
+
+create_bd_cell -type module -reference aggregate_irq rx_irq_0
+connect_bd_net [get_bd_pins rx_irq_0/aclk]    [get_bd_pins $fclk]
+connect_bd_net [get_bd_pins rx_irq_0/aresetn] [get_bd_pins $f_aresetn]
+connect_bd_net [get_bd_pins rx_irq_0/soft_reset] [get_bd_pins /rx_0/axis_dma_rx_0/soft_reset]
+connect_bd_net [get_bd_pins rx_irq_0/irq_i]   [get_bd_pins rx_irq_concat_0/Dout]
+connect_bd_net [get_bd_pins rx_irq_0/irq_counter_o] [get_bd_pins const_sts_0/In3]
+
 # Create IRQ concatenator
-set irq_width [expr 1 + [dict get $pl_param_dict rx_channel_count]]
 cell xilinx.com:ip:xlconcat:2.1 irq_concat_0 {
-    NUM_PORTS $irq_width
+    NUM_PORTS 2
 }
 connect_bd_net [get_bd_pins irq_concat_0/In0] [get_bd_pins micro_sequencer/ps_interrupts]
-for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
-    connect_bd_net [get_bd_pins irq_concat_0/In[expr 1+$i]] [get_bd_pins /rx_${i}/axis_dma_rx_0/i_rq]
-}
+connect_bd_net [get_bd_pins irq_concat_0/In1] [get_bd_pins rx_irq_0/irq_o]
 connect_bd_net [get_bd_pins irq_concat_0/Dout] [get_bd_pins /ps_0/IRQ_F2P]
 
 # Timer from the sequencer to the receivers

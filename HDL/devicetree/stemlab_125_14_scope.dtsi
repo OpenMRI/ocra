@@ -30,11 +30,6 @@
                 interrupt-parent = <0x1>;
                 interrupts = <0 33 1>;
             };
-            dma_rx_1_irq: dma_rx_1_irq {
-                compatible = "generic-uio";
-                interrupt-parent = <0x1>;
-                interrupts = <0 34 1>;
-            };
         };
     };
 };
