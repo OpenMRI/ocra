@@ -57,7 +57,7 @@ Motor_Window_Form, Motor_Window_Base = loadUiType('ui/motor_tools.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
 
@@ -100,9 +100,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         if params.GSamplitude == 0:
             params.GSposttime = 0
         else:
-            params.GSposttime = int((
-                                                200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (
-                                            params.GSamplitude / 2)
+            params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
         # params.dispVars()
 
         self.establish_conn()
@@ -262,50 +260,30 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         if params.GUImode == 0:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
-                                                , 'Inversion Recovery (SE)', 'Saturation Inversion Recovery (FID)',
-                                             'Saturation Inversion Recovery (SE)' \
-                                                , 'Echo Planar Spectrum (FID, 4 Echos)',
-                                             'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
-                                                , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)',
-                                             'Inversion Recovery (FID, Slice)' \
-                                                , 'Inversion Recovery (SE, Slice)',
-                                             'Saturation Inversion Recovery (FID, Slice)',
-                                             'Saturation Inversion Recovery (SE, Slice)' \
-                                                , 'Echo Planar Spectrum (FID, 4 Echos, Slice)',
-                                             'Echo Planar Spectrum (SE, 4 Echos, Slice)',
-                                             'Turbo Spin Echo (4 Echos, Slice)' \
-                                                , 'RF Testsequence', 'Gradient Testsequence'])
+                                            , 'Inversion Recovery (SE)', 'Saturation Inversion Recovery (FID)', 'Saturation Inversion Recovery (SE)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                            , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                            , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                            , 'RF Testsequence', 'Gradient Testsequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 1:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
-                                                , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
-                                                , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)',
-                                             '2D Inversion Recovery (SE)' \
-                                                , '2D Saturation Inversion Recovery (GRE)',
-                                             'WIP 2D Saturation Inversion Recovery (SE)' \
-                                                , '2D Turbo Spin Echo (4 Echos)',
-                                             '2D Echo Planar Imaging (GRE, 4 Echos)',
-                                             '2D Echo Planar Imaging (SE, 4 Echos)' \
-                                                , '2D Diffusion (SE)', '2D Flow Compensation (GRE)',
-                                             '2D Flow Compensation (SE)' \
-                                                , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)',
-                                             '2D Radial (Slice, GRE, Half)' \
-                                                , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)',
-                                             '2D Spin Echo (Slice)' \
-                                                , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)',
-                                             '2D Inversion Recovery (Slice, SE)' \
-                                                , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)',
-                                             'WIP 2D Saturation Inversion Recovery (Slice, SE)',
-                                             '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                                , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)',
-                                             'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)',
-                                             'WIP 2D Diffusion (Slice, SE)' \
-                                                , 'WIP 2D Flow Compensation (Slice, GRE)',
-                                             'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
-                                                , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
+                                            , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                            , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                            , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                            , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                            , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                            , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                            , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                            , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -321,10 +299,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)', 'Spin Echo (Slice)' \
-                                                , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo',
-                                             '2D Saturation Inversion Recovery (GRE)' \
-                                                , '2D Spin Echo (Slice)',
-                                             '2D Saturation Inversion Recovery (Slice, GRE)'])
+                                            , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo',n'2D Saturation Inversion Recovery (GRE)' \
+                                            , '2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
