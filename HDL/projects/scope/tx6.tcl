@@ -25,7 +25,7 @@ cell xilinx.com:ip:blk_mem_gen:8.4 bram_0 {
   MEMORY_TYPE True_Dual_Port_RAM
   USE_BRAM_BLOCK Stand_Alone
   WRITE_WIDTH_A 32
-  WRITE_DEPTH_A 16384
+  WRITE_DEPTH_A 32768
   WRITE_WIDTH_B 32
   ENABLE_A Always_Enabled
   ENABLE_B Always_Enabled
@@ -37,7 +37,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 writer_0 {
   AXI_DATA_WIDTH 32
   AXI_ADDR_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 15
 } {
   BRAM_PORTA bram_0/BRAM_PORTA
   aclk $fclk
@@ -48,7 +48,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 writer_0 {
 cell open-mri:user:axis_segmented_bram_reader:1.0 reader_0 {
   AXIS_TDATA_WIDTH 32
   BRAM_DATA_WIDTH 32
-  BRAM_ADDR_WIDTH 14
+  BRAM_ADDR_WIDTH 15
   CONTINUOUS FALSE
 } {
   BRAM_PORTA bram_0/BRAM_PORTB
