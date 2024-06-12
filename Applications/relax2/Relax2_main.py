@@ -21,8 +21,7 @@ from datetime import datetime
 # import PyQt5 packages
 from PyQt5 import QtWidgets
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
-from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, \
-    QTableWidgetItem
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
 from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths, QIODevice
 from PyQt5.QtGui import QRegExpValidator, QPixmap
@@ -299,7 +298,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         elif params.GUImode == 3:
             self.Sequence_comboBox.clear()
             self.Sequence_comboBox.addItems(['Spin Echo', 'Saturation Inversion Recovery (FID)', 'Spin Echo (Slice)' \
-                                            , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo',n'2D Saturation Inversion Recovery (GRE)' \
+                                            , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
                                             , '2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T2_rawdata')
