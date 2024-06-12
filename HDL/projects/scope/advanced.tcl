@@ -360,8 +360,8 @@ if { [dict get $pl_param_dict has_tx] == "TRUE"} {
     Clk        Auto
   } [get_bd_intf_pins tx_0/writer_0/S_AXI]
 
-  set_property RANGE 64K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
-  set_property OFFSET 0x40020000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+  set_property RANGE 128K [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
+  set_property OFFSET 0x40080000 [get_bd_addr_segs ps_0/Data/SEG_writer_0_reg0]
 }
 
 
