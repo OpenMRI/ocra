@@ -92,6 +92,7 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     localparam integer                   OPT_MEM_ADDR_BITS = $clog2(NumOfReg);
 
     localparam [$clog2(MS_RASTER_CLOCK_PERIOD)-1:0] RasterDuration = MS_RASTER_CLOCK_PERIOD;
+    localparam [$clog2(MS_RASTER_CLOCK_PERIOD)-1:0] RasterDurationCnt = MS_RASTER_CLOCK_PERIOD - 1;
 
     typedef enum {
         Configuration   = 0,    //RW
@@ -151,8 +152,12 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     logic                               axi_read;
     logic [C_S_AXI_ADDR_WIDTH-1 : 0]    axi_read_address;
     logic [C_S_AXI_DATA_WIDTH-1 : 0]    axi_read_data;
-    //Micro Sequencer External Trigger
+    //Micro Sequencer Trigger
     logic                               ms_ext_tr_trigger;
+    logic                               start_internal_trigger_loop;
+    logic                               internal_trigger_loop_enable_q;
+    logic [$clog2(MS_RASTER_CLOCK_PERIOD)-1:0] internal_trigger_loop_count;
+    logic                               force_trigger;
     //Micro Sequencer AXI Write
     logic [C_S_AXI_ADDR_WIDTH-1:0]      int_lut_data;
     logic [$clog2(ADDRESS_LUT_DEPTH)-1:0]int_lut_addr;
@@ -166,12 +171,12 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     assign en_psirq_paused      = slv_reg[Configuration][11];
     assign num_psirq_cycles     = slv_reg[Configuration][23:16];
     assign abort_seq            = slv_reg[Configuration][24];
+    assign unpause_strobe       = slv_reg[Configuration][25];
+    assign start_internal_trigger_loop = slv_reg[Configuration][26];
 
     assign double_buffer_en     = slv_reg[Buffer][0];
     assign buffer_address_offset= slv_reg[Buffer][BRAM_ADDR_WIDTH+8-1:8];
     assign buffer_ready         = slv_reg[Buffer][24];
-
-    assign unpause_strobe       = slv_reg[Configuration][25];
 
     assign int_lut_data         = slv_reg[AxiWriteMemory][C_S_AXI_ADDR_WIDTH-1:0];
     assign int_lut_addr         = slv_reg[AxiWriteMemory][24+$clog2(ADDRESS_LUT_DEPTH)-1:24];
@@ -322,7 +327,8 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     //                    by the internal core logic. The AXI4 write takes higher priority in the event of write collision.
     assign slv_reg_d[Configuration][25-1:0]                 = slv_reg[Configuration][25-1:0];
     assign slv_reg_d[Configuration][25]                     = 1'b0; //Unpause strobe bit is set through AXI4-MM write, and is automatically unset after.
-    assign slv_reg_d[Configuration][C_S_AXI_DATA_WIDTH-1:26]= slv_reg[Configuration][C_S_AXI_DATA_WIDTH-1:26];
+    assign slv_reg_d[Configuration][26]                     = 1'b0; //Force trigger strobe bit is automatically unset
+    assign slv_reg_d[Configuration][C_S_AXI_DATA_WIDTH-1:27]= slv_reg[Configuration][C_S_AXI_DATA_WIDTH-1:27];
     assign slv_reg_d[Buffer][24-1:0]                        = slv_reg[Buffer][24-1:0];
     assign slv_reg_d[Buffer][24]                            = ms_interrupt_start ? 1'b0 : slv_reg[Buffer][24];
     assign slv_reg_d[Buffer][C_S_AXI_DATA_WIDTH-1:25]       = slv_reg[Buffer][C_S_AXI_DATA_WIDTH-1:25];
@@ -383,14 +389,19 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
         if (!aresetn) begin
             ms_stop                 <= 'b1;
             ms_start                <= 'b0;
+            internal_trigger_loop_enable_q  <= 'b0;
+            internal_trigger_loop_count <= 'b0;
         end
         else begin
             ms_stop                 <= seq_state_ctrl == Stop || !ms_start;
             ms_start                <= (seq_state_ctrl == Start && ms_ext_tr_trigger) ||
                                        (seq_state_ctrl == Start && ms_start);
+            internal_trigger_loop_enable_q  <= seq_state_ctrl == Start && (start_internal_trigger_loop || internal_trigger_loop_enable_q);
+            internal_trigger_loop_count <= !internal_trigger_loop_enable_q || internal_trigger_loop_count == RasterDurationCnt ? '0 : internal_trigger_loop_count + 1;
         end
     end
-    assign ms_ext_tr_trigger = external_trigger;
+    assign force_trigger = internal_trigger_loop_count == RasterDurationCnt;
+    assign ms_ext_tr_trigger = external_trigger || force_trigger;
 
     //Internal AXI Write Memory
     always_ff @(posedge aclk)
