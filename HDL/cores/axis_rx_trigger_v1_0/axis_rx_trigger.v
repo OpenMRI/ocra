@@ -68,9 +68,8 @@ module axis_rx_trigger #
     // ADDR_LSB = 3 for 64 bits (n downto 3)
     localparam integer           ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
     localparam integer           OPT_MEM_ADDR_BITS = 4;
-    localparam integer           REG_TOTAL = 2;
-    localparam                   WR_ACCESS = 2'b11;
-    localparam                   MAX_WINDOW_COUNT = 4;
+    localparam integer           REG_TOTAL = 3;
+    localparam                   WR_ACCESS = 3'b011;
     //----------------------------------------------
     //-- Signals for user logic register space example
     //------------------------------------------------
@@ -336,6 +335,9 @@ module axis_rx_trigger #
             - [31:0] - Acquisition Width 0
         1   - 0x04: Soft Reset
             - [0] - Soft Reset
+        2   - 0x08: Status
+            - [7:0] - Overflow flag
+            - [15:8] - State
     */
 
     // State machine logic
@@ -349,6 +351,8 @@ module axis_rx_trigger #
     reg  [31:0] sample_count_q, sample_count_d;
     reg  [31:0] max_len_q, max_len_d;
     reg  [31:0] acq_len_out_q, acq_len_out_d;
+    reg         gate_q, gate_2q;
+    wire        gate_detected =  gate_q && !gate_2q;
     reg         gate_out_q, gate_out_d;
     reg         overflow_q;
     wire        overflow_d = m_axis_tvalid && !m_axis_tready;
@@ -364,21 +368,31 @@ module axis_rx_trigger #
             sample_count_q  <= 32'h0;
             max_len_q       <= 32'h0;
             acq_len_out_q   <= 32'h0;
+            gate_q          <= 1'b0;
+            gate_2q         <= 1'b0;
             gate_out_q      <= 1'b0;
             overflow_q      <= 1'b0;
             timestamp_q     <= 64'h0;
         end else begin
             state_q         <= state_d;
-            acq_q           <= gate && state_q == IDLE ? acq : acq_q;
+            acq_q           <= gate_detected && state_q == IDLE ? acq : acq_q;
             sample_count_q  <= sample_count_d;
             max_len_q       <= max_len_d;
             acq_len_out_q   <= acq_len_out_d;
+            gate_q          <= gate;
+            gate_2q         <= gate_q;
             gate_out_q      <= gate_out_d;
             overflow_q      <= overflow_d;
             timestamp_q     <= timer_enable ? timestamp_q + 64'h1 : 64'h0;
         end
     end
 
+    // RO Registers
+    always @(*) begin
+      slv_reg[2][7:0]       = {7'b0, overflow_q};
+      slv_reg[2][15:8]      = {6'b0, state_q};
+      slv_reg[2][31:16]     = 16'b0;
+    end
     // Status Registers Write from Logic. In the event of write collision, the AXI4-Lite interface takes precedence.
     always @(*) begin
         //Default
