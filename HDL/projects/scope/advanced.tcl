@@ -475,6 +475,9 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
 }
 
 create_bd_cell -type module -reference aggregate_irq rx_irq_0
+set_property CONFIG.WIDTH $rx_channel_count [get_bd_cells rx_irq_0]
+set_property CONFIG.POLARITY ACTIVE_HIGH [get_bd_pins /rx_irq_0/soft_reset]
+set_property CONFIG.POLARITY ACTIVE_HIGH [get_bd_pins /rx_0/axis_dma_rx_0/soft_reset]
 connect_bd_net [get_bd_pins rx_irq_0/aclk]    [get_bd_pins $fclk]
 connect_bd_net [get_bd_pins rx_irq_0/aresetn] [get_bd_pins $f_aresetn]
 connect_bd_net [get_bd_pins rx_irq_0/soft_reset] [get_bd_pins /rx_0/axis_dma_rx_0/soft_reset]
