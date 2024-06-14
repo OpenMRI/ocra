@@ -356,6 +356,9 @@ module axis_acq_trigger #
         - [31:0] - Acquisition Delay 3
       8 - 0x20: Soft Reset
         - [0] - Soft Reset
+      9 - 0x24: Status
+        - [7:0] - Overflow
+        - [15:8] - State
     */
 
     // State machine logic
@@ -372,6 +375,8 @@ module axis_acq_trigger #
     reg  [31:0] sample_count_q, sample_count_d;
     reg  [31:0] max_len_q, max_len_d;
     reg  [31:0] acq_len_out_q, acq_len_out_d;
+    reg         gate_q, gate_2q;
+    wire        gate_detected =  gate_q && !gate_2q;
     reg         gate_out_q, gate_out_d;
     reg         overflow_q;
     wire        overflow_d = m_axis_tvalid && !m_axis_tready;
@@ -385,8 +390,8 @@ module axis_acq_trigger #
                     acq_q [i] <= 32'h0;
                     drop_q[i] <= 32'h0;
                 end else begin
-                    acq_q [i] <= gate && state_q == IDLE ? acq [i]: acq_q [i];
-                    drop_q[i] <= gate && state_q == IDLE ? drop[i]: drop_q[i];
+                    acq_q [i] <= gate_detected && state_q == IDLE ? acq [i]: acq_q [i];
+                    drop_q[i] <= gate_detected && state_q == IDLE ? drop[i]: drop_q[i];
                 end
             end
         end
@@ -399,6 +404,8 @@ module axis_acq_trigger #
             sample_count_q  <= 32'h0;
             max_len_q       <= 32'h0;
             acq_len_out_q   <= 32'h0;
+            gate_q          <= 1'b0;
+            gate_2q         <= 1'b0;
             gate_out_q      <= 1'b0;
             overflow_q      <= 1'b0;
         end else begin
@@ -406,6 +413,8 @@ module axis_acq_trigger #
             cnt_q           <= cnt_d;
             sample_count_q  <= sample_count_d;
             max_len_q       <= max_len_d;
+            gate_q          <= gate;
+            gate_2q         <= gate_q;
             acq_len_out_q   <= acq_len_out_d;
             gate_out_q      <= gate_out_d;
             overflow_q      <= overflow_d;
@@ -436,7 +445,7 @@ module axis_acq_trigger #
       case(state_q)
         //IDLE
         IDLE: begin
-          if (gate == 1'b1 && acq[0] != 32'h0) begin
+          if (gate_detected == 1'b1 && acq[0] != 32'h0) begin
             state_d       = DATA_OFF;
             cnt_d         = 2'd0;
             max_len_d     = drop[0] - 32'd1;
