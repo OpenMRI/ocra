@@ -410,7 +410,7 @@ module axis_rx_trigger #
         case(state_q)
             //IDLE
             IDLE: begin
-                if (gate == 1'b1 && acq != 32'h0) begin
+                if (gate_detected && acq != 32'h0) begin
                     state_d       = TIMESTAMP;
                     acq_len_out_d = acq + 32'd1; //acquisition is "timestamp,data0,data1,...,dataN-1"
                     gate_out_d    = 1'b1;
