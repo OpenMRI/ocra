@@ -176,8 +176,7 @@ class sequence:
                 self.grad_test_setup()
                 self.Sequence_upload()
                 self.acquire_grad_test()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
             
         elif params.GUImode == 1:       
             if params.sequence == 0:
@@ -363,8 +362,7 @@ class sequence:
                 self.Image_3D_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_TSE_Gs()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
                 
         if params.GUImode == 4:
             if params.sequence == 0:
@@ -399,8 +397,25 @@ class sequence:
                 self.Image_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_projection_SE_angle_Gs()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
+            
+        if params.GUImode == 5:     
+            if params.sequence == 0:
+                # Image Stiching 2D Spin Echo
+                self.Image_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
+            elif params.sequence == 1:
+                # Image Stiching 2D Spin Echo (Slice)
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs()
+            elif params.sequence == 2:
+                # 3D FFT Spin Echo (Slab)
+                self.Image_3D_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_3D_SE_Gs()
+            else: print('Sequence not defined!')
         
     def conn_client(self):
         socket.connectToHost(params.ip, 1001)
@@ -488,13 +503,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_fid, "w") as out_file:
+        with open(self.seq_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_fid
         
-        print("FID setup complete!")
+        print('FID setup complete!')
     
     #Spin Echo Sequence
     def SE_setup(self):
@@ -513,13 +528,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_se, "w") as out_file:
+        with open(self.seq_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_se
         
-        print("SE setup complete!")
+        print('SE setup complete!')
         
     # Inversion Recovery Free Induction Decay sequence    
     def IR_FID_setup(self):
@@ -539,13 +554,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_fid, "w") as out_file:
+        with open(self.seq_ir_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_fid
         
-        print("IR FID setup complete!")
+        print('IR FID setup complete!')
     
     # Inversion Recovery Spin Echo sequence    
     def IR_SE_setup(self):  
@@ -569,13 +584,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_se, "w") as out_file:
+        with open(self.seq_ir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_se
         
-        print("IR SE setup complete!")
+        print('IR SE setup complete!')
         
     # Free Induction Decay sequence    
     def SIR_FID_setup(self):
@@ -601,13 +616,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_fid, "w") as out_file:
+        with open(self.seq_sir_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_fid
         
-        print("SIR FID setup complete!")
+        print('SIR FID setup complete!')
 
     #Spin Echo Sequence
     def SIR_SE_setup(self):
@@ -632,13 +647,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_se, "w") as out_file:
+        with open(self.seq_sir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_se
         
-        print("SIR SE setup complete!")
+        print('SIR SE setup complete!')
         
     def EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 50 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -656,13 +671,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi, "w") as out_file:
+        with open(self.seq_epi, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi
         
-        print("EPI setup complete!")
+        print('EPI setup complete!')
         
     def EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -684,13 +699,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_se, "w") as out_file:
+        with open(self.seq_epi_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_se
         
-        print("EPI (SE) setup complete!")
+        print('EPI (SE) setup complete!')
         
     #Turbo Spin Echo Sequence
     def TSE_setup(self):
@@ -727,13 +742,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_tse, "w") as out_file:
+        with open(self.seq_tse, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_tse
         
-        print("TSE setup complete!")
+        print('TSE setup complete!')
         
     def FID_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
@@ -748,13 +763,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_fid_gs, "w") as out_file:
+        with open(self.seq_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_fid_gs
         
-        print("FID (slice) setup complete!")
+        print('FID (slice) setup complete!')
     
     #2D Spin Echo (Slice Select) Sequence   
     def SE_Gs_setup(self):
@@ -777,13 +792,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_se_gs, "w") as out_file:
+        with open(self.seq_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_se_gs
         
-        print("SE (slice) setup complete!")
+        print('SE (slice) setup complete!')
         
     def IR_FID_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
@@ -803,13 +818,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_fid_gs, "w") as out_file:
+        with open(self.seq_ir_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_fid_gs
         
-        print("IR FID (slice) setup complete!")
+        print('IR FID (slice) setup complete!')
         
     def IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
@@ -836,13 +851,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_se_gs, "w") as out_file:
+        with open(self.seq_ir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_se_gs
         
-        print("IR SE (slice) setup complete!")
+        print('IR SE (slice) setup complete!')
         
     def SIR_FID_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
@@ -867,13 +882,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_fid_gs, "w") as out_file:
+        with open(self.seq_sir_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_fid_gs
         
-        print("SIR FID (slice) setup complete!")
+        print('SIR FID (slice) setup complete!')
         
     def SIR_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
@@ -901,13 +916,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_se_gs, "w") as out_file:
+        with open(self.seq_sir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_se_gs
         
-        print("SIR SE (slice) setup complete!")
+        print('SIR SE (slice) setup complete!')
         
     def EPI_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -926,13 +941,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_gs, "w") as out_file:
+        with open(self.seq_epi_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_gs
         
-        print("EPI (slice) setup complete!")
+        print('EPI (slice) setup complete!')
         
     #2D EPI SE (Slice Select) Sequence   
     def EPI_SE_Gs_setup(self):
@@ -959,13 +974,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_se_gs, "w") as out_file:
+        with open(self.seq_epi_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_se_gs
         
-        print("EPI SE (slice) setup complete!")
+        print('EPI SE (slice) setup complete!')
         
     def TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
@@ -1005,26 +1020,26 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_tse_gs, "w") as out_file:
+        with open(self.seq_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_tse_gs
         
-        print("TSE (slice) setup complete!")
+        print('TSE (slice) setup complete!')
 
     def rf_test_setup(self):
         f = open(self.seq_rf_test, 'r+')
         lines = f.readlines()
         lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength)) + '\t// Sampling window\n'
         f.close()
-        with open(self.seq_rf_test, "w") as out_file:
+        with open(self.seq_rf_test, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_rf_test
         
-        print("RF test sequence setup complete!")
+        print('RF test sequence setup complete!')
         
         
     #2D Gradient Echo Sequence   
@@ -1048,13 +1063,13 @@ class sequence:
 #         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
 #         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_grad_test, "w") as out_file:
+        with open(self.seq_grad_test, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_grad_test
         
-        print("Gradient test sequence setup complete!")
+        print('Gradient test sequence setup complete!')
         
     #2D Radial Full Gradient Echo Sequence   
     def Image_radial_f_GRE_setup(self):
@@ -1070,13 +1085,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_gre, "w") as out_file:
+        with open(self.seq_2D_rad_f_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_gre
         
-        print("2D radial full GRE setup complete!")
+        print('2D radial full GRE setup complete!')
     
     # 2D Radial Full Spin Echo Sequence
     def Image_radial_f_SE_setup(self):
@@ -1096,13 +1111,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_se, "w") as out_file:
+        with open(self.seq_2D_rad_f_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_se
         
-        print("2D radial full SE setup complete!")
+        print('2D radial full SE setup complete!')
         
     #2D Radial Half Gradient Echo Sequence   
     def Image_radial_h_GRE_setup(self):
@@ -1117,13 +1132,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_gre, "w") as out_file:
+        with open(self.seq_2D_rad_h_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_gre
         
-        print("2D radial half GRE setup complete!")
+        print('2D radial half GRE setup complete!')
     
     # 2D Radial Half Spin Echo Sequence
     def Image_radial_h_SE_setup(self):
@@ -1146,13 +1161,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_se, "w") as out_file:
+        with open(self.seq_2D_rad_h_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_se
         
-        print("2D radial half SE setup complete!")
+        print('2D radial half SE setup complete!')
         
     #2D Radial Full Gradient Echo (Slice Select) Sequence   
     def Image_radial_f_GRE_Gs_setup(self):
@@ -1169,13 +1184,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_gre_gs, "w") as out_file:
+        with open(self.seq_2D_rad_f_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_gre_gs
         
-        print("2D radial full GRE (slice) setup complete!")
+        print('2D radial full GRE (slice) setup complete!')
     
     # 2D Radial Full Spin Echo (Slice Select) Sequence
     def Image_radial_f_SE_Gs_setup(self):
@@ -1199,13 +1214,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_se_gs, "w") as out_file:
+        with open(self.seq_2D_rad_f_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_se_gs
         
-        print("2D radial full SE (slice) setup complete!")
+        print('2D radial full SE (slice) setup complete!')
         
     #2D Radial Half Gradient Echo (Slice Select)Sequence   
     def Image_radial_h_GRE_Gs_setup(self):
@@ -1221,13 +1236,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_gre_gs, "w") as out_file:
+        with open(self.seq_2D_rad_h_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_gre_gs
         
-        print("2D radial half GRE (slice) setup complete!")
+        print('2D radial half GRE (slice) setup complete!')
     
     # 2D Radial Half Spin Echo (Slice Select) Sequence
     def Image_radial_h_SE_Gs_setup(self):
@@ -1259,13 +1274,13 @@ class sequence:
 #         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
 #         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_se_gs, "w") as out_file:
+        with open(self.seq_2D_rad_h_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_se_gs
         
-        print("2D radial half SE (slice) setup complete!")
+        print('2D radial half SE (slice) setup complete!')
 
     #2D Gradient Echo Sequence   
     def Image_GRE_setup(self):
@@ -1281,13 +1296,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_gre, "w") as out_file:
+        with open(self.seq_2D_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_gre
         
-        print("2D GRE setup complete!")
+        print('2D GRE setup complete!')
     
     # 2D Spin Echo Sequence
     def Image_SE_setup(self):
@@ -1307,13 +1322,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se, "w") as out_file:
+        with open(self.seq_2D_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se
         
-        print("2D SE setup complete!")
+        print('2D SE setup complete!')
     
     # 2D Inversion Recovery GRE Sequence
     def Image_IR_GRE_setup(self):         
@@ -1335,13 +1350,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_gre, "w") as out_file:
+        with open(self.seq_2D_ir_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_gre
         
-        print("2D IR GRE setup complete!")
+        print('2D IR GRE setup complete!')
     
     # 2D Inversion Recovery SE Sequence    
     def Image_IR_SE_setup(self):        
@@ -1366,13 +1381,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_se, "w") as out_file:
+        with open(self.seq_2D_ir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_se
         
-        print("2D IR SE setup complete!")
+        print('2D IR SE setup complete!')
         
     # 2D Saturation Inversion Recovery GRE Sequence
     def Image_SIR_GRE_setup(self):          
@@ -1402,13 +1417,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_sir_gre, "w") as out_file:
+        with open(self.seq_2D_sir_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_sir_gre
         
-        print("2D SIR GRE setup complete!")
+        print('2D SIR GRE setup complete!')
         
     #2D Gradient Echo (Slice Select) Sequence   
     def Image_GRE_Gs_setup(self):
@@ -1425,13 +1440,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_gre_gs, "w") as out_file:
+        with open(self.seq_2D_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_gre_gs
         
-        print("2D GRE (slice) setup complete!")
+        print('2D GRE (slice) setup complete!')
     
     #2D Spin Echo (Slice Select) Sequence   
     def Image_SE_Gs_setup(self):
@@ -1455,13 +1470,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se_gs, "w") as out_file:
+        with open(self.seq_2D_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se_gs
         
-        print("2D SE (slice) setup complete!")
+        print('2D SE (slice) setup complete!')
         
     def Image_IR_GRE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
@@ -1482,13 +1497,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_gre_gs, "w") as out_file:
+        with open(self.seq_2D_ir_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_gre_gs
         
-        print("2D IR GRE (slice) setup complete!")
+        print('2D IR GRE (slice) setup complete!')
         
     def Image_IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
@@ -1516,13 +1531,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_se_gs, "w") as out_file:
+        with open(self.seq_2D_ir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_se_gs
         
-        print("2D IR SE (slice) setup complete!")
+        print('2D IR SE (slice) setup complete!')
         
     def Image_3D_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1545,13 +1560,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_3D_se_gs, "w") as out_file:
+        with open(self.seq_3D_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_3D_se_gs
         
-        print("3D FFT SE (slab) setup complete!")
+        print('3D FFT SE (slab) setup complete!')
         
     def Image_3D_TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 55 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1598,13 +1613,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_3D_tse_gs, "w") as out_file:
+        with open(self.seq_3D_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_3D_tse_gs
         
-        print("3D FFT TSE (slab) setup complete!")
+        print('3D FFT TSE (slab) setup complete!')
         
     #2D Turbo Spin Echo Sequence
     def Image_TSE_setup(self):
@@ -1648,13 +1663,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_tse, "w") as out_file:
+        with open(self.seq_2D_tse, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_tse
         
-        print("2D TSE setup complete!")
+        print('2D TSE setup complete!')
         
     # 2D Turbo Spin Echo (Slice Select) Sequence
     def Image_TSE_Gs_setup(self):
@@ -1702,13 +1717,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_tse_gs, "w") as out_file:
+        with open(self.seq_2D_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_tse_gs
         
-        print("2D TSE (slice select) setup complete!")
+        print('2D TSE (slice select) setup complete!')
         
     def Image_EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 200 - 600 - 200 - 170 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -1727,13 +1742,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_epi, "w") as out_file:
+        with open(self.seq_2D_epi, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_epi
         
-        print("2D EPI setup complete!")
+        print('2D EPI setup complete!')
         
     def Image_EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 -200) < 0:
@@ -1756,13 +1771,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_epi_se, "w") as out_file:
+        with open(self.seq_2D_epi_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_epi_se
         
-        print("2D EPI SE setup complete!")
+        print('2D EPI SE setup complete!')
         
     def Image_SE_Diff_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 80 - 800 - 2 * params.diffusiontime - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1785,13 +1800,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se_diff, "w") as out_file:
+        with open(self.seq_2D_se_diff, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se_diff
         
-        print("2D Diffusion (SE) setup complete!")
+        print('2D Diffusion (SE) setup complete!')
         
         #2D Flow Compensated Gradient Echo Sequence   
     def Image_FC_GRE_setup(self):
@@ -1808,13 +1823,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_fc_gre, "w") as out_file:
+        with open(self.seq_2D_fc_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_fc_gre
         
-        print("2D FC GRE setup complete!")
+        print('2D FC GRE setup complete!')
         
     # 2D Flow Compensated Spin Echo Sequence
     def Image_FC_SE_setup(self):
@@ -1835,13 +1850,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_fc_se, "w") as out_file:
+        with open(self.seq_2D_fc_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_fc_se
         
-        print("2D FC SE setup complete!")
+        print('2D FC SE setup complete!')
         
     def Sequence_upload(self):
         self.assembler = Assembler()
@@ -1858,10 +1873,10 @@ class sequence:
 
         socket.setReadBufferSize(8*params.samples)
         
-        print("Sequence uploaded!")
+        print('Sequence uploaded!')
 
     def acquire_spectrum_FID(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1885,7 +1900,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -1906,10 +1921,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1933,7 +1948,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -1954,10 +1969,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1982,7 +1997,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2007,10 +2022,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_SE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2035,7 +2050,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2061,10 +2076,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_TSE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2089,7 +2104,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2114,10 +2129,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_FID_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2141,7 +2156,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2162,10 +2177,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2189,7 +2204,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2210,10 +2225,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SIR_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2237,7 +2252,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2258,10 +2273,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2286,7 +2301,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2311,10 +2326,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2339,7 +2354,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2364,10 +2379,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_TSE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2392,7 +2407,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2417,10 +2432,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_rf_test(self):
-        print("Run RF test sequence...")
+        print('Run RF test sequence...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2444,7 +2459,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2465,10 +2480,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("RF test sequence finished!")
+        print('RF test sequence finished!')
         
     def acquire_grad_test(self):
-        print("Run gradient test sequence...")
+        print('Run gradient test sequence...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2492,7 +2507,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2513,11 +2528,11 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Gradient test sequence finished!")
+        print('Gradient test sequence finished!')
         
   
     def acquire_projection_GRE(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2558,7 +2573,7 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
@@ -2581,10 +2596,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_SE(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2625,7 +2640,7 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
@@ -2648,10 +2663,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_GRE_angle(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2689,7 +2704,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2710,10 +2725,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
         
     def acquire_projection_SE_angle(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2751,7 +2766,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2772,10 +2787,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
         
     def acquire_projection_GRE_Gs(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2816,7 +2831,7 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
@@ -2839,10 +2854,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_SE_Gs(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2883,7 +2898,7 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
@@ -2906,10 +2921,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_GRE_angle_Gs(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2947,7 +2962,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -2968,10 +2983,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
         
     def acquire_projection_SE_angle_Gs(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3009,7 +3024,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3030,10 +3045,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
         
     def acquire_image_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3051,7 +3066,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3068,10 +3083,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3089,7 +3104,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3106,10 +3121,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_IO(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3129,7 +3144,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3152,10 +3167,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_GRE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3173,7 +3188,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3190,10 +3205,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3211,7 +3226,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3228,10 +3243,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Gs_IO(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3251,7 +3266,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3274,10 +3289,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_3D_SE_Gs(self):
-        print("Acquire image...") 
+        print('Acquire image...') 
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3297,7 +3312,7 @@ class sequence:
                     datasize = socket.bytesAvailable()
                     time.sleep(0.0001)
                     if datasize == 8*params.samples:
-                        print("Readout finished : ",int(datasize/8), "Samples")
+                        print('Readout finished : ',int(datasize/8), 'Samples')
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
@@ -3310,16 +3325,16 @@ class sequence:
         self.datatxt2 = np.matrix(np.zeros((self.data_idx, params.nPE * params.SPEsteps), dtype = np.complex64))
         for m in range(params.SPEsteps):
             self.datatxt2[:,m*params.nPE:m*params.nPE+params.nPE] = np.transpose(self.datatxt1[m,:,:])
-        np.savetxt(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt', self.datatxt2)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
         
         
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_3D_TSE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
         
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -3345,7 +3360,7 @@ class sequence:
                     datasize = socket.bytesAvailable()
                     time.sleep(0.0001)
                     if datasize == 8*params.samples:
-                        print("Readout finished : ",int(datasize/8), "Samples")
+                        print('Readout finished : ',int(datasize/8), 'Samples')
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
@@ -3369,16 +3384,16 @@ class sequence:
         self.datatxt2 = np.matrix(np.zeros((self.data_idx, params.nPE * params.SPEsteps), dtype = np.complex64))
         for m in range(params.SPEsteps):
             self.datatxt2[:,m*params.nPE:m*params.nPE+params.nPE] = np.transpose(self.datatxt1[m,:,:])
-        np.savetxt(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt', self.datatxt2)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
         
         
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_TSE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -3403,7 +3418,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3434,10 +3449,10 @@ class sequence:
 #         self.datatxt2 = np.transpose(self.datatxt1)
 #         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_TSE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -3462,7 +3477,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3493,23 +3508,23 @@ class sequence:
 #         self.datatxt2 = np.transpose(self.datatxt1)
 #         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_EPI(self):
-        print("Acquire image...")
+        print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
         #print(self.nsteps)
             
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int((params.sampledelay) * 250) #Filterdelay 350µs
-        print("sampledelay", self.sampledelay)
+        print('sampledelay', self.sampledelay)
         self.sampledelay2 = int((params.sampledelay + params.TS + 0.4 + 0.04) * 250)
-        print("sampledelay2", self.sampledelay2)
+        print('sampledelay2', self.sampledelay2)
         self.sampledelay3 = int((params.sampledelay + 2 * params.TS + 0.8) * 250)
-        print("sampledelay3", self.sampledelay3)
+        print('sampledelay3', self.sampledelay3)
         self.sampledelay4 = int((params.sampledelay + 3 * params.TS + 1.2 + 0.08) * 250)
-        print("sampledelay4", self.sampledelay4)
+        print('sampledelay4', self.sampledelay4)
         
         #self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
@@ -3530,7 +3545,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3558,10 +3573,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_EPI_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
         #print(self.nsteps)
@@ -3586,7 +3601,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3619,10 +3634,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Diff(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3640,7 +3655,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3658,7 +3673,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3675,10 +3690,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_f_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3712,7 +3727,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3735,10 +3750,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_f_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3772,7 +3787,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3793,10 +3808,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3830,7 +3845,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3851,10 +3866,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3888,7 +3903,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3909,10 +3924,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_f_GRE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3946,7 +3961,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3969,10 +3984,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
 
     def acquire_image_radial_f_SE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -4006,7 +4021,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -4027,10 +4042,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_GRE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -4064,7 +4079,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -4085,10 +4100,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_SE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -4122,7 +4137,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -4143,6 +4158,6 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
 
 seq = sequence()
