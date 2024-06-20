@@ -70,6 +70,8 @@ $(DTREE_DIR):
 	git --git-dir $@/.git --work-tree $@ checkout $(DTREE_TAG)
 
 tmp/%.dtbo: tmp/$(BOARD)_$(NAME).tree/system.dts
+	sed -i 's/#address-cells = <2>;/#address-cells = <1>;/g' tmp/$(BOARD)_$(NAME).tree/pl.dtsi
+	sed -i 's/#size-cells = <2>;/#size-cells = <1>;/g' tmp/$(BOARD)_$(NAME).tree/pl.dtsi
 	dtc -O dtb -o tmp/$(BOARD)_$(NAME).dtbo -b 0 -@ devicetree/$(BOARD)_$(NAME).dtsi
 
 tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
