@@ -427,7 +427,7 @@ module micro_sequencer_core #(
 
                 Fetch: begin // Tick 1 : instruction fetch, throw PC to address bus,
                     //$display("%4dns %8x : Fetching 64 bits ", $stime, `PC);
-                    int_mem_addr_d      = `PC[BRAM_ADDR_WIDTH-1:0] + mem_addr_offset_q;
+                    int_mem_addr_d      = `PC[BRAM_ADDR_WIDTH-1:0] + mem_addr_offset_q; //PC relative to absolute address translation is applied here
                     next_PC_d           = `PC[BRAM_ADDR_WIDTH-1:0] + 1;
                     state_d             = WaitForFetch;
                 end
@@ -532,7 +532,7 @@ module micro_sequencer_core #(
                             state_d           = MemAccess;
                         end
                         J: begin
-                            result_d[BRAM_ADDR_WIDTH-1:0] = direct_address_q;                   // J directAddress
+                            result_d[BRAM_ADDR_WIDTH-1:0] = direct_address_q; // J directAddress
                             state_d           = MemAccess;
                         end
                         PAUSE: begin

@@ -42,6 +42,7 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     output wire [15:0]                  tx_offset,
     output wire [15:0]                  grad_offset,
     output wire [31:0]                  phase_offset,
+    output wire                         buffer_select,
     output wire                         m_en,
     output wire [63:0]                  pulse,
     output wire                         timer_enable,
@@ -198,7 +199,7 @@ module micro_sequencer_top #(parameter integer C_S_AXI_DATA_WIDTH = 32,
     assign tick                 = '0;
     assign pc                   = '0;
     assign m_en                 = '0;
-
+    assign buffer_select        = current_buffer;
     //Modules
 
     //Microsequencer

@@ -14,6 +14,14 @@ cell xilinx.com:ip:xlslice:1.0 slice_1 {
   DIN_WIDTH 32 DIN_FROM 15 DIN_TO 0 DOUT_WIDTH 16
 }
 
+# memory mid point
+cell xilinx.com:ip:xlslice:1.0 slice_buffer_offset {
+  DIN_WIDTH 32
+  DIN_FROM 15
+  DIN_TO 0
+  DOUT_WIDTH 16
+}
+
 # Create axis_lfsr
 cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
   aclk $fclk
@@ -45,7 +53,7 @@ cell pavel-demin:user:axi_bram_writer:1.0 writer_0 {
 }
 
 # Create axis_bram_reader
-cell open-mri:user:axis_segmented_bram_reader:1.0 reader_0 {
+cell open-mri:user:axis_segmented_bram_reader:1.1 reader_0 {
   AXIS_TDATA_WIDTH 32
   BRAM_DATA_WIDTH 32
   BRAM_ADDR_WIDTH 15
@@ -53,6 +61,7 @@ cell open-mri:user:axis_segmented_bram_reader:1.0 reader_0 {
 } {
   BRAM_PORTA bram_0/BRAM_PORTB
   cfg_data slice_1/Dout
+  buffer_offset slice_buffer_offset/Dout
   aclk $fclk
   aresetn slice_0/Dout
 }

@@ -98,6 +98,13 @@ cell xilinx.com:ip:xlslice:1.0 rx_slice_0 {
   Din cfg8/config_2
 }
 
+# Create another slice with data for the TX, which is another 32 bit
+cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
+  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
+} {
+  Din cfg8/config_3
+}
+
 # ADC switch slice
 cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
   DIN_WIDTH 32 DIN_FROM 1 DIN_TO 0 DOUT_WIDTH 2
@@ -105,12 +112,11 @@ cell xilinx.com:ip:xlslice:1.0 cfg_adc_switch {
   Din cfg8/config_4
 }
 
-
-# Create another slice with data for the TX, which is another 32 bit
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
+# Tx Half Buffer
+cell xilinx.com:ip:xlslice:1.0 tx_buffer_half_point {
   DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
 } {
-  Din cfg8/config_3
+  Din cfg8/config_5
 }
 
 # ADC
@@ -348,6 +354,7 @@ if { [dict get $pl_param_dict has_tx] == "TRUE"} {
     source projects/scope/tx6.tcl
   } {
     slice_1/Din cfg_slice_1/Dout
+    slice_buffer_offset/Din tx_buffer_half_point/Dout
     axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout
     fifo_1/M_AXIS dac_0/S_AXIS
     fifo_1/m_axis_aclk $dac_clk
@@ -555,6 +562,7 @@ for {set i 0} {$i < [dict get $pl_param_dict rx_channel_count]} {incr i} {
 if { [dict get $pl_param_dict has_tx] == "TRUE"} {
   connect_bd_net [get_bd_pins trigger_slice_0/Dout] [get_bd_pins tx_0/slice_0/Din]
   connect_bd_net [get_bd_pins micro_sequencer/tx_offset] [get_bd_pins tx_0/reader_0/current_offset]
+  connect_bd_net [get_bd_pins micro_sequencer/buffer_select] [get_bd_pins tx_0/reader_0/buffer_select] 
 }
 # TW add one output register stage
 set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Register_PortB_Output_of_Memory_Core {false}] [get_bd_cells sequence_memory]
