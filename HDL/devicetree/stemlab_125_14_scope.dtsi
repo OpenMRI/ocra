@@ -1,0 +1,35 @@
+/dts-v1/;
+/plugin/;
+/include/ "../tmp/stemlab_125_14_scope.tree/pl.dtsi"
+/ {
+    fragment@3 {
+        target = <&amba>;
+        overlay3: __overlay__ {
+            ms_trstart: ms_trstart {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 29 1>;
+            };
+            ms_litr: ms_litr {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 30 1>;
+            };
+            ms_halt: ms_halt {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 31 1>;
+            };
+            ms_paused: ms_paused {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 32 1>;
+            };
+            dma_rx_0_irq: dma_rx_0_irq {
+                compatible = "generic-uio";
+                interrupt-parent = <0x1>;
+                interrupts = <0 33 1>;
+            };
+        };
+    };
+};

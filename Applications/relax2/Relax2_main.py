@@ -228,6 +228,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
                     if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
                        or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
                        or params.sequence == 15:
@@ -247,6 +250,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             self.dialog_params.load_params()
                             self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                          or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
@@ -267,6 +271,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             self.dialog_params.load_params()
                             self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
                          or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
@@ -288,6 +293,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             self.dialog_params.load_params()
                             self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                          or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
@@ -310,6 +316,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                             self.dialog_params.load_params()
                             self.dialog_params.repaint()
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
@@ -1951,6 +1958,9 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                 proc.T2measurement_Image_SIR_GRE_Gs()
             elif params.GUImode == 1:
                 if params.autorecenter == 1:
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
                     if params.sequence == 0 or params.sequence == 2 or params.sequence == 4 \
                        or params.sequence == 7 or params.sequence == 9 or params.sequence == 12 \
                        or params.sequence == 15:
@@ -1967,6 +1977,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                          or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
@@ -1984,6 +1995,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
                          or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
@@ -2002,6 +2014,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                     elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                          or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
@@ -2021,6 +2034,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         params.saveFileParameter()
                         print('Autorecenter to:', params.frequency)
                         time.sleep(params.TR/1000)
+                        params.frequencyoffset = self.frequencyoffsettemp
                         seq.sequence_upload()
                 else: seq.sequence_upload()
             else: seq.sequence_upload()
