@@ -1,10 +1,7 @@
 ################################################################################
 #
-#   Author:     Marcus Prier, David Schote
-#   Date:       4/12/2021
-#
-#   Main Application:
-#   Relax 2.0 Main Application
+#Author: Marcus Prier
+#Date: 2024
 #
 ################################################################################
 
@@ -588,22 +585,6 @@ class Parameters:
         except:
             print('Data could not have been restored, setting default.')
             self.var_init()
-
-    def dispVars(self):
-        print('Parameters to save:')
-        print('GUImode:\t\t\t', self.GUImode)
-        print('Sequence:\t\t\t', self.sequence)
-        print('Frequency:\t\t\t', self.frequency, 'MHz')
-        print('RF Pulselength:\t\t\t', self.RFpulselength, 'µs')
-        print('RF Attenuation:\t\t\t', self.RFattenuation, 'dB')
-        print('Sampling Time TS:\t\t', self.TS, 'ms')
-        print('Readout BW scaler:\t\t', self.ROBWscaler)
-        print('Echo Time TE:\t\t\t',self.TE, 'ms')
-        print('Inversion Time TI:\t\t',self.TI, 'ms')
-        print('Repetition Time TR:\t\t', self.TR, 'ms')
-        print('Gradients (x, y, z, z2):\t', self.grad, 'mA')
-        print('Gradient Orientation:\t\t', self.Gradientorientation)
-        print('Image Resolution:\t\t', self.nPE)
         
     def save_header_file_txt(self):
         file = open(params.datapath + '_Header.txt','w')
@@ -862,7 +843,6 @@ class Parameters:
             'Motor movement step': self.motor_movement_step,
             'Motor image count': self.motor_image_count,
             'Motor settling time': self.motor_settling_time
-        
         }
 
         out_file = open(filename, 'w')
