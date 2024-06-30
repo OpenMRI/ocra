@@ -1,10 +1,7 @@
 ################################################################################
 #
-#   Author:     Marcus Prier, David Schote
-#   Date:       4/12/2021
-#
-#   Main Application:
-#   Relax 2.0 Main Application
+#Author: Marcus Prier
+#Date: 2024
 #
 ################################################################################
 
@@ -100,7 +97,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.GSposttime = 0
         else:
             params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
-        # params.dispVars()
 
         self.establish_conn()
 
@@ -146,7 +142,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Motor_Tools_pushButton.setEnabled(params.motor_available)
 
     def check_motor_port(self, motor_port=None):
-        motor = QSerialPort() # Ivo Opitz: refactor to be more precise
+        motor = QSerialPort()
         motor.setPortName(motor_port)
 
         if motor.open(QIODevice.ReadWrite):
@@ -161,7 +157,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
             time.sleep(2)
 
-            cmd_info_s = 'M115\n' # Ivo Opitz: rename to fit later commands
+            cmd_info_s = 'M115\n'
             motor.write(cmd_info_s.encode('utf-8'))
             motor.waitForBytesWritten()
 
@@ -175,15 +171,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     motor_search_timeout = True
                     print('Motor Search: No connection to ' + motor.port + ' possible.')
 
-            if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8',
-                                                                                                          errors='ignore'):
+            if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8', errors='ignore'):
                 params.motor_port = motor_port
                 motor.clear()
 
                 time.sleep(0.1)
 
-                cmd_axis_length_s = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(
-                    params.motor_axis_limit_positive) + '\n'
+                cmd_axis_length_s = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(params.motor_axis_limit_positive) + '\n'
                 motor.write(cmd_axis_length_s.encode('utf-8'))
                 motor.waitForBytesWritten()
 
@@ -237,8 +231,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.motor_available = False
             self.Motor_Tools_pushButton.setEnabled(False)
 
-            print('Motor Control: Error detected, Control will be unavailable until at least the next restart of '
-                  'relax2, Error Number: ', error)
+            print('Motor Control: Error Number: ', error)
         else:
             self.motor.clearError()
             self.motor.blockSignals(False)
@@ -288,10 +281,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 2:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(
-                ['Inversion Recovery (FID)', 'Inversion Recovery (SE)', 'Inversion Recovery (Slice, FID)' \
-                    , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
-                    , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
+            self.Sequence_comboBox.addItems(['Inversion Recovery (FID)', 'Inversion Recovery (SE)', 'Inversion Recovery (Slice, FID)' \
+                                            , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/T1_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -305,17 +297,15 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 4:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(
-                ['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
-                    , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
-                    , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)'])
+            self.Sequence_comboBox.addItems(['Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
+                                            , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                            , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Projection_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 5:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(
-                ['2D Image Stiching (SE)', '2D Image Stiching (Slice, SE)', '3D Image Stichung (3D FFT, Slab)'])
+            self.Sequence_comboBox.addItems(['2D Image Stiching (SE)', '2D Image Stiching (Slice, SE)', '3D Image Stichung (3D FFT, Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_Stiching_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -366,7 +356,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_Image_SIR_GRE_Gs()
         elif params.GUImode == 5:
             if params.sequence == 0:
-                proc.image_stiching_2D(motor=self.motor) # Ivo Opitz: Add parameter motor to the three functions
+                proc.image_stiching_2D(motor=self.motor)
             if params.sequence == 1:
                 proc.image_stiching_2D_slice(motor=self.motor)
             if params.sequence == 2:
@@ -647,8 +637,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.datapathtemp
             self.dialog_plot = PlotWindow(self)
             self.dialog_plot.show()
-        elif params.GUImode == 4 and (
-                params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
+        elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
             proc.spectrum_process()
             self.dialog_plot = PlotWindow(self)
             self.dialog_plot.show()
@@ -746,24 +735,20 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.label_6.setToolTip('The duration of the sampling window where the MRI signal is measured.')
         self.TE_doubleSpinBox.setKeyboardTracking(False)
         self.TE_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_4.setToolTip(
-            'The time between the center of the RF flip pulse and the center of the sampling window (also in FID and GRE sequences).')
+        self.label_4.setToolTip('The time between the center of the RF flip pulse and the center of the sampling window (also in FID and GRE sequences).')
         self.TI_doubleSpinBox.setKeyboardTracking(False)
         self.TI_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_13.setToolTip(
-            'The time between the center of the RF 180° inversion pulse and the center of the RF flip pulse.')
+        self.label_13.setToolTip('The time between the center of the RF 180° inversion pulse and the center of the RF flip pulse.')
         self.TR_spinBox.setKeyboardTracking(False)
         self.TR_spinBox.valueChanged.connect(self.update_params)
-        self.label_5.setToolTip(
-            'The time between repetitions for aquirering k-space lines in images or averages in spectra.')
+        self.label_5.setToolTip('The time between repetitions for aquirering k-space lines in images or averages in spectra.')
 
         self.Image_Resolution_comboBox.clear()
         self.Image_Resolution_comboBox.addItems(['8', '16', '32', '64', '128', '256', '512'])
         self.Image_Resolution_comboBox.setCurrentIndex(params.imageresolution)
         self.Image_Resolution_comboBox.currentIndexChanged.connect(self.update_params)
 
-        self.label_12.setToolTip(
-            'The images resolution determents the numper of k-space lines to acquire.\nNote that a few sequences only work for the standard resolutions 8, 16, 32, 64 or 128.')
+        self.label_12.setToolTip('The images resolution determents the numper of k-space lines to acquire.\nNote that a few sequences only work for the standard resolutions 8, 16, 32, 64 or 128.')
         self.TI_Start_doubleSpinBox.setKeyboardTracking(False)
         self.TI_Start_doubleSpinBox.valueChanged.connect(self.update_params)
         self.TI_Stop_doubleSpinBox.setKeyboardTracking(False)
@@ -796,43 +781,36 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.label_32.setToolTip('Amplitude of the readout gradient.\nThe readout prephaser is 2x this amplitude.')
         self.GPEstep_spinBox.setKeyboardTracking(False)
         self.GPEstep_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_33.setToolTip(
-            'Amplitude of a phase gradient step.\nThe total amplitude add up to (image resolution / 2) * phase gradient step.')
+        self.label_33.setToolTip('Amplitude of a phase gradient step.\nThe total amplitude add up to (image resolution / 2) * phase gradient step.')
 
         self.GSamplitude_spinBox.setKeyboardTracking(False)
         self.GSamplitude_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_34.setToolTip(
-            'Amplitude of a slice gradient.\nThe slice rephaser is 0.5x this amplitude.\n For 3D FFT imaging this determinants the slab thickness')
+        self.label_34.setToolTip('Amplitude of a slice gradient.\nThe slice rephaser is 0.5x this amplitude.\n For 3D FFT imaging this determinants the slab thickness')
 
         self.Flipangle_Time_spinBox.setKeyboardTracking(False)
         self.Flipangle_Time_spinBox.valueChanged.connect(self.update_flippulselength)
         self.label_35.setToolTip('Scales the 90° reference duration of the flip pulse to the according flip angle.')
         self.Flipangle_Amplitude_spinBox.setKeyboardTracking(False)
         self.Flipangle_Amplitude_spinBox.valueChanged.connect(self.update_flippulseamplitude)
-        self.label_45.setToolTip(
-            'Scales the 90° reference amplitude (not attenuation) of the flip pulse to the according flip angle.')
+        self.label_45.setToolTip('Scales the 90° reference amplitude (not attenuation) of the flip pulse to the according flip angle.')
 
         self.GSPEstep_spinBox.setKeyboardTracking(False)
         self.GSPEstep_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_39.setToolTip(
-            'Amplitude of a 3D slice phase gradient step.\nThe total amplitude add up to (3D slab steps / 2) * 3D slice phase gradient step.')
+        self.label_39.setToolTip('Amplitude of a 3D slice phase gradient step.\nThe total amplitude add up to (3D slab steps / 2) * 3D slice phase gradient step.')
         self.SPEsteps_spinBox.setKeyboardTracking(False)
         self.SPEsteps_spinBox.valueChanged.connect(self.update_params)
         self.label_40.setToolTip('Number of 3D FFT slices.')
 
         self.GDiffamplitude_spinBox.setKeyboardTracking(False)
         self.GDiffamplitude_spinBox.valueChanged.connect(self.update_params)
-        self.label_41.setToolTip(
-            'Amplitude of the diffusion gradient pulses.\nThe duration is 1ms and can be adjusted in the parameters_handler.py')
+        self.label_41.setToolTip('Amplitude of the diffusion gradient pulses.\nThe duration is 1ms and can be adjusted in the parameters_handler.py')
 
         self.Crusher_Amplitude_spinBox.setKeyboardTracking(False)
         self.Crusher_Amplitude_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_42.setToolTip(
-            'Amplitude of the crusher gradient pulses.\nThe duration is 0.4ms and can be adjusted in the parameters_handler.py')
+        self.label_42.setToolTip('Amplitude of the crusher gradient pulses.\nThe duration is 0.4ms and can be adjusted in the parameters_handler.py')
         self.Spoiler_Amplitude_spinBox.setKeyboardTracking(False)
         self.Spoiler_Amplitude_spinBox.valueChanged.connect(self.update_gradients)
-        self.label_43.setToolTip(
-            'Amplitude of the spoiler gradient pulse.\nThe duration is 1ms and can be adjusted in the parameters_handler.py')
+        self.label_43.setToolTip('Amplitude of the spoiler gradient pulse.\nThe duration is 1ms and can be adjusted in the parameters_handler.py')
 
         self.Image_Orientation_comboBox.clear()
         self.Image_Orientation_comboBox.addItems(['XY', 'YZ', 'ZX'])
@@ -846,12 +824,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
 
         self.Frequency_Offset_spinBox.setKeyboardTracking(False)
         self.Frequency_Offset_spinBox.valueChanged.connect(self.update_freqoffset)
-        self.label_46.setToolTip(
-            'Frequency offset of the RF carrier signal for slice selection.\nThe frequency is based on the flip pulse bandwidth.')
+        self.label_46.setToolTip('Frequency offset of the RF carrier signal for slice selection.\nThe frequency is based on the flip pulse bandwidth.')
         self.Phase_Offset_spinBox.setKeyboardTracking(False)
         self.Phase_Offset_spinBox.valueChanged.connect(self.update_params)
-        self.label_48.setToolTip(
-            'Phase offset of the RF carrier signal for RF spoiling. In images the phase angle shifts with k² (WIP).')
+        self.label_48.setToolTip('Phase offset of the RF carrier signal for RF spoiling. In images the phase angle shifts with k² (WIP).')
 
         self.Radial_Angle_Step_spinBox.setKeyboardTracking(False)
         self.Radial_Angle_Step_spinBox.valueChanged.connect(self.update_params)
@@ -881,10 +857,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Motor_End_Position_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
         self.Motor_End_Position_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
 
-        # self.update_motor_start_position()
-
     def update_motor_start_position(self):
-        # print('update_motor_start_position')
         params.motor_start_position = self.Motor_Start_Position_doubleSpinBox.value()
 
         self.Motor_Total_Image_Length_doubleSpinBox.setMaximum(
@@ -902,7 +875,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
 
     def update_motor_end_Position(self):
-        # print('update_motor_end_Position')
         params.motor_end_position = self.Motor_End_Position_doubleSpinBox.value()
 
         params.motor_total_image_length = round(params.motor_end_position - params.motor_start_position, 1)
@@ -915,7 +887,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
 
     def update_motor_total_image_length(self):
-        # print('update_motor_total_image_length')
         params.motor_total_image_length = self.Motor_Total_Image_Length_doubleSpinBox.value()
         params.motor_end_position = params.motor_start_position + params.motor_total_image_length
         self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
@@ -925,7 +896,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
 
     def update_motor_movement_step(self):
-        # print('update_motor_movement_step')
         params.motor_movement_step = self.Motor_Movement_Step_doubleSpinBox.value()
         params.motor_total_image_length = (params.motor_image_count - 1) * params.motor_movement_step
         self.Motor_Total_Image_Length_doubleSpinBox.setValue(params.motor_total_image_length)
@@ -935,7 +905,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
 
     def update_motor_image_count(self):
-        # print('update_motor_image_count')
         params.motor_image_count = self.Motor_Image_Count_spinBox.value()
         params.motor_movement_step = params.motor_total_image_length / (params.motor_image_count - 1)
         self.Motor_Movement_Step_doubleSpinBox.setValue(params.motor_movement_step)
@@ -943,7 +912,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.saveFileParameter()
 
     def motor_start_here(self):
-        # print('motor_start_here')
         if params.motor_actual_position != params.motor_end_position:
             params.motor_start_position = params.motor_actual_position
             self.Motor_Start_Position_doubleSpinBox.setValue(params.motor_start_position)
@@ -951,7 +919,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.saveFileParameter()
 
     def motor_end_here(self):
-        # print('motor_end_here')
         if params.motor_actual_position != params.motor_start_position:
             params.motor_end_position = params.motor_actual_position
             self.Motor_End_Position_doubleSpinBox.setValue(params.motor_end_position)
@@ -1302,14 +1269,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 self.GROfcpretime1 = 0
                 self.GROfcpretime2 = 0
             else:
-                params.GROpretime = int((
-                                                    params.TS * 1000 / 2 * params.GROamplitude + 200 * params.GROamplitude / 2 - 200 * 2 * params.GROamplitude) / (
-                                                    2 * params.GROamplitude) * params.GROpretimescaler)
-                params.GROfcpretime1 = int((((
-                                                         200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) / 2) - 200 * params.GROamplitude) / params.GROamplitude)
-                params.GROfcpretime2 = int(((
-                                                        200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) - 200 * 2 * params.GROamplitude) / (
-                                                       2 * params.GROamplitude) * params.GROpretimescaler)
+                params.GROpretime = int((params.TS * 1000 / 2 * params.GROamplitude + 200 * params.GROamplitude / 2 - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
+                params.GROfcpretime1 = int((((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) / 2) - 200 * params.GROamplitude) / params.GROamplitude)
+                params.GROfcpretime2 = int(((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
 
             params.crusheramplitude = self.Crusher_Amplitude_spinBox.value()
             params.spoileramplitude = self.Spoiler_Amplitude_spinBox.value()
@@ -1344,26 +1306,20 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         # self.label_3.setToolTip('<img src='tooltip/test.png'>')
         self.Frequency_doubleSpinBox.setKeyboardTracking(False)
         self.Frequency_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label.setToolTip(
-            'Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
+        self.label.setToolTip('Frequency of the RF carrier signal. Needs to be set to the Larmor frequency of the MRI system.')
         self.Center_pushButton.clicked.connect(lambda: self.frequency_center())
-        self.Center_pushButton.setToolTip(
-            'Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
+        self.Center_pushButton.setToolTip('Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
         self.auto_recenter_radioButton.toggled.connect(self.update_params)
-        self.auto_recenter_radioButton.setToolTip(
-            'A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
+        self.auto_recenter_radioButton.setToolTip('A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
         self.RF_Pulselength_spinBox.setKeyboardTracking(False)
         self.RF_Pulselength_spinBox.valueChanged.connect(self.update_params)
-        self.label_2.setToolTip(
-            'The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
+        self.label_2.setToolTip('The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
         self.RF_Attenuation_doubleSpinBox.setKeyboardTracking(False)
         self.RF_Attenuation_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_3.setToolTip(
-            'The attenuation of the OCRA1 RF attenuator.\nThis determinants the reference amplitude of the 90° and 180° pulse.')
+        self.label_3.setToolTip('The attenuation of the OCRA1 RF attenuator.\nThis determinants the reference amplitude of the 90° and 180° pulse.')
         self.Readout_Bandwidth_spinBox.setKeyboardTracking(False)
         self.Readout_Bandwidth_spinBox.valueChanged.connect(self.update_params)
-        self.label_11.setToolTip(
-            'Scales the image in readout direction.\nThis happens after the reconstruction.\nLike a digital zoom. Standard is 1.')
+        self.label_11.setToolTip('Scales the image in readout direction.\nThis happens after the reconstruction.\nLike a digital zoom. Standard is 1.')
         self.Shim_X_spinBox.setKeyboardTracking(False)
         self.Shim_X_spinBox.valueChanged.connect(self.update_params)
         self.Shim_Y_spinBox.setKeyboardTracking(False)
@@ -1422,8 +1378,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
         self.SignalMask_doubleSpinBox.setKeyboardTracking(False)
         self.SignalMask_doubleSpinBox.valueChanged.connect(self.update_params)
-        self.label_28.setToolTip(
-            'Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
+        self.label_28.setToolTip('Image mask for overlays like T1, T2 or field maps. Draw all pixels with a signal strength above the value times the maximum pixel signal strength. Default value is 0.5.')
 
         self.GUI_Light_radioButton.clicked.connect(self.update_light)
         self.GUI_Dark_radioButton.clicked.connect(self.update_dark)
@@ -1493,9 +1448,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if params.GSamplitude == 0:
             params.GSposttime = 0
         else:
-            params.GSposttime = int((
-                                                200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (
-                                            params.GSamplitude / 2)
+            params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
 
         params.RFattenuation = self.RF_Attenuation_doubleSpinBox.value()
         params.ROBWscaler = self.Readout_Bandwidth_spinBox.value()
@@ -1835,11 +1788,12 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.ax.set_xlabel('Attenuation [dB]')
         self.ax.set_ylabel('Signal')
         self.ax.set_title('Flipangle Signals')
-
-        self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop),
-                                       (math.ceil(params.FAstop) - math.floor(params.FAstart)) + 1)
-        self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop),
-                                       ((math.ceil(params.FAstop) - math.floor(params.FAstart))) * 4 + 1)
+        if params.FAstop >= params.FAstart:
+            self.major_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), (math.ceil(params.FAstop) - math.floor(params.FAstart)) + 1)
+            self.minor_ticks = np.linspace(math.floor(params.FAstart), math.ceil(params.FAstop), ((math.ceil(params.FAstop) - math.floor(params.FAstart))) * 4 + 1)
+        else:
+            self.major_ticks = np.linspace(math.floor(params.FAstop), math.ceil(params.FAstart), (math.ceil(params.FAstart) - math.floor(params.FAstop)) + 1)
+            self.minor_ticks = np.linspace(math.floor(params.FAstop), math.ceil(params.FAstart), ((math.ceil(params.FAstart) - math.floor(params.FAstop))) * 4 + 1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
         self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -1871,22 +1825,19 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.fig_canvas = FigureCanvas(self.fig)
 
             self.ax = self.fig.add_subplot(111);
-            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[1, :]), 'o-',
-                         color='#0072BD')
-            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[2, :]), 'o-',
-                         color='#D95319')
-            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[3, :]), 'o-',
-                         color='#EDB120')
-            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[4, :]), 'o-',
-                         color='#7E2F8E')
+            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[1, :]), 'o-', color='#0072BD')
+            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[2, :]), 'o-', color='#D95319')
+            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[3, :]), 'o-', color='#EDB120')
+            self.ax.plot(np.transpose(params.STvalues[0, :]), np.transpose(params.STvalues[4, :]), 'o-', color='#7E2F8E')
             self.ax.set_xlabel('Shim [mA]')
             self.ax.set_ylabel('Signal')
             self.ax.legend(['X', 'Y', 'Z', 'Z²'])
             self.ax.set_title('Shim Signals')
-            self.major_ticks = np.linspace(math.floor(params.ToolShimStart / 10) * 10,
-                                           math.ceil(params.ToolShimStop / 10) * 10, (
-                                                       math.ceil(params.ToolShimStop / 10) - math.floor(
-                                                   params.ToolShimStart / 10)) + 1)
+            if params.ToolShimStart <= params.ToolShimStop:
+                self.major_ticks = np.linspace(math.floor(params.ToolShimStart / 10) * 10, math.ceil(params.ToolShimStop / 10) * 10, (math.ceil(params.ToolShimStop / 10) - math.floor(params.ToolShimStart / 10)) + 1)
+            else:
+                self.major_ticks = np.linspace(math.floor(params.ToolShimStop / 10) * 10, math.ceil(params.ToolShimStart / 10) * 10, (math.ceil(params.ToolShimStart / 10) - math.floor(params.ToolShimStop / 10)) + 1)
+
             self.ax.set_xticks(self.major_ticks)
             self.ax.grid(which='major', color='#888888', linestyle='-')
             self.ax.grid(which='major', visible=True)
@@ -2122,17 +2073,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis',
-                                extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis',
-                                extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
-        self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)),
-                                       math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
-        self.minor_ticks = np.linspace((math.ceil((-params.FOV / 2) * 5)) / 5, (math.floor((params.FOV / 2) * 5)) / 5,
-                                       math.floor((params.FOV / 2) * 5) - math.ceil((-params.FOV / 2) * 5) + 1)
+        self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)), math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
+        self.minor_ticks = np.linspace((math.ceil((-params.FOV / 2) * 5)) / 5, (math.floor((params.FOV / 2) * 5)) / 5, math.floor((params.FOV / 2) * 5) - math.ceil((-params.FOV / 2) * 5) + 1)
         self.IMag_ax.set_xticks(self.major_ticks)
         self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
         self.IMag_ax.set_yticks(self.major_ticks)
@@ -2172,17 +2119,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis',
-                                extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis',
-                                extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
-        self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)),
-                                       math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
-        self.minor_ticks = np.linspace((math.ceil((-params.FOV / 2) * 5)) / 5, (math.floor((params.FOV / 2) * 5)) / 5,
-                                       math.floor((params.FOV / 2) * 5) - math.ceil((-params.FOV / 2) * 5) + 1)
+        self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)), math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
+        self.minor_ticks = np.linspace((math.ceil((-params.FOV / 2) * 5)) / 5, (math.floor((params.FOV / 2) * 5)) / 5, math.floor((params.FOV / 2) * 5) - math.ceil((-params.FOV / 2) * 5) + 1)
         self.IMag_ax.set_xticks(self.major_ticks)
         self.IMag_ax.set_xticks(self.minor_ticks, minor=True)
         self.IMag_ax.set_yticks(self.major_ticks)
@@ -2277,15 +2220,10 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
     def protocol_insert(self):
         if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 1:
             self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
-            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[
-                                                                               0:self.Protocol_Number_spinBox.value() - 1,
-                                                                               :]
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[0:self.Protocol_Number_spinBox.value() - 1,:]
             self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 0] = params.GUImode
             self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 1] = params.sequence
-            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[
-                                                                                                        self.Protocol_Number_spinBox.value() - 1:
-                                                                                                        self.protocol.shape[
-                                                                                                            0] - 1, :]
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[self.Protocol_Number_spinBox.value() - 1:self.protocol.shape[0] - 1, :]
             self.protocol = self.protocoltemp
 
             for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0] - 1):
@@ -2295,13 +2233,11 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     time.sleep(0.001)
                 except:
                     print('No parameter file.')
-            shutil.copyfile('parameters.pkl',
-                            self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+            shutil.copyfile('parameters.pkl', self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
             time.sleep(0.001)
             for n in range(self.Protocol_Number_spinBox.value() + 1, self.protocol.shape[0]):
                 try:
-                    shutil.copyfile(self.prot_datapath + '_' + str(n - 1) + '_parameters_temp.pkl',
-                                    self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    shutil.copyfile(self.prot_datapath + '_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '_' + str(n) + '_parameters.pkl')
                     time.sleep(0.001)
                     os.remove(self.prot_datapath + '_' + str(n - 1) + '_parameters_temp.pkl')
                     time.sleep(0.001)
@@ -2316,9 +2252,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
     def protocol_delete(self):
         if self.Protocol_Number_spinBox.value() <= self.protocoltemp.shape[0] - 1:
             self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0], self.protocol.shape[1])))
-            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[
-                                                                               0:self.Protocol_Number_spinBox.value() - 1,
-                                                                               :]
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[0:self.Protocol_Number_spinBox.value() - 1,:]
             self.protocoltemp[self.Protocol_Number_spinBox.value() - 1:self.protocoltemp.shape[0] - 2,
             :] = self.protocol[self.Protocol_Number_spinBox.value():self.protocol.shape[0] - 1, :]
             self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0] - 1, self.protocoltemp.shape[1])))
@@ -2326,8 +2260,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
 
             for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0]):
                 try:
-                    shutil.copyfile(self.prot_datapath + '_' + str(n + 1) + '_parameters.pkl',
-                                    self.prot_datapath + '_' + str(n) + '_parameters.pkl')
+                    shutil.copyfile(self.prot_datapath + '_' + str(n + 1) + '_parameters.pkl', self.prot_datapath + '_' + str(n) + '_parameters.pkl')
                     time.sleep(0.001)
                 except:
                     print('No parameter file.')
@@ -2348,8 +2281,7 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             self.protocol[self.Protocol_Number_spinBox.value() - 1, 1] = params.sequence
 
             try:
-                shutil.copyfile('parameters.pkl', self.prot_datapath + '_' + str(
-                    self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+                shutil.copyfile('parameters.pkl', self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
                 time.sleep(0.001)
             except:
                 print('No parameter file.')
@@ -2368,78 +2300,53 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             if self.protocol[n, 0] == 0:
                 self.Prot_Table_GUImode = 'Spectroscopy'
                 self.Prot_Table_sequence = ('Free Induction Decay', 'Spin Echo', 'Inversion Recovery (FID)' \
-                                                , 'Inversion Recovery (SE)', 'Saturation Inversion Recovery (FID)',
-                                            'Saturation Inversion Recovery (SE)' \
-                                                , 'Echo Planar Spectrum (FID, 4 Echos)',
-                                            'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
-                                                , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)',
-                                            'Inversion Recovery (FID, Slice)' \
-                                                , 'Inversion Recovery (SE, Slice)',
-                                            'Saturation Inversion Recovery (FID, Slice)',
-                                            'Saturation Inversion Recovery (SE, Slice)' \
-                                                , 'Echo Planar Spectrum (FID, 4 Echos, Slice)',
-                                            'Echo Planar Spectrum (SE, 4 Echos, Slice)',
-                                            'Turbo Spin Echo (4 Echos, Slice)' \
-                                                , 'RF Testsequence', 'Gradient Testsequence')
+                                            , 'Inversion Recovery (SE)', 'Saturation Inversion Recovery (FID)', 'Saturation Inversion Recovery (SE)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos)', 'Echo Planar Spectrum (SE, 4 Echos)', 'Turbo Spin Echo (4 Echos)' \
+                                            , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
+                                            , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
+                                            , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
+                                            , 'RF Testsequence', 'Gradient Testsequence')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
-                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
-                    self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 1:
                 self.Prot_Table_GUImode = 'Imaging'
                 self.Prot_Table_sequence = ('2D Radial (GRE, Full)', '2D Radial (SE, Full)', '2D Radial (GRE, Half)' \
-                                                , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
-                                                , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)',
-                                            '2D Inversion Recovery (SE)' \
-                                                , '2D Saturation Inversion Recovery (GRE)',
-                                            'WIP 2D Saturation Inversion Recovery (SE)' \
-                                                , '2D Turbo Spin Echo (4 Echos)',
-                                            '2D Echo Planar Imaging (GRE, 4 Echos)',
-                                            '2D Echo Planar Imaging (SE, 4 Echos)' \
-                                                , '2D Diffusion (SE)', '2D Flow Compensation (GRE)',
-                                            '2D Flow Compensation (SE)' \
-                                                , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)',
-                                            '2D Radial (Slice, GRE, Half)' \
-                                                , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)',
-                                            '2D Spin Echo (Slice)' \
-                                                , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)',
-                                            '2D Inversion Recovery (Slice, SE)' \
-                                                , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)',
-                                            'WIP 2D Saturation Inversion Recovery (Slice, SE)',
-                                            '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                                , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)',
-                                            'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)',
-                                            'WIP 2D Diffusion (Slice, SE)' \
-                                                , 'WIP 2D Flow Compensation (Slice, GRE)',
-                                            'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
-                                                , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
+                                            , '2D Radial (SE, Half)', '2D Gradient Echo', '2D Spin Echo' \
+                                            , '2D Spin Echo (InOut)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Saturation Inversion Recovery (GRE)', 'WIP 2D Saturation Inversion Recovery (SE)' \
+                                            , '2D Turbo Spin Echo (4 Echos)', '2D Echo Planar Imaging (GRE, 4 Echos)', '2D Echo Planar Imaging (SE, 4 Echos)' \
+                                            , '2D Diffusion (SE)', '2D Flow Compensation (GRE)', '2D Flow Compensation (SE)' \
+                                            , '2D Radial (Slice, GRE, Full)', '2D Radial (Slice, SE, Full)', '2D Radial (Slice, GRE, Half)' \
+                                            , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
+                                            , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
+                                            , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
                     self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 2:
                 self.Prot_Table_GUImode = 'T1 Measurement'
-                self.Prot_Table_sequence = (
-                'Inversion Recovery (FID)', 'Inversion Recovery (SE)', 'Inversion Recovery (Slice, FID)' \
-                    , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
-                    , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)')
+                self.Prot_Table_sequence = ('Inversion Recovery (FID)', 'Inversion Recovery (SE)', 'Inversion Recovery (Slice, FID)' \
+                                            , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
                     self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 3:
                 self.Prot_Table_GUImode = 'T2 Measurement'
                 self.Prot_Table_sequence = ('Spin Echo', 'Saturation Inversion Recovery (FID)', 'Spin Echo (Slice)' \
-                                                , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo',
-                                            '2D Saturation Inversion Recovery (GRE)' \
-                                                , '2D Spin Echo (Slice)',
-                                            '2D Saturation Inversion Recovery (Slice, GRE)')
+                                            , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
+                                            , '2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
                     self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 4:
                 self.Prot_Table_GUImode = 'Projections'
                 self.Prot_Table_sequence = ('Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
-                                                , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)',
-                                            'Spin Echo (Slice, On Axis)' \
-                                                , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)')
+                                            , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
+                                            , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
                     self.Prot_Table_sequence[int(self.protocol[n, 1])]))
@@ -2769,10 +2676,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax2.set_title('Signal')
         self.ax2.set_ylabel('RX Signal [mV]')
         self.ax2.set_xlabel('time [ms]')
-        self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                       int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
-        self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                       int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
+        self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
+        self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
         self.ax2.set_xticks(self.major_ticks)
         self.ax2.set_xticks(self.minor_ticks, minor=True)
         self.ax2.grid(which='major', color='#888888', linestyle='-')
@@ -2813,10 +2718,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax2.set_title('X - Signal')
             self.ax2.set_ylabel('RX Signal [mV]')
             self.ax2.set_xlabel('time [ms]')
-            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
-            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
             self.ax2.set_xticks(self.major_ticks)
             self.ax2.set_xticks(self.minor_ticks, minor=True)
             self.ax2.grid(which='major', color='#888888', linestyle='-')
@@ -2848,10 +2751,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax4.set_title('Y - Signal')
             self.ax4.set_ylabel('RX Signal [mV]')
             self.ax4.set_xlabel('time [ms]')
-            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
-            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
             self.ax4.set_xticks(self.major_ticks)
             self.ax4.set_xticks(self.minor_ticks, minor=True)
             self.ax4.grid(which='major', color='#888888', linestyle='-')
@@ -2883,10 +2784,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.ax6.set_title('Z - Signal')
             self.ax6.set_ylabel('RX Signal [mV]')
             self.ax6.set_xlabel('time [ms]')
-            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
-            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])),
-                                           int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
+            self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
+            self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
             self.ax6.set_xticks(self.major_ticks)
             self.ax6.set_xticks(self.minor_ticks, minor=True)
             self.ax6.grid(which='major', color='#888888', linestyle='-')
@@ -2911,13 +2810,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_ax = self.IMag_fig.add_subplot(111);
             self.IMag_ax.grid(False);  # self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(
-                    self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(
-                    self.projzx.shape[1] / 2 + params.nPE / 2)], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], interpolation='gaussian', cmap='viridis')
             else:
-                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(
-                    self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(
-                    self.projzx.shape[1] / 2 + params.nPE / 2)], cmap='viridis')
+                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], cmap='viridis')
             self.IMag_ax.axis('off');
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
@@ -2937,10 +2832,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T1xvalues, params.T1regyvalues1, color='#00BB00', label='Fit')
         self.ax.set_xlabel('TI')
         self.ax.set_ylabel('Signal')
-        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) + 1)
-        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 200) + 1)
+        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) + 1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 200) + 1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
         self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -2965,10 +2858,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T1xvalues, params.T1regyvalues2, color='#00BB00', label='Fit')
         self.ax.set_xlabel('TI')
         self.ax.set_ylabel('ln(Signal_max - Signal)')
-        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) + 1)
-        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 200) + 1)
+        self.major_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) + 1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T1xvalues[int(params.T1xvalues.shape[0] - 1)] / 200) + 1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
         self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -2989,8 +2880,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.IComb_ax = self.IComb_fig.add_subplot(111);
         self.IComb_ax.grid(False);  # self.IComb_ax.axis(frameon=False)
         if params.imagefilter == 1:
-            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0] - 1, :, :], interpolation='gaussian',
-                                 cmap='gray')
+            self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0] - 1, :, :], interpolation='gaussian', cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T1imgvalues, interpolation='gaussian', cmap='jet', alpha=0.5)
         else:
             self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0] - 1, :, :], cmap='gray')
@@ -3015,10 +2905,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax.plot(params.T2xvalues, params.T2regyvalues, color='#00BB00', label='Fit')
         self.ax.set_xlabel('TE')
         self.ax.set_ylabel('ln(Signal)')
-        self.major_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) + 1)
-        self.minor_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) * 1000,
-                                       math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 200) + 1)
+        self.major_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) + 1)
+        self.minor_ticks = np.linspace(0, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 1000) * 1000, math.ceil(params.T2xvalues[int(params.T2xvalues.shape[0] - 1)] / 200) + 1)
         self.ax.set_xticks(self.major_ticks)
         self.ax.set_xticks(self.minor_ticks, minor=True)
         self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -3485,14 +3373,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('Spectrum image data saved!')
         elif params.GUImode == 1:
             if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
-                self.datatxt = np.matrix(
-                    np.zeros((params.img_mag.shape[1], params.img_mag.shape[0] * params.img_mag.shape[2])))
+                self.datatxt = np.matrix(np.zeros((params.img_mag.shape[1], params.img_mag.shape[0] * params.img_mag.shape[2])))
                 for m in range(params.img_mag.shape[0]):
-                    self.datatxt[:,
-                    m * params.img_mag.shape[2]:m * params.img_mag.shape[2] + params.img_mag.shape[2]] = params.img_mag[
-                                                                                                         m, :, :]
-                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(
-                    params.img_mag.shape[0]) + '_Magnitude_Image_Data.txt', self.datatxt)
+                    self.datatxt[:, m * params.img_mag.shape[2]:m * params.img_mag.shape[2] + params.img_mag.shape[2]] = params.img_mag[m, :, :]
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_mag.shape[0]) + '_Magnitude_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
@@ -3523,14 +3407,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('Please use Save Mag Image Data button!')
         elif params.GUImode == 1:
             if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
-                self.datatxt = np.matrix(
-                    np.zeros((params.img_pha.shape[1], params.img_pha.shape[0] * params.img_pha.shape[2])))
+                self.datatxt = np.matrix(np.zeros((params.img_pha.shape[1], params.img_pha.shape[0] * params.img_pha.shape[2])))
                 for m in range(params.img_pha.shape[0]):
-                    self.datatxt[:,
-                    m * params.img_pha.shape[2]:m * params.img_pha.shape[2] + params.img_pha.shape[2]] = params.img_pha[
-                                                                                                         m, :, :]
-                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(
-                    params.img_pha.shape[0]) + '_Phase_Image_Data.txt', self.datatxt)
+                    self.datatxt[:, m * params.img_pha.shape[2]:m * params.img_pha.shape[2] + params.img_pha.shape[2]] = params.img_pha[m, :, :]
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img_pha.shape[0]) + '_Phase_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
@@ -3551,13 +3431,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('Please use Save Mag Image Data button!')
         elif params.GUImode == 1:
             if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
-                self.datatxt = np.matrix(
-                    np.zeros((params.img.shape[1], params.img.shape[0] * params.img.shape[2]), dtype=np.complex64))
+                self.datatxt = np.matrix(np.zeros((params.img.shape[1], params.img.shape[0] * params.img.shape[2]), dtype=np.complex64))
                 for m in range(params.img.shape[0]):
-                    self.datatxt[:, m * params.img.shape[2]:m * params.img.shape[2] + params.img.shape[2]] = params.img[
-                                                                                                             m, :, :]
-                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img.shape[0]) + '_Image_Data.txt',
-                           self.datatxt)
+                    self.datatxt[:, m * params.img.shape[2]:m * params.img.shape[2] + params.img.shape[2]] = params.img[m, :, :]
+                np.savetxt('imagedata/' + params.dataTimestamp + '_3D_' + str(params.img.shape[0]) + '_Image_Data.txt', self.datatxt)
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
@@ -3585,8 +3462,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             im.set_array(params.animationimage[i, :, :])
             return im,
 
-        ani = animation.FuncAnimation(fig, updatefig, frames=params.kspace.shape[0], interval=params.animationstep,
-                                      blit=True)
+        ani = animation.FuncAnimation(fig, updatefig, frames=params.kspace.shape[0], interval=params.animationstep, blit=True)
         plt.show()
 
 
@@ -3824,7 +3700,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 def run():
     print('\n________________________________________________________\n', \
           'Relax 2.0. \n', \
-          'Programmed by Marcus Prier and David Schote, Magdeburg, 2021\n', \
+          'Programmed by Marcus Prier, Magdeburg, 2024\n', \
           '\n________________________________________________________\n')
 
     app = QApplication(sys.argv)
