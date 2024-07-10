@@ -10449,7 +10449,7 @@ int main(int argc)
       }
       
       //------------------------------------------------------------------------
-      //  Acquire RF Test 
+      //  Acquire RF Loopback Test 
       //------------------------------------------------------------------------
       else if ( trig == 20 ) {
 
@@ -11434,6 +11434,47 @@ int main(int argc)
         clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
         update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
         update_gradient_waveforms_proj_SE_angle_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, projection_angle, ro1, ro2, cr, sp, imor, gradient_offset);
+     
+        seq_config[0] = 0x00000007;
+        usleep(1000000); // Sleep 1s
+        //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
+        for(i = 0; i < 10; ++i) {
+          while(*rx_cntr < 10000) usleep(500);
+          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+        }
+        seq_config[0] = 0x00000000;
+        usleep(500000); // Sleep 0.5s
+      
+        printf("---------------------------------------\n");
+        continue;
+      }
+      //------------------------------------------------------------------------
+      //  Acquire RF SAR Calibration Test 
+      //------------------------------------------------------------------------
+      else if ( trig == 40 ) {
+
+        update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
+
+        usleep(10); // Sleep 10us
+
+        RF_flip_amp = command[4] + command[5]*0x100 + command[6]*0x10000 + command[7]*0x1000000; // RF flip pulse amplitude
+        RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
+        RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
+        imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
+        float freq_offset; // RF frequency offset
+        if (command[18] == 1) {
+          freq_offset = -1*((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000);
+        }
+        else {
+          freq_offset = ((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000); 
+        }
+        float phase_offset = ((float)command[16] + (float)command[17]*0x100)/100; // RF phase offset
+        // printf("GRO Amplitude: %f , GPE Step: %f , GS Amplitude: %f \n", ro, pe_step, sl);
+
+        clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+        update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
+        update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
         usleep(1000000); // Sleep 1s

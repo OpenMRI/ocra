@@ -36,6 +36,7 @@ class Parameters:
         self.datapath = ''
         self.frequency = 11.3
         self.autorecenter = 1
+        self.autodataprocess = 1
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
         self.phaseoffset = 0
@@ -167,7 +168,7 @@ class Parameters:
         self.autograd = 1
         self.FOV = 12.0
         self.slicethickness = 5.0
-        self.gradsens = [33.5, 31.9, 32.5]
+        self.gradsens = [35.0, 32.0, 36.0]
         self.gradnominal = [10.0, 10.0, 10.0]
         self.gradmeasured = [10.0, 10.0, 10.0]
         self.gradsenstool = [33.5, 31.9, 32.5]
@@ -215,6 +216,7 @@ class Parameters:
                          self.datapath, \
                          self.frequency, \
                          self.autorecenter, \
+                         self.autodataprocess, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
                          self.phaseoffset, \
@@ -402,6 +404,7 @@ class Parameters:
                 self.datapath, \
                 self.frequency, \
                 self.autorecenter, \
+                self.autodataprocess, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
                 self.phaseoffset, \
@@ -598,6 +601,7 @@ class Parameters:
         file.write('Data path: ' + str(self.datapath) + '\n')
         file.write('Frequency [MHz]: ' + str(self.frequency) + '\n')
         file.write('Auto recenter: ' + str(self.autorecenter) + '\n')
+        # file.write('Auto data process: ' + str(self.autodataprocess) + '\n')
         if self.frequencyoffsetsign == 1:
             file.write('RF frequency offset [Hz]: -' + str(self.frequencyoffset) + '\n')
         else:
@@ -754,6 +758,7 @@ class Parameters:
             'Data path': self.datapath,
             'Frequency [MHz]': self.frequency,
             'Auto recenter': self.autorecenter,
+            'Auto data process': self.autodataprocess,
             'RF frequency offset [Hz]':
                 -self.frequencyoffset if self.frequencyoffsetsign == 1
                 else self.frequencyoffset,

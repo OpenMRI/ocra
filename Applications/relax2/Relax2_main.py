@@ -257,7 +257,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
                                             , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
-                                            , 'RF Testsequence', 'Gradient Testsequence'])
+                                            , 'RF Loopback Test Sequence', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -318,6 +318,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
     def acquire(self):
         self.Acquire_pushButton.setEnabled(False)
+        if params.autodataprocess == 1: self.Data_Process_pushButton.setEnabled(False)
         self.repaint()
 
         if params.GUImode == 2:
@@ -474,7 +475,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.dialog_motortools.load_params()
             self.dialog_motortools.repaint()
 
+        if params.autodataprocess == 1: self.dataprocess()
+
         self.Acquire_pushButton.setEnabled(True)
+        self.Data_Process_pushButton.setEnabled(True)
         self.repaint()
 
     def load_params(self):
@@ -775,6 +779,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_radioButton.setToolTip('Averaging of MRI spectra.')
 
         self.Auto_Gradients_radioButton.toggled.connect(self.auto_gradients)
+        
+        self.Recalculate_Gradients_pushButton.clicked.connect(lambda: self.recalculate_gradients())
 
         self.GROamplitude_spinBox.setKeyboardTracking(False)
         self.GROamplitude_spinBox.valueChanged.connect(self.update_gradients)
@@ -1047,8 +1053,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         else:
             params.autofreqoffset = 0
 
-        print('Autofreqoffset set to: ', params.autofreqoffset)
-
         params.saveFileParameter()
 
     def auto_gradients(self):
@@ -1059,8 +1063,66 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         else:
             params.autograd = 0
 
-        print('Autograd set to: ', params.autograd)
+        params.saveFileParameter()
+        
+    def recalculate_gradients(self):
+        self.Delta_vpp = params.frequencyrange / (250 * params.TS)
+        self.vpp = self.Delta_vpp * params.nPE
+        self.receiverBW = self.vpp / 2
 
+        if params.imageorientation == 0:
+            self.Gxsens = params.gradsens[0]
+            self.Gysens = params.gradsens[1]
+            self.Gzsens = params.gradsens[2]
+        elif params.imageorientation == 1:
+            self.Gxsens = params.gradsens[1]
+            self.Gysens = params.gradsens[2]
+            self.Gzsens = params.gradsens[0]
+        elif params.imageorientation == 2:
+            self.Gxsens = params.gradsens[2]
+            self.Gysens = params.gradsens[0]
+            self.Gzsens = params.gradsens[1]
+
+        self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
+        params.GROamplitude = int(self.Gx / self.Gxsens * 1000)
+
+        params.Gproj[0] = int(self.Gx / params.gradsens[0] * 1000)
+        params.Gproj[1] = int(self.Gx / params.gradsens[1] * 1000)
+        params.Gproj[2] = int(self.Gx / params.gradsens[2] * 1000)
+
+        if params.GROamplitude == 0:
+            params.GROpretime = 0
+            self.GROfcpretime1 = 0
+            self.GROfcpretime2 = 0
+        else:
+            params.GROpretime = int((params.TS * 1000 / 2 * params.GROamplitude + 200 * params.GROamplitude / 2 - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
+            params.GROfcpretime1 = int((((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) / 2) - 200 * params.GROamplitude) / params.GROamplitude)
+            params.GROfcpretime2 = int(((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
+
+        self.GPEtime = params.GROpretime + 200
+        self.Gystep = (2 * np.pi / params.FOV) / (2 * np.pi * 42.57 * (self.GPEtime / 1000000))
+        params.GPEstep = int(self.Gystep / self.Gysens * 1000)
+
+        self.Achrusher = (4 * np.pi) / (2 * np.pi * 42.57 * params.slicethickness)
+        self.Gc = self.Achrusher / ((params.crushertime + 200) / 1000000)
+        params.crusheramplitude = int(self.Gc / self.Gzsens * 1000)
+
+        self.Aspoiler = (4 * np.pi) / (2 * np.pi * 42.57 * params.slicethickness)
+        self.Gs = self.Aspoiler / ((params.spoilertime + 200) / 1000000)
+        params.spoileramplitude = int(self.Gs / self.Gzsens * 1000)
+
+        self.Deltaf = 1 / (params.flippulselength) * 1000000
+
+        self.Gz = (2 * np.pi * self.Deltaf) / (2 * np.pi * 42.57 * (params.slicethickness))
+        params.GSamplitude = int(self.Gz / self.Gzsens * 1000)
+
+        self.Gz3D = (2 * np.pi / params.slicethickness) / (2 * np.pi * 42.57 * (self.GPEtime / 1000000))
+        params.GSPEstep = int(self.Gz3D / self.Gzsens * 1000)
+        print('Auto 3D SlPE max:', params.GSPEstep * params.SPEsteps / 2)
+
+        self.update_gradients()
+        print('Auto GPE max: ', params.GPEstep * params.nPE / 2)
+        
         params.saveFileParameter()
 
     def update_params(self):
@@ -1301,7 +1363,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
         self.ui = loadUi('ui/config.ui')
         self.setWindowTitle('Config')
-        self.setGeometry(420, 40, 770, 670)
+        self.setGeometry(420, 40, 790, 800)
 
         # self.label_3.setToolTip('<img src='tooltip/test.png'>')
         self.Frequency_doubleSpinBox.setKeyboardTracking(False)
@@ -1310,7 +1372,8 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.Center_pushButton.clicked.connect(lambda: self.frequency_center())
         self.Center_pushButton.setToolTip('Sets the RF frequency to the peak frequency of the last measured and processed spectrum.')
         self.auto_recenter_radioButton.toggled.connect(self.update_params)
-        self.auto_recenter_radioButton.setToolTip('A spin echo spectrum is performed and the RF carrier frequency will recentered before imaging.')
+        self.auto_recenter_radioButton.setToolTip('A spectrum is performed and the RF carrier frequency will recentered before imaging.')
+        
         self.RF_Pulselength_spinBox.setKeyboardTracking(False)
         self.RF_Pulselength_spinBox.valueChanged.connect(self.update_params)
         self.label_2.setToolTip('The reference duration of a 90° RF hard pulse.\nThe 180° hard pulse is 2x this duration.\nThe 90° sinc pulse main peak is 2x this duration and has a total duration of 4x.\nThe 180° sinc pulse main peak is 4x this duration and has a total duration of 8x')
@@ -1372,6 +1435,10 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
         self.AC_Apply_pushButton.clicked.connect(lambda: self.Set_AC_centerfrequency())
         self.FA_Apply_pushButton.clicked.connect(lambda: self.Set_FA_RFattenution())
+        self.Shim_Apply_pushButton.clicked.connect(lambda: self.Set_shim())
+        self.Scaling_X_Apply_pushButton.clicked.connect(lambda: self.Set_scaling_X())
+        self.Scaling_Y_Apply_pushButton.clicked.connect(lambda: self.Set_scaling_Y())
+        self.Scaling_Z_Apply_pushButton.clicked.connect(lambda: self.Set_scaling_Z())
 
         self.RX1_radioButton.toggled.connect(self.update_params)
         self.RX2_radioButton.toggled.connect(self.update_params)
@@ -1388,6 +1455,8 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.Header_File_Format_comboBox.setCurrentIndex(params.headerfileformat)
 
         self.Header_File_Format_comboBox.currentIndexChanged.connect(self.update_params)
+        
+        self.Auto_Data_Process_radioButton.toggled.connect(self.update_params)
 
     def frequency_center(self):
         params.frequency = params.centerfrequency
@@ -1435,20 +1504,18 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
         if params.GUItheme == 0: self.GUI_Light_radioButton.setChecked(True)
         if params.GUItheme == 1: self.GUI_Dark_radioButton.setChecked(True)
+        
+        if params.autodataprocess == 1: self.Auto_Data_Process_radioButton.setChecked(True)
 
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
-        if self.auto_recenter_radioButton.isChecked():
-            params.autorecenter = 1
-        else:
-            params.autorecenter = 0
+        if self.auto_recenter_radioButton.isChecked(): params.autorecenter = 1
+        else: params.autorecenter = 0
         params.RFpulselength = (round(self.RF_Pulselength_spinBox.value() / 10) * 10)
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
 
-        if params.GSamplitude == 0:
-            params.GSposttime = 0
-        else:
-            params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
+        if params.GSamplitude == 0: params.GSposttime = 0
+        else: params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
 
         params.RFattenuation = self.RF_Attenuation_doubleSpinBox.value()
         params.ROBWscaler = self.Readout_Bandwidth_spinBox.value()
@@ -1460,79 +1527,48 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         params.gradsens[1] = self.Gradient_Scaling_Y_doubleSpinBox.value()
         params.gradsens[2] = self.Gradient_Scaling_Z_doubleSpinBox.value()
 
-        if self.Images_Plot_radioButton.isChecked():
-            params.imagplots = 1
-        else:
-            params.imagplots = 0
-        if self.Image_Filter_radioButton.isChecked():
-            params.imagefilter = 1
-        else:
-            params.imagefilter = 0
+        if self.Images_Plot_radioButton.isChecked(): params.imagplots = 1
+        else: params.imagplots = 0
+        if self.Image_Filter_radioButton.isChecked(): params.imagefilter = 1
+        else: params.imagefilter = 0
 
-        if self.kspace_cut_circ_radioButton.isChecked():
-            params.cutcirc = 1
-        else:
-            params.cutcirc = 0
-        if self.kspace_cut_rec_radioButton.isChecked():
-            params.cutrec = 1
-        else:
-            params.cutrec = 0
+        if self.kspace_cut_circ_radioButton.isChecked(): params.cutcirc = 1
+        else: params.cutcirc = 0
+        if self.kspace_cut_rec_radioButton.isChecked(): params.cutrec = 1
+        else: params.cutrec = 0
 
-        if self.kSpace_Cut_Center_radioButton.isChecked():
-            params.cutcenter = 1
-        else:
-            params.cutcenter = 0
-        if self.kSpace_Cut_Outside_radioButton.isChecked():
-            params.cutoutside = 1
-        else:
-            params.cutoutside = 0
+        if self.kSpace_Cut_Center_radioButton.isChecked(): params.cutcenter = 1
+        else: params.cutcenter = 0
+        if self.kSpace_Cut_Outside_radioButton.isChecked(): params.cutoutside = 1
+        else: params.cutoutside = 0
         params.cutcentervalue = self.kSpace_Cut_Center_spinBox.value()
         params.cutoutsidevalue = self.kSpace_Cut_Outside_spinBox.value()
 
-        if self.Undersampling_Time_radioButton.isChecked():
-            params.ustime = 1
-        else:
-            params.ustime = 0
-        if self.Undersampling_Phase_radioButton.isChecked():
-            params.usphase = 1
-        else:
-            params.usphase = 0
+        if self.Undersampling_Time_radioButton.isChecked(): params.ustime = 1
+        else: params.ustime = 0
+        if self.Undersampling_Phase_radioButton.isChecked(): params.usphase = 1
+        else: params.usphase = 0
 
-        if self.Undersampling_Time_comboBox.currentIndex() == 0:
-            params.ustimeidx = 2
-        elif self.Undersampling_Time_comboBox.currentIndex() == 1:
-            params.ustimeidx = 5
-        elif self.Undersampling_Time_comboBox.currentIndex() == 2:
-            params.ustimeidx = 10
-        elif self.Undersampling_Time_comboBox.currentIndex() == 3:
-            params.ustimeidx = 50
-        else:
-            params.ustimeidx = 2
+        if self.Undersampling_Time_comboBox.currentIndex() == 0: params.ustimeidx = 2
+        elif self.Undersampling_Time_comboBox.currentIndex() == 1: params.ustimeidx = 5
+        elif self.Undersampling_Time_comboBox.currentIndex() == 2: params.ustimeidx = 10
+        elif self.Undersampling_Time_comboBox.currentIndex() == 3: params.ustimeidx = 50
+        else: params.ustimeidx = 2
 
-        if self.Undersampling_Phase_comboBox.currentIndex() == 0:
-            params.usphaseidx = 2
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 1:
-            params.usphaseidx = 4
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 2:
-            params.usphaseidx = 8
-        else:
-            params.usphaseidx = 2
+        if self.Undersampling_Phase_comboBox.currentIndex() == 0: params.usphaseidx = 2
+        elif self.Undersampling_Phase_comboBox.currentIndex() == 1: params.usphaseidx = 4
+        elif self.Undersampling_Phase_comboBox.currentIndex() == 2: params.usphaseidx = 8
+        else: params.usphaseidx = 2
 
         params.GROpretimescaler = self.GRO_Length_Scaler_doubleSpinBox.value()
 
-        if self.ln_kSpace_Magnitude_radioButton.isChecked():
-            params.lnkspacemag = 1
-        else:
-            params.lnkspacemag = 0
+        if self.ln_kSpace_Magnitude_radioButton.isChecked(): params.lnkspacemag = 1
+        else: params.lnkspacemag = 0
 
-        if self.RX1_radioButton.isChecked():
-            params.rx1 = 1
-        else:
-            params.rx1 = 0
-        if self.RX2_radioButton.isChecked():
-            params.rx2 = 1
-        else:
-            params.rx2 = 0
+        if self.RX1_radioButton.isChecked(): params.rx1 = 1
+        else: params.rx1 = 0
+        if self.RX2_radioButton.isChecked(): params.rx2 = 1
+        else: params.rx2 = 0
 
         if params.rx1 == 0 and params.rx2 == 0:
             params.rxmode = 3
@@ -1547,10 +1583,11 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
         params.signalmask = self.SignalMask_doubleSpinBox.value()
 
-        if self.Header_File_Format_comboBox.currentIndex() == 0:
-            params.headerfileformat = 0
-        elif self.Header_File_Format_comboBox.currentIndex() == 1:
-            params.headerfileformat = 1
+        if self.Header_File_Format_comboBox.currentIndex() == 0: params.headerfileformat = 0
+        elif self.Header_File_Format_comboBox.currentIndex() == 1: params.headerfileformat = 1
+            
+        if self.Auto_Data_Process_radioButton.isChecked(): params.autodataprocess = 1
+        else: params.autodataprocess = 0
 
         params.saveFileParameter()
 
@@ -1570,13 +1607,59 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
 
     def Set_AC_centerfrequency(self):
         params.frequency = params.Reffrequency
+        params.saveFileParameter()
         self.Frequency_doubleSpinBox.setValue(params.frequency)
         print('Tool reference frequency applied!')
 
     def Set_FA_RFattenution(self):
         params.RFattenuation = params.RefRFattenuation
+        params.saveFileParameter()
         self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
         print('Tool reference attenuation applied!')
+        
+    def Set_shim(self):
+        if os.path.isfile('imagedata/Shim_Tool_Data.txt') == True:
+            if params.ToolShimChannel[0] == 1:
+                if np.max(params.STvalues[1, :]) != 0:
+                    self.Shim_X_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[1, :])]))
+                    print('Tool reference X shim applied')
+                else: print('No reference X shim value')
+            if params.ToolShimChannel[1] == 1:
+                if np.max(params.STvalues[2, :]) != 0:
+                    self.Shim_Y_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[2, :])]))
+                    print('Tool reference Y shim applied')
+                else: print('No reference Y shim value')
+            if params.ToolShimChannel[2] == 1:
+                if np.max(params.STvalues[3, :]) != 0:
+                    self.Shim_Z_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[3, :])]))
+                    print('Tool reference Z shim applied')
+                else: print('No reference Z shim value')
+            if params.ToolShimChannel[3] == 1:
+                if np.max(params.STvalues[4, :]) != 0:
+                    self.Shim_Z2_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[4, :])]))
+                    print('Tool reference Z2 shim applied')
+                else: print('No reference Z2 shim value')
+            if params.ToolShimChannel == [0, 0, 0, 0]:
+                print('Please select shim channel in Tools!')
+        else: print('No tool reference shim data!')
+        
+    def Set_scaling_X(self):
+        params.gradsens[0] = round(params.gradsenstool[0], 1)
+        params.saveFileParameter()
+        self.Gradient_Scaling_X_doubleSpinBox.setValue(params.gradsens[0])
+        print('Tool reference scaling X applied!')
+        
+    def Set_scaling_Y(self):
+        params.gradsens[1] = round(params.gradsenstool[1], 1)
+        params.saveFileParameter()
+        self.Gradient_Scaling_Y_doubleSpinBox.setValue(params.gradsens[1])
+        print('Tool reference scaling Y applied!')
+        
+    def Set_scaling_Z(self):
+        params.gradsens[2] = round(params.gradsenstool[2], 1)
+        params.saveFileParameter()
+        self.Gradient_Scaling_Z_doubleSpinBox.setValue(params.gradsens[2])
+        print('Tool reference scaling Z applied!')
 
 
 class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
@@ -3615,7 +3698,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.setupUi(self)
 
         self.ui = loadUi('ui/connDialog.ui')
-        self.setGeometry(10, 40, 500, 250)
+        self.setGeometry(10, 40, 500, 150)
         self.ui.closeEvent = self.closeEvent
         self.conn_help = QPixmap('ui/connection_help.png')
         self.help.setVisible(False)
@@ -3643,7 +3726,7 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         if connection:
             params.connectionmode = True
             params.saveFileParameter()
-            self.status_label.setText('Connected.')
+            self.status_label.setText('Connected')
             self.connected.emit()
             self.mainwindow.show()
             self.mainwindow.Acquire_pushButton.setEnabled(params.connectionmode)
@@ -3653,10 +3736,11 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         elif not connection:
             params.connectionmode = False
             params.saveFileParameter()
-            self.status_label.setText('Not connected.')
+            self.status_label.setText('Not connected')
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
+            self.setGeometry(10, 40, 500, 350)
 
         else:
             params.connectionmode = False
@@ -3665,11 +3749,12 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
             self.conn_btn.setText('Retry')
             self.help.setPixmap(self.conn_help)
             self.help.setVisible(True)
+            self.setGeometry(10, 40, 500, 350)
 
         self.status_label.setVisible(True)
 
     def add_IP(self):
-        print('Add ip address.')
+        print('Add ip address')
         ip = self.ip_box.currentText()
 
         if not ip in params.hosts:

@@ -52,8 +52,9 @@ class sequence:
         self.seq_epi_se_gs = 'sequences/spectroscopy/EPI_SE_Gs.txt'
         self.seq_tse_gs = 'sequences/spectroscopy/TSE_Gs.txt'
         
-        self.seq_rf_test = 'sequences/spectroscopy/RF_Test.txt'
+        self.seq_rf_loopback_test = 'sequences/spectroscopy/RF_Loopback_Test.txt'
         self.seq_grad_test = 'sequences/spectroscopy/Gradient_Test.txt'
+        self.seq_rf_sar_cal_test = 'sequences/spectroscopy/RF_SAR_Calibration_Test.txt'
         
         self.seq_2D_rad_f_gre = 'sequences/imaging/2D_RAD_F_GRE.txt'
         self.seq_2D_rad_f_se = 'sequences/imaging/2D_RAD_F_SE.txt'
@@ -164,15 +165,20 @@ class sequence:
                 self.acquire_spectrum_TSE_Gs()
             elif params.sequence == 18:
                 print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
-                #self.rf_test_setup()
-                #self.Sequence_upload()
-                #self.acquire_rf_test()
+                # self.rf_loopback_test_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf__loopback_test()
             elif params.sequence == 19:
                 # print('\033[1m' + 'Not active. Warning: This sequence will test all gradient channels with pulses. To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
                 print('\033[1m' + 'Pulselength [us] = TR, Amplitude [mA] = Spoiler Amplitude' + '\033[0m')
                 self.grad_test_setup()
                 self.Sequence_upload()
                 self.acquire_grad_test()
+            elif params.sequence == 20:
+                print('\033[1m' + 'WIP' + '\033[0m')
+                # self.rf_sar_cal_test_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf_sar_cal_test()
             else: print('Sequence not defined!')
             
         elif params.GUImode == 1:       
@@ -1025,26 +1031,21 @@ class sequence:
         
         print('TSE (slice) setup complete!')
 
-    def rf_test_setup(self):
-        f = open(self.seq_rf_test, 'r+')
+    def rf_loopback_test_setup(self):
+        f = open(self.seq_rf_loopback_test, 'r+')
         lines = f.readlines()
-        lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength)) + '\t// Sampling window\n'
+        lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength))
         f.close()
-        with open(self.seq_rf_test, 'w') as out_file:
+        with open(self.seq_rf_loopback_test, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
-        params.sequencefile = self.seq_rf_test
+        params.sequencefile = self.seq_rf_loopback_test
         
-        print('RF test sequence setup complete!')
-        
+        print('RF loopback test sequence setup complete!')
         
     #2D Gradient Echo Sequence   
     def grad_test_setup(self):
-#         if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-#             params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
-#             print('TE to short!! TE set to:', params.TE, 'ms')
-        
         f = open(self.seq_grad_test, 'r+')
         lines = f.readlines()
         lines[-7] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
@@ -1055,10 +1056,6 @@ class sequence:
         lines[-22] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
         lines[-25] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
         lines[-28] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
-#         lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
-#         lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
-#         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
-#         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
         with open(self.seq_grad_test, 'w') as out_file:
             for line in lines:
@@ -1067,6 +1064,20 @@ class sequence:
         params.sequencefile = self.seq_grad_test
         
         print('Gradient test sequence setup complete!')
+        
+    def rf_sar_cal_test_setup(self):
+        print('\033[1m' + 'WIP' + '\033[0m')
+#         f = open(self.seq_rf_sar_cal_test, 'r+')
+#         lines = f.readlines()
+#         lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength))
+#         f.close()
+#         with open(self.seq_rf_sar_cal_test, 'w') as out_file:
+#             for line in lines:
+#                 out_file.write(line)
+#                 
+#         params.sequencefile = self.seq_rf_sar_cal_test
+#         
+#         print('RF SAR calibration test sequence setup complete!')
         
     #2D Radial Full Gradient Echo Sequence   
     def Image_radial_f_GRE_setup(self):
@@ -2431,8 +2442,8 @@ class sequence:
         
         print('Spectrum acquired!')
         
-    def acquire_rf_test(self):
-        print('Run RF test sequence...')
+    def acquire_rf_loopback_test(self):
+        print('Run RF loopback test sequence...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2477,7 +2488,7 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print('RF test sequence finished!')
+        print('RF loopback test sequence finished!')
         
     def acquire_grad_test(self):
         print('Run gradient test sequence...')
@@ -2527,6 +2538,54 @@ class sequence:
         
         print('Gradient test sequence finished!')
         
+    def acquire_rf_sar_cal_test(self):
+        print('\033[1m' + 'WIP' + '\033[0m')
+#         print('Run RF SAR calibration test sequence...')
+#         
+#         self.data_idx = int(params.TS * 250) #250 Samples/ms
+#         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+#         
+#         if params.average == 0: self.avecount = 1
+#         else: self.avecount = params.averagecount
+#         
+#         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+#         
+#         for n in range(self.avecount):
+#             print('Average: ',n+1,'/',self.avecount)
+#         
+#             socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 20, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, 0, 0))
+# 
+#             while(True):
+#                 if not socket.waitForBytesWritten(): break
+#                 time.sleep(0.0001)
+#             
+#             while True:
+#                 socket.waitForReadyRead()
+#                 datasize = socket.bytesAvailable()
+#                 time.sleep(0.0001)
+#                 if datasize == 8*params.samples:
+#                     print('Readout finished : ', int(datasize/8), 'Samples')
+#                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+#                     break
+#                 else: continue
+#         
+#             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+#             if params.average == 1:
+#                 time.sleep(params.TR/1000)
+#             
+#         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+#         
+#         self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+#         self.datatxt1[0,:] = params.timeaxis[:]
+#         self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+#         self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+#         self.datatxt2 = np.transpose(self.datatxt1)
+#         np.savetxt(params.datapath + '.txt', self.datatxt2)
+#         
+#         timestamp = datetime.now() 
+#         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+#         
+#         print('RF SAR calibration test sequence finished!')
   
     def acquire_projection_GRE(self):
         print('Acquire projection(s)...')

@@ -1518,12 +1518,32 @@ class process:
         self.GUImodetemp = params.GUImode
         self.sequencetemp = params.sequence
         self.datapathtemp = params.datapath
-
+        
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR / 1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            
         params.GUImode = 1
         params.sequence = 5
         params.datapath = 'rawdata/Tool_rawdata'
 
         seq.sequence_upload()
+            
         proc.image_process()
 
         params.GUImode = self.GUImodetemp
@@ -1539,6 +1559,25 @@ class process:
         self.GUImodetemp = params.GUImode
         self.sequencetemp = params.sequence
         self.datapathtemp = params.datapath
+        
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR / 1000)
+            params.frequencyoffset = self.frequencyoffsettemp
 
         params.GUImode = 1
         params.sequence = 21
@@ -1574,10 +1613,10 @@ class process:
             print(n + 1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n], 1)
             params.TI = self.T1steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.IR_FID_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_FID()
@@ -1621,10 +1660,10 @@ class process:
             print(n + 1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n], 1)
             params.TI = self.T1steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.IR_SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -1668,10 +1707,10 @@ class process:
             print(n + 1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n], 1)
             params.TI = self.T1steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.IR_FID_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_FID_Gs()
@@ -1715,10 +1754,10 @@ class process:
             print(n + 1, '/', params.TIsteps)
             self.T1steps[n] = round(self.T1steps[n], 1)
             params.TI = self.T1steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.IR_SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
@@ -2025,10 +2064,10 @@ class process:
             print(n + 1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n], 1)
             params.TE = self.T2steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.SE_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -2072,10 +2111,10 @@ class process:
             print(n + 1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n], 1)
             params.TE = self.T2steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.SIR_FID_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE()
@@ -2119,10 +2158,10 @@ class process:
             print(n + 1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n], 1)
             params.TE = self.T2steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.SE_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
@@ -2166,10 +2205,10 @@ class process:
             print(n + 1, '/', params.TEsteps)
             self.T2steps[n] = round(self.T2steps[n], 1)
             params.TE = self.T2steps[n]
-            if params.SNR >= 100:
-                params.frequency = params.centerfrequency
-                print('Recenter to: ', params.frequency)
-                params.saveFileParameter()
+            # if params.SNR >= 100:
+                # params.frequency = params.centerfrequency
+                # print('Recenter to: ', params.frequency)
+                # params.saveFileParameter()
             seq.SIR_FID_Gs_setup()
             seq.Sequence_upload()
             seq.acquire_spectrum_SE_Gs()
