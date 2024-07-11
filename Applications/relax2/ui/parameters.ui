@@ -2296,8 +2296,13 @@
         <height>30</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
       <property name="text">
-       <string>Total Image Length [mm]</string>
+       <string>Total Movement Length [mm]</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>

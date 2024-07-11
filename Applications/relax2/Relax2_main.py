@@ -59,6 +59,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
         self.dialog_params = None
         self.dialog_config = None
+        self.dialog_plot = None
         self.dialog_tools = None
         self.dialog_prot = None
         self.dialog_sarmonitor = None
@@ -521,8 +522,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.spectrum_process()
                 proc.spectrum_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.fig_canvas != None:
+                            self.dialog_plot.fig_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
@@ -530,8 +542,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if os.path.isfile(params.datapath + '_Header.json') == True:
                     proc.image_3D_json_process()
                     # proc.image_3D_analytics()
-                    self.dialog_plot = PlotWindow(self)
-                    self.dialog_plot.show()
+                    if params.single_plot == 1:
+                        if self.dialog_plot != None:
+                            self.dialog_plot.hide()
+                            if self.dialog_plot.all_canvas != None:    
+                                self.dialog_plot.all_canvas.hide()
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                        else:
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
                 elif os.path.isfile(params.datapath + '_Header.txt') == True:
                     proc.image_3D_txt_process()
                     # proc.image_3D_analytics()
@@ -545,8 +568,31 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_diff_process()
                 # proc.image_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.IComb_canvas != None:
+                            self.dialog_plot.IComb_canvas.hide()
+                        if self.dialog_plot.IDiff_canvas != None:
+                            self.dialog_plot.IDiff_canvas.hide()
+                        if self.dialog_plot.IMag_canvas != None:
+                            self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None:    
+                            self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None:    
+                            self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None:    
+                            self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None:    
+                            self.dialog_plot.all_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
@@ -555,8 +601,27 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.radial_process()
                 proc.image_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.IMag_canvas != None:
+                            self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None:    
+                            self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None:    
+                            self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None:    
+                            self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None:    
+                            self.dialog_plot.all_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
@@ -567,15 +632,47 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.image_process()
                 proc.image_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.IMag_canvas != None:
+                            self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None:    
+                            self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None:    
+                            self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None:    
+                            self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None:    
+                            self.dialog_plot.all_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
 
         elif params.GUImode == 2 and (
                 params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.fig_canvas1 != None:
+                            self.dialog_plot.fig_canvas1.hide()
+                        if self.dialog_plot.fig_canvas2 != None:
+                            self.dialog_plot.fig_canvas2.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 2 and (
@@ -583,8 +680,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T1imageprocess()
-                    self.dialog_plot = PlotWindow(self)
-                    self.dialog_plot.show()
+                    if params.single_plot == 1:
+                        if self.dialog_plot != None:
+                            self.dialog_plot.hide()
+                            if self.dialog_plot.IComb_canvas != None:
+                                self.dialog_plot.IComb_canvas.hide()
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                        else:
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
                 else:
                     print('No file!!')
             else:
@@ -594,8 +702,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.fig_canvas != None:
+                            self.dialog_plot.fig_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 3 and (
@@ -603,8 +722,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T2imageprocess()
-                    self.dialog_plot = PlotWindow(self)
-                    self.dialog_plot.show()
+                    if params.single_plot == 1:
+                        if self.dialog_plot != None:
+                            self.dialog_plot.hide()
+                            if self.dialog_plot.IComb_canvas != None:
+                                self.dialog_plot.IComb_canvas.hide()
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                        else:
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
             else:
                 print('No file!!')
 
@@ -639,12 +769,36 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 else:
                     print('No file!!')
             params.datapath = self.datapathtemp
-            self.dialog_plot = PlotWindow(self)
-            self.dialog_plot.show()
+            if params.single_plot == 1:
+                if self.dialog_plot != None:
+                    self.dialog_plot.hide()
+                    if self.dialog_plot.fig_canvas != None:
+                        self.dialog_plot.fig_canvas.hide()
+                    if self.dialog_plot.IMag_canvas != None:
+                        self.dialog_plot.IMag_canvas.hide()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+            else:
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
         elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
             proc.spectrum_process()
-            self.dialog_plot = PlotWindow(self)
-            self.dialog_plot.show()
+            if params.single_plot == 1:
+                if self.dialog_plot != None:
+                    self.dialog_plot.hide()
+                    if self.dialog_plot.fig_canvas != None:
+                        self.dialog_plot.fig_canvas.hide()
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+            else:
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
 
         elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1):
             if os.path.isfile(params.datapath + '_1.txt') == True:
@@ -655,8 +809,23 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 else:
                     print('No header file!!')
                 proc.image_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.IMag_canvas != None:
+                            self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None:    
+                            self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None:    
+                            self.dialog_plot.all_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
         elif params.GUImode == 5 and params.sequence == 2:
@@ -668,8 +837,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 else:
                     print('No header file!!')
                 # proc.image_analytics()
-                self.dialog_plot = PlotWindow(self)
-                self.dialog_plot.show()
+                if params.single_plot == 1:
+                    if self.dialog_plot != None:
+                        self.dialog_plot.hide()
+                        if self.dialog_plot.all_canvas != None:    
+                            self.dialog_plot.all_canvas.hide()
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                    else:
+                        self.dialog_plot = PlotWindow(self)
+                        self.dialog_plot.show()
+                else:
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
             else:
                 print('No file!!')
 
@@ -728,6 +908,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         super(ParametersWindow, self).__init__(parent)
         self.setupUi(self)
 
+        if params.autograd == 1: self.recalculate_gradients()   
         self.load_params()
 
         self.ui = loadUi('ui/parameters.ui')
@@ -1457,6 +1638,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.Header_File_Format_comboBox.currentIndexChanged.connect(self.update_params)
         
         self.Auto_Data_Process_radioButton.toggled.connect(self.update_params)
+        self.Single_Plot_radioButton.toggled.connect(self.update_params)
 
     def frequency_center(self):
         params.frequency = params.centerfrequency
@@ -1506,6 +1688,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if params.GUItheme == 1: self.GUI_Dark_radioButton.setChecked(True)
         
         if params.autodataprocess == 1: self.Auto_Data_Process_radioButton.setChecked(True)
+        if params.single_plot == 1: self.Single_Plot_radioButton.setChecked(True)
 
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
@@ -1588,6 +1771,9 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
             
         if self.Auto_Data_Process_radioButton.isChecked(): params.autodataprocess = 1
         else: params.autodataprocess = 0
+        
+        if self.Single_Plot_radioButton.isChecked(): params.single_plot = 1
+        else: params.single_plot = 0
 
         params.saveFileParameter()
 
@@ -2632,6 +2818,17 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
     def __init__(self, parent=None):
         super(PlotWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.fig_canvas = None
+        self.IMag_canvas = None
+        self.IPha_canvas = None
+        self.kMag_canvas = None
+        self.kPha_canvas = None
+        self.all_canvas = None
+        self.fig_canvas1 = None
+        self.fig_canvas2 = None
+        self.IComb_canvas = None
+        self.IDiff_canvas = None
 
         self.load_params()
 
@@ -3092,6 +3289,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IPha_canvas.show()
             self.kMag_canvas.show()
             self.kPha_canvas.show()
+            
+            params.plot_status = 1
 
         else:
             self.all_fig = Figure();
@@ -3482,6 +3681,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('T2 image data saved!')
         elif params.GUImode == 4:
             print('WIP!')
+        elif params.GUImode == 5:
+            if params.sequence == 2:
+                print('WIP!')
+            else:
+                np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stiching_Data.txt', params.img_st_mag)
+                print('Magnitude image data saved!')
 
     def save_pha_image_data(self):
         timestamp = datetime.now()
@@ -3506,6 +3711,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('Please use Save Mag Image Data button!')
         elif params.GUImode == 4:
             print('WIP!')
+        elif params.GUImode == 5:
+            if params.sequence == 2:
+                print('WIP!')
+            else:
+                np.savetxt('imagedata/' + params.dataTimestamp + '_Phase_Image_Stiching_Data.txt', params.img_st_pha)
+                print('Magnitude image data saved!')
 
     def save_image_data(self):
         timestamp = datetime.now()
@@ -3530,6 +3741,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             print('Please use Save Mag Image Data button!')
         elif params.GUImode == 4:
             print('WIP!')
+        elif params.GUImode == 5:
+            if params.sequence == 2:
+                print('WIP!')
+            else:
+                np.savetxt('imagedata/' + params.dataTimestamp + '_Image_Stiching_Data.txt', params.img_st)
+                print('Magnitude image data saved!')
 
     def animate(self):
         proc.animation_image_process()

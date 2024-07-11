@@ -204,6 +204,7 @@ class Parameters:
         self.motor_movement_step = 10
         self.motor_image_count = 10
         self.motor_settling_time = 1.0
+        self.single_plot = 1
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -347,7 +348,8 @@ class Parameters:
                          self.motor_total_image_length, \
                          self.motor_movement_step, \
                          self.motor_image_count, \
-                         self.motor_settling_time], file)
+                         self.motor_settling_time, \
+                         self.single_plot], file)
        
         print('Parameters saved!')
         
@@ -535,7 +537,8 @@ class Parameters:
                 self.motor_total_image_length, \
                 self.motor_movement_step, \
                 self.motor_image_count, \
-                self.motor_settling_time= pickle.load(file)
+                self.motor_settling_time, \
+                self.single_plot = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -743,6 +746,7 @@ class Parameters:
         file.write('Motor movement step: ' + str(self.motor_movement_step) + '\n')
         file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
         file.write('Motor settling time: ' + str(self.motor_settling_time) + '\n')
+        file.write('Single plot: ' + str(self.single_plot) + '\n')
         
         file.close()
 

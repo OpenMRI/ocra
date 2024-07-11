@@ -1489,74 +1489,37 @@
       </item>
      </layout>
     </item>
-    <item row="30" column="4">
-     <widget class="QLabel" name="label_13">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
+    <item row="25" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_11">
+      <property name="spacing">
+       <number>0</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Header File Format</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+      <item>
+       <widget class="QRadioButton" name="Auto_Data_Process_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>160</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Auto Data Process</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="30" column="5">
-     <widget class="QComboBox" name="Header_File_Format_comboBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="29" column="5">
-     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="maximum">
-       <double>2.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.010000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="29" column="4">
-     <widget class="QLabel" name="label_47">
+    <item row="28" column="0">
+     <widget class="QLabel" name="label_16">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -1571,19 +1534,21 @@
       </property>
       <property name="font">
        <font>
-        <pointsize>11</pointsize>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="text">
-       <string>GRO Prephaser Length Scaler</string>
+       <string>Recalculate gradients after change!</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="28" column="4">
-     <widget class="QLabel" name="label_38">
+    <item row="30" column="0">
+     <widget class="QLabel" name="label_17">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -1598,11 +1563,42 @@
       </property>
       <property name="font">
        <font>
-        <italic>true</italic>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="text">
-       <string>Imaging</string>
+       <string>Recalculate gradients after change!</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="32" column="0">
+     <widget class="QLabel" name="label_18">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Recalculate gradients after change!</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -1610,6 +1606,28 @@
      </widget>
     </item>
     <item row="27" column="4">
+     <widget class="QLabel" name="label_12">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>GUI Theme</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="27" column="5">
      <layout class="QHBoxLayout" name="horizontalLayout_10">
       <property name="spacing">
        <number>0</number>
@@ -1660,8 +1678,63 @@
       </item>
      </layout>
     </item>
-    <item row="26" column="4">
-     <widget class="QLabel" name="label_12">
+    <item row="28" column="4">
+     <widget class="QLabel" name="label_47">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>GRO Prephaser Length Scaler</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="28" column="5">
+     <widget class="QDoubleSpinBox" name="GRO_Length_Scaler_doubleSpinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="maximum">
+       <double>2.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="29" column="4">
+     <widget class="QLabel" name="label_13">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -1675,34 +1748,50 @@
        </size>
       </property>
       <property name="text">
-       <string>GUI Theme</string>
+       <string>Header File Format</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="25" column="4">
-     <layout class="QHBoxLayout" name="horizontalLayout_11">
+    <item row="29" column="5">
+     <widget class="QComboBox" name="Header_File_Format_comboBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="26" column="4">
+     <layout class="QHBoxLayout" name="horizontalLayout_13">
       <property name="spacing">
        <number>0</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="Auto_Data_Process_radioButton">
+       <widget class="QRadioButton" name="Single_Plot_radioButton">
         <property name="minimumSize">
          <size>
-          <width>160</width>
+          <width>100</width>
           <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>160</width>
+          <width>100</width>
           <height>30</height>
          </size>
         </property>
         <property name="text">
-         <string>Auto Data Process</string>
+         <string>Single Plot</string>
         </property>
         <property name="autoExclusive">
          <bool>false</bool>

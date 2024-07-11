@@ -1527,9 +1527,9 @@ class process:
             seq.Gradients_upload()
             seq.Frequency_upload()
             seq.RFattenuation_upload()
-            seq.FID_setup()
+            seq.SE_setup()
             seq.Sequence_upload()
-            seq.acquire_spectrum_FID()
+            seq.acquire_spectrum_SE()
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
@@ -1568,9 +1568,9 @@ class process:
             seq.Gradients_upload()
             seq.Frequency_upload()
             seq.RFattenuation_upload()
-            seq.FID_Gs_setup()
+            seq.SE_Gs_setup()
             seq.Sequence_upload()
-            seq.acquire_spectrum_FID_Gs()
+            seq.acquire_spectrum_SE_Gs()
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
