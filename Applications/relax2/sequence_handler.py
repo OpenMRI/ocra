@@ -175,10 +175,10 @@ class sequence:
                 self.Sequence_upload()
                 self.acquire_grad_test()
             elif params.sequence == 20:
-                print('\033[1m' + 'WIP' + '\033[0m')
-                # self.rf_sar_cal_test_setup()
-                # self.Sequence_upload()
-                # self.acquire_rf_sar_cal_test()
+                print('\033[1m' + 'Pulselength [us] = 90° Ref. Pulselength, Pause [us] = TI [ms]' + '\033[0m')
+                self.rf_sar_cal_test_setup()
+                self.Sequence_upload()
+                self.acquire_rf_sar_cal_test()
             else: print('Sequence not defined!')
             
         elif params.GUImode == 1:       
@@ -402,19 +402,50 @@ class sequence:
                 self.acquire_projection_SE_angle_Gs()
             else: print('Sequence not defined!')
             
-        if params.GUImode == 5:     
+        if params.GUImode == 5:
             if params.sequence == 0:
-                # Image Stiching 2D Spin Echo
+                self.Image_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE()
+            elif params.sequence == 1:
+                self.Image_IR_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE()
+            elif params.sequence == 2:
                 self.Image_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE()
-            elif params.sequence == 1:
-                # Image Stiching 2D Spin Echo (Slice)
+            elif params.sequence == 3:
+                self.Image_IR_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
+            elif params.sequence == 4:
+                print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE()' + '\033[0m')
+                self.Image_TSE_setup()
+                self.Sequence_upload()
+                self.acquire_image_TSE()
+            elif params.sequence == 5:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE_Gs()
+            elif params.sequence == 6:
+                self.Image_IR_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE_Gs()
+            elif params.sequence == 7:
                 self.Image_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_SE_Gs()
-            elif params.sequence == 2:
-                # 3D FFT Spin Echo (Slab)
+            elif params.sequence == 8:
+                self.Image_IR_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs()
+            elif params.sequence == 9:
+                print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE_Gs().' + '\033[0m')
+                self.Image_TSE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_TSE_Gs()
+            elif params.sequence == 10:
                 self.Image_3D_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_SE_Gs()
@@ -1067,17 +1098,77 @@ class sequence:
         
     def rf_sar_cal_test_setup(self):
         print('\033[1m' + 'WIP' + '\033[0m')
-#         f = open(self.seq_rf_sar_cal_test, 'r+')
-#         lines = f.readlines()
-#         lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength))
-#         f.close()
-#         with open(self.seq_rf_sar_cal_test, 'w') as out_file:
-#             for line in lines:
-#                 out_file.write(line)
-#                 
-#         params.sequencefile = self.seq_rf_sar_cal_test
-#         
-#         print('RF SAR calibration test sequence setup complete!')
+        f = open(self.seq_rf_sar_cal_test, 'r+')
+        lines = f.readlines()
+        lines[-67] = 'TXOFFSET ' + str(9*params.RFpulselength) + '\n'
+        lines[-66] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-65] = 'PR 11, 500\n'
+        lines[-63] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-62] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-61] = 'TXOFFSET ' + str(1*params.RFpulselength) + '\n'
+        lines[-60] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-59] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-58] = 'TXOFFSET ' + str(2*params.RFpulselength) + '\n'
+        lines[-57] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-56] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-55] = 'TXOFFSET ' + str(3*params.RFpulselength) + '\n'
+        lines[-54] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-53] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-52] = 'TXOFFSET ' + str(4*params.RFpulselength) + '\n'
+        lines[-51] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-50] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-49] = 'TXOFFSET ' + str(5*params.RFpulselength) + '\n'
+        lines[-48] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-47] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-46] = 'TXOFFSET ' + str(6*params.RFpulselength) + '\n'
+        lines[-45] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-44] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-43] = 'TXOFFSET ' + str(7*params.RFpulselength) + '\n'
+        lines[-42] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-41] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-40] = 'TXOFFSET ' + str(8*params.RFpulselength) + '\n'
+        lines[-39] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-38] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-37] = 'TXOFFSET ' + str(9*params.RFpulselength) + '\n'
+        lines[-36] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-35] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-34] = 'TXOFFSET ' + str(10*params.RFpulselength) + '\n'
+        lines[-33] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-32] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-31] = 'TXOFFSET ' + str(11*params.RFpulselength) + '\n'
+        lines[-30] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-29] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-28] = 'TXOFFSET ' + str(12*params.RFpulselength) + '\n'
+        lines[-27] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-26] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-25] = 'TXOFFSET ' + str(13*params.RFpulselength) + '\n'
+        lines[-24] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-23] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-22] = 'TXOFFSET ' + str(14*params.RFpulselength) + '\n'
+        lines[-21] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-20] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-19] = 'TXOFFSET ' + str(15*params.RFpulselength) + '\n'
+        lines[-18] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-17] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-16] = 'TXOFFSET ' + str(16*params.RFpulselength) + '\n'
+        lines[-15] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-14] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-13] = 'TXOFFSET ' + str(17*params.RFpulselength) + '\n'
+        lines[-12] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-11] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-10] = 'TXOFFSET ' + str(18*params.RFpulselength) + '\n'
+        lines[-9] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        lines[-8] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        lines[-7] = 'TXOFFSET ' + str(19*params.RFpulselength) + '\n'
+        lines[-6] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        f.close()
+        with open(self.seq_rf_sar_cal_test, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_rf_sar_cal_test
+        
+        print('RF SAR calibration test sequence setup complete!')
         
     #2D Radial Full Gradient Echo Sequence   
     def Image_radial_f_GRE_setup(self):
@@ -2540,52 +2631,52 @@ class sequence:
         
     def acquire_rf_sar_cal_test(self):
         print('\033[1m' + 'WIP' + '\033[0m')
-#         print('Run RF SAR calibration test sequence...')
-#         
-#         self.data_idx = int(params.TS * 250) #250 Samples/ms
-#         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-#         
-#         if params.average == 0: self.avecount = 1
-#         else: self.avecount = params.averagecount
-#         
-#         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
-#         
-#         for n in range(self.avecount):
-#             print('Average: ',n+1,'/',self.avecount)
-#         
-#             socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 20, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, 0, 0))
-# 
-#             while(True):
-#                 if not socket.waitForBytesWritten(): break
-#                 time.sleep(0.0001)
-#             
-#             while True:
-#                 socket.waitForReadyRead()
-#                 datasize = socket.bytesAvailable()
-#                 time.sleep(0.0001)
-#                 if datasize == 8*params.samples:
-#                     print('Readout finished : ', int(datasize/8), 'Samples')
-#                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
-#                     break
-#                 else: continue
-#         
-#             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
-#             if params.average == 1:
-#                 time.sleep(params.TR/1000)
-#             
-#         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
-#         
-#         self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
-#         self.datatxt1[0,:] = params.timeaxis[:]
-#         self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
-#         self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
-#         self.datatxt2 = np.transpose(self.datatxt1)
-#         np.savetxt(params.datapath + '.txt', self.datatxt2)
-#         
-#         timestamp = datetime.now() 
-#         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
-#         
-#         print('RF SAR calibration test sequence finished!')
+        print('Run RF SAR calibration test sequence...')
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 40, 0, params.RFpulselength, 0, 0, 0, 0, 0, 0, 0))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('RF SAR calibration test sequence finished!')
   
     def acquire_projection_GRE(self):
         print('Acquire projection(s)...')

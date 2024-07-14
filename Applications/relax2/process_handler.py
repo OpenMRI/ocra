@@ -465,8 +465,74 @@ class process:
 
         print('Image data processed!')
 
-    def image_stiching_2D(self, motor=None):
-        print('image_stiching_2D')
+    def image_stiching_2D_GRE(self, motor=None):
+        print('Measuring stiched images 2D GRE...')
+
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+        motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
+
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR / 1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                print('Image: ', n + 1, '/', params.motor_image_count)
+
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0:
+                    params.save_header_file_txt()
+                else:
+                    params.save_header_file_json()
+
+                time.sleep(params.TR / 1000)
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                print('Image: ', n + 1, '/', params.motor_image_count)
+
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0:
+                    params.save_header_file_txt()
+                else:
+                    params.save_header_file_json()
+
+                time.sleep(params.TR / 1000)
+
+        params.datapath = self.datapathtemp
+
+        if params.headerfileformat == 0:
+            params.save_header_file_txt()
+        else:
+            params.save_header_file_json()
+
+        print('Stiched images acquired!')
+
+    def image_stiching_2D_SE(self, motor=None):
+        print('Measuring stiched images 2D SE...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -530,9 +596,76 @@ class process:
             params.save_header_file_json()
 
         print('Stiched images acquired!')
+        
+    def image_stiching_2D_GRE_slice(self, motor=None):
+        print('Measuring stiched images 2D GRE slice...')
 
-    def image_stiching_2D_slice(self, motor=None):
-        print('image_stiching_2D_slice')
+        self.datapathtemp = ''
+        self.datapathtemp = params.datapath
+
+        motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
+
+        if params.autorecenter == 1:
+            self.frequencyoffsettemp = 0
+            self.frequencyoffsettemp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to:', params.frequency)
+            time.sleep(params.TR / 1000)
+            params.frequencyoffset = self.frequencyoffsettemp
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                print(n + 1, '/', params.motor_image_count)
+
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0:
+                    params.save_header_file_txt()
+                else:
+                    params.save_header_file_json()
+
+                time.sleep(params.TR / 1000)
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                print(n + 1, '/', params.motor_image_count)
+
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0:
+                    params.save_header_file_txt()
+                else:
+                    params.save_header_file_json()
+
+                time.sleep(params.TR / 1000)
+
+        params.datapath = self.datapathtemp
+
+        if params.headerfileformat == 0:
+            params.save_header_file_txt()
+        else:
+            params.save_header_file_json()
+
+        print('Stiched slice images acquired!')
+        
+    def image_stiching_2D_SE_slice(self, motor=None):
+        print('Measuring stiched images 2D SE slice...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -708,7 +841,7 @@ class process:
         print('WIP')
 
     def image_stiching_3D_slab(self, motor=None):
-        print('image_stiching_3D_slab')
+        print('Measuring stiched images 3D SE slab...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -964,7 +1097,7 @@ class process:
         #print('SNR: ', params.SNR)
 
     def Autocentertool(self):
-        print('Finding Signals...')
+        print('Finding signals...')
 
         self.freqtemp = 0
         self.freqtemp = params.frequency
@@ -998,7 +1131,7 @@ class process:
         params.frequency = self.freqtemp
 
     def Flipangletool(self):
-        print('Finding Flipangles...')
+        print('Finding flipangles...')
 
         self.RFattenuationtemp = 0
         self.RFattenuationtemp = params.RFattenuation
@@ -1034,7 +1167,7 @@ class process:
         params.RFattenuation = self.RFattenuationtemp
 
     def Shimtool(self):
-        print('Processing shimtool...')
+        print('Finding shims...')
 
         self.frequencytemp = 0
         self.frequencytemp = params.frequency

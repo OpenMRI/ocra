@@ -9516,6 +9516,31 @@ void update_RF_pulses(volatile uint16_t *tx_size, void *tx_data,  int32_t RF_amp
   memcpy(tx_data, pulse, 2 * size);
 }
 
+void update_RF_SAR_cal_pulses(volatile uint16_t *tx_size, void *tx_data,  int32_t RF_amp, int32_t RF_pulse_length)
+{
+  int i, j;
+  int size;
+  float pi = 3.14159;
+  int16_t pulse[32768];
+  //float _Complex cpulse[16384];
+  
+  for(i = 0; i < 32768; i++) {
+    pulse[i] = 0;
+  }
+  
+  // RF Hardpulses
+  for(j = 0; j <= 19; j++) {
+    for(i = j*(2*RF_pulse_length); i <= j*(2*RF_pulse_length)+(2*RF_pulse_length); i=i+2) {
+      pulse[i] = (int16_t)((j+1)*0.1*RF_amp);
+    }
+  }
+
+  size = 32768-1;
+  *tx_size = size;
+  memset(tx_data, 0, 65536);
+  memcpy(tx_data, pulse, 2 * size);
+}
+
 
 int main(int argc)
 {
@@ -10461,6 +10486,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
+        sp = 0; // Spoiler amplitude
         float freq_offset; // RF frequency offset
         if (command[18] == 1) {
           freq_offset = -1*((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000);
@@ -11458,22 +11484,13 @@ int main(int argc)
 
         usleep(10); // Sleep 10us
 
-        RF_flip_amp = command[4] + command[5]*0x100 + command[6]*0x10000 + command[7]*0x1000000; // RF flip pulse amplitude
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
-        RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
-        float freq_offset; // RF frequency offset
-        if (command[18] == 1) {
-          freq_offset = -1*((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000);
-        }
-        else {
-          freq_offset = ((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000); 
-        }
-        float phase_offset = ((float)command[16] + (float)command[17]*0x100)/100; // RF phase offset
-        // printf("GRO Amplitude: %f , GPE Step: %f , GS Amplitude: %f \n", ro, pe_step, sl);
-
+        sp = 0; // Spoiler amplitude
+        printf("RF_pulse_length = %d \n", RF_pulse_length);
+        printf("RF-amp = %d \n", RF_amp);
         clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
-        update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
+        update_RF_SAR_cal_pulses(tx_size, tx_data, RF_amp, RF_pulse_length);
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;

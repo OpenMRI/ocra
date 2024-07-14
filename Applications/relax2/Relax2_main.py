@@ -306,7 +306,10 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.datapath = self.Datapath_lineEdit.text()
         elif params.GUImode == 5:
             self.Sequence_comboBox.clear()
-            self.Sequence_comboBox.addItems(['2D Image Stiching (SE)', '2D Image Stiching (Slice, SE)', '3D Image Stichung (3D FFT, Slab)'])
+            self.Sequence_comboBox.addItems(['2D Gradient Echo', '2D Inversion Recovery (GRE)', '2D Spin Echo' \
+                                            , '2D Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Gradient Echo (Slice)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
+                                            , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_Stiching_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -358,10 +361,26 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_Image_SIR_GRE_Gs()
         elif params.GUImode == 5:
             if params.sequence == 0:
-                proc.image_stiching_2D(motor=self.motor)
+                proc.image_stiching_2D_GRE(motor=self.motor)
             if params.sequence == 1:
-                proc.image_stiching_2D_slice(motor=self.motor)
+                proc.image_stiching_2D_GRE(motor=self.motor)
             if params.sequence == 2:
+                proc.image_stiching_2D_SE(motor=self.motor)
+            if params.sequence == 3:
+                proc.image_stiching_2D_SE(motor=self.motor)
+            if params.sequence == 4:
+                proc.image_stiching_2D_SE(motor=self.motor)
+            if params.sequence == 5:
+                proc.image_stiching_2D_GRE_slice(motor=self.motor)
+            if params.sequence == 6:
+                proc.image_stiching_2D_GRE_slice(motor=self.motor)
+            if params.sequence == 7:
+                proc.image_stiching_2D_SE_slice(motor=self.motor)
+            if params.sequence == 8:
+                proc.image_stiching_2D_SE_slice(motor=self.motor)
+            if params.sequence == 9:
+                proc.image_stiching_2D_SE_slice(motor=self.motor)
+            if params.sequence == 10:
                 proc.image_stiching_3D_slab(motor=self.motor)
         elif params.GUImode == 1:
             if params.autorecenter == 1:
@@ -654,8 +673,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
 
-        elif params.GUImode == 2 and (
-                params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
+        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T1process()
                 if params.single_plot == 1:
@@ -675,8 +693,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     self.dialog_plot.show()
             else:
                 print('No file!!')
-        elif params.GUImode == 2 and (
-                params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+        elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T1imageprocess()
@@ -698,8 +715,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             else:
                 print('No file!!')
 
-        elif params.GUImode == 3 and (
-                params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
+        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
             if os.path.isfile(params.datapath + '.txt') == True:
                 proc.T2process()
                 if params.single_plot == 1:
@@ -717,8 +733,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     self.dialog_plot.show()
             else:
                 print('No file!!')
-        elif params.GUImode == 3 and (
-                params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+        elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
             if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
                 if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
                     proc.T2imageprocess()
@@ -738,8 +753,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             else:
                 print('No file!!')
 
-        elif params.GUImode == 4 and (
-                params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
+        elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
             self.datapathtemp = params.datapath
             params.projx = np.matrix(np.zeros((1, 4)))
             params.projy = np.matrix(np.zeros((1, 4)))
@@ -800,7 +814,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 self.dialog_plot = PlotWindow(self)
                 self.dialog_plot.show()
 
-        elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1):
+        elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 \
+                                      or params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+                                      or params.sequence == 8 or params.sequence == 9):
             if os.path.isfile(params.datapath + '_1.txt') == True:
                 if os.path.isfile(params.datapath + '_Header.json') == True:
                     proc.image_stiching_2D_json_process()
@@ -828,7 +844,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     self.dialog_plot.show()
             else:
                 print('No file!!')
-        elif params.GUImode == 5 and params.sequence == 2:
+        elif params.GUImode == 5 and params.sequence == 10:
             if os.path.isfile(params.datapath + '_1.txt') == True:
                 if os.path.isfile(params.datapath + '_Header.json') == True:
                     proc.image_stiching_3D_json_process()
@@ -2872,9 +2888,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.spectrum_plot_init()
 
         elif params.GUImode == 5:
-            if params.sequence == 0 or params.sequence == 1:
+            if params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 \
+                or params.sequence == 4  or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+                 or params.sequence == 8 or params.sequence == 9:
                 self.imaging_stiching_plot_init()
-            elif params.sequence == 2:
+            elif params.sequence == 10:
                 self.imaging_stiching_3D_plot_init()
 
         self.Frequncyaxisrange_spinBox.setKeyboardTracking(False)
@@ -3682,7 +3700,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         elif params.GUImode == 4:
             print('WIP!')
         elif params.GUImode == 5:
-            if params.sequence == 2:
+            if params.sequence == 4:
                 print('WIP!')
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stiching_Data.txt', params.img_st_mag)
@@ -3712,7 +3730,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         elif params.GUImode == 4:
             print('WIP!')
         elif params.GUImode == 5:
-            if params.sequence == 2:
+            if params.sequence == 4:
                 print('WIP!')
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Phase_Image_Stiching_Data.txt', params.img_st_pha)
@@ -3742,7 +3760,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         elif params.GUImode == 4:
             print('WIP!')
         elif params.GUImode == 5:
-            if params.sequence == 2:
+            if params.sequence == 4:
                 print('WIP!')
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Image_Stiching_Data.txt', params.img_st)
@@ -4003,7 +4021,7 @@ def run():
     print('\n________________________________________________________\n', \
           'Relax 2.0. \n', \
           'Programmed by Marcus Prier, Magdeburg, 2024\n', \
-          '\n________________________________________________________\n')
+          '________________________________________________________\n')
 
     app = QApplication(sys.argv)
     gui = MainWindow()
