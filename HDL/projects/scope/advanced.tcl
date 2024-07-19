@@ -445,8 +445,8 @@ connect_bd_net [get_bd_pins detect_tr_start_pulse_0/aresetn] [get_bd_pins $f_are
 cell xilinx.com:ip:util_ds_buf ibufds_trigger_0 {
     C_BUF_TYPE IBUFDS
 } {
-    IBUF_DS_P sata_s1_b_p
-    IBUF_DS_N sata_s1_b_n
+    IBUF_DS_P sata_s2_a_p
+    IBUF_DS_N sata_s2_a_n
 }
 connect_bd_net [get_bd_pins ibufds_trigger_0/IBUF_OUT] [get_bd_pins detect_tr_start_pulse_0/external_input]
 
