@@ -2831,6 +2831,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')        
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -2893,6 +2905,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')        
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -3089,6 +3113,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -3151,6 +3187,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -3856,6 +3904,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -3916,6 +3973,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -3974,6 +4040,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -4032,6 +4107,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -4090,6 +4174,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -4150,6 +4243,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -4208,6 +4310,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)        
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -4266,6 +4377,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
         

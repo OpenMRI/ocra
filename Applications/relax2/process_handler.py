@@ -30,7 +30,6 @@ class process:
         params.loadParam()
         params.loadData()
 
-    # Ivo Opitz: new function
     def motor_move(self, motor=None):
         if motor is not None and params.motor_actual_position != params.motor_goto_position:                     
             print('Moving...')
@@ -754,9 +753,10 @@ class process:
         params.nPE = int(jsonparams['Image resolution [pixel]'])
         params.FOV = jsonparams['FOV [mm]']
         params.motor_image_count = int(jsonparams['Motor image count'])
-        params.motor_movement_step = jsonparams['Motor movement step']
+        params.motor_movement_step = np.abs(jsonparams['Motor movement step'])
 
-        if params.imageorientation == 'XY':
+        if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
+            print("Processing XY or ZY")
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -770,8 +770,11 @@ class process:
                 params.img_st_mag = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
 
-            for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+            for n in range(0, params.motor_image_count):
+                if jsonparams['Motor movement step'] < 0:
+                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                else:
+                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
 
                 proc.image_process()
 
@@ -783,8 +786,9 @@ class process:
                     params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img[:, :]
                     params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_mag[:, :]
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
-
-        elif params.imageorientation == 'YZ':
+        
+        elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
+            print("Processing YZ")
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -798,8 +802,11 @@ class process:
                 params.img_st_mag = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
                 params.img_st_pha = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
 
-            for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+            for n in range(0, params.motor_image_count):
+                if jsonparams['Motor movement step'] < 0:
+                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                else:
+                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
 
                 proc.image_process()
 
@@ -812,12 +819,13 @@ class process:
                     params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_mag[:, :]
                     params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
 
-        elif params.imageorientation == 'ZX':
+        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+            print("Processing ZX")
             params.img_st = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE), dtype=np.complex64))
             params.img_st_mag = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
             params.img_st_pha = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
 
-            for n in range(params.motor_image_count):
+            for n in range(0, params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
 
                 proc.image_process()
@@ -935,11 +943,11 @@ class process:
         params.nPE = int(jsonparams['Image resolution [pixel]'])
         params.FOV = jsonparams['FOV [mm]']
         params.motor_image_count = jsonparams['Motor image count']
-        params.motor_movement_step = jsonparams['Motor movement step']
+        params.motor_movement_step = np.abs(jsonparams['Motor movement step'])
         params.SPEsteps = int(jsonparams['3D phase steps'])
         params.slicethickness = jsonparams['Slice/Slab thickness [mm]']
 
-        if params.imageorientation == 'XY':
+        if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -956,7 +964,10 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
 
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                if jsonparams['Motor movement step'] < 0:
+                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                else:
+                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
 
                 proc.image_3D_json_process()
 
@@ -969,7 +980,7 @@ class process:
                     params.img_st_mag[:,int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE),:] = params.img_mag[:, :, :]
                     params.img_st_pha[:,int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE),:] = params.img_pha[:, :, :]
 
-        elif params.imageorientation == 'YZ':
+        elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -986,7 +997,10 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
 
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                if jsonparams['Motor movement step'] < 0:
+                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                else:
+                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
 
                 proc.image_3D_json_process()
 
@@ -999,7 +1013,7 @@ class process:
                     params.img_st_mag[:, :, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_mag[:, :, :]
                     params.img_st_pha[:, :, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :, :]
 
-        elif params.imageorientation == 'ZX':
+        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
             self.imagecrop_image_pixel = int((params.motor_movement_step * params.SPEsteps) / params.slicethickness)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.SPEsteps)
@@ -1014,7 +1028,10 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE, params.nPE)))
 
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                if jsonparams['Motor movement step'] < 0:
+                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                else:
+                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
 
                 proc.image_3D_json_process()
 

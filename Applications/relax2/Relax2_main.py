@@ -137,14 +137,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     params.motor_port = ports[0].portName()
                 else:
                     ports.remove(ports[0])
-        else:
-            params.motor_available = 1
 
-        self.Motor_Tools_pushButton.setEnabled(params.motor_available)
+        self.Motor_Tools_pushButton.setEnabled(True)
 
     def check_motor_port(self, motor_port=None):
         motor = QSerialPort()
         motor.setPortName(motor_port)
+        print('Motor Search: checking port: ' + motor_port)
 
         if motor.open(QIODevice.ReadWrite):
             motor.setBaudRate(QSerialPort.BaudRate.Baud115200)
@@ -162,23 +161,27 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             motor.write(cmd_info_s.encode('utf-8'))
             motor.waitForBytesWritten()
 
-            motor_search_start_time = time.process_time()
+            motor_search_start_time = time.perf_counter()
             motor_search_timeout = False
+            motor_timeout_time = 0.5
+
             ident_byte_array = motor.readAll()
             while '\n' not in ident_byte_array.data().decode() and not motor_search_timeout:
                 motor.waitForReadyRead(10)
                 ident_byte_array.append(motor.readAll())
-                if time.process_time() > (motor_search_start_time + 0.1):
+                if time.perf_counter() > (motor_search_start_time + motor_timeout_time):
                     motor_search_timeout = True
-                    print('Motor Search: No connection to ' + motor.port + ' possible.')
+                    print('Motor Search: Timeout, no connection to ' + motor_port + ' possible.')
 
             if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8', errors='ignore'):
                 params.motor_port = motor_port
                 motor.clear()
+                print('Motor Search: Successful at port: ' + motor_port)
 
                 time.sleep(0.1)
 
-                cmd_axis_length_s = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(params.motor_axis_limit_positive) + '\n'
+                cmd_axis_length_s = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(
+                    params.motor_axis_limit_positive) + '\n'
                 motor.write(cmd_axis_length_s.encode('utf-8'))
                 motor.waitForBytesWritten()
 
@@ -193,7 +196,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 while 'R0: limit set finished' not in response_byte_array.data().decode('utf8', errors='ignore'):
                     motor.waitForReadyRead(10)
                     response_byte_array.append(motor.readAll())
-                motor.clear()                
+                motor.clear()
+
+                self.motor = motor
+                self.motor.errorOccurred.connect(lambda error_code: self.motor_error(error_code))
+                self.motor.readyRead.connect(self.motor_read)
 
                 time.sleep(0.1)
 
@@ -207,32 +214,75 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 motor.write(cmd_response_s.encode('utf-8'))
                 motor.flush()
 
-                response_byte_array = motor.readAll()
-                while 'R0: homing finished' not in response_byte_array.data().decode('utf8', errors='ignore'):
-                    motor.waitForReadyRead(10)
-                    response_byte_array.append(motor.readAll())
-                motor.clear()                
-                
-                self.motor = motor
-                self.motor.errorOccurred.connect(lambda error: self.motor_error(error))
+                print('Motor Control: Homing Message send to device')
+
+                params.motor_available = False
 
                 return True
             else:
                 motor.close()
                 return False
+        else:
+            print('Motor Search: Port ' + motor_port + ' unavailable or already in use.')
+            return False
 
-    def motor_error(self, error):
+    def motor_read(self):
+        if self.motor.canReadLine():
+            msg = bytes(self.motor.readLine()).decode('utf-8', errors='ignore')
+            if 'R0: homing finished' in msg:
+                params.motor_available = 1
+
+                if self.dialog_motortools is not None:
+                    self.dialog_motortools.load_params()
+                    self.dialog_motortools.repaint()
+
+                print("Motor Control: Homing finished.")
+            elif 'R0: finished moving' in msg:
+                params.motor_available = 1
+
+                if self.dialog_motortools is not None:
+                    self.dialog_motortools.load_params()
+                    self.dialog_motortools.repaint()
+            elif 'E0' in msg:
+                self.motor_error(-1, message=msg[4:])
+
+    def motor_error(self, error, message=""):
         self.motor.blockSignals(True)
 
+        # 0: there is no error, 12: not defined but can also occur during normal operation
         if error != 12 and error != 0:
-            if self.dialog_motortools is not None:
-                self.dialog_motortools.hide()
-                self.dialog_motortools = None
-
             params.motor_available = False
-            self.Motor_Tools_pushButton.setEnabled(False)
 
-            print('Motor Control: Error Number: ', error)
+            if self.dialog_motortools is not None:
+                self.dialog_motortools.load_params()
+                self.dialog_motortools.repaint()
+
+            if error == -1:
+                error_message = "Device Side Error: " + message
+            elif error == 1:
+                error_message = "Device not found."
+            elif error == 2:
+                error_message = "Permission Error - Device already open somewhere else."
+            elif error == 3:
+                error_message = "Open Error - Device already open in this object."
+            elif error == 4:
+                error_message = "Write Error."
+            elif error == 5:
+                error_message = "Read Error."
+            elif error == 6:
+                error_message = "Resource Error - Device probably disconnected."
+            elif error == 7:
+                error_message = "Unsupported Operation."
+            elif error == 9:
+                error_message = "Timeout Error."
+            elif error == 10:
+                error_message = "Not Open Error."
+            else:
+                error_message = "Unknown Error."
+
+            print(
+                'Motor Control: Error detected, Control will be unavailable until at least the next restart of relax2, Error Number: ' + str(
+                    error) + ", Message: " + error_message)
         else:
             self.motor.clearError()
             self.motor.blockSignals(False)
@@ -360,28 +410,31 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             elif params.sequence == 7:
                 proc.T2measurement_Image_SIR_GRE_Gs()
         elif params.GUImode == 5:
-            if params.sequence == 0:
-                proc.image_stiching_2D_GRE(motor=self.motor)
-            if params.sequence == 1:
-                proc.image_stiching_2D_GRE(motor=self.motor)
-            if params.sequence == 2:
-                proc.image_stiching_2D_SE(motor=self.motor)
-            if params.sequence == 3:
-                proc.image_stiching_2D_SE(motor=self.motor)
-            if params.sequence == 4:
-                proc.image_stiching_2D_SE(motor=self.motor)
-            if params.sequence == 5:
-                proc.image_stiching_2D_GRE_slice(motor=self.motor)
-            if params.sequence == 6:
-                proc.image_stiching_2D_GRE_slice(motor=self.motor)
-            if params.sequence == 7:
-                proc.image_stiching_2D_SE_slice(motor=self.motor)
-            if params.sequence == 8:
-                proc.image_stiching_2D_SE_slice(motor=self.motor)
-            if params.sequence == 9:
-                proc.image_stiching_2D_SE_slice(motor=self.motor)
-            if params.sequence == 10:
-                proc.image_stiching_3D_slab(motor=self.motor)
+            if params.motor_available:
+                if params.sequence == 0:
+                    proc.image_stiching_2D_GRE(motor=self.motor)
+                if params.sequence == 1:
+                    proc.image_stiching_2D_GRE(motor=self.motor)
+                if params.sequence == 2:
+                    proc.image_stiching_2D_SE(motor=self.motor)
+                if params.sequence == 3:
+                    proc.image_stiching_2D_SE(motor=self.motor)
+                if params.sequence == 4:
+                    proc.image_stiching_2D_SE(motor=self.motor)
+                if params.sequence == 5:
+                    proc.image_stiching_2D_GRE_slice(motor=self.motor)
+                if params.sequence == 6:
+                    proc.image_stiching_2D_GRE_slice(motor=self.motor)
+                if params.sequence == 7:
+                    proc.image_stiching_2D_SE_slice(motor=self.motor)
+                if params.sequence == 8:
+                    proc.image_stiching_2D_SE_slice(motor=self.motor)
+                if params.sequence == 9:
+                    proc.image_stiching_2D_SE_slice(motor=self.motor)
+                if params.sequence == 10:
+                    proc.image_stiching_3D_slab(motor=self.motor)
+            else:
+                print("Motor Control: Motor not available, maybe it is still homing?")
         elif params.GUImode == 1:
             if params.autorecenter == 1:
                 self.frequencyoffsettemp = 0
@@ -402,11 +455,12 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
+                    params.frequencyoffset = self.frequencyoffsettemp
                     if self.dialog_params != None:
                         self.dialog_params.load_params()
                         self.dialog_params.repaint()
                     time.sleep(params.TR / 1000)
-                    params.frequencyoffset = self.frequencyoffsettemp
+                    
                     seq.sequence_upload()
                 elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
@@ -423,11 +477,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
+                    params.frequencyoffset = self.frequencyoffsettemp
                     if self.dialog_params != None:
                         self.dialog_params.load_params()
                         self.dialog_params.repaint()
                     time.sleep(params.TR / 1000)
-                    params.frequencyoffset = self.frequencyoffsettemp
                     seq.sequence_upload()
                 elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
@@ -445,11 +499,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
+                    params.frequencyoffset = self.frequencyoffsettemp
                     if self.dialog_params != None:
                         self.dialog_params.load_params()
                         self.dialog_params.repaint()
                     time.sleep(params.TR / 1000)
-                    params.frequencyoffset = self.frequencyoffsettemp
                     seq.sequence_upload()
                 elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
@@ -468,11 +522,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
+                    params.frequencyoffset = self.frequencyoffsettemp
                     if self.dialog_params != None:
                         self.dialog_params.load_params()
                         self.dialog_params.repaint()
                     time.sleep(params.TR / 1000)
-                    params.frequencyoffset = self.frequencyoffsettemp
                     seq.sequence_upload()
             else:
                 seq.sequence_upload()
@@ -1016,7 +1070,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.label_43.setToolTip('Amplitude of the spoiler gradient pulse.\nThe duration is 1ms and can be adjusted in the parameters_handler.py')
 
         self.Image_Orientation_comboBox.clear()
-        self.Image_Orientation_comboBox.addItems(['XY', 'YZ', 'ZX'])
+        # self.Image_Orientation_comboBox.addItems(['XY', 'YZ', 'ZX'])
+        self.Image_Orientation_comboBox.addItems(['XY', 'YZ', 'ZX', 'YX', 'ZY', 'XZ'])
         self.Image_Orientation_comboBox.setCurrentIndex(params.imageorientation)
         self.Image_Orientation_comboBox.currentIndexChanged.connect(self.update_params)
 
@@ -1266,7 +1321,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Delta_vpp = params.frequencyrange / (250 * params.TS)
         self.vpp = self.Delta_vpp * params.nPE
         self.receiverBW = self.vpp / 2
-
+        
         if params.imageorientation == 0:
             self.Gxsens = params.gradsens[0]
             self.Gysens = params.gradsens[1]
@@ -1279,6 +1334,19 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             self.Gxsens = params.gradsens[2]
             self.Gysens = params.gradsens[0]
             self.Gzsens = params.gradsens[1]
+        elif params.imageorientation == 3:
+            self.Gxsens = params.gradsens[1]
+            self.Gysens = params.gradsens[0]
+            self.Gzsens = params.gradsens[2]
+        elif params.imageorientation == 4:
+            self.Gxsens = params.gradsens[0]
+            self.Gysens = params.gradsens[2]
+            self.Gzsens = params.gradsens[1]
+        elif params.imageorientation == 5:
+            self.Gxsens = params.gradsens[2]
+            self.Gysens = params.gradsens[1]
+            self.Gzsens = params.gradsens[0]
+      
 
         self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
         params.GROamplitude = int(self.Gx / self.Gxsens * 1000)
@@ -1394,12 +1462,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.average = 0
         params.averagecount = self.Average_spinBox.value()
 
-        if self.Image_Orientation_comboBox.currentIndex() == 0:
-            params.imageorientation = 0
-        elif self.Image_Orientation_comboBox.currentIndex() == 1:
-            params.imageorientation = 1
-        elif self.Image_Orientation_comboBox.currentIndex() == 2:
-            params.imageorientation = 2
+        params.imageorientation = self.Image_Orientation_comboBox.currentIndex()
 
         params.FOV = self.FOV_doubleSpinBox.value()
         params.slicethickness = self.Slice_Thickness_doubleSpinBox.value()
@@ -1422,6 +1485,18 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 self.Gxsens = params.gradsens[2]
                 self.Gysens = params.gradsens[0]
                 self.Gzsens = params.gradsens[1]
+            elif params.imageorientation == 3:
+                self.Gxsens = params.gradsens[1]
+                self.Gysens = params.gradsens[0]
+                self.Gzsens = params.gradsens[2]
+            elif params.imageorientation == 4:
+                self.Gxsens = params.gradsens[0]
+                self.Gysens = params.gradsens[2]
+                self.Gzsens = params.gradsens[1]
+            elif params.imageorientation == 5:
+                self.Gxsens = params.gradsens[2]
+                self.Gysens = params.gradsens[1]
+                self.Gzsens = params.gradsens[0]            
 
             self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
             params.GROamplitude = int(self.Gx / self.Gxsens * 1000)
@@ -2382,6 +2457,15 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         elif params.imageorientation == 2:
             self.IMag_ax.set_xlabel('Z in mm')
             self.IMag_ax.set_ylabel('X in mm')
+        elif params.imageorientation == 3:
+            self.IMag_ax.set_xlabel('Y in mm')
+            self.IMag_ax.set_ylabel('Z in mm')
+        elif params.imageorientation == 4:
+            self.IMag_ax.set_xlabel('Z in mm')
+            self.IMag_ax.set_ylabel('Y in mm')
+        elif params.imageorientation == 5:
+            self.IMag_ax.set_xlabel('X in mm')
+            self.IMag_ax.set_ylabel('Z in mm')
 
         self.IMag_canvas.draw()
         self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -2428,6 +2512,15 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         elif params.imageorientation == 2:
             self.IMag_ax.set_xlabel('Z in mm')
             self.IMag_ax.set_ylabel('X in mm')
+        elif params.imageorientation == 3:
+            self.IMag_ax.set_xlabel('Y in mm')
+            self.IMag_ax.set_ylabel('X in mm')
+        elif params.imageorientation == 4:
+            self.IMag_ax.set_xlabel('Z in mm')
+            self.IMag_ax.set_ylabel('Y in mm')
+        elif params.imageorientation == 5:
+            self.IMag_ax.set_xlabel('X in mm')
+            self.IMag_ax.set_ylabel('Z in mm')
 
         self.IMag_canvas.draw()
         self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -3700,8 +3793,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         elif params.GUImode == 4:
             print('WIP!')
         elif params.GUImode == 5:
-            if params.sequence == 4:
+            if params.sequence == 10:
                 print('WIP!')
+                os.makedirs(os.path.join('imagedata', params.dataTimestamp + '_Magnitude_Image_Stiching_3D_Data'))
+                for n in range(params.img_st_mag.shape[0]):
+                    np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stiching_3D_Data' + '/' + params.dataTimestamp + '_Magnitude_Image_Stiching_Data_' + str(n) + '.txt', params.img_st_mag[n, :, :])
+                    #np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stiching_Data.txt', params.img_st_mag)
+                print('Magnitude image data saved!')
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stiching_Data.txt', params.img_st_mag)
                 print('Magnitude image data saved!')
@@ -3839,13 +3937,10 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         self.setWindowTitle('Motor Tools')
         self.setGeometry(420, 40, 400, 370)
 
-        # setup_device()
-
         self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='to'))
         self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='by'))
         self.Motor_Apply_pushButton.clicked.connect(lambda: self.apply())
         self.Motor_Home_pushButton.clicked.connect(lambda: self.home())
-        self.motor.readyRead.connect(lambda: self.handle_read())
         
     def load_params(self):
         self.Motor_Limit_Negative_lineEdit.setText(str(params.motor_axis_limit_negative))
@@ -3856,6 +3951,9 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         self.Motor_MoveTo_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
         self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
         self.Motor_MoveTo_doubleSpinBox.setValue(params.motor_goto_position)
+        
+        self.Motor_Apply_pushButton.setEnabled(params.motor_available)
+        self.Motor_Home_pushButton.setEnabled(params.motor_available)
 
     def home(self):
         self.Motor_Home_pushButton.setEnabled(False)
@@ -3866,7 +3964,7 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
 
         time.sleep(0.1)
 
-        response_s = 'M118 R0: finished moving\n'
+        response_s = 'M118 R0: homing finished\n'
         self.motor.write(response_s.encode('utf-8'))
         self.motor.waitForBytesWritten()
 
@@ -3880,9 +3978,11 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
 
     def apply(self):
         print('Moving...')
-        self.Motor_Home_pushButton.setEnabled(False)
-        self.Motor_Apply_pushButton.setEnabled(False)
+        
         if params.motor_goto_position != params.motor_actual_position:
+            self.Motor_Home_pushButton.setEnabled(False)
+            self.Motor_Apply_pushButton.setEnabled(False)
+        
             apply_s = 'G0 ' + str(params.motor_goto_position) + '\n'
             self.motor.write(apply_s.encode('utf-8'))
             self.motor.waitForBytesWritten()
@@ -3899,16 +3999,6 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
             self.new_move_value(box='to')
             self.Motor_MoveBy_doubleSpinBox.setMaximum(params.motor_axis_limit_positive - params.motor_actual_position)
             self.Motor_MoveBy_doubleSpinBox.setMinimum(params.motor_axis_limit_negative - params.motor_actual_position)
-            
-
-    def handle_read(self):
-        if self.motor.canReadLine():
-            msg = bytes(self.motor.readLine()).decode('utf-8', errors='ignore')
-            # print('Motor Control - Message received: ' + msg)
-            if 'R0' in msg:
-                self.Motor_Home_pushButton.setEnabled(True)
-                self.Motor_Apply_pushButton.setEnabled(True)
-                print('Moved to ' + str(params.motor_actual_position) + 'mm')
 
     def new_move_value(self, box=None):
         self.Motor_MoveBy_doubleSpinBox.blockSignals(True)

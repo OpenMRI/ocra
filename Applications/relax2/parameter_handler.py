@@ -633,8 +633,14 @@ class Parameters:
             file.write('Image orientation: XY\n')
         elif self.imageorientation == 1:
             file.write('Image orientation: YZ\n')
-        else:
+        elif self.imageorientation == 2:
             file.write('Image orientation: ZX\n')
+        elif self.imageorientation == 3:
+            file.write('Image orientation: YX\n')
+        elif self.imageorientation == 4:
+            file.write('Image orientation: ZY\n')
+        else:
+            file.write('Image orientation: XZ\n')
         file.write('Image resolution index: ' + str(self.imageresolution) + '\n')
         file.write('Image resolution [pixel]: ' + str(self.nPE) + '\n')
         file.write('Frequency range [Hz]: ' + str(self.frequencyrange) + '\n')
@@ -787,9 +793,11 @@ class Parameters:
             'Shim values [mA]': list(self.grad),
             'Gradient orientation': list(self.Gradientorientation),
             'Image orientation': 'XY' if self.imageorientation == 0
-            else ('YZ'
-                  if self.imageorientation == 1
-                  else 'ZX'),
+            else ('YZ' if self.imageorientation == 1
+                  else ('ZX' if self.imageorientation == 2
+                      else ('YX' if self.imageorientation == 3
+                          else ('ZY' if self.imageorientation == 4
+                              else ('XZ'))))),
             'Image resolution index': self.imageresolution,
             'Image resolution [pixel]': self.nPE,
             'Frequency range [Hz]': self.frequencyrange,
