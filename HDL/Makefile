@@ -15,7 +15,9 @@ CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
         axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
 
-CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0 axi_trigger_core_v1_0 axis_red_pitaya_adc_v3_0 axi_config_registers_v1_0
+CORES = micro_sequencer_v1_1 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_1 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0 axi_trigger_core_v1_0 axis_red_pitaya_adc_v3_0 \
+axi_config_registers_v1_0 axis_dma_rx_v1_0 axi_sniffer_v1_0 axis_red_pitaya_adc_ddr_v1_0 red_pitaya_adc_spi_v1_0 axis_acq_trigger_v1_0 axis_red_pitaya_adc_2ch_v1_0 \
+axis_rx_trigger_v1_0 axi_lite_master_v1_0
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = xsct
@@ -68,7 +70,9 @@ $(DTREE_DIR):
 	git --git-dir $@/.git --work-tree $@ checkout $(DTREE_TAG)
 
 tmp/%.dtbo: tmp/$(BOARD)_$(NAME).tree/system.dts
-	dtc -O dtb -o tmp/$(BOARD)_$(NAME).dtbo -b 0 -@ tmp/$(BOARD)_$(NAME).tree/pl.dtsi
+	sed -i 's/#address-cells = <2>;/#address-cells = <1>;/g' tmp/$(BOARD)_$(NAME).tree/pl.dtsi
+	sed -i 's/#size-cells = <2>;/#size-cells = <1>;/g' tmp/$(BOARD)_$(NAME).tree/pl.dtsi
+	dtc -O dtb -o tmp/$(BOARD)_$(NAME).dtbo -b 0 -@ devicetree/$(BOARD)_$(NAME).dtsi
 
 tmp/cores_pavel/%: cores_pavel/%/core_config.tcl cores_pavel/%/*.v
 	mkdir -p $(@D)

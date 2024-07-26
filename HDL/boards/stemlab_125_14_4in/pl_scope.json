@@ -1,0 +1,9 @@
+{
+    "mode": "ADVANCED",
+    "has_tx": "FALSE",
+    "modulated": "FALSE",
+    "rx_channel_count": "4",
+    "fclk_source": "SATA",
+    "device_class_id": "0x00004002",
+    "device_version": "0x00000004"
+}

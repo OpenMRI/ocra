@@ -150,8 +150,8 @@ set_property SLEW FAST [get_ports {exp_p_tri_io[*]}]
 set_property SLEW FAST [get_ports {exp_n_tri_io[*]}]
 set_property DRIVE 8 [get_ports {exp_p_tri_io[*]}]
 set_property DRIVE 8 [get_ports {exp_n_tri_io[*]}]
-set_property PULLTYPE PULLUP [get_ports {exp_p_tri_io[*]}]
-set_property PULLTYPE PULLUP [get_ports {exp_n_tri_io[*]}]
+set_property PULLUP true [get_ports {exp_p_tri_io[*]}]
+set_property PULLUP true [get_ports {exp_n_tri_io[*]}]
 
 set_property PACKAGE_PIN G17 [get_ports {exp_p_tri_io[0]}]
 set_property PACKAGE_PIN G18 [get_ports {exp_n_tri_io[0]}]
@@ -186,24 +186,22 @@ set_property PACKAGE_PIN J16 [get_ports {exp_n_alex[2]}]
 set_property PACKAGE_PIN M15 [get_ports {exp_n_alex[3]}]
 
 ### SATA connector
-
-set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports daisy_p_o[*]]
-set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports daisy_n_o[*]]
-
-set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports daisy_p_i[*]]
-set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports daisy_n_i[*]]
-
-set_property PACKAGE_PIN T12 [get_ports {daisy_p_o[0]}]
-set_property PACKAGE_PIN U12 [get_ports {daisy_n_o[0]}]
-
-set_property PACKAGE_PIN U14 [get_ports {daisy_p_o[1]}]
-set_property PACKAGE_PIN U15 [get_ports {daisy_n_o[1]}]
-
-set_property PACKAGE_PIN P14 [get_ports {daisy_p_i[0]}]
-set_property PACKAGE_PIN R14 [get_ports {daisy_n_i[0]}]
-
-set_property PACKAGE_PIN N18 [get_ports {daisy_p_i[1]}]
-set_property PACKAGE_PIN P19 [get_ports {daisy_n_i[1]}]
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s1_a_p];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s1_a_n];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s1_b_p];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s1_b_n];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s2_a_p];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s2_a_n];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s2_b_p];
+set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports sata_s2_b_n];
+set_property PACKAGE_PIN T12 [get_ports sata_s1_a_p];
+set_property PACKAGE_PIN U12 [get_ports sata_s1_a_n];
+set_property PACKAGE_PIN U14 [get_ports sata_s1_b_p]; #Clock Capable Input (SRCC)
+set_property PACKAGE_PIN U15 [get_ports sata_s1_b_n]; #Clock Capable Input (SRCC)
+set_property PACKAGE_PIN P14 [get_ports sata_s2_a_p];
+set_property PACKAGE_PIN R14 [get_ports sata_s2_a_n];
+set_property PACKAGE_PIN N18 [get_ports sata_s2_b_p]; #Clock Capable Input (MRCC)
+set_property PACKAGE_PIN P19 [get_ports sata_s2_b_n]; #Clock Capable Input (MRCC)
 
 ### LED
 

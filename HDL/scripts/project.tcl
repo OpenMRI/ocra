@@ -103,6 +103,10 @@ proc get_slice_pin {pin_name from to {cell_name ""}} {
     return $cell_name/Dout
 }
 
+set non_ip_rtl_files [glob -nocomplain projects/$project_name/*.v projects/$project_name/*.sv projects/$project_name/rtl/*.sv projects/$project_name/rtl/*.v]
+if {[llength $non_ip_rtl_files] > 0} {
+  add_files -norecurse $non_ip_rtl_files
+}
 
 source projects/$project_name/block_design.tcl
 
@@ -134,6 +138,5 @@ set_property STRATEGY Flow_PerfOptimized_high [get_runs synth_1]
 # TW added this for pulsed_nmr_planB
 set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
 
-set_property STRATEGY Performance_NetDelay_high [get_runs impl_1]
-
+set_property strategy Performance_Explore [get_runs impl_1]
 close_project

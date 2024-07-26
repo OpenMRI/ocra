@@ -41,3 +41,9 @@ create_bd_port -dir IO -from 7 -to 0 exp_n_tri_io
 ### LED
 
 create_bd_port -dir O -from 7 -to 0 led_o
+
+### SATA Connector
+create_bd_port -dir I sata_s2_a_p
+create_bd_port -dir I sata_s2_a_n
+create_bd_port -dir I sata_s2_b_p
+create_bd_port -dir I sata_s2_b_n
