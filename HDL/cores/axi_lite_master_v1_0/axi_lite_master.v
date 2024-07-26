@@ -4,7 +4,8 @@
 module axi_lite_master #
 (
   parameter integer AXI_DATA_WIDTH = 32,
-  parameter integer AXI_ADDR_WIDTH = 32
+  parameter integer AXI_ADDR_WIDTH = 32,
+  parameter integer FIFO_DEPTH     = 16
 )
 (
   // System signals
@@ -37,13 +38,15 @@ module axi_lite_master #
   input  wire  [AXI_ADDR_WIDTH-1 : 0]      waddr_i,
   input  wire  [(AXI_DATA_WIDTH/8)-1 : 0]  wstrb_i,
   input  wire                              write_i,
-  output wire                              busy_o,
-  output wire                              write_failure_o
+  output wire                              full_o,
+  output wire                              write_failure_o,
+  output wire                              timeout_failure_o
 );
 
 axi_lite_master_core #(
     .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
-    .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH)
+    .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
+    .FIFO_DEPTH     (FIFO_DEPTH)
 ) inst (
   .aclk             (aclk             ),
   .aresetn          (aresetn          ),
@@ -72,8 +75,9 @@ axi_lite_master_core #(
   .waddr_i          (waddr_i          ),
   .wstrb_i          (wstrb_i          ),
   .write_i          (write_i          ),
-  .busy_o           (busy_o           ),
-  .write_failure_o  (write_failure_o  )
+  .full_o           (full_o           ),
+  .write_failure_o  (write_failure_o  ),
+  .timeout_failure_o(timeout_failure_o)
 );
 
 endmodule

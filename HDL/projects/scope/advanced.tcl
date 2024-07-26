@@ -532,8 +532,9 @@ cell open-mri:user:axi_lite_master:1.0 axi_lite_master_0 {
     waddr_i         micro_sequencer/axi_waddr
     write_i         micro_sequencer/axi_write
     wstrb_i         micro_sequencer/axi_wstrb
-    busy_o          micro_sequencer/axi_write_busy
+    full_o          micro_sequencer/axi_write_busy
     write_failure_o micro_sequencer/axi_write_failed
+    timeout_failure_o micro_sequencer/axi_write_timeout
 }
 connect_bd_intf_net [get_bd_intf_pins axi_lite_master_0/M_AXI] -boundary_type upper [get_bd_intf_pins ps_0_axi_periph/S01_AXI]
 connect_bd_net      [get_bd_pins ps_0_axi_periph/S01_ACLK]    [get_bd_pins $fclk]

@@ -62,6 +62,7 @@ module micro_sequencer_core #(
     output logic                                axi_write_o,
     input  logic                                axi_write_busy_i,
     input  logic                                axi_write_failed_i,
+    input  logic                                axi_write_timeout_i,
     input  logic  [C_S_AXI_ADDR_WIDTH-1:0]      int_lut_data_i,
     input  logic  [$clog2(ADDRESS_LUT_DEPTH)-1:0]int_lut_addr_i,
     input  logic                                int_lut_write_i,
@@ -116,9 +117,10 @@ module micro_sequencer_core #(
       InvalidState  = 'h2,      // Invalid/Unhandled State
       BufferNotReady= 'h3,      // Buffer Not Ready in time for safe buffer transition
       BufferDisabled= 'h4,      // No buffer transition as Double Buffering is disabled
-      AxiWriteBusy  = 'h5,      // Attempting to write before the completion of the previous transaction
-      AxiWriteFailed= 'h6,      // Axi Write Failure detected
-      AbortSequence = 'h7       // Abort Micro Sequencer
+      AxiWriteBusy  = 'h5,      // The queue is full, cannot accept more write requests
+      AxiWriteFailed= 'h6,      // Axi Write Failure detected from Invalid Response Code
+      AbortSequence = 'h7,      // Abort Micro Sequencer
+      AxiWriteTimeout = 'h8     // Axi Write Failure detected from Timeout
     } error_code_e;
 
     localparam NumOfRegister = 32;
@@ -396,9 +398,9 @@ module micro_sequencer_core #(
             current_buffer_d    = '0;
         end
         //AXI Write Failure
-        else if (start_i && axi_write_failed_i) begin
+        else if (start_i && (axi_write_failed_i || axi_write_timeout_i)) begin
             state_d             = Halted;
-            error_code_d        = AxiWriteFailed;
+            error_code_d        = axi_write_failed_i ? AxiWriteFailed : AxiWriteTimeout;
         end
         // Microsequencer State Machine
         else begin
@@ -612,6 +614,7 @@ module micro_sequencer_core #(
 
                 Halted: begin
                     state_d = Halted;
+                    pulse_d = 64'hFF00;
                 end // end Halted
                 
                 MemAccess: begin
