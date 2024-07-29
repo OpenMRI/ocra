@@ -33,28 +33,28 @@ PR 7, 20		// enable gradient offsets
 PR 3, 0
 GRADOFFSET 2 
 PR 7, 210
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 22
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 62
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 102
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 142
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 182
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 222 
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 262
 PR 7, 410
-PR 3, 1000	// Grad pulse length
+PR 3, 500	// Grad pulse length
 GRADOFFSET 302
 PR 7, 210
 PR 4, 204000

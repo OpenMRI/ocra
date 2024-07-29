@@ -205,6 +205,12 @@ class Parameters:
         self.motor_image_count = 10
         self.motor_settling_time = 1.0
         self.single_plot = 1
+        self.ernstanglecalc_T1 = 1700
+        self.ernstanglecalc_TR = 500
+        self.ernstanglecalc_EA = 90
+        self.imagecolormap = 'viridis'
+        self.imageminimum = 0.0
+        self.imagemaximum = 1.0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -349,7 +355,13 @@ class Parameters:
                          self.motor_movement_step, \
                          self.motor_image_count, \
                          self.motor_settling_time, \
-                         self.single_plot], file)
+                         self.single_plot, \
+                         self.ernstanglecalc_T1, \
+                         self.ernstanglecalc_TR, \
+                         self.ernstanglecalc_EA, \
+                         self.imagecolormap, \
+                         self.imageminimum, \
+                         self.imagemaximum], file)
        
         print('Parameters saved!')
         
@@ -538,7 +550,13 @@ class Parameters:
                 self.motor_movement_step, \
                 self.motor_image_count, \
                 self.motor_settling_time, \
-                self.single_plot = pickle.load(file)
+                self.single_plot, \
+                self.ernstanglecalc_T1, \
+                self.ernstanglecalc_TR, \
+                self.ernstanglecalc_EA, \
+                self.imagecolormap, \
+                self.imageminimum, \
+                self.imagemaximum = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -741,18 +759,24 @@ class Parameters:
             file.write('Header File Format: .json\n')
         file.write('Motor available: ' + str(self.motor_available) + '\n')
         file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
-        file.write('Motor axis limit negative: ' + str(self.motor_axis_limit_negative) + '\n')
-        file.write('Motor axis limit positive: ' + str(self.motor_axis_limit_positive) + '\n')
+        file.write('Motor axis limit negative [mm]: ' + str(self.motor_axis_limit_negative) + '\n')
+        file.write('Motor axis limit positive [mm]: ' + str(self.motor_axis_limit_positive) + '\n')
         file.write('Motor movement direction: ' + str(self.motor_movement_direction) + '\n')
-        file.write('Motor actual position: ' + str(self.motor_actual_position) + '\n')
-        file.write('Motor goto position: ' + str(self.motor_goto_position) + '\n')
-        file.write('Motor start position: ' + str(self.motor_start_position) + '\n')
-        file.write('Motor end position: ' + str(self.motor_end_position) + '\n')
-        file.write('Motor total image length: ' + str(self.motor_total_image_length) + '\n')
-        file.write('Motor movement step: ' + str(self.motor_movement_step) + '\n')
+        file.write('Motor actual position [mm]: ' + str(self.motor_actual_position) + '\n')
+        file.write('Motor goto position [mm]: ' + str(self.motor_goto_position) + '\n')
+        file.write('Motor start position [mm]: ' + str(self.motor_start_position) + '\n')
+        file.write('Motor end position [mm]: ' + str(self.motor_end_position) + '\n')
+        file.write('Motor total image length [mm]: ' + str(self.motor_total_image_length) + '\n')
+        file.write('Motor movement step [mm]: ' + str(self.motor_movement_step) + '\n')
         file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
         file.write('Motor settling time: ' + str(self.motor_settling_time) + '\n')
-        file.write('Single plot: ' + str(self.single_plot) + '\n')
+        # file.write('Single plot: ' + str(self.single_plot) + '\n')
+        # file.write('Ernst Angle Calculator T1 [ms]: ' + str(self.ernstanglecalc_T1) + '\n')
+        # file.write('Ernst Angle Calculator TR [ms]: ' + str(self.ernstanglecalc_TR) + '\n')
+        # file.write('Ernst Angle Calculator Ernst Angle [°]: ' + str(self.ernstanglecalc_EA) + '\n')
+        # file.write('Image Colormap: ' + str(self.imagecolormap) + '\n')
+        # file.write('Image Minimum: ' + str(self.imageminimum) + '\n')
+        # file.write('Image Maximum: ' + str(self.imagemaximum) + '\n')
         
         file.close()
 
@@ -849,15 +873,15 @@ class Parameters:
             else ('.json'),
             'Motor available': self.motor_available,
             'Motor COM Port': self.motor_port,
-            'Motor axis limit negative': self.motor_axis_limit_negative,
-            'Motor axis limit positive': self.motor_axis_limit_positive,
+            'Motor axis limit negative [mm]': self.motor_axis_limit_negative,
+            'Motor axis limit positive [mm]': self.motor_axis_limit_positive,
             'Motor movement direction': self.motor_movement_direction,
-            'Motor actual position': self.motor_actual_position,
-            'Motor goto position': self.motor_goto_position,
-            'Motor start position': self.motor_start_position,
-            'Motor end position': self.motor_end_position,
-            'Motor total image length':self.motor_total_image_length,
-            'Motor movement step': self.motor_movement_step,
+            'Motor actual position [mm]': self.motor_actual_position,
+            'Motor goto position [mm]': self.motor_goto_position,
+            'Motor start position [mm]': self.motor_start_position,
+            'Motor end position [mm]': self.motor_end_position,
+            'Motor total image length [mm]':self.motor_total_image_length,
+            'Motor movement step [mm]': self.motor_movement_step,
             'Motor image count': self.motor_image_count,
             'Motor settling time': self.motor_settling_time
         }

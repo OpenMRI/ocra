@@ -598,8 +598,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.fig_canvas != None:
-                            self.dialog_plot.fig_canvas.hide()
+                        if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -618,8 +617,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if params.single_plot == 1:
                         if self.dialog_plot != None:
                             self.dialog_plot.hide()
-                            if self.dialog_plot.all_canvas != None:    
-                                self.dialog_plot.all_canvas.hide()
+                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                             self.dialog_plot = PlotWindow(self)
                             self.dialog_plot.show()
                         else:
@@ -644,20 +642,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.IComb_canvas != None:
-                            self.dialog_plot.IComb_canvas.hide()
-                        if self.dialog_plot.IDiff_canvas != None:
-                            self.dialog_plot.IDiff_canvas.hide()
-                        if self.dialog_plot.IMag_canvas != None:
-                            self.dialog_plot.IMag_canvas.hide()
-                        if self.dialog_plot.IPha_canvas != None:    
-                            self.dialog_plot.IPha_canvas.hide()
-                        if self.dialog_plot.kMag_canvas != None:    
-                            self.dialog_plot.kMag_canvas.hide()
-                        if self.dialog_plot.kPha_canvas != None:    
-                            self.dialog_plot.kPha_canvas.hide()
-                        if self.dialog_plot.all_canvas != None:    
-                            self.dialog_plot.all_canvas.hide()
+                        if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
+                        if self.dialog_plot.IDiff_canvas != None: self.dialog_plot.IDiff_canvas.hide()
+                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -677,16 +668,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.IMag_canvas != None:
-                            self.dialog_plot.IMag_canvas.hide()
-                        if self.dialog_plot.IPha_canvas != None:    
-                            self.dialog_plot.IPha_canvas.hide()
-                        if self.dialog_plot.kMag_canvas != None:    
-                            self.dialog_plot.kMag_canvas.hide()
-                        if self.dialog_plot.kPha_canvas != None:    
-                            self.dialog_plot.kPha_canvas.hide()
-                        if self.dialog_plot.all_canvas != None:    
-                            self.dialog_plot.all_canvas.hide()
+                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -708,16 +694,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.IMag_canvas != None:
-                            self.dialog_plot.IMag_canvas.hide()
-                        if self.dialog_plot.IPha_canvas != None:    
-                            self.dialog_plot.IPha_canvas.hide()
-                        if self.dialog_plot.kMag_canvas != None:    
-                            self.dialog_plot.kMag_canvas.hide()
-                        if self.dialog_plot.kPha_canvas != None:    
-                            self.dialog_plot.kPha_canvas.hide()
-                        if self.dialog_plot.all_canvas != None:    
-                            self.dialog_plot.all_canvas.hide()
+                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
+                        if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -733,10 +714,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.fig_canvas1 != None:
-                            self.dialog_plot.fig_canvas1.hide()
-                        if self.dialog_plot.fig_canvas2 != None:
-                            self.dialog_plot.fig_canvas2.hide()
+                        if self.dialog_plot.fig_canvas1 != None: self.dialog_plot.fig_canvas1.hide()
+                        if self.dialog_plot.fig_canvas2 != None: self.dialog_plot.fig_canvas2.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -754,8 +733,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if params.single_plot == 1:
                         if self.dialog_plot != None:
                             self.dialog_plot.hide()
-                            if self.dialog_plot.IComb_canvas != None:
-                                self.dialog_plot.IComb_canvas.hide()
+                            if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
                             self.dialog_plot = PlotWindow(self)
                             self.dialog_plot.show()
                         else:
@@ -775,8 +753,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.fig_canvas != None:
-                            self.dialog_plot.fig_canvas.hide()
+                        if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -794,8 +771,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if params.single_plot == 1:
                         if self.dialog_plot != None:
                             self.dialog_plot.hide()
-                            if self.dialog_plot.IComb_canvas != None:
-                                self.dialog_plot.IComb_canvas.hide()
+                            if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
                             self.dialog_plot = PlotWindow(self)
                             self.dialog_plot.show()
                         else:
@@ -840,10 +816,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if params.single_plot == 1:
                 if self.dialog_plot != None:
                     self.dialog_plot.hide()
-                    if self.dialog_plot.fig_canvas != None:
-                        self.dialog_plot.fig_canvas.hide()
-                    if self.dialog_plot.IMag_canvas != None:
-                        self.dialog_plot.IMag_canvas.hide()
+                    if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
+                    if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
                 else:
@@ -857,8 +831,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if params.single_plot == 1:
                 if self.dialog_plot != None:
                     self.dialog_plot.hide()
-                    if self.dialog_plot.fig_canvas != None:
-                        self.dialog_plot.fig_canvas.hide()
+                    if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
                 else:
@@ -882,12 +855,9 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.IMag_canvas != None:
-                            self.dialog_plot.IMag_canvas.hide()
-                        if self.dialog_plot.IPha_canvas != None:    
-                            self.dialog_plot.IPha_canvas.hide()
-                        if self.dialog_plot.all_canvas != None:    
-                            self.dialog_plot.all_canvas.hide()
+                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
+                        if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
+                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -910,8 +880,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if params.single_plot == 1:
                     if self.dialog_plot != None:
                         self.dialog_plot.hide()
-                        if self.dialog_plot.all_canvas != None:    
-                            self.dialog_plot.all_canvas.hide()
+                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                     else:
@@ -1403,35 +1372,15 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.TR = self.TR_spinBox.value()
         params.TS = self.Samplingtime_spinBox.value()
 
-        if self.Image_Resolution_comboBox.currentIndex() == 0:
-            params.imageresolution = 0
-        elif self.Image_Resolution_comboBox.currentIndex() == 1:
-            params.imageresolution = 1
-        elif self.Image_Resolution_comboBox.currentIndex() == 2:
-            params.imageresolution = 2
-        elif self.Image_Resolution_comboBox.currentIndex() == 3:
-            params.imageresolution = 3
-        elif self.Image_Resolution_comboBox.currentIndex() == 4:
-            params.imageresolution = 4
-        elif self.Image_Resolution_comboBox.currentIndex() == 5:
-            params.imageresolution = 5
-        elif self.Image_Resolution_comboBox.currentIndex() == 6:
-            params.imageresolution = 6
+        params.imageresolution = self.Image_Resolution_comboBox.currentIndex()
 
-        if params.imageresolution == 0:
-            params.nPE = 8
-        elif params.imageresolution == 1:
-            params.nPE = 16
-        elif params.imageresolution == 2:
-            params.nPE = 32
-        elif params.imageresolution == 3:
-            params.nPE = 64
-        elif params.imageresolution == 4:
-            params.nPE = 128
-        elif params.imageresolution == 5:
-            params.nPE = 256
-        elif params.imageresolution == 6:
-            params.nPE = 512
+        if params.imageresolution == 0: params.nPE = 8
+        elif params.imageresolution == 1: params.nPE = 16
+        elif params.imageresolution == 2: params.nPE = 32
+        elif params.imageresolution == 3: params.nPE = 64
+        elif params.imageresolution == 4: params.nPE = 128
+        elif params.imageresolution == 5: params.nPE = 256
+        elif params.imageresolution == 6: params.nPE = 512
 
         params.TIstart = self.TI_Start_doubleSpinBox.value()
         params.TIstop = self.TI_Stop_doubleSpinBox.value()
@@ -1730,6 +1679,16 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         self.Auto_Data_Process_radioButton.toggled.connect(self.update_params)
         self.Single_Plot_radioButton.toggled.connect(self.update_params)
+        
+        self.Image_Colormap_comboBox.clear()
+        self.Image_Colormap_comboBox.addItems(['viridis', 'jet', 'gray', 'bone', 'inferno', 'plasma'])
+        if params.imagecolormap == 'viridis': self.Image_Colormap_comboBox.setCurrentIndex(0)
+        elif params.imagecolormap == 'jet': self.Image_Colormap_comboBox.setCurrentIndex(1)
+        elif params.imagecolormap == 'gray': self.Image_Colormap_comboBox.setCurrentIndex(2)
+        elif params.imagecolormap == 'bone': self.Image_Colormap_comboBox.setCurrentIndex(3)
+        elif params.imagecolormap == 'inferno': self.Image_Colormap_comboBox.setCurrentIndex(4)
+        elif params.imagecolormap == 'plasma': self.Image_Colormap_comboBox.setCurrentIndex(5)
+        self.Image_Colormap_comboBox.currentIndexChanged.connect(self.update_params)
 
     def frequency_center(self):
         params.frequency = params.centerfrequency
@@ -1780,6 +1739,13 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         if params.autodataprocess == 1: self.Auto_Data_Process_radioButton.setChecked(True)
         if params.single_plot == 1: self.Single_Plot_radioButton.setChecked(True)
+        
+        if params.imagecolormap == 'viridis': self.Image_Colormap_comboBox.setCurrentIndex(0)
+        elif params.imagecolormap == 'jet': self.Image_Colormap_comboBox.setCurrentIndex(1)
+        elif params.imagecolormap == 'gray': self.Image_Colormap_comboBox.setCurrentIndex(2)
+        elif params.imagecolormap == 'bone': self.Image_Colormap_comboBox.setCurrentIndex(3)
+        elif params.imagecolormap == 'inferno': self.Image_Colormap_comboBox.setCurrentIndex(4)
+        elif params.imagecolormap == 'plasma': self.Image_Colormap_comboBox.setCurrentIndex(5)
 
     def update_params(self):
         params.frequency = self.Frequency_doubleSpinBox.value()
@@ -1865,6 +1831,13 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         if self.Single_Plot_radioButton.isChecked(): params.single_plot = 1
         else: params.single_plot = 0
+        
+        if self.Image_Colormap_comboBox.currentIndex() == 0: params.imagecolormap = 'viridis'
+        elif self.Image_Colormap_comboBox.currentIndex() == 1: params.imagecolormap = 'jet'
+        elif self.Image_Colormap_comboBox.currentIndex() == 2: params.imagecolormap = 'gray'
+        elif self.Image_Colormap_comboBox.currentIndex() == 3: params.imagecolormap = 'bone'
+        elif self.Image_Colormap_comboBox.currentIndex() == 4: params.imagecolormap = 'inferno'
+        elif self.Image_Colormap_comboBox.currentIndex() == 5: params.imagecolormap = 'plasma' 
 
         params.saveFileParameter()
 
@@ -1945,7 +1918,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
     def __init__(self, parent=None):
         super(ToolsWindow, self).__init__(parent)
         self.setupUi(self)
-
+        
+        self.fig_canvas = None
+        self.IMag_canvas = None
+        self.IPha_canvas = None
+        self.FMB0_canvas = None
+        self.FMB1_canvas = None
+        
         self.load_params()
 
         self.ui = loadUi('ui/tools.ui')
@@ -2012,6 +1991,10 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.GradientScaling_YMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
         self.GradientScaling_ZMeasured_doubleSpinBox.setKeyboardTracking(False)
         self.GradientScaling_ZMeasured_doubleSpinBox.valueChanged.connect(self.update_gradsenstoolvaluesauto)
+        
+        self.ErnstAngleCalculator_T1_spinBox.valueChanged.connect(self.update_ernstanglecalc)
+        self.ErnstAngleCalculator_TR_spinBox.valueChanged.connect(self.update_ernstanglecalc)
+        self.update_ernstanglecalc()
 
     def load_params(self):
         self.AC_Start_Frequency_doubleSpinBox.setValue(params.ACstart)
@@ -2041,6 +2024,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Gradient_XScaling_lineEdit.setText(str(round(params.gradsenstool[0], 1)))
         self.Gradient_YScaling_lineEdit.setText(str(round(params.gradsenstool[1], 1)))
         self.Gradient_ZScaling_lineEdit.setText(str(round(params.gradsenstool[2], 1)))
+        
+        self.ErnstAngleCalculator_T1_spinBox.setValue(params.ernstanglecalc_T1)
+        self.ErnstAngleCalculator_TR_spinBox.setValue(params.ernstanglecalc_TR)
 
     def update_params(self):
         params.ACstart = self.AC_Start_Frequency_doubleSpinBox.value()
@@ -2090,6 +2076,20 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Gradient_ZScaling_lineEdit.setText(str(round(params.gradsenstool[2], 1)))
 
         params.saveFileParameter()
+        
+    def update_ernstanglecalc(self):
+        params.ernstanglecalc_T1 = self.ErnstAngleCalculator_T1_spinBox.value()
+        params.ernstanglecalc_TR = self.ErnstAngleCalculator_TR_spinBox.value()
+        print(params.ernstanglecalc_TR)
+        print(params.ernstanglecalc_T1)
+        
+        params.ernstanglecalc_EA = math.degrees(np.arccos(math.exp(-(params.ernstanglecalc_TR/params.ernstanglecalc_T1))))
+        print(params.ernstanglecalc_EA)
+        params.ernstanglecalc_EA = round(math.degrees(np.arccos(math.exp(-(params.ernstanglecalc_TR/params.ernstanglecalc_T1)))))
+        print(params.ernstanglecalc_EA)
+        self.ErnstAngleCalculator_ErnstAngle_lineEdit.setText(str(params.ernstanglecalc_EA))
+        
+        params.saveFileParameter()
 
     def Autocentertool(self):
         self.Autocenter_pushButton.setEnabled(False)
@@ -2099,6 +2099,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.flippulselength = params.RFpulselength
 
         proc.Autocentertool()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.fig = Figure()
         self.fig.set_facecolor('None')
@@ -2138,6 +2145,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.flippulselength = params.RFpulselength
 
         proc.Flipangletool()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.fig = Figure()
         self.fig.set_facecolor('None')
@@ -2179,6 +2193,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         if params.ToolShimChannel != [0, 0, 0, 0]:
 
             proc.Shimtool()
+            
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -2239,10 +2260,17 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_B0' + '\033[0m')
 
         proc.FieldMapB0()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         # self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None')
         # self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-        # self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        # self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
         # self.IMag_ax.set_title('Magnitude Image')
         # self.IMag_canvas.draw()
         # self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -2289,10 +2317,17 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_B0_Slice' + '\033[0m')
 
         proc.FieldMapB0Slice()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         # self.IMag_fig = Figure(); self.IMag_canvas = FigureCanvas(self.IMag_fig); self.IMag_fig.set_facecolor('None')
         # self.IMag_ax = self.IMag_fig.add_subplot(111); self.IMag_ax.grid(False); self.IMag_ax.axis(frameon=False)
-        # self.IMag_ax.imshow(params.img_mag, cmap='viridis'); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
+        # self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap); self.IMag_ax.axis('off'); self.IMag_ax.set_aspect(1.0/self.IMag_ax.get_data_ratio())
         # self.IMag_ax.set_title('Magnitude Image')
         # self.IMag_canvas.draw()
         # self.IMag_canvas.setWindowTitle('Tool Plot - ' + params.datapath + '.txt')
@@ -2339,6 +2374,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_B1' + '\033[0m')
 
         proc.FieldMapB1()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.IMag_fig = Figure();
         self.IMag_canvas = FigureCanvas(self.IMag_fig);
@@ -2346,9 +2388,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_ax = self.IMag_fig.add_subplot(111);
         self.IMag_ax.grid(False);  # self.IMag_ax.axis(frameon=False)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap)
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap)
         self.IMag_ax.axis('off');
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
@@ -2383,6 +2425,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_B1_Slice' + '\033[0m')
 
         proc.FieldMapB1Slice()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.IMag_fig = Figure();
         self.IMag_canvas = FigureCanvas(self.IMag_fig);
@@ -2390,9 +2439,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.IMag_ax = self.IMag_fig.add_subplot(111);
         self.IMag_ax.grid(False);  # self.IMag_ax.axis(frameon=False)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap)
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+            self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap)
         self.IMag_ax.axis('off');
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
@@ -2427,15 +2476,22 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_Gradient' + '\033[0m')
 
         proc.FieldMapGradient()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
         self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
         self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)), math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
@@ -2482,15 +2538,22 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         print('\033[1m' + 'WIP Field_Map_Gradient_Slice' + '\033[0m')
 
         proc.FieldMapGradientSlice()
+        
+        if params.single_plot == 1:
+            if self.fig_canvas != None: self.fig_canvas.hide()
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
         self.IMag_fig.set_facecolor('None')
         self.IMag_ax = self.IMag_fig.add_subplot(111)
         if params.imagefilter == 1:
-            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         else:
-            self.IMag_ax.imshow(params.img_mag, cmap='viridis', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+            self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
         self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
         self.IMag_ax.set_title('Magnitude Image')
         self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)), math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
@@ -2955,6 +3018,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             elif params.sequence == 14 or params.sequence == 31:
                 self.imaging_diff_plot_init()
             else:
+                params.imageminimum = np.min(params.img_mag)
+                self.Image_Minimum_doubleSpinBox.setValue(params.imageminimum)
+                params.imagemaximum = np.max(params.img_mag)
+                self.Image_Maximum_doubleSpinBox.setValue(params.imagemaximum)
                 self.imaging_plot_init()
                 self.Animate_pushButton.setEnabled(True)
 
@@ -2998,6 +3065,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.Animation_Step_spinBox.setKeyboardTracking(False)
         self.Animation_Step_spinBox.valueChanged.connect(self.update_params)
         self.Animate_pushButton.clicked.connect(lambda: self.animate())
+        
+        self.Image_Minimum_doubleSpinBox.setKeyboardTracking(False)
+        self.Image_Minimum_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.Image_Maximum_doubleSpinBox.setKeyboardTracking(False)
+        self.Image_Maximum_doubleSpinBox.valueChanged.connect(self.update_params)
 
     def load_params(self):
         if params.GUImode == 0:
@@ -3008,6 +3080,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.Peak_lineEdit.setText(str(params.peakvalue))
             self.Noise_lineEdit.setText(str(params.noise))
             self.SNR_lineEdit.setText(str(params.SNR))
+            self.Image_Minimum_doubleSpinBox.setEnabled(False)
+            self.Image_Minimum_doubleSpinBox.setValue(0.0)
+            self.Image_Maximum_doubleSpinBox.setEnabled(False)
+            self.Image_Maximum_doubleSpinBox.setValue(0.0)
             self.Inhomogeneity_lineEdit.setText(str(params.inhomogeneity))
             self.Animation_Step_spinBox.setValue(params.animationstep)
         elif params.GUImode == 1:
@@ -3016,6 +3092,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.Peak_lineEdit.setText(str(params.peakvalue))
             self.Noise_lineEdit.setText(str(params.noise))
             self.SNR_lineEdit.setText(str(params.SNR))
+            self.Image_Minimum_doubleSpinBox.setEnabled(True)
+            self.Image_Minimum_doubleSpinBox.setValue(params.imageminimum)
+            self.Image_Maximum_doubleSpinBox.setEnabled(True)
+            self.Image_Maximum_doubleSpinBox.setValue(params.imagemaximum)
             self.Animation_Step_spinBox.setValue(params.animationstep)
         elif params.GUImode == 5:
             self.Frequncyaxisrange_spinBox.setEnabled(False)
@@ -3023,10 +3103,16 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.Peak_lineEdit.setText(str(params.peakvalue))
             self.Noise_lineEdit.setText(str(params.noise))
             self.SNR_lineEdit.setText(str(params.SNR))
+            self.Image_Minimum_doubleSpinBox.setEnabled(False)
+            self.Image_Minimum_doubleSpinBox.setValue(0.0)
+            self.Image_Maximum_doubleSpinBox.setEnabled(False)
+            self.Image_Maximum_doubleSpinBox.setValue(0.0)
             self.Animation_Step_spinBox.setValue(params.animationstep)
 
     def update_params(self):
         params.frequencyplotrange = self.Frequncyaxisrange_spinBox.value()
+        params.imageminimum = self.Image_Minimum_doubleSpinBox.value()
+        params.imagemaximum = self.Image_Maximum_doubleSpinBox.value()
         params.animationstep = self.Animation_Step_spinBox.value()
 
         params.saveFileParameter()
@@ -3034,6 +3120,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         if params.GUImode == 0:
             self.fig_canvas.hide()
             self.spectrum_plot_init()
+        elif params.GUImode == 1 and params.sequence != 34 and params.sequence != 35 and params.sequence != 36 and params.sequence != 14 and params.sequence != 31:
+            if self.IMag_canvas != None: self.IMag_canvas.hide()
+            if self.IPha_canvas != None: self.IPha_canvas.hide()
+            if self.kMag_canvas != None: self.kMag_canvas.hide()
+            if self.kPha_canvas != None: self.kPha_canvas.hide()
+            if self.all_canvas != None: self.all_canvas.hide()
+            self.imaging_plot_init()
         elif params.GUImode == 4:
             self.fig_canvas.hide()
             self.projection_plot_init()
@@ -3201,9 +3294,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_ax = self.IMag_fig.add_subplot(111);
             self.IMag_ax.grid(False);  # self.IMag_ax.axis(frameon=False)
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], interpolation='gaussian', cmap=params.imagecolormap)
             else:
-                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], cmap='viridis')
+                self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], cmap=params.imagecolormap)
             self.IMag_ax.axis('off');
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
@@ -3356,11 +3449,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax.grid(False);  # self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.kPha_fig.add_subplot(111);
             self.kPha_ax.grid(False);  # self.kPha_ax.axis(frameon=False)
-
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum)
             else:
-                self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum)
             self.IMag_ax.axis('off');
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
@@ -3417,11 +3509,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kMag_ax.grid(False);  # self.kMag_ax.axis(frameon=False)
             self.kPha_ax = self.all_fig.add_subplot(gs[1, 1]);
             self.kPha_ax.grid(False);  # self.kPha_ax.axis(frameon=False)
-
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum)
             else:
-                self.IMag_ax.imshow(params.img_mag, cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum)
             self.IMag_ax.axis('off');
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
@@ -3464,9 +3555,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IPha_ax.grid(False);  # self.IPha_ax.axis(frameon=False)
 
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap=params.imagecolormap)
             else:
-                self.IMag_ax.imshow(params.img_st_mag[:, :], cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[:, :], cmap=params.imagecolormap)
             self.IMag_ax.axis('off');
             self.IMag_ax.axis('equal')
             self.IMag_ax.set_title('Magnitude Image')
@@ -3497,9 +3588,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IPha_ax.grid(False);  # self.IPha_ax.axis(frameon=False)
 
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap=params.imagecolormap)
             else:
-                self.IMag_ax.imshow(params.img_st_mag[:, :], cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[:, :], cmap=params.imagecolormap)
             self.IMag_ax.axis('off');
             self.IMag_ax.axis('equal')
             self.IMag_ax.set_title('Magnitude Image')
@@ -3530,9 +3621,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kPha_ax.grid(False);  # self.kPha_ax.axis(frameon=False)
 
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_mag[n, :, :], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap)
             else:
-                self.IMag_ax.imshow(params.img_mag[n, :, :], cmap='viridis')
+                self.IMag_ax.imshow(params.img_mag[n, :, :], cmap=params.imagecolormap)
             self.IMag_ax.axis('off');
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             # self.IMag_ax.set_title('Magnitude Image')
@@ -3571,9 +3662,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IPha_ax = self.all_fig.add_subplot(gs[n, 1]);
             self.IPha_ax.grid(False);  # self.IPha_ax.axis(frameon=False)
             if params.imagefilter == 1:
-                self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap)
             else:
-                self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap='viridis')
+                self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap)
             self.IMag_ax.axis('off');
             self.IMag_ax.axis('equal')
             if n == 0: self.IMag_ax.set_title('Magnitude Image')
@@ -4108,10 +4199,10 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
 
 
 def run():
-    print('\n________________________________________________________\n', \
-          'Relax 2.0. \n', \
-          'Programmed by Marcus Prier, Magdeburg, 2024\n', \
-          '________________________________________________________\n')
+    print('________________________________________________________')
+    print('Relax 2.0')
+    print('Programmed by Marcus Prier, Magdeburg, 2024')
+    print('________________________________________________________\n')
 
     app = QApplication(sys.argv)
     gui = MainWindow()
