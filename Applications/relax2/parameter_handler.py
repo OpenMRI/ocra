@@ -1,10 +1,7 @@
 ################################################################################
 #
-#   Author:     Marcus Prier, David Schote
-#   Date:       4/12/2021
-#
-#   Main Application:
-#   Relax 2.0 Main Application
+#Author: Marcus Prier
+#Date: 2024
 #
 ################################################################################
 
@@ -39,6 +36,7 @@ class Parameters:
         self.datapath = ''
         self.frequency = 11.3
         self.autorecenter = 1
+        self.autodataprocess = 1
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
         self.phaseoffset = 0
@@ -170,7 +168,7 @@ class Parameters:
         self.autograd = 1
         self.FOV = 12.0
         self.slicethickness = 5.0
-        self.gradsens = [33.5, 31.9, 32.5]
+        self.gradsens = [35.0, 32.0, 36.0]
         self.gradnominal = [10.0, 10.0, 10.0]
         self.gradmeasured = [10.0, 10.0, 10.0]
         self.gradsenstool = [33.5, 31.9, 32.5]
@@ -206,6 +204,13 @@ class Parameters:
         self.motor_movement_step = 10
         self.motor_image_count = 10
         self.motor_settling_time = 1.0
+        self.single_plot = 1
+        self.ernstanglecalc_T1 = 1700
+        self.ernstanglecalc_TR = 500
+        self.ernstanglecalc_EA = 90
+        self.imagecolormap = 'viridis'
+        self.imageminimum = 0.0
+        self.imagemaximum = 1.0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -218,6 +223,7 @@ class Parameters:
                          self.datapath, \
                          self.frequency, \
                          self.autorecenter, \
+                         self.autodataprocess, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
                          self.phaseoffset, \
@@ -348,7 +354,14 @@ class Parameters:
                          self.motor_total_image_length, \
                          self.motor_movement_step, \
                          self.motor_image_count, \
-                         self.motor_settling_time], file)
+                         self.motor_settling_time, \
+                         self.single_plot, \
+                         self.ernstanglecalc_T1, \
+                         self.ernstanglecalc_TR, \
+                         self.ernstanglecalc_EA, \
+                         self.imagecolormap, \
+                         self.imageminimum, \
+                         self.imagemaximum], file)
        
         print('Parameters saved!')
         
@@ -405,6 +418,7 @@ class Parameters:
                 self.datapath, \
                 self.frequency, \
                 self.autorecenter, \
+                self.autodataprocess, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
                 self.phaseoffset, \
@@ -535,7 +549,14 @@ class Parameters:
                 self.motor_total_image_length, \
                 self.motor_movement_step, \
                 self.motor_image_count, \
-                self.motor_settling_time= pickle.load(file)
+                self.motor_settling_time, \
+                self.single_plot, \
+                self.ernstanglecalc_T1, \
+                self.ernstanglecalc_TR, \
+                self.ernstanglecalc_EA, \
+                self.imagecolormap, \
+                self.imageminimum, \
+                self.imagemaximum = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -588,22 +609,6 @@ class Parameters:
         except:
             print('Data could not have been restored, setting default.')
             self.var_init()
-
-    def dispVars(self):
-        print('Parameters to save:')
-        print('GUImode:\t\t\t', self.GUImode)
-        print('Sequence:\t\t\t', self.sequence)
-        print('Frequency:\t\t\t', self.frequency, 'MHz')
-        print('RF Pulselength:\t\t\t', self.RFpulselength, 'µs')
-        print('RF Attenuation:\t\t\t', self.RFattenuation, 'dB')
-        print('Sampling Time TS:\t\t', self.TS, 'ms')
-        print('Readout BW scaler:\t\t', self.ROBWscaler)
-        print('Echo Time TE:\t\t\t',self.TE, 'ms')
-        print('Inversion Time TI:\t\t',self.TI, 'ms')
-        print('Repetition Time TR:\t\t', self.TR, 'ms')
-        print('Gradients (x, y, z, z2):\t', self.grad, 'mA')
-        print('Gradient Orientation:\t\t', self.Gradientorientation)
-        print('Image Resolution:\t\t', self.nPE)
         
     def save_header_file_txt(self):
         file = open(params.datapath + '_Header.txt','w')
@@ -617,6 +622,7 @@ class Parameters:
         file.write('Data path: ' + str(self.datapath) + '\n')
         file.write('Frequency [MHz]: ' + str(self.frequency) + '\n')
         file.write('Auto recenter: ' + str(self.autorecenter) + '\n')
+        # file.write('Auto data process: ' + str(self.autodataprocess) + '\n')
         if self.frequencyoffsetsign == 1:
             file.write('RF frequency offset [Hz]: -' + str(self.frequencyoffset) + '\n')
         else:
@@ -645,8 +651,14 @@ class Parameters:
             file.write('Image orientation: XY\n')
         elif self.imageorientation == 1:
             file.write('Image orientation: YZ\n')
-        else:
+        elif self.imageorientation == 2:
             file.write('Image orientation: ZX\n')
+        elif self.imageorientation == 3:
+            file.write('Image orientation: YX\n')
+        elif self.imageorientation == 4:
+            file.write('Image orientation: ZY\n')
+        else:
+            file.write('Image orientation: XZ\n')
         file.write('Image resolution index: ' + str(self.imageresolution) + '\n')
         file.write('Image resolution [pixel]: ' + str(self.nPE) + '\n')
         file.write('Frequency range [Hz]: ' + str(self.frequencyrange) + '\n')
@@ -747,17 +759,24 @@ class Parameters:
             file.write('Header File Format: .json\n')
         file.write('Motor available: ' + str(self.motor_available) + '\n')
         file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
-        file.write('Motor axis limit negative: ' + str(self.motor_axis_limit_negative) + '\n')
-        file.write('Motor axis limit positive: ' + str(self.motor_axis_limit_positive) + '\n')
+        file.write('Motor axis limit negative [mm]: ' + str(self.motor_axis_limit_negative) + '\n')
+        file.write('Motor axis limit positive [mm]: ' + str(self.motor_axis_limit_positive) + '\n')
         file.write('Motor movement direction: ' + str(self.motor_movement_direction) + '\n')
-        file.write('Motor actual position: ' + str(self.motor_actual_position) + '\n')
-        file.write('Motor goto position: ' + str(self.motor_goto_position) + '\n')
-        file.write('Motor start position: ' + str(self.motor_start_position) + '\n')
-        file.write('Motor end position: ' + str(self.motor_end_position) + '\n')
-        file.write('Motor total image length: ' + str(self.motor_total_image_length) + '\n')
-        file.write('Motor movement step: ' + str(self.motor_movement_step) + '\n')
+        file.write('Motor actual position [mm]: ' + str(self.motor_actual_position) + '\n')
+        file.write('Motor goto position [mm]: ' + str(self.motor_goto_position) + '\n')
+        file.write('Motor start position [mm]: ' + str(self.motor_start_position) + '\n')
+        file.write('Motor end position [mm]: ' + str(self.motor_end_position) + '\n')
+        file.write('Motor total image length [mm]: ' + str(self.motor_total_image_length) + '\n')
+        file.write('Motor movement step [mm]: ' + str(self.motor_movement_step) + '\n')
         file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
         file.write('Motor settling time: ' + str(self.motor_settling_time) + '\n')
+        # file.write('Single plot: ' + str(self.single_plot) + '\n')
+        # file.write('Ernst Angle Calculator T1 [ms]: ' + str(self.ernstanglecalc_T1) + '\n')
+        # file.write('Ernst Angle Calculator TR [ms]: ' + str(self.ernstanglecalc_TR) + '\n')
+        # file.write('Ernst Angle Calculator Ernst Angle [°]: ' + str(self.ernstanglecalc_EA) + '\n')
+        # file.write('Image Colormap: ' + str(self.imagecolormap) + '\n')
+        # file.write('Image Minimum: ' + str(self.imageminimum) + '\n')
+        # file.write('Image Maximum: ' + str(self.imagemaximum) + '\n')
         
         file.close()
 
@@ -773,6 +792,7 @@ class Parameters:
             'Data path': self.datapath,
             'Frequency [MHz]': self.frequency,
             'Auto recenter': self.autorecenter,
+            'Auto data process': self.autodataprocess,
             'RF frequency offset [Hz]':
                 -self.frequencyoffset if self.frequencyoffsetsign == 1
                 else self.frequencyoffset,
@@ -797,9 +817,11 @@ class Parameters:
             'Shim values [mA]': list(self.grad),
             'Gradient orientation': list(self.Gradientorientation),
             'Image orientation': 'XY' if self.imageorientation == 0
-            else ('YZ'
-                  if self.imageorientation == 1
-                  else 'ZX'),
+            else ('YZ' if self.imageorientation == 1
+                  else ('ZX' if self.imageorientation == 2
+                      else ('YX' if self.imageorientation == 3
+                          else ('ZY' if self.imageorientation == 4
+                              else ('XZ'))))),
             'Image resolution index': self.imageresolution,
             'Image resolution [pixel]': self.nPE,
             'Frequency range [Hz]': self.frequencyrange,
@@ -851,18 +873,17 @@ class Parameters:
             else ('.json'),
             'Motor available': self.motor_available,
             'Motor COM Port': self.motor_port,
-            'Motor axis limit negative': self.motor_axis_limit_negative,
-            'Motor axis limit positive': self.motor_axis_limit_positive,
+            'Motor axis limit negative [mm]': self.motor_axis_limit_negative,
+            'Motor axis limit positive [mm]': self.motor_axis_limit_positive,
             'Motor movement direction': self.motor_movement_direction,
-            'Motor actual position': self.motor_actual_position,
-            'Motor goto position': self.motor_goto_position,
-            'Motor start position': self.motor_start_position,
-            'Motor end position': self.motor_end_position,
-            'Motor total image length':self.motor_total_image_length,
-            'Motor movement step': self.motor_movement_step,
+            'Motor actual position [mm]': self.motor_actual_position,
+            'Motor goto position [mm]': self.motor_goto_position,
+            'Motor start position [mm]': self.motor_start_position,
+            'Motor end position [mm]': self.motor_end_position,
+            'Motor total image length [mm]':self.motor_total_image_length,
+            'Motor movement step [mm]': self.motor_movement_step,
             'Motor image count': self.motor_image_count,
             'Motor settling time': self.motor_settling_time
-        
         }
 
         out_file = open(filename, 'w')
