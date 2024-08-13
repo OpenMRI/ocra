@@ -189,7 +189,17 @@ class Parameters:
         self.signalmask = 0.5
         self.SAR_enable = 0
         self.SAR_limit = 1
+        self.SAR_6mlimit = 1
+        self.SAR_peak_limit = 1
         self.SAR_status = 0
+        self.SAR_LOG_counter = 0
+        self.SAR_cal_raw =[]
+        self.SAR_cal_mean = []
+        self.SAR_cal_start=[]
+        self.SAR_cal_end=[]
+        self.SAR_cal_lookup=[]
+        self.SAR_power_unit = 'mW'
+        self.SAR_max_power = 15
         self.headerfileformat = 1
         self.motor_available = 0
         self.motor_port = []
@@ -340,7 +350,17 @@ class Parameters:
                          self.signalmask, \
                          self.SAR_enable, \
                          self.SAR_limit, \
-                         self.SAR_status, \
+                         self.SAR_6mlimit, \
+                         self.SAR_peak_limit, \
+                         self.SAR_LOG_counter, \
+                         self.SAR_cal_raw,\
+                         self.SAR_cal_mean,\
+                         self.SAR_cal_start,\
+                         self.SAR_cal_end,\
+                         self.SAR_cal_lookup,\
+                         self.SAR_power_unit,\
+                         self.SAR_status,\
+                         self.SAR_max_power,\
                          self.headerfileformat, \
                          self.motor_available, \
                          self.motor_port, \
@@ -405,6 +425,23 @@ class Parameters:
                          self.B1alphamapmasked], file)
        
         print('Data saved!')
+
+    def saveSarCal(self):  
+        with open('sarcal.pkl', 'wb') as file:
+            pickle.dump([self.SAR_cal_raw], file)
+       
+        print("SAR data saved!")
+        
+    def loadSarCal(self):
+        try:
+            with open('sarcal.pkl', 'rb') as file:
+                self.SAR_cal_raw = pickle.load(file)
+             
+                print("SAR data successfully restored from file.")
+                
+        except:
+            print("SAR data could not have been restored, setting default.")
+            self.var_init()
 
     def loadParam(self):
         try:
@@ -535,7 +572,17 @@ class Parameters:
                 self.signalmask, \
                 self.SAR_enable, \
                 self.SAR_limit, \
-                self.SAR_status, \
+                self.SAR_6mlimit, \
+                self.SAR_peak_limit, \
+                self.SAR_LOG_counter, \
+                self.SAR_cal_raw,\
+                self.SAR_cal_mean,\
+                self.SAR_cal_start,\
+                self.SAR_cal_end,\
+                self.SAR_cal_lookup,\
+                self.SAR_power_unit,\
+                self.SAR_status,\
+                self.SAR_max_power,\
                 self.headerfileformat, \
                 self.motor_available, \
                 self.motor_port , \
