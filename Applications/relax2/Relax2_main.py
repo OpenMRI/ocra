@@ -4110,20 +4110,9 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
         self.data_array = []
         
-        self.folder_path = '/home/pi/relax2/sardata'
-        
-        if not os.path.exists(self.folder_path):
-            os.makedirs(self.folder_path)
-            
-        self.cal_path = '/home/pi/relax2/sarcal'
-        
-        if not os.path.exists(self.cal_path):
-            os.makedirs(self.cal_path)
-            
-        self.log_path = '/home/pi/relax2/sarlog'
-        
-        if not os.path.exists(self.log_path):
-            os.makedirs(self.log_path)
+        self.folder_path = 'sar/sardata'            
+        self.cal_path = 'sar/sarcal'
+        self.log_path = 'sar/sarlog'
             
         params.SAR_status='com'
         
@@ -4166,7 +4155,7 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
     def log_init(self):
         params.SAR_LOG_counter += 1
         self.time = datetime.now().strftime('%d-%m-%Y')
-        self.file_name = f"SAR_LOG_{params.SAR_LOG_counter}.txt"
+        self.file_name = f"SAR_Log_{params.SAR_LOG_counter}.txt"
         
         if params.SAR_LOG_counter==10:
             params.SAR_LOG_counter=0
@@ -4275,13 +4264,14 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
             params.sequence = 20
             params.saveFileParameter()
                     
-            #seq.sequence_upload()
+            
                     
             self.data_array.clear()
             
             self.write_message("raw")
-            seq.sequence_upload()
-            self.write_message("raw")
+            seq.sequence_upload()  
+            
+            #self.write_message("raw")
             self.overlay = Overlay(self)
             
             
@@ -4365,7 +4355,7 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         #params.SAR_status = 1        
         params.SAR_LOG_counter += 1
         self.time = datetime.now().strftime('%d-%m-%Y')
-        self.file_name = f"SAR_LOG_{params.SAR_LOG_counter}.txt"      
+        self.file_name = f"SAR_Log_{params.SAR_LOG_counter}.txt"      
         if params.SAR_LOG_counter==10:
             params.SAR_LOG_counter=0    
         self.logfile_path = os.path.join(self.log_path,self.file_name)
@@ -4659,9 +4649,14 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
             else: # foramtiere
                 self.err_count=0
                 self.data_array.append(int(data))
-                if len(self.data_array) > 2499:#9999:#9999 :
+                if len(self.data_array) > 2499:#2499:#9999 :
                     params.SAR_cal_raw=self.data_array
                     params.saveSarCal()
+                    
+                    self.file_name = f"SAR_Cal_{params.SAR_LOG_counter}.txt"   
+                    self.file_path = os.path.join(self.cal_path,self.file_name)
+                    np.savetxt(self.file_path,self.data_array)
+                   
                     #self.cal_plot()
                     self.data_array.clear()
                     self.save_var=0
