@@ -13,6 +13,17 @@ import math
 import time
 import shutil
 
+#beginSAR
+import serial
+import serial.tools.list_ports
+import asyncio
+import zlib
+import struct
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtCore import Qt, QSize
+#endSAR
+
+
 from datetime import datetime
 
 # import PyQt5 packages
@@ -20,7 +31,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
-from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths, QIODevice
+from PyQt5.QtCore import QRegExp, pyqtSignal, QStandardPaths, QIODevice, QObject, QTimer
 from PyQt5.QtGui import QRegExpValidator, QPixmap
 
 import matplotlib.pyplot as plt
@@ -92,7 +103,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.motor_actual_position = 0
         params.motor_goto_position = 0
 
-        self.motor_connect()
+        #code 
+        #self.motor_connect()
 
         if params.GSamplitude == 0:
             params.GSposttime = 0
@@ -916,11 +928,16 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
     def sarmonitor(self):
         if self.dialog_sarmonitor == None:
             self.dialog_sarmonitor = SARMonitorWindow(self)
+            self.dialog_sarmonitor.trigger_no_sar.connect(self.set_sar_none)
+            
             self.dialog_sarmonitor.show()
         else:
             self.dialog_sarmonitor.hide()
             self.dialog_sarmonitor.show()
 
+    def set_sar_none(self):
+        self.dialog_sarmonitor = None
+    
     def update_gui(self):
         QApplication.processEvents()
 
@@ -3973,45 +3990,895 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         plt.show()
 
 
+#beginSAR
+        
+class SerialReader(QObject):
+    data_received =pyqtSignal(str)
+    
+    def __init__(self, serial_port):
+        super().__init__()
+        self.serial_port = serial_port
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.read_serial)
+        self.timer.start(100)
+        
+    def read_serial(self):
+        if self.serial_port.inWaiting() > 0:
+            data = self.decode_data(self.my_readline())
+            self.serial_port.flushOutput()
+            #time.sleep(0.1)
+            self.data_received.emit(data)
+            
+            
+    def decode_data(self,byte_data):
+        #print(byte_data)
+        byte_data = byte_data[:-2]#byte_data.strip(b'\r\n')
+        
+        if len(byte_data)< 4:
+            return "MTS"
+        
+        self.message = byte_data[:-4]
+        self.checksum_recived = byte_data[-4:]
+        self.checksum_calculated = zlib.crc32(self.message).to_bytes(4,'big')
+        
+        if self.checksum_recived == self.checksum_calculated:
+            return self.message.decode()
+        else:
+            return "CSC"
+        
+    
+    def my_readline(self):
+        self.buffer = bytearray();
+        while self.buffer[-2:] != b'\r\n' and self.serial_port.inWaiting() > 0:       
+            self.buffer += self.serial_port.read(1)
+            
+        return self.buffer
+
+  
+
 class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
+
     connected = pyqtSignal()
+    
+    #Var1=5
+    trigger_no_sar = pyqtSignal()
+    
 
     def __init__(self, parent=None):
         super(SARMonitorWindow, self).__init__(parent)
         self.setupUi(self)
-
+        
         self.load_params()
-
+        
+        params.loadSarCal()
+        '''
+        if list==type(params.SAR_cal_raw):
+            print("list")
+        else:
+            print("no list")
+        '''
         self.ui = loadUi('ui/sar.ui')
         self.setWindowTitle('SAR Monitor')
         self.setGeometry(420, 40, 400, 250)
-
+        
         self.SAR_Enable_radioButton.toggled.connect(self.update_params)
+        
         self.SAR_Limit_doubleSpinBox.setKeyboardTracking(False)
         self.SAR_Limit_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.SAR_6mLimit_doubleSpinBox.setKeyboardTracking(False)
+        self.SAR_6mLimit_doubleSpinBox.valueChanged.connect(self.update_params)
+        self.SAR_Tran_doubleSpinBox.setKeyboardTracking(False)
+        self.SAR_Tran_doubleSpinBox.valueChanged.connect(self.update_params)
+        
+        self.SAR_Max_Power_doubleSpinBox.setKeyboardTracking(False)
+        self.SAR_Max_Power_doubleSpinBox.valueChanged.connect(self.update_params)
+        
+        self.SAR_Stop_pushButton.clicked.connect(self.stop_sar)
+        
+        self.SAR_New_Pos_pushButton.setEnabled(False)
+        self.SAR_Error_Clear_pushButton.clicked.connect(self.err_clear)
+        
+        self.SAR_New_Pat_pushButton.clicked.connect(self.new_pat)
+        self.SAR_New_Pos_pushButton.clicked.connect(self.new_pos)
+       
+        self.SAR_Test_Array_pushButton.clicked.connect(self.test_array)
+        self.SAR_Load_Data_pushButton.clicked.connect(self.load_data)
+        
+        self.SAR_Power_W_pushButton.clicked.connect(self.power_in_mW)
+        self.SAR_Power_dBm_pushButton.clicked.connect(self.power_in_dBm)
+        
+        self.SAR_Load_Cal_pushButton.clicked.connect(self.load_cal_data)
+        self.SAR_Lookup_pushButton.clicked.connect(self.send_lookup)
+        
+        
+        
+        
+        self.serial=None
+#         self.serial = serial.Serial('/dev/ttyUSB0', 112500, timeout=30, rtscts=False, xonxoff=False)#112500 19200
+#         self.serial.setRTS(False)
+#         self.serial_reader=SerialReader(self.serial)
+#         self.serial_reader.data_received.connect(self.on_serial_data_received)
+        
+        
+        if self.serial_init():
+            QTimer.singleShot(1,self.post_init)
+            return
+        
+        self.save_var = 0
+        self.array_count=0
+        self.err_count=0
+        
+        self.data_array = []
+        
+        self.folder_path = 'sar/sardata'            
+        self.cal_path = 'sar/sarcal'
+        self.log_path = 'sar/sarlog'
+            
+        params.SAR_status='com'
+        
+        self.SAR_10sLimit_lineEdit.setReadOnly(True)
+        self.SAR_6mLimit_lineEdit.setReadOnly(True)
+        self.SAR_PeakLimit_lineEdit.setReadOnly(True)
+        
+        self.last_Data=""
+        self.log_init()
+        
+        #QTimer.singleShot(1,self.post_init)
+    
+    def post_init(self):
+        self.trigger_no_sar.emit()
+        self.close()
+        
+    def serial_init(self):       
+        ports = list(serial.tools.list_ports.comports())        
+        for port in ports:
+            try:
+                self.serial = serial.Serial(port.device, 112500, timeout=0.5, rtscts=False, xonxoff=False)#112500 19200
+                self.serial.setRTS(False)
+                mes = b"ident\x04\x4e\x78\xb2\r\n\t"# + "\r\n\t".encode('utf-8')
+                if self.serial.inWaiting()==0:
+                    self.serial.write(mes)
+                    response= self.serial.readline()
+                    if response[0:6] == b'sar2.0':
+                        self.serial.setRTS(False)
+                        self.serial_reader=SerialReader(self.serial)
+                        self.serial_reader.data_received.connect(self.on_serial_data_received)
+                        print(f"SAR-Monitor connected to port: {port}")
+                        return False               
+                self.serial.close()
+                
+            except Exception as e:
+                    print(f"Could not write to port: {port} - {e}")
+           
+        return True 
+        
+    def log_init(self):
+        params.SAR_LOG_counter += 1
+        self.time = datetime.now().strftime('%d-%m-%Y')
+        self.file_name = f"SAR_Log_{params.SAR_LOG_counter}.txt"
+        
+        if params.SAR_LOG_counter==10:
+            params.SAR_LOG_counter=0
+        
+        
+            
+        self.logfile_path = os.path.join(self.log_path,self.file_name)
+        
+        if os.path.exists(self.logfile_path):
+            os.remove(self.logfile_path)
+        
+        with open(self.logfile_path,'a') as file:
+            file.writelines(f"Date: {self.time}\n")
+    
+    
+    def power_in_mW(self):
+        
+        params.SAR_power_unit='mW'
+        #print("W")
+        self.SAR_Power_W_pushButton.setEnabled(False)
+        self.SAR_Power_dBm_pushButton.setEnabled(True)
+        
+        self.label_10s.setText("SAR 10s Limit [mW]")
+        self.label_6m.setText("SAR 6m Limit [mW]")
+        self.label_peak.setText("Peak Limit [mW]")
+        
+        self.label_MaxP.setText("Max. Amplifier Power [mW]")
+        
+        params.SAR_limit=round(self.dBm_to_mW(params.SAR_limit),1)
+        self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
+        
+        params.SAR_6mlimit=round(self.dBm_to_mW(params.SAR_6mlimit),1)
+        self.SAR_6mLimit_doubleSpinBox.setValue(params.SAR_6mlimit)
+        
+        params.SAR_peak_limit=round(self.dBm_to_mW(params.SAR_peak_limit),1)
+        self.SAR_Tran_doubleSpinBox.setValue(params.SAR_peak_limit)
+        
+        params.SAR_max_power = round(self.dBm_to_mW(params.SAR_max_power),1)
+        self.SAR_Max_Power_doubleSpinBox.setValue(params.SAR_max_power)
+        
+        params.saveFileParameter()
+        
+        if self.SAR_10sLimit_lineEdit.text() != "":
+            #print(self.SAR_10sLimit_lineEdit.text())
+            #print(type(self.SAR_10sLimit_lineEdit.text()))
+            self.SAR_10sLimit_lineEdit.setText(f"{round(self.dBm_to_mW(float(self.SAR_10sLimit_lineEdit.text())),1)}")
+            self.SAR_6mLimit_lineEdit.setText(f"{round(self.dBm_to_mW(float(self.SAR_6mLimit_lineEdit.text())),1)}")
+            self.SAR_PeakLimit_lineEdit.setText(f"{round(self.dBm_to_mW(float(self.SAR_PeakLimit_lineEdit.text())),1)}")
+        
+    
+    def power_in_dBm(self):
+        
+        params.SAR_power_unit='dBm'
+        #print("dBM")
+        self.SAR_Power_W_pushButton.setEnabled(True)
+        self.SAR_Power_dBm_pushButton.setEnabled(False)
+        
+        self.label_10s.setText("SAR 10s Limit [dBm]")
+        self.label_6m.setText("SAR 6m Limit [dBm]")
+        self.label_peak.setText("Peak Limit [dBm]")
+        
+        self.label_MaxP.setText("Max. Amplifier Power [dBm]")
+        
+        params.SAR_limit=round(self.mW_to_dBm(params.SAR_limit),1)
+        self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
+        
+        params.SAR_6mlimit=round(self.mW_to_dBm(params.SAR_6mlimit),1)
+        self.SAR_6mLimit_doubleSpinBox.setValue(params.SAR_6mlimit)
+        
+        params.SAR_peak_limit=round(self.mW_to_dBm(params.SAR_peak_limit),1)
+        self.SAR_Tran_doubleSpinBox.setValue(params.SAR_peak_limit)
+        
+        params.SAR_max_power = round(self.mW_to_dBm(params.SAR_max_power),1)
+        self.SAR_Max_Power_doubleSpinBox.setValue(params.SAR_max_power)
+        
+        params.saveFileParameter()
+        
+        if self.SAR_10sLimit_lineEdit.text() != "":
+            #print(self.SAR_10sLimit_lineEdit.text())
+            #print(type(self.SAR_10sLimit_lineEdit.text()))
+            self.SAR_10sLimit_lineEdit.setText(f"{round(self.mW_to_dBm(float(self.SAR_10sLimit_lineEdit.text())),1)}")
+            self.SAR_6mLimit_lineEdit.setText(f"{round(self.mW_to_dBm(float(self.SAR_6mLimit_lineEdit.text())),1)}")
+            self.SAR_PeakLimit_lineEdit.setText(f"{round(self.mW_to_dBm(float(self.SAR_PeakLimit_lineEdit.text())),1)}")
+        
+    def dBm_to_mW(self,P_dBm):
+        return (10**(P_dBm/10))
+    
+    def mW_to_dBm(self,P_mW):
+        return 10*math.log10(P_mW)
+               
+    def load_cal_data(self):
+        
+        print("load cal")
+        
+        msg_box  = QMessageBox()
+        msg_box.setWindowTitle("Load Calibration Data")
+        msg_box.setText("Loading the calibration data may take up to 15 minutes and will overwrite the raw data of the last SAR measurement. Do you still want to proceed?")
+        msg_box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        
+        result = msg_box.exec()
+        
+        if result == QMessageBox.Yes:
+            
+            params.GUImode = 0
+            params.sequence = 20
+            params.saveFileParameter()
+                    
+            
+                    
+            self.data_array.clear()
+            
+            self.write_message("raw")
+            seq.sequence_upload()  
+            
+            #self.write_message("raw")
+            self.overlay = Overlay(self)
+            
+            
+            
+        else:
+            print("No")
+        
+        
+    def send_lookup(self):
+        params.loadSarCal()
+        #print(type(params.SAR_cal_raw))
+        if list!=type(params.SAR_cal_raw):
+            params.SAR_cal_raw=params.SAR_cal_raw.tolist()
+        self.calraw_plot()
+        self.cal_plot()
+        msg_box  = QMessageBox()
+        msg_box.setWindowTitle("Send Lookup Table")
+        msg_box.setText("Check if all plateuaus have been correctly identified and the lookup table is correkt. Press Yes to send the lookup table.")
+        msg_box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        result = msg_box.exec()
+        #print(params.SAR_cal_lookup[4000:4095])
+        #self.write_message("c4046:16426809")
+        if result == QMessageBox.Yes:
+            self.save_var=11
+            self.command= f"c0:{params.SAR_cal_lookup[0]}"
+            self.write_message(self.command)
+            self.array_count=1
+            self.overlay = Overlay(self)
+             
+    def write_message(self,data):
+        #print(data)
+        with open(self.logfile_path,'a') as file:
+            self.time = datetime.now().strftime('%H-%M-%S')
+            file.writelines(f"send({self.time}): {data}\n")
+        
+        self.data_bytes = data.encode('utf-8')
+        self.checksum_byte = struct.pack('>I',zlib.crc32(data.encode('utf-8')))
+        self.delimiter_bytes = "\r\n\t".encode('utf-8')
+        self.message = self.data_bytes + self.checksum_byte + self.delimiter_bytes
+        print(self.message)
+        self.serial.write(self.message)
+        
+        
+    def convert_limit(self,limit):
+        if params.SAR_power_unit == 'dBm':
+            limit=(10**(limit/10))/1000
+        if params.SAR_power_unit == 'mW':
+            limit=limit/1000
+        #print(limit)
+        m=1.9698
+        b=0.0017
+        Norm= 3.3/4095
+        return str(math.floor(((math.sqrt(limit*50)*m+b)**2)/Norm**2))
+        
+
+    def convert_tran(self,limit):
+        if params.SAR_power_unit == 'dBm':
+            limit=(10**(limit/10))/1000
+        if params.SAR_power_unit == 'mW':
+            limit=limit/1000
+        #print(limit)
+        m=1.9698
+        b=0.0017
+        Norm= 3.3/4095
+        return str(math.floor(((math.sqrt(limit*50)*m+b))/Norm))
+        
+
+    def stop_sar(self):
+        params.SAR_status = 1
+        self.write_message("s") 
+        params.SAR_limit=0
+        params.SAR_6mlimit=0
+        params.SAR_peak_limit=0
+        self.SAR_Limit_doubleSpinBox.setValue(0.0)
+        self.SAR_6mLimit_doubleSpinBox.setValue(0.0)
+        self.SAR_Tran_doubleSpinBox.setValue(0.0)
+  
+        
+    def new_pat(self):
+        #params.SAR_status = 1        
+        params.SAR_LOG_counter += 1
+        self.time = datetime.now().strftime('%d-%m-%Y')
+        self.file_name = f"SAR_Log_{params.SAR_LOG_counter}.txt"      
+        if params.SAR_LOG_counter==10:
+            params.SAR_LOG_counter=0    
+        self.logfile_path = os.path.join(self.log_path,self.file_name)
+        if os.path.exists(self.logfile_path):
+            os.remove(self.logfile_path)
+        with open(self.logfile_path,'a') as file:
+                    file.writelines(f"Date: {self.time}\n")
+        self.SAR_New_Pat_pushButton.setEnabled(False)
+        self.write_message("s")
+        time.sleep(0.1)
+        self.save_var=21
+    
+        
+    def new_pos(self): 
+        if params.SAR_status == 'samp':
+            self.SAR_New_Pos_pushButton.setEnabled(False)
+            self.write_message("s")
+            time.sleep(0.1)
+            self.save_var=22
+            
+            
+    def err_clear(self):
+        self.SAR_New_Pat_pushButton.setEnabled(True)
+        if params.SAR_status == "com": self.SAR_Status_lineEdit.setText('Communication')
+        #self.SAR_Status_lineEdit.setText('Communication')
+        self.SAR_New_Pos_pushButton.setEnabled(False)
+        
+        
+    def load_data(self):       
+        self.time = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+        self.file_name = f"SAR_Data_{params.SAR_LOG_counter}.txt"   
+        self.file_path = os.path.join(self.folder_path,self.file_name)
+        if os.path.exists(self.logfile_path):
+            os.remove(self.logfile_path)    
+        with open(self.logfile_path,'a') as file:
+            file.writelines(f"Date: {self.time}\n")
+        self.save_var = 1      
+        self.data_array.clear()       
+        self.write_message("r6min")        
+        self.overlay = Overlay(self)      
+        
+    def test_array(self):
+        self.close()
+        #self.write_message("arrtest")
+          
+    def calraw_plot(self):
+        self.fig = Figure()
+        self.fig.set_facecolor("None")
+        self.fig_canvas = FigureCanvas(self.fig)
+        self.ax = self.fig.add_subplot(111);
+        
+        dummy=[]
+        
+        dummy=np.array(params.SAR_cal_raw[0][0:2499].copy())
+        '''
+        dummy[0:799]=dummy[0:799]/2
+        dummy[799:1799]=dummy[799:1799]*1/9
+        dummy[1799:2799]=dummy[1799:2799]*2/9
+        dummy[2799:3799]=dummy[2799:3799]*3/9
+        dummy[3799:4799]=dummy[3799:4799]*4/9
+        dummy[4799:5799]=dummy[4799:5799]*5/9
+        dummy[5799:6799]=dummy[5799:6799]*6/9
+        dummy[6799:7799]=dummy[6799:7799]*7/9
+        dummy[7799:8799]=dummy[7799:8799]*8/9
+        dummy[8799:9999]=dummy[8799:9999]*9/9
+        '''
+        self.find_plateau(dummy)
+        self.ax.plot(np.linspace(0,2498/100,2499), dummy ,'o', color='#00FF00')
+        #np.convolve(sardata,[1,4,4,-4,-10,-4,4,4,1],mode='same')
+        #self.ax.plot(np.linspace(0,2498/100,2499), np.convolve(dummy,[1,4,4,-4,-10,-4,4,4,1],mode='same') ,'o', color='#0F0F00')
+        i=1
+        while i < len(params.SAR_cal_mean):
+            start=params.SAR_cal_start[i-1]
+            end=params.SAR_cal_end[i]
+            self.ax.plot(np.linspace(start/100,end/100,(end-start)), dummy[start:end] ,'o', color='#0000FF')
+            self.ax.axhline(y=params.SAR_cal_mean[i], color='#72BD00', linestyle='--')
+            i+=1        
+        self.ax.set_xlabel('t [ms]')
+        self.ax.set_ylabel('ADC')
+        #self.ax.legend(['X','Y','Z','Z²'])
+        self.ax.set_title('Calibration Rawdata')
+        self.ax.grid(which='major', color='#888888', linestyle='-')
+        self.ax.grid(which='major', visible = True)
+        self.fig_canvas.draw()
+        self.fig_canvas.setWindowTitle('Cal')
+        self.fig_canvas.setGeometry(20, 40, 1420, 750)
+        self.fig_canvas.show() 
+        
+    def cal_plot(self):
+        max_power=10
+        self.fig = Figure()   
+        self.fig.set_facecolor("None")
+        self.fig_canvas = FigureCanvas(self.fig)
+        self.ax1 = self.fig.add_subplot(2,1,1)
+        self.ax2 = self.fig.add_subplot(2,1,2)
+        
+        #print(np.linspace(0,params.SAR_max_power,21))
+        #print(np.concatenate(([0],np.linspace(0,params.SAR_max_power,21)[3:])))
+        
+        if params.SAR_power_unit == 'dBm':
+            self.ax1.plot(np.concatenate(([0],np.linspace(0,(10**(params.SAR_max_power/10)),21)[3:])),params.SAR_cal_mean ,'o-', color='#00FF00')
+            #self.ax1.plot( np.linspace(0,(10**(params.SAR_max_power/10)),len(params.SAR_cal_mean)),params.SAR_cal_mean ,'o-', color='#00FF00')
+        if params.SAR_power_unit == 'mW':
+            self.ax1.plot(np.concatenate(([0],np.linspace(0,params.SAR_max_power,21)[3:])),params.SAR_cal_mean ,'o-', color='#00FF00')
+            #self.ax1.plot( np.linspace(0,params.SAR_max_power,len(params.SAR_cal_mean)),params.SAR_cal_mean ,'o-', color='#00FF00')
+        #self.ax1.plot( np.linspace(0,self.convert_tran(params.SAR_limit),len(params.SAR_cal_mean)),params.SAR_cal_mean ,'o-', color='#00FF00')
+        self.ax1.set_title('Comperison of Measured ADC and Ideal Power Values')
+        self.ax1.set_ylabel('ADC')
+        self.ax1.set_xlabel('Power [mW]')
+        self.ax1.grid(which='major', color='#888888', linestyle='-')
+        self.ax1.grid(which='minor', color='#888888', linestyle=':')
+        self.ax1.grid(which='both', visible = True)
+        x=params.SAR_cal_mean
+        x_new=np.linspace(0,4096-1,4096)
+        #y=np.linspace(0,int(self.convert_tran(max_power)),len(params.SAR_cal_mean))
+        if params.SAR_power_unit == 'dBm':
+            y=np.concatenate(([0],np.linspace(0,int(self.convert_tran((10**(params.SAR_max_power/10)))),21)[3:]))
+        if params.SAR_power_unit == 'mW':
+            y=np.concatenate(([0],np.linspace(0,int(self.convert_tran(params.SAR_max_power)),21)[3:]))
+        #y=np.linspace(0,int(self.convert_tran(params.SAR_max_power)),len(params.SAR_cal_mean))
+        y_new = np.array([int(np.ceil(self.linear_extrapolation(xi,x,y))) for xi in x_new])
+        
+        
+        params.SAR_cal_lookup=y_new**2
+        self.ax2.plot( x_new, params.SAR_cal_lookup ,'-', color='#00F0F0')
+        self.ax2.plot( params.SAR_cal_mean, y**2 ,'o', color='#00FF00')
+        self.ax2.set_title('Measured ADC and coressponding ADC²')
+        self.ax2.set_ylabel('Coressponding ADC²')
+        self.ax2.set_xlabel('Measured ADC ')
+        #self.ax2.set_yticks(np.arange(0, 17000500, 1700000))
+        #self.ax2.set_ylim(0,17000500)
+        self.ax2.set_xticks(np.arange(0, 4097, 512))
+        self.ax2.set_xlim(0,4097)
+        self.ax2.grid(which='major', color='#888888', linestyle='-')
+        self.ax2.grid(which='minor', color='#888888', linestyle=':')
+        self.ax2.grid(which='both', visible = True)     
+        self.fig_canvas.setWindowTitle('CAL')
+        self.fig_canvas.setGeometry(300, 50, 800, 1050)
+        self.fig_canvas.show()
+        
+    def linear_extrapolation(self,x_new,x,y):
+        if x_new < x[0]:
+            #slope=(y[1]-y[0])/(x[1]-x[0])
+            #return y[0]+slope*(x_new-x[0])
+            return 0
+        elif x_new > x[-1]:
+            slope=(y[-1]-y[-2])/(x[-1]-x[-2])
+            return y[-1]+slope*(x_new-x[-1])
+        else:
+            return np.interp(x_new,x,y)
+        
+    def convolve_sar(self,data):  
+        return np.convolve(data,[1,2,0,-2,-1],mode='same')
+    
+    def convolve_sar2(self,data):
+        #return np.convolve(data,[1,2,-1,-4,-1,2,1],mode='same')
+        return np.convolve(data,[1,4,4,-4,-10,-4,4,4,1],mode='same')
+    
+    def find_plateau(self,sardata):
+        threshhold=150
+        steps=5 
+        start=0
+        end=0
+        var=0
+        found=0
+        plats=[]
+        zeros=np.array([])
+        params.SAR_cal_start=[]
+        params.SAR_cal_end=[]
+        data = np.convolve(sardata,[1,4,4,-4,-10,-4,4,4,1],mode='same')
+        
+        i=20
+        params.SAR_cal_end.append(15)
+        while i < len(data)-1:
+            if data[i] > threshhold:
+                found=0
+                while data[i] > 0 and i<len(data)-1:
+                    i += 1
+                var=i
+                for a in range(steps):
+                    if data[i] < -threshhold:
+                        found=1
+                    i += 1
+                    if i==len(data):
+                        i -= 1
+                if found==1:
+                    start=var
+                    arr=np.array(sardata[end+3:start-3])
+                    params.SAR_cal_start.append(start+2)
+                    zeros=np.concatenate((zeros,arr))
+                    found=0
+            if data[i] < -threshhold:
+                found=0
+                while data[i] < 0 and i<len(data)-1:
+                    i += 1
+                var=i
+                for a in range(steps):
+                    if data[i] > threshhold:
+                        found=1
+                    i += 1
+                    if i==len(data):
+                        i -= 1
+                if found==1:
+                    end=var
+                    params.SAR_cal_end.append(end-2)
+                    plats.append(sardata[start+2:end-2])
+                    found=0
+            i +=1
+    
+        #print(plats)
+        calmean=[0]
+        for plat in plats: 
+            calmean.append(int(np.ceil(np.mean(plat))))
+        calmean[0]=int(np.ceil(np.mean(zeros)))
+        params.SAR_cal_mean=calmean
+        
+#         print(params.SAR_cal_start)
+#         print(params.SAR_cal_end)
+#         print(params.SAR_cal_mean)
+    
+    def on_serial_data_received(self,data):
+        print(data)
+        if (self.save_var==21 or self.save_var==22) and data == "err:stop":
+            self.write_message("s")
+            time.sleep(0.1)
+        
+        if data == "SARstop" or data == "stop":
+            if self.save_var==21:
+                self.write_message("new pat")       
+                self.command= f"l10s{self.convert_limit(params.SAR_limit)}"
+                #print(self.command)
+                self.write_message(self.command)
+                self.command= f"l6m{self.convert_limit(params.SAR_6mlimit)}"
+                #print(self.command)
+                self.write_message(self.command)
+                self.command= f"tran{self.convert_limit(params.SAR_peak_limit)}"
+                #print(self.command)
+                self.write_message(self.command)
+                self.SAR_10sLimit_lineEdit.setText(f"{params.SAR_limit}")
+                self.SAR_6mLimit_lineEdit.setText(f"{params.SAR_6mlimit}")
+                self.SAR_PeakLimit_lineEdit.setText(f"{params.SAR_peak_limit}")
+                self.save_var=0
+                #time.sleep(1)
+                self.write_message("start")
+                #print(self.command) 
+            if self.save_var==22:
+                #print("test")
+                self.command= f"l10s{self.convert_limit(params.SAR_limit)}"
+                self.write_message(self.command)
+                self.command= f"l6m{self.convert_limit(params.SAR_6mlimit)}"
+                self.write_message(self.command)
+                self.command= f"tran{self.convert_limit(params.SAR_peak_limit)}"
+                self.write_message(self.command)
+                self.SAR_10sLimit_lineEdit.setText(f"{params.SAR_limit}")
+                self.SAR_6mLimit_lineEdit.setText(f"{params.SAR_6mlimit}")
+                self.SAR_PeakLimit_lineEdit.setText(f"{params.SAR_peak_limit}") 
+                self.write_message("new pos")
+                self.save_var=0    
+        
+        if self.save_var==11:
+            if data.isdigit() == False :
+                if self.err_count < 5:
+                    self.command= f"c{self.array_count-1}:{params.SAR_cal_lookup[self.array_count-1]}"
+                    self.write_message(self.command)
+                    self.err_count += 1
+                else:
+                    print(data)
+                    self.save_var=0
+                    self.overlay.deleteLater()
+            else: # foramtiere
+                self.err_count=0
+                if self.array_count < 4096:
+                    self.command= f"c{self.array_count}:{params.SAR_cal_lookup[self.array_count]}"
+                    self.write_message(self.command)
+                    #print(self.command)
+                    self.array_count+=1
+                else:
+                    self.save_var=0
+                    self.overlay.deleteLater() 
+        
+        if self.save_var==10: 
+            if data.isdigit() == False :
+                if self.err_count < 5:
+                    self.command= f"rc{self.array_count-1}"
+                    self.write_message(self.command)
+                    self.err_count += 1
+                else:
+                    print(data)
+                    self.save_var=0
+                    self.overlay.deleteLater()
+            else: # foramtiere
+                self.err_count=0
+                self.data_array.append(int(data))
+                if len(self.data_array) > 2499:#2499:#9999 :
+                    params.SAR_cal_raw=self.data_array
+                    params.saveSarCal()
+                    
+                    self.file_name = f"SAR_Cal_{params.SAR_LOG_counter}.txt"   
+                    self.file_path = os.path.join(self.cal_path,self.file_name)
+                    np.savetxt(self.file_path,self.data_array)
+                   
+                    #self.cal_plot()
+                    self.data_array.clear()
+                    self.save_var=0
+                    self.overlay.deleteLater()
+                else:
+                    self.command= f"rc{self.array_count}"
+                    self.write_message(self.command)
+                    self.array_count+=1
+                        
+        if self.save_var == 0:
+            #print(data)
+            alert = ("tranlimit","reflimit","6minlimit","10slimit")
+            ERR = ("MTS","CSC")
+            if not(self.last_Data=="SARstop" and data in alert):
+                try:
+                    with open(self.logfile_path,'a') as file:
+                        self.time = datetime.now().strftime('%H-%M-%S')
+                        file.writelines(f"catch({self.time}): {data}\n")
+                except AttributeError:
+                    print('AttributeError')
+            self.last_Data=data    
+            if data =="raw ok":
+                self.write_message("rc0")
+                self.array_count=1
+                self.save_var=10
+            if data == "err:re":
+                self.overlay.deleteLater()
+            if data =="start":
+               # self.SAR_Start_pushButton.setEnabled(False)
+                self.SAR_Status_lineEdit.setText('Sampling')
+                #self.SAR_New_Pat_pushButton.setEnabled(False)
+                time.sleep(1)
+                self.SAR_New_Pos_pushButton.setEnabled(True)
+                params.SAR_status ='samp'
+            elif data == "npos ok":
+                time.sleep(5)        
+                self.write_message("start")
+            elif data.startswith("err:"):
+                self.SAR_Status_lineEdit.setText(data)
+                params.SAR_status = 'com'
+                #if data == "err:stop" :
+                    #self.write_message("stop")
+            elif data in alert:
+                self.SAR_Status_lineEdit.setText(data)
+                self.SAR_New_Pos_pushButton.setEnabled(False)
+                params.SAR_status ='com'
+            elif data in ERR:
+                self.SAR_New_Pos_pushButton.setEnabled(False)
+                self.SAR_Status_lineEdit.setText(data)
+                params.SAR_status ='com'
+            else:
+                params.SAR_status = 'com'
+                self.SAR_Status_lineEdit.setText('Communication')
+            
+        if self.save_var == 5 :
+            self.data_array.append(data)      
+            if len(self.data_array) > 1999 :        
+                with open(self.file_path,'a') as file:
+                    file.writelines("raw_Array: \n[")          
+                for i in range(len(self.data_array)-1):
+                    self.data_array[i] += '; '                              
+                for i in range(len(self.data_array)):              
+                    with open(self.file_path,'a') as file:
+                        file.writelines(self.data_array[i])
+                        if (i+1) % 20 == 0:
+                            file.writelines("\n")  
+                with open(self.file_path,'a') as file:
+                    file.writelines("]\n\n")    
+                self.overlay.deleteLater()    
+                self.data_array.clear()
+                self.save_var=0    
+            else:
+                self.command= f"rr{self.array_count}"
+                self.write_message(self.command)
+                self.array_count+=1        
+        
+        #self.data_array.append(data)
+        if self.save_var == 4 :
+            self.data_array.append(data)
+            if len(self.data_array) > 999 :    
+                with open(self.file_path,'a') as file:
+                    file.writelines("10s_Array: \n[")
+                for i in range(len(self.data_array)-1):
+                    self.data_array[i] += '; '                   
+                for i in range(len(self.data_array)):              
+                    with open(self.file_path,'a') as file:
+                        file.writelines(self.data_array[i])
+                        if (i+1) % 20 == 0:
+                            file.writelines("\n")
+                with open(self.file_path,'a') as file:
+                    file.writelines("]\n\n")     
+                self.data_array.clear()
+                self.save_var=5
+                self.write_message("rr0")
+                self.array_count=1     
+            else:
+                self.command= f"rs{self.array_count}"
+                self.write_message(self.command)
+                self.array_count+=1
+     
+        if self.save_var == 3 :
+            self.data_array.append(data) 
+            if len(self.data_array) > 35 :
+                with open(self.file_path,'a') as file:
+                    file.writelines("6min_Array: \n[")
+                for i in range(len(self.data_array)-1):
+                    self.data_array[i] += '; ' 
+                for i in range(len(self.data_array)):              
+                    with open(self.file_path,'a') as file:
+                        file.writelines(self.data_array[i])
+                with open(self.file_path,'a') as file:
+                    file.writelines("]\n\n")    
+                self.data_array.clear()
+                self.save_var=4
+                self.write_message("rs0")
+                self.array_count=1
+                #self.overlay.deleteLater()  
+            else:
+                self.command= f"rm{self.array_count}"
+                self.write_message(self.command)
+                self.array_count+=1
+                 
+        if self.save_var == 2 :
+            with open(self.file_path,'a') as file:
+                file.writelines("10sec_Mean: " + data + "\n\n")
+            self.save_var=3
+            self.write_message("rm0")
+            self.array_count=1
+            
+        if self.save_var == 1 :          
+            with open(self.file_path,'a') as file:
+                file.writelines("6min_Mean: " + data + "\n")
+            self.save_var=2
+            self.write_message("r10sec")
+
+    
+    def error_switch(self,error):
+        if error == "0":
+            self.SAR_Status_lineEdit.setText('Error: internal')
+        elif error == "1":
+            self.SAR_Status_lineEdit.setText('Error: peak')
+        elif error == "2":
+            self.SAR_Status_lineEdit.setText('Error: 10s')
+        elif error == "3":
+            self.SAR_Status_lineEdit.setText('Error: 6m')
+        elif error == "4":
+            self.SAR_Status_lineEdit.setText('Error: reflection')
+        elif error == "5":
+            self.SAR_Status_lineEdit.setText('Error: no limit')
+        elif error == "6":
+            self.SAR_Status_lineEdit.setText('Error: COM')
+        #elif error == "10":
+            #self.SAR_Status_lineEdit.setText('Communication')
+            
 
     def load_params(self):
         if params.SAR_enable == 1: self.SAR_Enable_radioButton.setChecked(True)
-
+        
         self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
-
-        if params.SAR_status == 1:
-            self.SAR_Status_lineEdit.setText('Communication')
-        elif params.SAR_status == 2:
-            self.SAR_Status_lineEdit.setText('Sampling')
-        else:
-            self.SAR_Status_lineEdit.setText('Error')
-
+        self.SAR_6mLimit_doubleSpinBox.setValue(params.SAR_6mlimit)
+        self.SAR_Tran_doubleSpinBox.setValue(params.SAR_peak_limit)
+        self.SAR_Max_Power_doubleSpinBox.setValue(params.SAR_max_power)
+        
+        if params.SAR_status == "com": self.SAR_Status_lineEdit.setText('Communication')
+        elif params.SAR_status == "samp": self.SAR_Status_lineEdit.setText('Sampling')
+        else: self.SAR_Status_lineEdit.setText('Error')
+        
+        if params.SAR_power_unit == 'dBm':
+            self.label_10s.setText("SAR 10s Limit [dBm]")
+            self.label_6m.setText("SAR 6m Limit [dBm]")
+            self.label_peak.setText("Peak Limit [dBm]")
+            self.label_MaxP.setText("Max. Amplifier Power [dBm]")
+            self.SAR_Power_dBm_pushButton.setEnabled(False)
+            
+            
+        if params.SAR_power_unit == 'mW':
+            self.label_10s.setText("SAR 10s Limit [mW]")
+            self.label_6m.setText("SAR 6m Limit [mW]")
+            self.label_peak.setText("Peak Limit [mW]")
+            self.label_MaxP.setText("Max. Amplifier Power [mW]")
+            self.SAR_Power_W_pushButton.setEnabled(False)
+            
     def update_params(self):
-        if self.SAR_Enable_radioButton.isChecked():
-            params.SAR_enable = 1
-        else:
-            params.SAR_enable = 0
-
+        if self.SAR_Enable_radioButton.isChecked(): params.SAR_enable = 1
+        else: params.SAR_enable = 0
+        
         params.SAR_limit = self.SAR_Limit_doubleSpinBox.value()
-
+        params.SAR_6mlimit = self.SAR_6mLimit_doubleSpinBox.value()
+        params.SAR_peak_limit = self.SAR_Tran_doubleSpinBox.value()
+        
+        params.SAR_max_power = self.SAR_Max_Power_doubleSpinBox.value()
+        
+        
         params.saveFileParameter()
+        
+        
+class Overlay(QWidget):
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(parent.size())
+        #self.setFixedSize(QSize(550,250))
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setStyleSheet("background-color: rgba(0,0,0,128)")
+        label = QLabel("...", self)
+        label.setAlignment(Qt.AlignCenter)
+        label.setStyleSheet("color: white; font-size: 24px;")
+        
+        layout = QVBoxLayout(self)
+        layout.addWidget(label)
+        self.setLayout(layout)
+        
+        self.show()
+        
+    def mousePessEvent(self, event):
+        pass
+    
+    def keyPressEvent(self, event):
+        pass
 
+
+#endSAR
 
 class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
     connect = pyqtSignal()

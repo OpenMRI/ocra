@@ -1100,14 +1100,14 @@ class sequence:
         print('\033[1m' + 'WIP' + '\033[0m')
         f = open(self.seq_rf_sar_cal_test, 'r+')
         lines = f.readlines()
-        lines[-67] = 'TXOFFSET ' + str(9*params.RFpulselength) + '\n'
-        lines[-66] = 'PR 5, ' + str(params.RFpulselength) + '\n'
-        lines[-65] = 'PR 11, 500\n'
-        lines[-63] = 'PR 5, ' + str(params.RFpulselength) + '\n'
-        lines[-62] = 'PR 11, ' + str(int(params.TI)) + '\n'
-        lines[-61] = 'TXOFFSET ' + str(1*params.RFpulselength) + '\n'
+        lines[-61] = 'TXOFFSET ' + str(19*params.RFpulselength) + '\n'
         lines[-60] = 'PR 5, ' + str(params.RFpulselength) + '\n'
         lines[-59] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        #lines[-63] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        #lines[-62] = 'PR 11, ' + str(int(params.TI)) + '\n'
+        #lines[-61] = 'TXOFFSET ' + str(1*params.RFpulselength) + '\n'
+        #lines[-60] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        #lines[-59] = 'PR 11, ' + str(int(params.TI)) + '\n'
         lines[-58] = 'TXOFFSET ' + str(2*params.RFpulselength) + '\n'
         lines[-57] = 'PR 5, ' + str(params.RFpulselength) + '\n'
         lines[-56] = 'PR 11, ' + str(int(params.TI)) + '\n'
