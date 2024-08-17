@@ -464,8 +464,8 @@ class process:
 
         print('Image data processed!')
 
-    def image_stiching_2D_GRE(self, motor=None):
-        print('Measuring stiched images 2D GRE...')
+    def image_stitching_2D_GRE(self, motor=None):
+        print('Measuring stitched images 2D GRE...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -528,10 +528,10 @@ class process:
         else:
             params.save_header_file_json()
 
-        print('Stiched images acquired!')
+        print('Stitched images acquired!')
 
-    def image_stiching_2D_SE(self, motor=None):
-        print('Measuring stiched images 2D SE...')
+    def image_stitching_2D_SE(self, motor=None):
+        print('Measuring stitched images 2D SE...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -594,10 +594,10 @@ class process:
         else:
             params.save_header_file_json()
 
-        print('Stiched images acquired!')
+        print('Stitched images acquired!')
         
-    def image_stiching_2D_GRE_slice(self, motor=None):
-        print('Measuring stiched images 2D GRE slice...')
+    def image_stitching_2D_GRE_slice(self, motor=None):
+        print('Measuring stitched images 2D GRE slice...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -661,10 +661,10 @@ class process:
         else:
             params.save_header_file_json()
 
-        print('Stiched slice images acquired!')
+        print('Stitched slice images acquired!')
         
-    def image_stiching_2D_SE_slice(self, motor=None):
-        print('Measuring stiched images 2D SE slice...')
+    def image_stitching_2D_SE_slice(self, motor=None):
+        print('Measuring stitched images 2D SE slice...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -728,9 +728,9 @@ class process:
         else:
             params.save_header_file_json()
 
-        print('Stiched slice images acquired!')
+        print('Stitched slice images acquired!')
 
-    def image_stiching_2D_json_process(self):
+    def image_stitching_2D_json_process(self):
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -756,7 +756,7 @@ class process:
         params.motor_movement_step = np.abs(jsonparams['Motor movement step'])
 
         if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
-            print("Processing XY or ZY")
+            print('Processing XY or ZY')
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -788,7 +788,7 @@ class process:
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
         
         elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
-            print("Processing YZ")
+            print('Processing YZ')
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -820,7 +820,7 @@ class process:
                     params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
 
         elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
-            print("Processing ZX")
+            print('Processing ZX')
             params.img_st = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE), dtype=np.complex64))
             params.img_st_mag = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
             params.img_st_pha = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
@@ -843,13 +843,13 @@ class process:
         params.motor_image_count = self.motor_image_counttemp
         params.motor_movement_step = self.motor_movement_steptemp
 
-        print('Image stiching data processed!')
+        print('Image stitching data processed!')
 
-    def image_stiching_2D_txt_process(self):
+    def image_stitching_2D_txt_process(self):
         print('WIP')
 
-    def image_stiching_3D_slab(self, motor=None):
-        print('Measuring stiched images 3D SE slab...')
+    def image_stitching_3D_slab(self, motor=None):
+        print('Measuring stitched images 3D SE slab...')
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -914,9 +914,9 @@ class process:
         else:
             params.save_header_file_json()
 
-        print('Stiched 3D slabs acquired!')
+        print('Stitched 3D slabs acquired!')
 
-    def image_stiching_3D_json_process(self):
+    def image_stitching_3D_json_process(self):
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -1054,9 +1054,9 @@ class process:
         params.SPEsteps = self.SPEstepstemp2
         params.slicethickness = self.slicethicknesstemp
 
-        print('3D Image stiching data processed!')
+        print('3D Image stitching data processed!')
 
-    def image_stiching_3D_txt_process(self):
+    def image_stitching_3D_txt_process(self):
         print('WIP')
 
     def spectrum_analytics(self):
