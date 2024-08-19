@@ -4002,20 +4002,15 @@ class SerialReader(QObject):
         if self.serial_port.inWaiting() > 0:
             data = self.decode_data(self.my_readline())
             self.serial_port.flushOutput()
-            #time.sleep(0.1)
             self.data_received.emit(data)
             
     def decode_data(self,byte_data):
-        #print(byte_data)
-        byte_data = byte_data[:-2]#byte_data.strip(b'\r\n')
-        
+        byte_data = byte_data[:-2] 
         if len(byte_data)< 4:
             return 'MTS'
-        
         self.message = byte_data[:-4]
         self.checksum_recived = byte_data[-4:]
         self.checksum_calculated = zlib.crc32(self.message).to_bytes(4,'big')
-        
         if self.checksum_recived == self.checksum_calculated:
             return self.message.decode()
         else:
@@ -4024,8 +4019,7 @@ class SerialReader(QObject):
     def my_readline(self):
         self.buffer = bytearray();
         while self.buffer[-2:] != b'\r\n' and self.serial_port.inWaiting() > 0:       
-            self.buffer += self.serial_port.read(1)
-            
+            self.buffer += self.serial_port.read(1)    
         return self.buffer
 
 
@@ -4038,18 +4032,17 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         super(SARMonitorWindow, self).__init__(parent)
         self.setupUi(self)
         
-        self.load_params()
-        
+        self.load_params()        
         params.loadSarCal()
-        '''
-        if list==type(params.SAR_cal_raw):
-            print('list')
-        else:
-            print('no list')
-        '''
         self.ui = loadUi('ui/sar.ui')
         self.setWindowTitle('SAR Monitor')
         self.setGeometry(420, 40, 550, 460)
+        
+        self.SAR_Cal_pushButton.setEnabled(False)
+        self.SAR_Send_Lookup_pushButton.setEnabled(False)
+        self.SAR_New_Pat_pushButton.setEnabled(False)
+        self.SAR_Error_Clear_pushButton.setEnabled(False)
+        self.SAR_Log_Data_pushButton.setEnabled(False)
         
         self.SAR_Enable_radioButton.toggled.connect(self.update_params)
         
@@ -4081,11 +4074,6 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         self.SAR_Send_Lookup_pushButton.clicked.connect(self.send_lookup)
         
         self.serial=None
-#         self.serial = serial.Serial('/dev/ttyUSB0', 112500, timeout=30, rtscts=False, xonxoff=False)#112500 19200
-#         self.serial.setRTS(False)
-#         self.serial_reader=SerialReader(self.serial)
-#         self.serial_reader.data_received.connect(self.on_serial_data_received)
-        
         if self.serial_init():
             QTimer.singleShot(1,self.post_init)
             return
@@ -4108,26 +4096,18 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
         self.last_Data=''
         self.log_init()
-        
-        #QTimer.singleShot(1,self.post_init)
+
     
     def post_init(self):
         self.trigger_no_sar.emit()
-        self.SAR_Cal_pushButton.setEnabled(False)
-        self.SAR_Send_Lookup_pushButton.setEnabled(False)
-        self.SAR_New_Pat_pushButton.setEnabled(False)
-        self.SAR_Error_Clear_pushButton.setEnabled(False)
-        self.SAR_Log_Data_pushButton.setEnabled(False)
-        self.SAR_Stop_pushButton.setEnabled(False)
-        #self.close()
         
     def serial_init(self):       
         ports = list(serial.tools.list_ports.comports())        
         for port in ports:
             try:
-                self.serial = serial.Serial(port.device, 112500, timeout=0.5, rtscts=False, xonxoff=False)#112500 19200
+                self.serial = serial.Serial(port.device, 112500, timeout=0.5, rtscts=False, xonxoff=False)
                 self.serial.setRTS(False)
-                mes = b'ident\x04\x4e\x78\xb2\r\n\t'# + '\r\n\t'.encode('utf-8')
+                mes = b'ident\x04\x4e\x78\xb2\r\n\t'
                 if self.serial.inWaiting()==0:
                     self.serial.write(mes)
                     response= self.serial.readline()
@@ -4136,6 +4116,13 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                         self.serial_reader=SerialReader(self.serial)
                         self.serial_reader.data_received.connect(self.on_serial_data_received)
                         print(f'SAR-Monitor connected to port: {port}')
+                        print(params.connectionmode)
+                        self.SAR_Cal_pushButton.setEnabled(params.connectionmode)
+                        self.SAR_Send_Lookup_pushButton.setEnabled(True)
+                        self.SAR_New_Pat_pushButton.setEnabled(True)
+                        self.SAR_Error_Clear_pushButton.setEnabled(True)
+                        self.SAR_Log_Data_pushButton.setEnabled(True)
+                        
                         return False               
                 self.serial.close()
                 
@@ -4171,16 +4158,16 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
         self.label_MaxP.setText('Max. Amplifier Power [mW]')
         
-        params.SAR_limit=round(self.dBm_to_mW(params.SAR_limit),1)
+        params.SAR_limit=round(self.dBm_to_mW(params.SAR_limit),2)
         self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
         
-        params.SAR_6mlimit=round(self.dBm_to_mW(params.SAR_6mlimit),1)
+        params.SAR_6mlimit=round(self.dBm_to_mW(params.SAR_6mlimit),2)
         self.SAR_6mLimit_doubleSpinBox.setValue(params.SAR_6mlimit)
         
-        params.SAR_peak_limit=round(self.dBm_to_mW(params.SAR_peak_limit),1)
+        params.SAR_peak_limit=round(self.dBm_to_mW(params.SAR_peak_limit),2)
         self.SAR_Tran_doubleSpinBox.setValue(params.SAR_peak_limit)
         
-        params.SAR_max_power = round(self.dBm_to_mW(params.SAR_max_power),1)
+        params.SAR_max_power = round(self.dBm_to_mW(params.SAR_max_power),2)
         self.SAR_Max_Power_doubleSpinBox.setValue(params.SAR_max_power)
         
         params.saveFileParameter()
@@ -4201,16 +4188,16 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
         self.label_MaxP.setText('Max. Amplifier Power [dBm]')
         
-        params.SAR_limit=round(self.mW_to_dBm(params.SAR_limit),1)
+        params.SAR_limit=round(self.mW_to_dBm(params.SAR_limit),2)
         self.SAR_Limit_doubleSpinBox.setValue(params.SAR_limit)
         
-        params.SAR_6mlimit=round(self.mW_to_dBm(params.SAR_6mlimit),1)
+        params.SAR_6mlimit=round(self.mW_to_dBm(params.SAR_6mlimit),2)
         self.SAR_6mLimit_doubleSpinBox.setValue(params.SAR_6mlimit)
         
-        params.SAR_peak_limit=round(self.mW_to_dBm(params.SAR_peak_limit),1)
+        params.SAR_peak_limit=round(self.mW_to_dBm(params.SAR_peak_limit),2)
         self.SAR_Tran_doubleSpinBox.setValue(params.SAR_peak_limit)
         
-        params.SAR_max_power = round(self.mW_to_dBm(params.SAR_max_power),1)
+        params.SAR_max_power = round(self.mW_to_dBm(params.SAR_max_power),2)
         self.SAR_Max_Power_doubleSpinBox.setValue(params.SAR_max_power)
         
         params.saveFileParameter()
@@ -4276,18 +4263,21 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
 
             
     def send_lookup(self):
-        msg_box  = QMessageBox()
-        msg_box.setWindowTitle('Send Lookup Table')
-        msg_box.setText('Check if all plateuaus have been correctly identified and the lookup table is correct. Press Yes to send the lookup table.')
-        msg_box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
-        msg_box.setDefaultButton(QMessageBox.No)
-        result = msg_box.exec()
-        if result == QMessageBox.Yes:
-            self.save_var=11
-            self.command= f'c0:{params.SAR_cal_lookup[0]}'
-            self.write_message(self.command)
-            self.array_count=1
-            self.overlay = Overlay(self)
+        if params.SAR_cal_lookup == []:
+            print('No lookup data!')
+        else:
+            msg_box  = QMessageBox()
+            msg_box.setWindowTitle('Send lookup table')
+            msg_box.setText('Check if all plateuaus have been correctly identified and the lookup table is correct. Press Yes to send the lookup table.')
+            msg_box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+            msg_box.setDefaultButton(QMessageBox.No)
+            result = msg_box.exec()
+            if result == QMessageBox.Yes:
+                self.save_var=11
+                self.command= f'c0:{params.SAR_cal_lookup[0]}'
+                self.write_message(self.command)
+                self.array_count=1
+                self.overlay = Overlay(self)
              
     def write_message(self,data):
         with open(self.logfile_path,'a') as file:
@@ -4396,9 +4386,10 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         self.ax2 = self.fig.add_subplot(3, 1, 2)
         if params.SAR_power_unit == 'dBm':
             self.ax2.plot(np.concatenate(([0],np.linspace(0,(10**(params.SAR_max_power/10)),21)[3:])),params.SAR_cal_mean ,'o', color='#0000BB')
+            self.ax2.set_xlim([0, 10**(params.SAR_max_power/10)])
         if params.SAR_power_unit == 'mW':
             self.ax2.plot(np.concatenate(([0],np.linspace(0,params.SAR_max_power,21)[3:])),params.SAR_cal_mean ,'o', color='#0000BB')
-        self.ax2.set_xlim([0, params.SAR_max_power])
+            self.ax2.set_xlim([0, params.SAR_max_power])
         self.ax2.set_title('ADC vs. Amplifier Power')
         self.ax2.set_ylabel('ADC')
         self.ax2.set_xlabel('Power [mW]')
@@ -4421,8 +4412,6 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         
     def linear_extrapolation(self,x_new,x,y):
         if x_new < x[0]:
-            #slope=(y[1]-y[0])/(x[1]-x[0])
-            #return y[0]+slope*(x_new-x[0])
             return 0
         elif x_new > x[-1]:
             slope=(y[-1]-y[-2])/(x[-1]-x[-2])
@@ -4430,27 +4419,21 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
         else:
             return np.interp(x_new,x,y)
         
-    def convolve_sar(self,data):  
-        return np.convolve(data,[1,2,0,-2,-1],mode='same')
-    
-    def convolve_sar2(self,data):
-        #return np.convolve(data,[1,2,-1,-4,-1,2,1],mode='same')
-        return np.convolve(data,[1,4,4,-4,-10,-4,4,4,1],mode='same')
     
     def find_plateau(self,sardata):
-        threshhold=150
-        steps=5 
-        start=0
-        end=0
-        var=0
-        found=0
-        plats=[]
+        threshhold = 150
+        steps = 5 
+        start = 0
+        end = 0
+        var = 0
+        found = 0
+        plats = []
         zeros=np.array([])
-        params.SAR_cal_start=[]
-        params.SAR_cal_end=[]
+        params.SAR_cal_start = []
+        params.SAR_cal_end = []
         data = np.convolve(sardata,[1,4,4,-4,-10,-4,4,4,1],mode='same')
         
-        i=20
+        i = 20
         params.SAR_cal_end.append(15)
         while i < len(data)-1:
             if data[i] > threshhold:
@@ -4486,19 +4469,16 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                     params.SAR_cal_end.append(end-2)
                     plats.append(sardata[start+2:end-2])
                     found=0
-            i +=1
+            i += 1
     
-        #print(plats)
+        
         calmean=[0]
         for plat in plats: 
             calmean.append(int(np.ceil(np.mean(plat))))
         calmean[0]=int(np.ceil(np.mean(zeros)))
         params.SAR_cal_mean=calmean
         
-#         print(params.SAR_cal_start)
-#         print(params.SAR_cal_end)
-#         print(params.SAR_cal_mean)
-    
+        
     def on_serial_data_received(self,data):
         print(data)
         if (self.save_var==21 or self.save_var==22) and data == 'err:stop':
@@ -4509,23 +4489,17 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
             if self.save_var==21:
                 self.write_message('new pat')       
                 self.command= f'l10s{self.convert_limit(params.SAR_limit)}'
-                #print(self.command)
                 self.write_message(self.command)
                 self.command= f'l6m{self.convert_limit(params.SAR_6mlimit)}'
-                #print(self.command)
                 self.write_message(self.command)
                 self.command= f'tran{self.convert_limit(params.SAR_peak_limit)}'
-                #print(self.command)
                 self.write_message(self.command)
                 self.SAR_10sLimit_lineEdit.setText(f'{params.SAR_limit}')
                 self.SAR_6mLimit_lineEdit.setText(f'{params.SAR_6mlimit}')
                 self.SAR_PeakLimit_lineEdit.setText(f'{params.SAR_peak_limit}')
                 self.save_var=0
-                #time.sleep(1)
-                self.write_message('start')
-                #print(self.command) 
+                self.write_message('start') 
             if self.save_var==22:
-                #print('test')
                 self.command= f'l10s{self.convert_limit(params.SAR_limit)}'
                 self.write_message(self.command)
                 self.command= f'l6m{self.convert_limit(params.SAR_6mlimit)}'
@@ -4548,12 +4522,11 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                     print(data)
                     self.save_var=0
                     self.overlay.deleteLater()
-            else: # foramtiere
+            else: 
                 self.err_count=0
                 if self.array_count < 4096:
                     self.command= f'c{self.array_count}:{params.SAR_cal_lookup[self.array_count]}'
                     self.write_message(self.command)
-                    #print(self.command)
                     self.array_count+=1
                 else:
                     self.save_var=0
@@ -4569,18 +4542,15 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                     print(data)
                     self.save_var=0
                     self.overlay.deleteLater()
-            else: # foramtiere
+            else: 
                 self.err_count=0
                 self.data_array.append(int(data))
-                if len(self.data_array) > 2499:#2499:#9999 :
+                if len(self.data_array) > 2499:
                     params.SAR_cal_raw=self.data_array
                     params.saveSarCal()
-                    
                     self.file_name = f'SAR_Cal_{params.SAR_LOG_counter}.txt'   
                     self.file_path = os.path.join(self.cal_path,self.file_name)
                     np.savetxt(self.file_path,self.data_array)
-                   
-                    #self.cal_plot()
                     self.data_array.clear()
                     self.save_var=0
                     self.overlay.deleteLater()
@@ -4590,7 +4560,6 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                     self.array_count+=1
                         
         if self.save_var == 0:
-            #print(data)
             alert = ('tranlimit','reflimit','6minlimit','10slimit')
             ERR = ('MTS','CSC')
             if not(self.last_Data=='SARstop' and data in alert):
@@ -4623,6 +4592,14 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
             elif data in alert:
                 self.SAR_Status_lineEdit.setText(data)
                 self.SAR_New_Pos_pushButton.setEnabled(False)
+                if data == 'tranlimit':
+                    self.SAR_Status_lineEdit.setText('Peak limit')
+                elif data == 'refllimit':
+                    self.SAR_Status_lineEdit.setText('Reflection limit')
+                elif data == '10slimit':
+                    self.SAR_Status_lineEdit.setText('10s limit')
+                elif data == '6minlimit':
+                    self.SAR_Status_lineEdit.setText('6min limit')                   
                 params.SAR_status ='com'
             elif data in ERR:
                 self.SAR_New_Pos_pushButton.setEnabled(False)
@@ -4654,7 +4631,6 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                 self.write_message(self.command)
                 self.array_count+=1        
         
-        #self.data_array.append(data)
         if self.save_var == 4 :
             self.data_array.append(data)
             if len(self.data_array) > 999 :    
@@ -4693,8 +4669,7 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                 self.data_array.clear()
                 self.save_var=4
                 self.write_message('rs0')
-                self.array_count=1
-                #self.overlay.deleteLater()  
+                self.array_count=1  
             else:
                 self.command= f'rm{self.array_count}'
                 self.write_message(self.command)
@@ -4712,24 +4687,6 @@ class SARMonitorWindow(SAR_Window_Form, SAR_Window_Base):
                 file.writelines('6min_Mean: ' + data + '\n')
             self.save_var=2
             self.write_message('r10sec')
-    
-    def error_switch(self,error):
-        if error == '0':
-            self.SAR_Status_lineEdit.setText('Error: Internal')
-        elif error == '1':
-            self.SAR_Status_lineEdit.setText('Error: Peak limit')
-        elif error == '2':
-            self.SAR_Status_lineEdit.setText('Error: 10s limit')
-        elif error == '3':
-            self.SAR_Status_lineEdit.setText('Error: 6m limit')
-        elif error == '4':
-            self.SAR_Status_lineEdit.setText('Error: Reflection limit')
-        elif error == '5':
-            self.SAR_Status_lineEdit.setText('Error: No limit')
-        elif error == '6':
-            self.SAR_Status_lineEdit.setText('Error: COM')
-        #elif error == '10':
-            #self.SAR_Status_lineEdit.setText('Communication')
 
     def load_params(self):
         if params.SAR_enable == 1: self.SAR_Enable_radioButton.setChecked(True)

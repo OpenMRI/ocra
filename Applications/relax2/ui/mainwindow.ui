@@ -206,7 +206,7 @@
          </widget>
         </item>
         <item row="4" column="3">
-         <widget class="QPushButton" name="Mode_Image_Stiching_pushButton">
+         <widget class="QPushButton" name="Mode_Image_Stitching_pushButton">
           <property name="minimumSize">
            <size>
             <width>150</width>
@@ -220,7 +220,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Image Stiching</string>
+           <string>Image Stitching</string>
           </property>
          </widget>
         </item>

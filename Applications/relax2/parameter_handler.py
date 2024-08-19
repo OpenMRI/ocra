@@ -439,8 +439,7 @@ class Parameters:
                 print('SAR data successfully restored from file.')
                 
         except:
-            print('SAR data could not have been restored, setting default.')
-            self.var_init()
+            print('SAR data could not have been restored.')
 
     def loadParam(self):
         try:
