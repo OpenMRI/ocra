@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>550</width>
-    <height>400</height>
+    <height>460</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>550</width>
-    <height>400</height>
+    <height>460</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>550</width>
-    <height>400</height>
+    <height>460</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
      <x>0</x>
      <y>0</y>
      <width>551</width>
-     <height>401</height>
+     <height>460</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -50,93 +50,11 @@
     <property name="spacing">
      <number>5</number>
     </property>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="SAR_Load_Data_pushButton">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Load Data</string>
-      </property>
-      <property name="autoDefault">
+    <item row="1" column="1">
+     <widget class="QRadioButton" name="SAR_Enable_radioButton">
+      <property name="enabled">
        <bool>false</bool>
       </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QDoubleSpinBox" name="SAR_Limit_doubleSpinBox">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="minimum">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QPushButton" name="SAR_Load_Cal_pushButton">
-      <property name="text">
-       <string>Load Cal. Data</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_6m">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>SAR 6m Limit [dBm]</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="QPushButton" name="SAR_Test_Array_pushButton">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -150,9 +68,9 @@
        </size>
       </property>
       <property name="text">
-       <string>Calibrate</string>
+       <string/>
       </property>
-      <property name="autoDefault">
+      <property name="autoExclusive">
        <bool>false</bool>
       </property>
      </widget>
@@ -185,7 +103,41 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
+    <item row="7" column="1">
+     <widget class="QDoubleSpinBox" name="SAR_Limit_doubleSpinBox">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="decimals">
+       <number>2</number>
+      </property>
+      <property name="minimum">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
      <widget class="QLabel" name="label_10s">
       <property name="minimumSize">
        <size>
@@ -207,8 +159,8 @@
       </property>
      </widget>
     </item>
-    <item row="8" column="1">
-     <widget class="QDoubleSpinBox" name="SAR_6mLimit_doubleSpinBox">
+    <item row="10" column="2">
+     <widget class="QLineEdit" name="SAR_6mLimit_lineEdit">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -220,29 +172,77 @@
         <width>150</width>
         <height>30</height>
        </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="minimum">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
       </property>
      </widget>
     </item>
-    <item row="10" column="1">
-     <widget class="QDoubleSpinBox" name="SAR_Tran_doubleSpinBox">
+    <item row="17" column="2">
+     <widget class="QPushButton" name="SAR_Log_Data_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Log SAR Data</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="2">
+     <widget class="QPushButton" name="SAR_New_Pos_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>New Position</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QPushButton" name="SAR_Cal_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Start Sequence</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QDoubleSpinBox" name="SAR_Max_Power_doubleSpinBox">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -259,10 +259,10 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
       <property name="decimals">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="minimum">
-       <double>0.100000000000000</double>
+       <double>0.010000000000000</double>
       </property>
       <property name="maximum">
        <double>100.000000000000000</double>
@@ -276,6 +276,66 @@
      </widget>
     </item>
     <item row="10" column="0">
+     <widget class="QLabel" name="label_6m">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>SAR 6m Limit [dBm]</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Power Unit</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="2">
+     <widget class="QLineEdit" name="SAR_PeakLimit_lineEdit">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0">
      <widget class="QLabel" name="label_peak">
       <property name="minimumSize">
        <size>
@@ -297,15 +357,8 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="3">
-     <widget class="QPushButton" name="SAR_Error_Clear_pushButton">
-      <property name="text">
-       <string>Clear Error</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QRadioButton" name="SAR_Enable_radioButton">
+    <item row="10" column="1">
+     <widget class="QDoubleSpinBox" name="SAR_6mLimit_doubleSpinBox">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -315,38 +368,31 @@
       <property name="maximumSize">
        <size>
         <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="0">
-     <widget class="QLineEdit" name="SAR_Status_lineEdit">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
         <height>30</height>
        </size>
       </property>
       <property name="alignment">
-       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="decimals">
+       <number>2</number>
+      </property>
+      <property name="minimum">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
       </property>
      </widget>
     </item>
-    <item row="10" column="3">
-     <widget class="QLineEdit" name="SAR_PeakLimit_lineEdit"/>
-    </item>
-    <item row="13" column="3">
-     <widget class="QPushButton" name="SAR_New_Pos_pushButton">
+    <item row="6" column="2">
+     <widget class="QPushButton" name="SAR_Power_dBm_pushButton">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -360,15 +406,15 @@
        </size>
       </property>
       <property name="text">
-       <string>New Pos.</string>
+       <string>dBm</string>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="SAR_Stop_pushButton">
+    <item row="7" column="2">
+     <widget class="QLineEdit" name="SAR_10sLimit_lineEdit">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -381,63 +427,86 @@
         <height>30</height>
        </size>
       </property>
-      <property name="text">
-       <string>End Session</string>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="6" column="1">
      <widget class="QPushButton" name="SAR_Power_W_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
       <property name="text">
        <string>mW</string>
       </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QPushButton" name="SAR_Lookup_pushButton">
-      <property name="text">
-       <string>Send Lookup</string>
+      <property name="autoDefault">
+       <bool>false</bool>
       </property>
      </widget>
     </item>
-    <item row="8" column="3">
-     <widget class="QLineEdit" name="SAR_6mLimit_lineEdit"/>
-    </item>
-    <item row="0" column="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_3">
+    <item row="12" column="1">
+     <widget class="QDoubleSpinBox" name="SAR_Tran_doubleSpinBox">
       <property name="minimumSize">
        <size>
-        <width>200</width>
+        <width>150</width>
         <height>30</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>200</width>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="decimals">
+       <number>2</number>
+      </property>
+      <property name="minimum">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="1">
+     <widget class="QPushButton" name="SAR_New_Pat_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
         <height>30</height>
        </size>
       </property>
       <property name="text">
-       <string>Power Unit</string>
+       <string>New Patient</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="autoDefault">
+       <bool>false</bool>
       </property>
      </widget>
     </item>
@@ -463,42 +532,6 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="3">
-     <widget class="QLineEdit" name="SAR_10sLimit_lineEdit">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="3">
-     <widget class="QPushButton" name="SAR_Power_dBm_pushButton">
-      <property name="text">
-       <string>dBm</string>
-      </property>
-     </widget>
-    </item>
-    <item row="13" column="1">
-     <widget class="QPushButton" name="SAR_New_Pat_pushButton">
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>150</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>New Pat.</string>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0">
      <widget class="QLabel" name="label_2">
       <property name="minimumSize">
@@ -521,7 +554,7 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="4" column="0">
      <widget class="QLabel" name="label_MaxP">
       <property name="minimumSize">
        <size>
@@ -543,8 +576,8 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QDoubleSpinBox" name="SAR_Max_Power_doubleSpinBox">
+    <item row="16" column="1">
+     <widget class="QLineEdit" name="SAR_Status_lineEdit">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -558,22 +591,117 @@
        </size>
       </property>
       <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
       </property>
-      <property name="decimals">
-       <number>1</number>
+     </widget>
+    </item>
+    <item row="16" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
       </property>
-      <property name="minimum">
-       <double>0.100000000000000</double>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
       </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
+      <property name="text">
+       <string>SAR Monitor Status</string>
       </property>
-      <property name="singleStep">
-       <double>1.000000000000000</double>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
-      <property name="value">
-       <double>1.000000000000000</double>
+     </widget>
+    </item>
+    <item row="16" column="2">
+     <widget class="QPushButton" name="SAR_Error_Clear_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Clear Error</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QPushButton" name="SAR_Send_Lookup_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Send Lookup</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QPushButton" name="SAR_Calc_Lookup_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Calculate Lookup</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="2">
+     <widget class="QPushButton" name="SAR_Stop_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Stop</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
       </property>
      </widget>
     </item>

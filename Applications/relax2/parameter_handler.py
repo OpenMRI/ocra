@@ -176,8 +176,8 @@ class Parameters:
         self.sliceoffset = 0
         self.animationstep = 100
         self.animationimage = []
-        self.ToolShimStart = -100
-        self.ToolShimStop = 100
+        self.ToolShimStart = -400
+        self.ToolShimStop = 400
         self.ToolShimSteps = 20
         self.ToolShimChannel = [0, 0, 0, 0]
         self.STvalues = []
@@ -204,7 +204,7 @@ class Parameters:
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
-        self.motor_axis_limit_positive = 197
+        self.motor_axis_limit_positive = 195
         self.motor_movement_direction = 0
         self.motor_actual_position = 0
         self.motor_goto_position = 0
@@ -430,18 +430,16 @@ class Parameters:
         with open('sarcal.pkl', 'wb') as file:
             pickle.dump([self.SAR_cal_raw], file)
        
-        print("SAR data saved!")
+        print('SAR data saved!')
         
     def loadSarCal(self):
         try:
             with open('sarcal.pkl', 'rb') as file:
                 self.SAR_cal_raw = pickle.load(file)
-             
-                print("SAR data successfully restored from file.")
+                print('SAR data successfully restored from file.')
                 
         except:
-            print("SAR data could not have been restored, setting default.")
-            self.var_init()
+            print('SAR data could not have been restored.')
 
     def loadParam(self):
         try:
