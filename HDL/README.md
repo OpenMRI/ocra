@@ -37,13 +37,17 @@ Similarily, you can build the ocra_mri project for the stemlab_125_14 by calling
 ```
 make NAME=ocra_mri BOARD=stemlab_125_14
 ```
+This will build bitfiles that can be used with on a Linux installation on your Zynq so long it supports the fpga_manager. 
 
-This will build bitfiles that can be used with on a Linux installation on your Zynq so long it supports the fpga_manager. If you want to build a device tree and the associated files to create your own bootloader etc. you need to run
+Sometimes you might want to only quickly generate the project file for Vivado, which you make by calling:
+```
+make xpr NAME=ocra_mri BOARD=stemlab_125_14
+```
 
+If you want to build a device tree and the associated files to create your own bootloader etc. you need to run:
 ```
 make dtbo NAME=ocra_mri BOARD=stemlab_125_14
 ```
-
 Note that this requires the HSI tool xsct and the device tree compiler dtc.
 
 This is pretty easy, isn't it?

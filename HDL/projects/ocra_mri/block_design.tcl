@@ -415,16 +415,6 @@ set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true
 #
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
-# Delete input/output port
-delete_bd_objs [get_bd_ports exp_p_tri_io]
-delete_bd_objs [get_bd_ports exp_n_tri_io]
-
-# Create newoutput port
-create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
-#connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
-
-# Create output port for the SPI stuff
-create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 
 # 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
 #          and the txgate will use the eight' pin on the n side
