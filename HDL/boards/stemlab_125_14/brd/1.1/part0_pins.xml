@@ -29,14 +29,14 @@
     <pin index="22" name="exp_n_io_6" iostandard="LVCMOS33" loc="J16"/>
     <pin index="23" name="exp_n_io_7" iostandard="LVCMOS33" loc="M15"/>
 
-    <pin index="24" name="daisy_p_i_0" iostandard="LVCMOS33" loc="P14"/>
-    <pin index="25" name="daisy_n_i_0" iostandard="LVCMOS33" loc="R14"/>
-    <pin index="26" name="daisy_p_i_1" iostandard="LVCMOS33" loc="N18"/>
-    <pin index="27" name="daisy_n_i_1" iostandard="LVCMOS33" loc="P19"/>
-    <pin index="28" name="daisy_p_o_0" iostandard="LVCMOS33" loc="T12"/>
-    <pin index="29" name="daisy_n_o_0" iostandard="LVCMOS33" loc="U12"/>
-    <pin index="30" name="daisy_p_o_1" iostandard="LVCMOS33" loc="U14"/>
-    <pin index="31" name="daisy_n_o_1" iostandard="LVCMOS33" loc="U15"/>
+    <pin index="24" name="daisy_p_i_0" iostandard="DIFF_HSTL_I_18" loc="P14"/>
+    <pin index="25" name="daisy_n_i_0" iostandard="DIFF_HSTL_I_18" loc="R14"/>
+    <pin index="26" name="daisy_p_i_1" iostandard="DIFF_HSTL_I_18" loc="N18"/>
+    <pin index="27" name="daisy_n_i_1" iostandard="DIFF_HSTL_I_18" loc="P19"/>
+    <pin index="28" name="daisy_p_o_0" iostandard="DIFF_HSTL_I_18" loc="T12"/>
+    <pin index="29" name="daisy_n_o_0" iostandard="DIFF_HSTL_I_18" loc="U12"/>
+    <pin index="30" name="daisy_p_o_1" iostandard="DIFF_HSTL_I_18" loc="U14"/>
+    <pin index="31" name="daisy_n_o_1" iostandard="DIFF_HSTL_I_18" loc="U15"/>
 
     <pin index="32" name="adc_dat_i_0_0"  iostandard="LVCMOS18" loc="V17"/>
     <pin index="33" name="adc_dat_i_0_1"  iostandard="LVCMOS18" loc="U17"/>
