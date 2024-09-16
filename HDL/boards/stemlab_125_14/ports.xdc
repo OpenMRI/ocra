@@ -1,3 +1,18 @@
+proc set_port_property_if_exists { port_name property_name property_value } {
+    # Get the port
+    set port_obj [get_ports $port_name]
+
+    # Check if the port exists
+    if { [llength $port_obj] > 0 } {
+        # Port exists, set the property
+        set_property $property_name $property_value $port_obj
+        puts "Property '$property_name' set to '$property_value' on port '$port_name'."
+    } else {
+        # Port does not exist
+        puts "Port '$port_name' does not exist. Skipping property setting."
+    }
+}
+
 # set_property CFGBVS VCCO [current_design]
 # set_property CONFIG_VOLTAGE 3.3 [current_design]
 
@@ -36,11 +51,7 @@ set_property PACKAGE_PIN T19 [get_ports {adc_dat_b_i[6]}]
 set_property PACKAGE_PIN U20 [get_ports {adc_dat_b_i[7]}]
 set_property PACKAGE_PIN V20 [get_ports {adc_dat_b_i[8]}]
 set_property PACKAGE_PIN W20 [get_ports {adc_dat_b_i[9]}]
-set_property PACKAGE_PIN W19 [get_ports {adc_dat_b_i[10]}]
-set_property PACKAGE_PIN Y19 [get_ports {adc_dat_b_i[11]}]
-set_property PACKAGE_PIN W18 [get_ports {adc_dat_b_i[12]}]
-set_property PACKAGE_PIN Y18 [get_ports {adc_dat_b_i[13]}]
-
+set_property PACKAGEled_o_led_o
 # clock input
 
 set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports adc_clk_p_i]
