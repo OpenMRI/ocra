@@ -34,7 +34,7 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 .PHONY: clean all xpr bit dtbo setup
 
 .ONESHELL:
-all: setup tmp/%.bin tmp/%.dtbo
+all: setup tmp/%.bin
 
 
 .ONESHELL:
