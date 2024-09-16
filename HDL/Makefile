@@ -23,7 +23,7 @@ RM = rm -rf
 
 VIVADO_VER = $(shell vivado -version | grep "v20" | sed -r 's/.*v(20[0-9]{2}.[0-9]).*/\1/g')
 
-DTREE_TAG = xlnx_rel_v2022.2
+DTREE_TAG = xlnx_rel_v2024.1
 
 DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
 DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
