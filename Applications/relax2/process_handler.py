@@ -33,26 +33,20 @@ class process:
     def motor_move(self, motor=None):
         if motor is not None and params.motor_actual_position != params.motor_goto_position:                     
             print('Moving...')
-            motor.blockSignals(True)
-            cmd_movement_s = 'G0 ' + str(params.motor_goto_position) + '\n'
+            cmd_movement_s = 'G0 ' + str(params.motor_goto_position) + '\r\n'
             motor.write(cmd_movement_s.encode('utf-8'))
-            motor.waitForBytesWritten()
 
             time.sleep(0.1)
             
-            cmd_response_s = 'M118 R0: movement finished\n'
+            cmd_response_s = 'M118 R0: movement finished\r\n'
             motor.write(cmd_response_s.encode('utf-8'))
-            motor.flush()
             
-            response_byte_array = motor.readAll()
-            while 'R0: movement finished' not in response_byte_array.data().decode('utf8', errors='ignore'):
-                motor.waitForReadyRead(10)
-                response_byte_array.append(motor.readAll())
-            motor.clear()
+            response = motor.readline()
+            while 'R0: movement finished' not in response.decode('utf8', errors='ignore'):
+                response = motor.readline()
             
             params.motor_actual_position = params.motor_goto_position
             print('Moved to ' + str(params.motor_actual_position) + 'mm')
-            motor.blockSignals(False)
             print('Settling...')
             time.sleep(params.motor_settling_time)
 
@@ -175,7 +169,7 @@ class process:
         for n in range(params.SPEsteps):
             self.kspacetemp2 = self.kspacetemp[int(n * self.kspacetemp.shape[0] / params.SPEsteps):int(n * self.kspacetemp.shape[0] / params.SPEsteps + self.kspacetemp.shape[0] / params.SPEsteps), :]
 
-            params.kspace[n, 0:int(self.kspacetemp.shape[0] / params.SPEsteps), :] = self.kspacetemp[int(n * self.kspacetemp.shape[0] / params.SPEsteps):int(n * self.kspacetemp.shape[0] / params.SPEsteps + self.kspacetemp.shape[0] / params.SPEsteps), :]
+            params.kspace[n, 0:int(self.kspacetemp.shape[0] / params.SPEsteps), :] = self.kspacetemp[int(n * self.kspacetemp.shape[0] / params.SPEsteps):int(n * self.kspacetemp.shape[0] / params.SPEsteps + int(self.kspacetemp.shape[0] / params.SPEsteps)), :]
 
         self.kspace_centerx = int(params.kspace.shape[2] / 2)
         self.kspace_centery = int(params.kspace.shape[1] / 2)
@@ -753,7 +747,7 @@ class process:
         params.nPE = int(jsonparams['Image resolution [pixel]'])
         params.FOV = jsonparams['FOV [mm]']
         params.motor_image_count = int(jsonparams['Motor image count'])
-        params.motor_movement_step = np.abs(jsonparams['Motor movement step'])
+        params.motor_movement_step = np.abs(jsonparams['Motor movement step [mm]'])
 
         if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
             print('Processing XY or ZY')
@@ -771,7 +765,7 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
 
             for n in range(0, params.motor_image_count):
-                if jsonparams['Motor movement step'] < 0:
+                if jsonparams['Motor movement step [mm]'] > 0:
                     params.datapath = (self.datapathtemp + '_' + str(n + 1))
                 else:
                     params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
@@ -803,7 +797,7 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
 
             for n in range(0, params.motor_image_count):
-                if jsonparams['Motor movement step'] < 0:
+                if jsonparams['Motor movement step [mm]'] < 0:
                     params.datapath = (self.datapathtemp + '_' + str(n + 1))
                 else:
                     params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
@@ -943,7 +937,7 @@ class process:
         params.nPE = int(jsonparams['Image resolution [pixel]'])
         params.FOV = jsonparams['FOV [mm]']
         params.motor_image_count = jsonparams['Motor image count']
-        params.motor_movement_step = np.abs(jsonparams['Motor movement step'])
+        params.motor_movement_step = np.abs(jsonparams['Motor movement step [mm]'])
         params.SPEsteps = int(jsonparams['3D phase steps'])
         params.slicethickness = jsonparams['Slice/Slab thickness [mm]']
 
@@ -964,7 +958,7 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step'] < 0:
+                if jsonparams['Motor movement step [mm]'] < 0:
                     params.datapath = (self.datapathtemp + '_' + str(n + 1))
                 else:
                     params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
@@ -997,7 +991,7 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step'] < 0:
+                if jsonparams['Motor movement step [mm]'] > 0:
                     params.datapath = (self.datapathtemp + '_' + str(n + 1))
                 else:
                     params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
@@ -1028,7 +1022,7 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step'] < 0:
+                if jsonparams['Motor movement step [mm]'] > 0:
                     params.datapath = (self.datapathtemp + '_' + str(n + 1))
                 else:
                     params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
@@ -1112,6 +1106,28 @@ class process:
         if np.isnan(params.SNR) == True:
             params.SNR = 0.001
         #print('SNR: ', params.SNR)
+            
+    def image_3D_analytics(self):
+        center = int((np.round(params.img_mag.shape[0] - 1) / 2))
+        
+        self.img_max = np.max(np.amax(params.img_mag[center]))
+
+        self.img_phantomcut = np.matrix(np.zeros((params.img_mag[center].shape[0], params.img_mag[center].shape[1])))
+        self.img_phantomcut[:, :] = params.img_mag[center, :, :]
+        self.img_phantomcut[self.img_phantomcut < self.img_max / 2] = np.nan
+        params.peakvalue = round(np.mean(self.img_phantomcut[np.isnan(self.img_phantomcut) == False]), 3)
+        #print('Signal: ', params.peakvalue)
+
+        self.img_noisecut = np.matrix(np.zeros((params.img_mag[center].shape[0], params.img_mag[center].shape[1])))
+        self.img_noisecut[:, :] = params.img_mag[center, :, :]
+        self.img_noisecut[self.img_noisecut >= self.img_max * params.signalmask] = np.nan
+        params.noise = round(np.mean(self.img_noisecut[np.isnan(self.img_noisecut) == False]), 3)
+        #print('Noise: ', params.noise)
+
+        params.SNR = round(params.peakvalue / params.noise, 1)
+        if np.isnan(params.SNR) == True:
+            params.SNR = 0.001
+        #print('SNR: ', params.SNR)        
 
     def Autocentertool(self):
         print('Finding signals...')

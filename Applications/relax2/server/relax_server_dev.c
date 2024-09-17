@@ -13683,7 +13683,7 @@ void update_gradient_waveforms_2D_TSE(volatile uint32_t *gx,volatile uint32_t *g
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
-  else if (imor == 3){
+  else if (imor == 5){
     fRO = offset.gradient_x;
     fPE = offset.gradient_z;
     fSL = offset.gradient_y;
@@ -17422,7 +17422,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
@@ -17451,7 +17451,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_GRE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17475,7 +17475,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -17505,7 +17505,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17529,7 +17529,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -17559,7 +17559,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_GRE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17583,7 +17583,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -17615,7 +17615,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17639,7 +17639,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         float snpe = command[26] + command[27]*0x100; // Slice phase steps
@@ -17675,13 +17675,13 @@ int main(int argc)
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
-            pe = pe+pe_step; // Next phase gradient amplitude
+            pe = pe-pe_step; // Next phase gradient amplitude
             //printf("PE to set = %d\n", pe);
             update_gradient_waveforms_3D_SE_slab(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, pe_step, spe, cr, sp, imor,gradient_offset);
             usleep(tr*1000); // Wait TR
           }
           spe = spe+spe_step; // Next slice phase gradient amplitude
-          pe = -(npe/2)*pe_step + pe_step/2; // Reset phase gradient start amplitude
+          pe = (npe/2)*pe_step - pe_step/2; // Reset phase gradient start amplitude
         }
         printf("---------------------------------------\n");
         continue;
@@ -17702,7 +17702,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         da = ((float)command[24] + (float)command[25]*0x100)/1000; // Diffusion amplitude
         cr = ((float)command[20] + (float)command[21]*0x100)/1000; // Crusher amplitude
@@ -17733,7 +17733,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_diff(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, da, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18066,7 +18066,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18096,7 +18096,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_TSE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, npe, pe_step, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18120,7 +18120,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18150,7 +18150,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_EPI_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, npe, pe_step, reps+1, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18174,7 +18174,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -18206,7 +18206,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_TSE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, npe, pe_step, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18230,7 +18230,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
@@ -18259,7 +18259,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_EPI(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, npe, pe_step, reps+1, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18603,7 +18603,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         float snpe = command[22] + command[23]*0x100; // Slice phase steps
@@ -18639,13 +18639,13 @@ int main(int argc)
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
-            pe = pe+pe_step; // Next phase gradient amplitude
+            pe = pe-pe_step; // Next phase gradient amplitude
             //printf("PE to set = %d\n", pe);
             update_gradient_waveforms_3D_TSE_slab(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, sl, slref, cr, sp, imor, npe, pe_step, spe, gradient_offset);
             usleep(tr*1000); // Wait TR
           }
           spe = spe+spe_step; // Next slice phase gradient amplitude
-          pe = -(npe/2)*pe_step + pe_step/2; // Reset phase gradient start amplitude
+          pe = (npe/2)*pe_step - pe_step/2; // Reset phase gradient start amplitude
         }
         printf("---------------------------------------\n");
         continue;
@@ -18702,7 +18702,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -pe_step/2; // Phase gradient start amplitude
+        pe = pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18722,7 +18722,7 @@ int main(int argc)
         update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, cr, sp, imor, gradient_offset);
         
         for(int reps=0; reps<npe/2; reps++) {
-          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
+          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
@@ -18736,7 +18736,7 @@ int main(int argc)
           seq_config[0] = 0x00000000;
           usleep(tr*1000); // Wait TR
           
-          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
+          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
@@ -18769,7 +18769,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -pe_step/2; // Phase gradient start amplitude
+        pe = pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -18791,7 +18791,7 @@ int main(int argc)
         update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, sl, slref, cr, sp, imor, gradient_offset);
         
         for(int reps=0; reps<npe/2; reps++) {
-          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
+          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
@@ -18805,7 +18805,7 @@ int main(int argc)
           seq_config[0] = 0x00000000;
           usleep(tr*1000); // Wait TR
           
-          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
+          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;

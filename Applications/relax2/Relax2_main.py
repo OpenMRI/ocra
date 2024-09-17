@@ -20,9 +20,11 @@ import asyncio
 import zlib
 import struct
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QRect
+from enum import Enum
 #endSAR
 
+import json
 
 from datetime import datetime
 
@@ -61,6 +63,7 @@ Tools_Window_Form, Tools_Window_Base = loadUiType('ui/tools.ui')
 Protocol_Window_Form, Protocol_Window_Base = loadUiType('ui/protocol.ui')
 SAR_Window_Form, SAR_Window_Base = loadUiType('ui/sar.ui')
 Motor_Window_Form, Motor_Window_Base = loadUiType('ui/motor_tools.ui')
+View3D_Dialog_Form, View3D_Dialog_Base = loadUiType('ui/view_3D.ui')
 
 
 class MainWindow(Main_Window_Base, Main_Window_Form):
@@ -103,7 +106,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.motor_actual_position = 0
         params.motor_goto_position = 0
 
-        # self.motor_connect()
+        self.motor = None
+        self.motor_reader = None
+        
+        if params.motor_enable:
+            self.motor_connect()
 
         if params.GSamplitude == 0:
             params.GSposttime = 0
@@ -136,126 +143,58 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Datapath_lineEdit.editingFinished.connect(lambda: self.set_Datapath())
 
     def motor_connect(self):
-        self.motor = None
-        if not (params.motor_port != [] and self.check_motor_port(motor_port=params.motor_port)):
-            ports = QSerialPortInfo.availablePorts()
-            port_available = False
-
-            while len(ports) > 0 and not port_available:
-                if self.check_motor_port(ports[0].portName()):
-                    port_available = True
-                    params.motor_available = 1
-                    params.motor_port = ports[0].portName()
+        ports = list(serial.tools.list_ports.comports())
+        
+        for port in ports:
+            try:
+                self.motor = serial.Serial(port.device, 115200, timeout=0.5)
+                time.sleep(1)
+                mes = 'M115\r\n'
+                
+                if self.motor.inWaiting() == 0:
+                    self.motor.write(mes.encode('utf-8'))
+                    response = self.motor.readline()
+                    
+                    if 'MRI-Patient-Motor-Control' in response.decode('utf-8'):
+                        mes_limit = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(params.motor_axis_limit_positive) + '\r\n'
+                        self.motor.write(mes_limit.encode('utf-8'))
+                        
+                        self.motor_reader = SerialReader(self.motor, type=SerialReader.Type.MOTOR)
+                        self.motor_reader.data_received.connect(lambda msg: self.motor_read(msg))
+                        
+                        mes_home = 'G28\r\n'
+                        self.motor.write(mes_home.encode('utf-8'))
+                        mes_home_response = 'M118 R0: homing finished\r\n'
+                        self.motor.write(mes_home_response.encode('utf-8'))
+                        
+                        print(f'Motor connected to port: {port}')
+                        return
+                    else:
+                        self.motor.close()
+                        print(f'Motor not available on port: {port}')
                 else:
-                    ports.remove(ports[0])
+                    self.motor.close()
+                    print(f'Motor not available on port: {port}')
+            except Exception as e:
+                print(f'Could not write to port: {port} - {e}')
 
-        self.Motor_Tools_pushButton.setEnabled(True)
+    def motor_read(self, msg):
+        if 'R0: homing finished' in msg:
+            params.motor_available = 1
 
-    def check_motor_port(self, motor_port=None):
-        motor = QSerialPort()
-        motor.setPortName(motor_port)
-        print('Motor Search: checking port: ' + motor_port)
+            if self.dialog_motortools is not None:
+                self.dialog_motortools.load_params()
+                self.dialog_motortools.repaint()
 
-        if motor.open(QIODevice.ReadWrite):
-            motor.setBaudRate(QSerialPort.BaudRate.Baud115200)
-            motor.setDataBits(QSerialPort.DataBits.Data8)
-            motor.setParity(QSerialPort.Parity.NoParity)
-            motor.setStopBits(QSerialPort.StopBits.OneStop)
-            motor.setFlowControl(QSerialPort.FlowControl.NoFlowControl)
-            motor.setDataTerminalReady(True)
+            print('Motor Control: Homing finished.')
+        elif 'R0: finished moving' in msg:
+            params.motor_available = 1
 
-            motor.waitForReadyRead(100)
-
-            time.sleep(2)
-
-            cmd_info_s = 'M115\n'
-            motor.write(cmd_info_s.encode('utf-8'))
-            motor.waitForBytesWritten()
-
-            motor_search_start_time = time.perf_counter()
-            motor_search_timeout = False
-            motor_timeout_time = 0.5
-
-            ident_byte_array = motor.readAll()
-            while '\n' not in ident_byte_array.data().decode() and not motor_search_timeout:
-                motor.waitForReadyRead(10)
-                ident_byte_array.append(motor.readAll())
-                if time.perf_counter() > (motor_search_start_time + motor_timeout_time):
-                    motor_search_timeout = True
-                    print('Motor Search: Timeout, no connection to ' + motor_port + ' possible.')
-
-            if not motor_search_timeout and 'MRI-Patient-Motor-Control' in ident_byte_array.data().decode('utf8', errors='ignore'):
-                params.motor_port = motor_port
-                motor.clear()
-                print('Motor Search: Successful at port: ' + motor_port)
-
-                time.sleep(0.1)
-
-                cmd_axis_length_s = 'M203 ' + str(params.motor_axis_limit_negative) + ' ' + str(
-                    params.motor_axis_limit_positive) + '\n'
-                motor.write(cmd_axis_length_s.encode('utf-8'))
-                motor.waitForBytesWritten()
-
-                time.sleep(0.1)
-
-                cmd_response_s = 'M118 R0: limit set finished\n'
-                motor.write(cmd_response_s.encode('utf-8'))
-                motor.waitForBytesWritten()
-                motor.flush()
-
-                response_byte_array = motor.readAll()
-                while 'R0: limit set finished' not in response_byte_array.data().decode('utf8', errors='ignore'):
-                    motor.waitForReadyRead(10)
-                    response_byte_array.append(motor.readAll())
-                motor.clear()
-
-                self.motor = motor
-                self.motor.errorOccurred.connect(lambda error_code: self.motor_error(error_code))
-                self.motor.readyRead.connect(self.motor_read)
-
-                time.sleep(0.1)
-
-                cmd_home_s = 'G28\n'
-                motor.write(cmd_home_s.encode('utf-8'))
-                motor.waitForBytesWritten()
-
-                time.sleep(0.1)
-
-                cmd_response_s = 'M118 R0: homing finished\n'
-                motor.write(cmd_response_s.encode('utf-8'))
-                motor.flush()
-
-                print('Motor Control: Homing Message send to device')
-
-                params.motor_available = False
-
-                return True
-            else:
-                motor.close()
-                return False
-        else:
-            print('Motor Search: Port ' + motor_port + ' unavailable or already in use.')
-            return False
-
-    def motor_read(self):
-        if self.motor.canReadLine():
-            msg = bytes(self.motor.readLine()).decode('utf-8', errors='ignore')
-            if 'R0: homing finished' in msg:
-                params.motor_available = 1
-
-                if self.dialog_motortools is not None:
-                    self.dialog_motortools.load_params()
-                    self.dialog_motortools.repaint()
-
-                print('Motor Control: Homing finished.')
-            elif 'R0: finished moving' in msg:
-                params.motor_available = 1
-
-                if self.dialog_motortools is not None:
-                    self.dialog_motortools.load_params()
-                    self.dialog_motortools.repaint()
-            elif 'E0' in msg:
-                self.motor_error(-1, message=msg[4:])
+            if self.dialog_motortools is not None:
+                self.dialog_motortools.load_params()
+                self.dialog_motortools.repaint()
+        elif 'E0' in msg:
+            self.motor_error(-1, message=msg[4:])
 
     def motor_error(self, error, message=''):
         self.motor.blockSignals(True)
@@ -291,9 +230,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             else:
                 error_message = 'Unknown Error.'
 
-            print(
-                'Motor Control: Error detected, Control will be unavailable until at least the next restart of relax2, Error Number: ' + str(
-                    error) + ', Message: ' + error_message)
+            print('Motor Control: Error detected, Control will be unavailable until at least the next restart of relax2, Error Number: ' + str(error) + ', Message: ' + error_message)
         else:
             self.motor.clearError()
             self.motor.blockSignals(False)
@@ -422,6 +359,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 proc.T2measurement_Image_SIR_GRE_Gs()
         elif params.GUImode == 5:
             if params.motor_available:
+                self.motor_reader.blockSignals(True)
                 if params.sequence == 0:
                     proc.image_stitching_2D_GRE(motor=self.motor)
                 if params.sequence == 1:
@@ -444,6 +382,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     proc.image_stitching_2D_SE_slice(motor=self.motor)
                 if params.sequence == 10:
                     proc.image_stitching_3D_slab(motor=self.motor)
+                self.motor_reader.blockSignals(False)                
             else:
                 print('Motor Control: Motor not available, maybe it is still homing?')
         elif params.GUImode == 1:
@@ -624,7 +563,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             if os.path.isfile(params.datapath + '.txt') == True:
                 if os.path.isfile(params.datapath + '_Header.json') == True:
                     proc.image_3D_json_process()
-                    # proc.image_3D_analytics()
+                    proc.image_3D_analytics()
                     if params.single_plot == 1:
                         if self.dialog_plot != None:
                             self.dialog_plot.hide()
@@ -1324,13 +1263,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             self.Gysens = params.gradsens[0]
             self.Gzsens = params.gradsens[2]
         elif params.imageorientation == 4:
-            self.Gxsens = params.gradsens[0]
-            self.Gysens = params.gradsens[2]
-            self.Gzsens = params.gradsens[1]
-        elif params.imageorientation == 5:
             self.Gxsens = params.gradsens[2]
             self.Gysens = params.gradsens[1]
             self.Gzsens = params.gradsens[0]
+        elif params.imageorientation == 5:
+            self.Gxsens = params.gradsens[0]
+            self.Gysens = params.gradsens[2]
+            self.Gzsens = params.gradsens[1]
       
 
         self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
@@ -1455,13 +1394,13 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 self.Gysens = params.gradsens[0]
                 self.Gzsens = params.gradsens[2]
             elif params.imageorientation == 4:
-                self.Gxsens = params.gradsens[0]
-                self.Gysens = params.gradsens[2]
-                self.Gzsens = params.gradsens[1]
-            elif params.imageorientation == 5:
                 self.Gxsens = params.gradsens[2]
                 self.Gysens = params.gradsens[1]
-                self.Gzsens = params.gradsens[0]            
+                self.Gzsens = params.gradsens[0]
+            elif params.imageorientation == 5:
+                self.Gxsens = params.gradsens[0]
+                self.Gysens = params.gradsens[2]
+                self.Gzsens = params.gradsens[1]            
 
             self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
             params.GROamplitude = int(self.Gx / self.Gxsens * 1000)
@@ -1715,6 +1654,9 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.Frequency_doubleSpinBox.setValue(params.frequency)
 
         if params.autorecenter == 1: self.auto_recenter_radioButton.setChecked(True)
+        
+        if params.autorecenterretry == 1: self.Retry_Recenter_radioButton.setChecked(True)
+        self.Retry_Recenter_spinBox.setValue(params.autorecentertries)
 
         self.RF_Pulselength_spinBox.setValue(params.RFpulselength)
         self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
@@ -1769,6 +1711,10 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         else: params.autorecenter = 0
         params.RFpulselength = (round(self.RF_Pulselength_spinBox.value() / 10) * 10)
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
+        
+        if self.Retry_Recenter_radioButton.isChecked(): params.autorecenterretry = 1
+        else: params.autorecenterretry = 0
+        params.autorecentertries = self.Retry_Recenter_spinBox.value()
 
         if params.GSamplitude == 0: params.GSposttime = 0
         else: params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
@@ -3007,6 +2953,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         super(PlotWindow, self).__init__(parent)
         self.setupUi(self)
         
+        self.dialog_3D_layers = None
+        
         self.fig_canvas = None
         self.IMag_canvas = None
         self.IPha_canvas = None
@@ -3022,15 +2970,17 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
         self.ui = loadUi('ui/plotview.ui')
         self.setWindowTitle('Plotvalues - ' + params.datapath + '.txt')
-        self.setGeometry(10, 490, 400, 500)
+        self.setGeometry(10, 490, 400, 530)
 
         self.Animate_pushButton.setEnabled(False)
+        self.View_3D_Data_pushButton.setEnabled(False)
 
         if params.GUImode == 0:
             self.spectrum_plot_init()
         elif params.GUImode == 1:
             if params.sequence == 34 or params.sequence == 35 or params.sequence == 36:
                 self.imaging_3D_plot_init()
+                self.View_3D_Data_pushButton.setEnabled(True)
             elif params.sequence == 14 or params.sequence == 31:
                 self.imaging_diff_plot_init()
             else:
@@ -3068,8 +3018,17 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 or params.sequence == 4  or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
                  or params.sequence == 8 or params.sequence == 9:
                 self.imaging_stitching_plot_init()
+                
+                with open(params.datapath + '_Header.json', 'r') as j:
+                    jsonparams = json.loads(j.read())
+
+                imageorientation = jsonparams['Image orientation']
+                if imageorientation == 'ZX' or imageorientation == 'XZ':
+                    self.View_3D_Data_pushButton.setEnabled(True)
+                    
             elif params.sequence == 10:
                 self.imaging_stitching_3D_plot_init()
+                self.View_3D_Data_pushButton.setEnabled(True)
 
         self.Frequncyaxisrange_spinBox.setKeyboardTracking(False)
         self.Frequncyaxisrange_spinBox.valueChanged.connect(self.update_params)
@@ -3077,6 +3036,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.Save_Mag_Image_Data_pushButton.clicked.connect(lambda: self.save_mag_image_data())
         self.Save_Pha_Image_Data_pushButton.clicked.connect(lambda: self.save_pha_image_data())
         self.Save_Image_Data_pushButton.clicked.connect(lambda: self.save_image_data())
+        
+        self.View_3D_Data_pushButton.clicked.connect(lambda: self.view_3D_layers())
 
         self.Animation_Step_spinBox.setKeyboardTracking(False)
         self.Animation_Step_spinBox.valueChanged.connect(self.update_params)
@@ -3626,6 +3587,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.all_fig.set_facecolor('None');
 
         gs = GridSpec(4, params.img_mag.shape[0], figure=self.all_fig)
+        
         for n in range(params.img_mag.shape[0]):
             self.IMag_ax = self.all_fig.add_subplot(gs[0, n]);
             self.IMag_ax.grid(False);  # self.IMag_ax.axis(frameon=False)
@@ -3880,6 +3842,12 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 print('Magnitude 3D image data saved!')
             elif params.sequence == 13 or params.sequence == 29:
                 print('WIP!')
+            elif params.sequence == 35:
+                os.makedirs(os.path.join('imagedata', params.dataTimestamp + '_Magnitude_Image_3D_Data'))
+                for n in range(params.img_mag.shape[0]):
+                    np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_3D_Data' + '/' + params.dataTimestamp + '_Magnitude_Image_Data_' + str(n) + '.txt', params.img_mag[n, :, :])
+                    #np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Stitching_Data.txt', params.img_st_mag)
+                print('Magnitude image data saved!')
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Magnitude_Image_Data.txt', params.img_mag)
                 print('Magnitude image data saved!')
@@ -3970,7 +3938,15 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             else:
                 np.savetxt('imagedata/' + params.dataTimestamp + '_Image_Stitching_Data.txt', params.img_st)
                 print('Magnitude image data saved!')
-
+    
+    def view_3D_layers(self):
+        if self.dialog_3D_layers is None:
+            self.dialog_3D_layers = View3DLayersDialog(parent = self)
+            self.dialog_3D_layers.show()
+        else:
+            self.dialog_3D_layers.hide()
+            self.dialog_3D_layers.show()
+        
     def animate(self):
         proc.animation_image_process()
 
@@ -3991,8 +3967,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 class SerialReader(QObject):
     data_received =pyqtSignal(str)
     
-    def __init__(self, serial_port):
+    class Type(Enum):
+        SAR = 0
+        MOTOR = 1
+    
+    def __init__(self, serial_port, type=Type.SAR):
         super().__init__()
+        self.type = type
         self.serial_port = serial_port
         self.timer = QTimer()
         self.timer.timeout.connect(self.read_serial)
@@ -4005,19 +3986,24 @@ class SerialReader(QObject):
             self.data_received.emit(data)
             
     def decode_data(self,byte_data):
-        byte_data = byte_data[:-2] 
-        if len(byte_data)< 4:
-            return 'MTS'
-        self.message = byte_data[:-4]
-        self.checksum_recived = byte_data[-4:]
-        self.checksum_calculated = zlib.crc32(self.message).to_bytes(4,'big')
-        if self.checksum_recived == self.checksum_calculated:
-            return self.message.decode()
+        byte_data = byte_data[:-2]
+        
+        if(self.type == self.Type.MOTOR):
+            self.message = byte_data
+            return self.message.decode('utf-8')
         else:
-            return 'CSC'
+            if len(byte_data)< 4:
+                return 'MTS'
+            self.message = byte_data[:-4]
+            self.checksum_recived = byte_data[-4:]
+            self.checksum_calculated = zlib.crc32(self.message).to_bytes(4,'big')
+            if self.checksum_recived == self.checksum_calculated:
+                return self.message.decode()
+            else:
+                return 'CSC'
         
     def my_readline(self):
-        self.buffer = bytearray();
+        self.buffer = bytearray()
         while self.buffer[-2:] != b'\r\n' and self.serial_port.inWaiting() > 0:       
             self.buffer += self.serial_port.read(1)    
         return self.buffer
@@ -4758,7 +4744,7 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         super(MotorToolsWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.motor = motor # Refactor to be more precise
+        self.motor = motor
 
         self.load_params()
 
@@ -4787,15 +4773,13 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
     def home(self):
         self.Motor_Home_pushButton.setEnabled(False)
         self.Motor_Apply_pushButton.setEnabled(False)
-        home_s = 'G28\n'
+        home_s = 'G28\r\n'
         self.motor.write(home_s.encode('utf-8'))
-        self.motor.waitForBytesWritten()
 
         time.sleep(0.1)
 
-        response_s = 'M118 R0: homing finished\n'
+        response_s = 'M118 R0: homing finished\r\n'
         self.motor.write(response_s.encode('utf-8'))
-        self.motor.waitForBytesWritten()
 
         params.motor_actual_position = params.motor_axis_limit_negative
 
@@ -4812,17 +4796,14 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
             self.Motor_Home_pushButton.setEnabled(False)
             self.Motor_Apply_pushButton.setEnabled(False)
         
-            apply_s = 'G0 ' + str(params.motor_goto_position) + '\n'
+            apply_s = 'G0 ' + str(params.motor_goto_position) + '\r\n'
             self.motor.write(apply_s.encode('utf-8'))
-            self.motor.waitForBytesWritten()
 
             time.sleep(0.1)
 
-            response_s = 'M118 R0: finished moving\n'
+            response_s = 'M118 R0: finished moving\r\n'
             self.motor.write(response_s.encode('utf-8'))
-            self.motor.waitForBytesWritten()
 
-            # self.setEnabled(False)
             params.motor_actual_position = params.motor_goto_position
             self.Motor_Position_lineEdit.setText(str(params.motor_actual_position))
             self.new_move_value(box='to')
@@ -4934,8 +4915,341 @@ class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
         self.mainwindow.show()
         self.mainwindow.Acquire_pushButton.setEnabled(params.connectionmode)
         self.close()
+        
+class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
+    def __init__(self, parent=None):
+        super(View3DLayersDialog, self).__init__(parent)
+        self.setupUi(self)
+        
+        self.ui = loadUi('ui/view_3D.ui')
+        self.setWindowTitle('3D Layers Plot')
+        self.setGeometry(420, 40, 600, 550)
+        
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
 
+        self.imageorientation = jsonparams['Image orientation']
+        self.nPE = int(jsonparams['Image resolution [pixel]'])
+        self.FOV = jsonparams['FOV [mm]']
+        
+        self.SPEsteps = int(jsonparams['3D phase steps'])
+        if params.GUImode == 5 and params.sequence != 10:
+            self.SPEsteps = 1
+            
+        self.slicethickness = jsonparams['Slice/Slab thickness [mm]']
+        
+        self.aspect = np.zeros(3)
+        self.aspect[0] = 1.0
+        
+        if self.imageorientation == 'XY':
+            self.view3D_label_13.setText('X, Y, Z')
+            self.ro_switched = False
+            self.XY = 0
+            self.ZX = 1
+            self.YZ = 2
+        if self.imageorientation == 'YZ':
+            self.view3D_label_13.setText('Y, Z, X')
+            self.ro_switched = False
+            self.XY = 1
+            self.ZX = 2
+            self.YZ = 0
+        if self.imageorientation == 'ZX':
+            self.view3D_label_13.setText('Z, X, Y')
+            self.ro_switched = False
+            self.XY = 2
+            self.ZX = 0
+            self.YZ = 1
+        if self.imageorientation == 'YX':
+            self.view3D_label_13.setText('Y, X, Z')
+            self.ro_switched = True
+            self.XY = 0  
+            # self.ZX = 2
+            # self.YZ = 1
+            self.ZX = 1
+            self.YZ = 2
+        if self.imageorientation == 'ZY':
+            self.view3D_label_13.setText('Z, Y, X')
+            self.ro_switched = True
+            # self.XY = 2  
+            # self.ZX = 1
+            self.XY = 1
+            self.ZX = 2
+            self.YZ = 0
+        if self.imageorientation == 'XZ':
+            self.view3D_label_13.setText('X, Z, Y')
+            self.ro_switched = True
+            self.XY = 2  
+            self.ZX = 0
+            self.YZ = 1
+            # self.XY = 1  
+            # self.YZ = 2
+        
+        if self.ZX == 0:
+            self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
+            self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+        elif self.XY == 0:
+            self.aspect[1] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+            self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+        else:
+            self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
+            self.aspect[2] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
+        
+        if params.GUImode == 1:
+            self.image = params.img_mag
+            self.phase = params.img_pha
+            
+            self.imagelength = self.slicethickness
+            
+        elif params.GUImode == 5 and params.sequence != 10:
+            self.motor_image_count = int(jsonparams['Motor image count'])
+            
+            self.image = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
+            self.phase = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
+            
+            datapathtemp = params.datapath
+            
+            for n in range(0, self.motor_image_count):      
+                params.datapath = (datapathtemp + '_' + str(n + 1))
+                proc.image_process()
+                
+                self.image[n, :, :] = params.img_mag[:, :]
+                self.phase[n, :, :] = params.img_pha[:, :]
+                
+            params.datapath = datapathtemp
+            
+            self.mirrored = False
+            
+            self.imagelength = jsonparams['Motor total image length [mm]'] + self.slicethickness
+        else:        
+            self.image = np.flip(params.img_st_mag, axis=0)
+            self.phase = np.flip(params.img_st_pha, axis=0)
+            
+            self.motor_movement_step = np.abs(jsonparams['Motor movement step [mm]'])
+            if self.motor_movement_step <= self.FOV:
+                self.imagelength = jsonparams['Motor total image length [mm]'] + self.motor_movement_step
+            else:
+                self.imagelength = jsonparams['Motor total image length [mm]'] + self.FOV
+                
+        if self.ro_switched:
+            temp_image = self.image
+            temp_phase = self.phase
+            
+            self.image = np.flip(np.rot90(temp_image, axes = (2, 1)), axis = 1)
+            self.phase = np.flip(np.rot90(temp_phase, axes = (2, 1)), axis = 1)
+        
+        self.mirrored = False
 
+        self.showPhase = False
+        self.phase_min=np.min(self.phase)
+        self.phase_max=np.max(self.phase)
+        self.image_min=np.min(self.image)
+        self.image_max=np.max(self.image)
+        
+        layout = QVBoxLayout(self.view3D_figure_widget)
+        fig = Figure()
+        fig.patch.set_alpha(0.0)
+        self.canvas = FigureCanvas(fig)
+        layout.addWidget(self.canvas)
+        gs = GridSpec(2, 2, width_ratios=[self.FOV, self.imagelength], height_ratios=[self.FOV, self.imagelength])
+        
+        self.current_slice_ZX = 1
+        self.slice_count_ZX = self.image.shape[self.ZX]
+        self.view3D_ZX_slider.setMinimum(1)
+        self.view3D_ZX_slider.setMaximum(self.slice_count_ZX)
+        self.view3D_ZX_slider.setSingleStep(1)
+        self.view3D_ZX_slider.setPageStep(1)
+        self.view3D_ZX_slider.setSliderPosition(1)
+        self.view3D_ZX_slider.valueChanged.connect(lambda value: self.update_image(value, self.current_slice_XY, self.current_slice_YZ))
+        self.ax_ZX = fig.add_subplot(gs[0, 0])
+        self.img_handle_ZX = self.ax_ZX.imshow(self.get_slice_data(self.image, self.ZX, 0))
+        self.line_handle_ZX_Z = self.ax_ZX.axhline(0, color='w', dashes = (1,5), linewidth=2.0)
+        self.line_handle_ZX_X = self.ax_ZX.axvline(0, color='w', dashes = (1,5), linewidth=2.0)
+        self.ax_ZX.grid(False)
+        self.ax_ZX.axis('off')
+        self.ax_ZX.set_title('ZX', color='w')
+        self.ax_ZX.set_aspect(self.aspect[self.ZX])
+        
+        self.current_slice_XY = 1
+        self.slice_count_XY = self.image.shape[self.XY]
+        self.view3D_XY_slider.setMinimum(1)
+        self.view3D_XY_slider.setMaximum(self.slice_count_XY)
+        self.view3D_XY_slider.setSingleStep(1)
+        self.view3D_XY_slider.setPageStep(1)
+        self.view3D_XY_slider.setSliderPosition(1)
+        self.view3D_XY_slider.valueChanged.connect(lambda value: self.update_image(self.current_slice_ZX, value, self.current_slice_YZ))
+        self.ax_XY = fig.add_subplot(gs[0, 1])
+        self.img_handle_XY = self.ax_XY.imshow(self.get_slice_data(self.image, self.XY, 0))
+        self.line_handle_XY_X = self.ax_XY.axhline(0, color='w', dashes = (1,5), linewidth=2.0)
+        self.line_handle_XY_Y = self.ax_XY.axvline(0, color='w', dashes = (1,5), linewidth=2.0)
+        self.ax_XY.grid(False)
+        self.ax_XY.axis('off')
+        self.ax_XY.set_title('XY (viewed as YX)', color='w')
+        self.ax_XY.set_aspect(self.aspect[self.XY])
+        
+        self.current_slice_YZ = 1
+        self.slice_count_YZ = self.image.shape[self.YZ]
+        self.view3D_YZ_slider.setMinimum(1)
+        self.view3D_YZ_slider.setMaximum(self.slice_count_YZ)
+        self.view3D_YZ_slider.setSingleStep(1)
+        self.view3D_YZ_slider.setPageStep(1)
+        self.view3D_YZ_slider.setSliderPosition(1)
+        self.view3D_YZ_slider.valueChanged.connect(lambda value: self.update_image(self.current_slice_ZX, self.current_slice_XY, value))
+        self.ax_YZ = fig.add_subplot(gs[1, 0])
+        self.img_handle_YZ = self.ax_YZ.imshow(self.get_slice_data(self.image, self.YZ, 0))
+        self.line_handle_YZ_Y = self.ax_YZ.axhline(0, color='w', dashes = (1,5), linewidth = 2.0)
+        self.line_handle_YZ_Z = self.ax_YZ.axvline(0, color='w', dashes = (1,5), linewidth = 2.0)
+        self.ax_YZ.grid(False)
+        self.ax_YZ.axis('off')
+        self.ax_YZ.set_title('YZ (viewed as ZY)', color='w')
+        self.ax_YZ.set_aspect(self.aspect[self.YZ])
+        
+        fig.tight_layout()
+        
+        self.img_handles = np.empty(3, dtype=object)
+        self.img_handles[self.ZX] = self.img_handle_ZX
+        self.img_handles[self.XY] = self.img_handle_XY
+        self.img_handles[self.YZ] = self.img_handle_YZ
+        
+        self.f_line_handles = np.empty(3, dtype=object)
+        self.f_line_handles[self.ZX] = self.line_handle_XY_Y
+        self.f_line_handles[self.XY] = self.line_handle_ZX_X
+        self.f_line_handles[self.YZ] = self.line_handle_XY_X
+        
+        self.s_line_handles = np.empty(3, dtype=object)
+        self.s_line_handles[self.ZX] = self.line_handle_YZ_Y
+        self.s_line_handles[self.XY] = self.line_handle_YZ_Z
+        self.s_line_handles[self.YZ] = self.line_handle_ZX_Z
+        
+        self.f_line_counts = np.empty(3, dtype=object)
+        self.f_line_counts[self.ZX] = self.image.shape[self.XY]
+        self.f_line_counts[self.XY] = self.image.shape[self.ZX]
+        self.f_line_counts[self.YZ] = self.image.shape[self.YZ]
+        
+        self.s_line_counts = np.empty(3, dtype=object)
+        self.s_line_counts[self.ZX] = self.image.shape[self.YZ]
+        self.s_line_counts[self.XY] = self.image.shape[self.XY]
+        self.s_line_counts[self.YZ] = self.image.shape[self.ZX]
+        
+        self.update_image(1, 1, 1, reset = True)
+        
+        self.view3D_label_14.setText(str(self.FOV) + ' mm')
+        self.view3D_label_15.setText(str(self.imagelength) + ' mm')
+        
+        self.view3D_switch_pushButton.clicked.connect(lambda: self.switchButton())
+        
+        self.canvas.mpl_connect('scroll_event', self.on_scroll)
+
+    def on_scroll(self, event):
+        if event.inaxes == self.ax_ZX:
+            self.view3D_ZX_slider.setValue(int(self.view3D_ZX_slider.value() + event.step))
+        elif event.inaxes == self.ax_XY:
+            self.view3D_XY_slider.setValue(int(self.view3D_XY_slider.value() + event.step))
+        elif event.inaxes == self.ax_YZ:
+            self.view3D_YZ_slider.setValue(int(self.view3D_YZ_slider.value() + event.step))
+        
+    def resizeEvent(self, event):        
+        self.view3D_horizontalWidget.setGeometry(self.rect())
+        
+        formRect = QRect(self.width() - self.view3D_form_widget.width() - 25, self.height() - self.view3D_form_widget.height() - 25, self.view3D_form_widget.width() , self.view3D_form_widget.height())
+        self.view3D_form_widget.setGeometry(formRect)
+            
+    def switchButton(self):
+        if self.showPhase:
+            self.showPhase = False
+            self.view3D_switch_pushButton.setText('to Phase...')
+        else:
+            self.showPhase = True
+            self.view3D_switch_pushButton.setText('to Magnitude...')
+            
+        self.update_image(self.current_slice_ZX, self.current_slice_XY, self.current_slice_YZ, reset = True)
+            
+    
+    def update_image(self, new_slice_ZX, new_slice_XY, new_slice_YZ, reset=False):        
+        if self.current_slice_ZX != new_slice_ZX or reset:
+            self.current_slice_ZX = new_slice_ZX
+            self.view3D_label_10.setText(str(self.current_slice_ZX) + ' of ' + str(self.slice_count_ZX))
+            
+            self.update_single_image(slice = self.current_slice_ZX, count = self.slice_count_ZX, index = self.ZX)
+            
+        if self.current_slice_XY != new_slice_XY or reset:
+            self.current_slice_XY = new_slice_XY
+            self.view3D_label_11.setText(str(self.current_slice_XY) + ' of ' + str(self.slice_count_XY))
+            
+            self.update_single_image(slice = self.current_slice_XY, count = self.slice_count_XY, index = self.XY)
+            
+        if self.current_slice_YZ != new_slice_YZ or reset:
+            self.current_slice_YZ = new_slice_YZ
+            self.view3D_label_12.setText(str(self.current_slice_YZ) + ' of ' + str(self.slice_count_YZ))
+            
+            self.update_single_image(slice = self.current_slice_YZ, count = self.slice_count_YZ, index = self.YZ)
+            
+        self.canvas.draw()
+        
+    def update_single_image(self, slice=None, count=None, index=None):
+        if self.mirrored:
+            alt_slice = slice
+            slice = count - slice
+        else:
+            alt_slice = count - slice
+            slice = slice - 1
+            
+        if index == self.ZX:
+            self.f_line_handles[index].set_data([slice, slice], [0, self.f_line_counts[index]])
+            self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [alt_slice, alt_slice])
+        if index == self.YZ:
+            self.f_line_handles[index].set_data([0, self.f_line_counts[index]], [slice, slice])
+            self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [slice, slice])
+        if index == self.XY:
+            self.f_line_handles[index].set_data([alt_slice, alt_slice], [0, self.f_line_counts[index]])
+            self.s_line_handles[index].set_data([alt_slice, alt_slice], [0, self.s_line_counts[index]])
+        
+        handle = self.img_handles[index]
+            
+        if self.showPhase:
+            data = self.phase
+            handle.set_clim(vmin=self.phase_min, vmax=self.phase_max)
+            handle.set_cmap('gray')
+            handle.set_interpolation('none')
+        else:
+            data = self.image
+            handle.set_clim(vmin=self.image_min, vmax=self.image_max)
+            handle.set_cmap(params.imagecolormap)
+            if params.imagefilter == 1:
+                handle.set_interpolation('gaussian')
+            else:
+                handle.set_interpolation('none')
+        
+        if (self.ZX == index and self.XY == 0) or (self.XY == index and self.ZX == 0) or (self.YZ == index and self.XY == 0):
+            handle.set_data(self.get_slice_data(data, index, alt_slice))
+        else:            
+            handle.set_data(self.get_slice_data(data, index, slice))
+
+    def get_slice_data(self, data, handler_index, slice_index):
+        if handler_index == self.ZX:
+            if handler_index == 0:
+                return data[slice_index, :, :]
+            elif handler_index == 1:
+                return np.flip(np.rot90(data[:, slice_index, :]), axis = 1)
+            elif handler_index == 2:
+                # TODO
+                return np.flip(data[:, :, slice_index], axis = 1)
+        elif handler_index == self.XY:
+            if handler_index == 0:
+                return np.rot90(np.flip(data[slice_index, :, :], axis = 1), k = -1)
+            elif handler_index == 1:
+                # TODO
+               return data[:, slice_index, :]
+            elif handler_index == 2:
+                return np.transpose(data[:, :, slice_index])
+        elif handler_index == self.YZ:
+            if handler_index == 0:
+                # TODO
+                return np.flip(np.rot90(data[slice_index, :, :]), axis = 1)
+            elif handler_index == 1:
+                return np.flip(data[:, slice_index, :], axis=0)
+            elif handler_index == 2:
+                return np.flip(np.rot90(data[:, :, slice_index]))
+                
 def run():
     print('________________________________________________________')
     print('Relax 2.0')

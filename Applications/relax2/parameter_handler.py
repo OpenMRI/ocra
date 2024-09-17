@@ -36,6 +36,8 @@ class Parameters:
         self.datapath = ''
         self.frequency = 11.3
         self.autorecenter = 1
+        self.autorecenterretry = 0
+        self.autorecentertries = 1
         self.autodataprocess = 1
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
@@ -201,6 +203,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
+        self.motor_enable = 1
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -233,6 +236,8 @@ class Parameters:
                          self.datapath, \
                          self.frequency, \
                          self.autorecenter, \
+                         self.autorecenterretry, \
+                         self.autorecentertries, \
                          self.autodataprocess, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
@@ -362,6 +367,7 @@ class Parameters:
                          self.SAR_status,\
                          self.SAR_max_power,\
                          self.headerfileformat, \
+                         self.motor_enable, \
                          self.motor_available, \
                          self.motor_port, \
                          self.motor_axis_limit_negative, \
@@ -453,6 +459,8 @@ class Parameters:
                 self.datapath, \
                 self.frequency, \
                 self.autorecenter, \
+                self.autorecenterretry, \
+                self.autorecentertries, \
                 self.autodataprocess, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
@@ -582,6 +590,7 @@ class Parameters:
                 self.SAR_status,\
                 self.SAR_max_power,\
                 self.headerfileformat, \
+                self.motor_enable, \
                 self.motor_available, \
                 self.motor_port , \
                 self.motor_axis_limit_negative, \
@@ -667,6 +676,8 @@ class Parameters:
         file.write('Data path: ' + str(self.datapath) + '\n')
         file.write('Frequency [MHz]: ' + str(self.frequency) + '\n')
         file.write('Auto recenter: ' + str(self.autorecenter) + '\n')
+        file.write('Auto recenter retry: ' + str(self.autorecenterretry) + '\n')
+        file.write('Auto recenter retries: ' + str(self.autorecentertries) + '\n')
         # file.write('Auto data process: ' + str(self.autodataprocess) + '\n')
         if self.frequencyoffsetsign == 1:
             file.write('RF frequency offset [Hz]: -' + str(self.frequencyoffset) + '\n')
@@ -802,6 +813,7 @@ class Parameters:
             file.write('Header File Format: .txt\n')
         elif self.headerfileformat == 1:
             file.write('Header File Format: .json\n')
+        file.write('Motor enable: ' + str(self.motor_enable) + '\n')
         file.write('Motor available: ' + str(self.motor_available) + '\n')
         file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
         file.write('Motor axis limit negative [mm]: ' + str(self.motor_axis_limit_negative) + '\n')
@@ -837,6 +849,8 @@ class Parameters:
             'Data path': self.datapath,
             'Frequency [MHz]': self.frequency,
             'Auto recenter': self.autorecenter,
+            'Auto recenter retry': self.autorecenterretry,
+            'Auto recenter retries': self.autorecentertries,
             'Auto data process': self.autodataprocess,
             'RF frequency offset [Hz]':
                 -self.frequencyoffset if self.frequencyoffsetsign == 1
@@ -916,6 +930,7 @@ class Parameters:
             'SAR status': self.SAR_status,
             'Header File Format': '.txt' if self.headerfileformat == 0
             else ('.json'),
+            'Motor enable': self.motor_enable,
             'Motor available': self.motor_available,
             'Motor COM Port': self.motor_port,
             'Motor axis limit negative [mm]': self.motor_axis_limit_negative,
