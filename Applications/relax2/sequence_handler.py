@@ -1,10 +1,7 @@
 ################################################################################
 #
-#   Author:     Marcus Prier, David Schote
-#   Date:       4/12/2021
-#
-#   Main Application:
-#   Relax 2.0 Main Application
+#Author: Marcus Prier
+#Date: 2024
 #
 ################################################################################
 
@@ -55,13 +52,18 @@ class sequence:
         self.seq_epi_se_gs = 'sequences/spectroscopy/EPI_SE_Gs.txt'
         self.seq_tse_gs = 'sequences/spectroscopy/TSE_Gs.txt'
         
-        self.seq_rf_test = 'sequences/spectroscopy/RF_Test.txt'
+        self.seq_rf_loopback_test = 'sequences/spectroscopy/RF_Loopback_Test.txt'
         self.seq_grad_test = 'sequences/spectroscopy/Gradient_Test.txt'
+        self.seq_rf_sar_cal_test = 'sequences/spectroscopy/RF_SAR_Calibration_Test.txt'
         
         self.seq_2D_rad_f_gre = 'sequences/imaging/2D_RAD_F_GRE.txt'
         self.seq_2D_rad_f_se = 'sequences/imaging/2D_RAD_F_SE.txt'
         self.seq_2D_rad_h_gre = 'sequences/imaging/2D_RAD_H_GRE.txt'
         self.seq_2D_rad_h_se = 'sequences/imaging/2D_RAD_H_SE.txt'
+        self.seq_2D_rad_f_gre_gs = 'sequences/imaging/2D_RAD_F_GRE_Gs.txt'
+        self.seq_2D_rad_f_se_gs = 'sequences/imaging/2D_RAD_F_SE_Gs.txt'
+        self.seq_2D_rad_h_gre_gs = 'sequences/imaging/2D_RAD_H_GRE_Gs.txt'
+        self.seq_2D_rad_h_se_gs = 'sequences/imaging/2D_RAD_H_SE_Gs.txt'
         self.seq_2D_gre = 'sequences/imaging/2D_GRE.txt'
         self.seq_2D_se = 'sequences/imaging/2D_SE.txt'
         self.seq_2D_se_gs = 'sequences/imaging/2D_SE_Gs.txt'
@@ -163,17 +165,21 @@ class sequence:
                 self.acquire_spectrum_TSE_Gs()
             elif params.sequence == 18:
                 print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
-                #self.rf_test_setup()
-                #self.Sequence_upload()
-                #self.acquire_rf_test()
+                # self.rf_loopback_test_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf__loopback_test()
             elif params.sequence == 19:
                 # print('\033[1m' + 'Not active. Warning: This sequence will test all gradient channels with pulses. To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
                 print('\033[1m' + 'Pulselength [us] = TR, Amplitude [mA] = Spoiler Amplitude' + '\033[0m')
                 self.grad_test_setup()
                 self.Sequence_upload()
                 self.acquire_grad_test()
-            else:
-                print('Sequence not defined!')
+            elif params.sequence == 20:
+                print('\033[1m' + 'Pulselength [us] = 90° Ref. Pulselength, Pause [us] = TI [ms]' + '\033[0m')
+                self.rf_sar_cal_test_setup()
+                self.Sequence_upload()
+                self.acquire_rf_sar_cal_test()
+            else: print('Sequence not defined!')
             
         elif params.GUImode == 1:       
             if params.sequence == 0:
@@ -268,16 +274,32 @@ class sequence:
                 self.acquire_image_SE()
             elif params.sequence == 17:
                 # WIP 2D Radial (Slice, GRE, Full)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_f_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_f_GRE_Gs()
             elif params.sequence == 18:
                 # WIP 2D Radial (Slice, SE, Full)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_f_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_f_SE_Gs()
             elif params.sequence == 19:
                 # WIP 2D Radial (Slice, GRE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_GRE_Gs()
             elif params.sequence == 20:
                 # WIP 2D Radial (Slice, SE, Half)
-                print('\033[1m' + 'WIP' + '\033[0m')
+#                 print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
+                self.Image_radial_h_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_radial_h_SE_Gs()
             elif params.sequence == 21:
                 # 2D Gradient Echo (Slice)
                 self.Image_GRE_Gs_setup()
@@ -343,8 +365,7 @@ class sequence:
                 self.Image_3D_TSE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_TSE_Gs()
-            else:
-                print('Sequence not defined!')
+            else: print('Sequence not defined!')
                 
         if params.GUImode == 4:
             if params.sequence == 0:
@@ -362,9 +383,73 @@ class sequence:
             elif params.sequence == 3:
                 self.Image_SE_setup()
                 self.Sequence_upload()
-                self.acquire_projection_SE_angle() 
-            else:
-                print('Sequence not defined!')
+                self.acquire_projection_SE_angle()
+            elif params.sequence == 4:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_GRE_Gs()
+            elif params.sequence == 5:
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_SE_Gs()
+            elif params.sequence == 6:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_GRE_angle_Gs()
+            elif params.sequence == 7:
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_projection_SE_angle_Gs()
+            else: print('Sequence not defined!')
+            
+        if params.GUImode == 5:
+            if params.sequence == 0:
+                self.Image_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE()
+            elif params.sequence == 1:
+                self.Image_IR_GRE_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE()
+            elif params.sequence == 2:
+                self.Image_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
+            elif params.sequence == 3:
+                self.Image_IR_SE_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE()
+            elif params.sequence == 4:
+                print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE()' + '\033[0m')
+                self.Image_TSE_setup()
+                self.Sequence_upload()
+                self.acquire_image_TSE()
+            elif params.sequence == 5:
+                self.Image_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE_Gs()
+            elif params.sequence == 6:
+                self.Image_IR_GRE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_GRE_Gs()
+            elif params.sequence == 7:
+                self.Image_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs()
+            elif params.sequence == 8:
+                self.Image_IR_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs()
+            elif params.sequence == 9:
+                print('\033[1m' + 'Still WIP. Sampling limited in time. Readout timing needs to be adjusted in self.acquire_image_TSE_Gs().' + '\033[0m')
+                self.Image_TSE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_TSE_Gs()
+            elif params.sequence == 10:
+                self.Image_3D_SE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_3D_SE_Gs()
+            else: print('Sequence not defined!')
         
     def conn_client(self):
         socket.connectToHost(params.ip, 1001)
@@ -452,13 +537,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_fid, "w") as out_file:
+        with open(self.seq_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_fid
         
-        print("FID setup complete!")
+        print('FID setup complete!')
     
     #Spin Echo Sequence
     def SE_setup(self):
@@ -477,13 +562,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_se, "w") as out_file:
+        with open(self.seq_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_se
         
-        print("SE setup complete!")
+        print('SE setup complete!')
         
     # Inversion Recovery Free Induction Decay sequence    
     def IR_FID_setup(self):
@@ -503,13 +588,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_fid, "w") as out_file:
+        with open(self.seq_ir_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_fid
         
-        print("IR FID setup complete!")
+        print('IR FID setup complete!')
     
     # Inversion Recovery Spin Echo sequence    
     def IR_SE_setup(self):  
@@ -533,13 +618,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_se, "w") as out_file:
+        with open(self.seq_ir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_se
         
-        print("IR SE setup complete!")
+        print('IR SE setup complete!')
         
     # Free Induction Decay sequence    
     def SIR_FID_setup(self):
@@ -565,13 +650,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_fid, "w") as out_file:
+        with open(self.seq_sir_fid, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_fid
         
-        print("SIR FID setup complete!")
+        print('SIR FID setup complete!')
 
     #Spin Echo Sequence
     def SIR_SE_setup(self):
@@ -596,13 +681,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_se, "w") as out_file:
+        with open(self.seq_sir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_se
         
-        print("SIR SE setup complete!")
+        print('SIR SE setup complete!')
         
     def EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 50 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -620,13 +705,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi, "w") as out_file:
+        with open(self.seq_epi, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi
         
-        print("EPI setup complete!")
+        print('EPI setup complete!')
         
     def EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -648,13 +733,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_se, "w") as out_file:
+        with open(self.seq_epi_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_se
         
-        print("EPI (SE) setup complete!")
+        print('EPI (SE) setup complete!')
         
     #Turbo Spin Echo Sequence
     def TSE_setup(self):
@@ -691,13 +776,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_tse, "w") as out_file:
+        with open(self.seq_tse, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_tse
         
-        print("TSE setup complete!")
+        print('TSE setup complete!')
         
     def FID_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
@@ -712,13 +797,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_fid_gs, "w") as out_file:
+        with open(self.seq_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_fid_gs
         
-        print("FID (slice) setup complete!")
+        print('FID (slice) setup complete!')
     
     #2D Spin Echo (Slice Select) Sequence   
     def SE_Gs_setup(self):
@@ -741,13 +826,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_se_gs, "w") as out_file:
+        with open(self.seq_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_se_gs
         
-        print("SE (slice) setup complete!")
+        print('SE (slice) setup complete!')
         
     def IR_FID_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
@@ -767,13 +852,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_fid_gs, "w") as out_file:
+        with open(self.seq_ir_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_fid_gs
         
-        print("IR FID (slice) setup complete!")
+        print('IR FID (slice) setup complete!')
         
     def IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
@@ -800,13 +885,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_ir_se_gs, "w") as out_file:
+        with open(self.seq_ir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_ir_se_gs
         
-        print("IR SE (slice) setup complete!")
+        print('IR SE (slice) setup complete!')
         
     def SIR_FID_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
@@ -831,13 +916,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_fid_gs, "w") as out_file:
+        with open(self.seq_sir_fid_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_fid_gs
         
-        print("SIR FID (slice) setup complete!")
+        print('SIR FID (slice) setup complete!')
         
     def SIR_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
@@ -865,13 +950,13 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_sir_se_gs, "w") as out_file:
+        with open(self.seq_sir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_sir_se_gs
         
-        print("SIR SE (slice) setup complete!")
+        print('SIR SE (slice) setup complete!')
         
     def EPI_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -890,13 +975,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_gs, "w") as out_file:
+        with open(self.seq_epi_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_gs
         
-        print("EPI (slice) setup complete!")
+        print('EPI (slice) setup complete!')
         
     #2D EPI SE (Slice Select) Sequence   
     def EPI_SE_Gs_setup(self):
@@ -923,13 +1008,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_epi_se_gs, "w") as out_file:
+        with open(self.seq_epi_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_epi_se_gs
         
-        print("EPI SE (slice) setup complete!")
+        print('EPI SE (slice) setup complete!')
         
     def TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
@@ -969,34 +1054,29 @@ class sequence:
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_tse_gs, "w") as out_file:
+        with open(self.seq_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_tse_gs
         
-        print("TSE (slice) setup complete!")
+        print('TSE (slice) setup complete!')
 
-    def rf_test_setup(self):
-        f = open(self.seq_rf_test, 'r+')
+    def rf_loopback_test_setup(self):
+        f = open(self.seq_rf_loopback_test, 'r+')
         lines = f.readlines()
-        lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength)) + '\t// Sampling window\n'
+        lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength))
         f.close()
-        with open(self.seq_rf_test, "w") as out_file:
+        with open(self.seq_rf_loopback_test, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
-        params.sequencefile = self.seq_rf_test
+        params.sequencefile = self.seq_rf_loopback_test
         
-        print("RF test sequence setup complete!")
-        
+        print('RF loopback test sequence setup complete!')
         
     #2D Gradient Echo Sequence   
     def grad_test_setup(self):
-#         if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-#             params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
-#             print('TE to short!! TE set to:', params.TE, 'ms')
-        
         f = open(self.seq_grad_test, 'r+')
         lines = f.readlines()
         lines[-7] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
@@ -1007,18 +1087,88 @@ class sequence:
         lines[-22] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
         lines[-25] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
         lines[-28] = 'PR 3, ' + str(int(params.TR)) + '\t// Grad pulse length\n'
-#         lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
-#         lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
-#         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
-#         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_grad_test, "w") as out_file:
+        with open(self.seq_grad_test, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_grad_test
         
-        print("Gradient test sequence setup complete!")
+        print('Gradient test sequence setup complete!')
+        
+    def rf_sar_cal_test_setup(self):
+        print('\033[1m' + 'WIP' + '\033[0m')
+        f = open(self.seq_rf_sar_cal_test, 'r+')
+        lines = f.readlines()
+#         lines[-61] = 'TXOFFSET ' + str(19*params.RFpulselength) + '\n'
+#         lines[-60] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-59] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         #lines[-63] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         #lines[-62] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         #lines[-61] = 'TXOFFSET ' + str(1*params.RFpulselength) + '\n'
+#         #lines[-60] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         #lines[-59] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-58] = 'TXOFFSET ' + str(2*params.RFpulselength) + '\n'
+#         lines[-57] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-56] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-55] = 'TXOFFSET ' + str(3*params.RFpulselength) + '\n'
+#         lines[-54] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-53] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-52] = 'TXOFFSET ' + str(4*params.RFpulselength) + '\n'
+#         lines[-51] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-50] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-49] = 'TXOFFSET ' + str(5*params.RFpulselength) + '\n'
+#         lines[-48] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-47] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-46] = 'TXOFFSET ' + str(6*params.RFpulselength) + '\n'
+#         lines[-45] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-44] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-43] = 'TXOFFSET ' + str(7*params.RFpulselength) + '\n'
+#         lines[-42] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-41] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-40] = 'TXOFFSET ' + str(8*params.RFpulselength) + '\n'
+#         lines[-39] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-38] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-37] = 'TXOFFSET ' + str(9*params.RFpulselength) + '\n'
+#         lines[-36] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-35] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-34] = 'TXOFFSET ' + str(10*params.RFpulselength) + '\n'
+#         lines[-33] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-32] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-31] = 'TXOFFSET ' + str(11*params.RFpulselength) + '\n'
+#         lines[-30] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-29] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-28] = 'TXOFFSET ' + str(12*params.RFpulselength) + '\n'
+#         lines[-27] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-26] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-25] = 'TXOFFSET ' + str(13*params.RFpulselength) + '\n'
+#         lines[-24] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-23] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-22] = 'TXOFFSET ' + str(14*params.RFpulselength) + '\n'
+#         lines[-21] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-20] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-19] = 'TXOFFSET ' + str(15*params.RFpulselength) + '\n'
+#         lines[-18] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-17] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-16] = 'TXOFFSET ' + str(16*params.RFpulselength) + '\n'
+#         lines[-15] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-14] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-13] = 'TXOFFSET ' + str(17*params.RFpulselength) + '\n'
+#         lines[-12] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-11] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-10] = 'TXOFFSET ' + str(18*params.RFpulselength) + '\n'
+#         lines[-9] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+#         lines[-8] = 'PR 11, ' + str(int(params.TI)) + '\n'
+#         lines[-7] = 'TXOFFSET ' + str(19*params.RFpulselength) + '\n'
+#         lines[-6] = 'PR 5, ' + str(params.RFpulselength) + '\n'
+        f.close()
+        with open(self.seq_rf_sar_cal_test, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_rf_sar_cal_test
+        
+        print('RF SAR calibration test sequence setup complete!')
         
     #2D Radial Full Gradient Echo Sequence   
     def Image_radial_f_GRE_setup(self):
@@ -1034,13 +1184,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_gre, "w") as out_file:
+        with open(self.seq_2D_rad_f_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_gre
         
-        print("2D radial full GRE setup complete!")
+        print('2D radial full GRE setup complete!')
     
     # 2D Radial Full Spin Echo Sequence
     def Image_radial_f_SE_setup(self):
@@ -1060,13 +1210,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_f_se, "w") as out_file:
+        with open(self.seq_2D_rad_f_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_f_se
         
-        print("2D radial full SE setup complete!")
+        print('2D radial full SE setup complete!')
         
     #2D Radial Half Gradient Echo Sequence   
     def Image_radial_h_GRE_setup(self):
@@ -1081,13 +1231,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_gre, "w") as out_file:
+        with open(self.seq_2D_rad_h_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_gre
         
-        print("2D radial half GRE setup complete!")
+        print('2D radial half GRE setup complete!')
     
     # 2D Radial Half Spin Echo Sequence
     def Image_radial_h_SE_setup(self):
@@ -1110,13 +1260,126 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_rad_h_se, "w") as out_file:
+        with open(self.seq_2D_rad_h_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_rad_h_se
         
-        print("2D radial half SE setup complete!")
+        print('2D radial half SE setup complete!')
+        
+    #2D Radial Full Gradient Echo (Slice Select) Sequence   
+    def Image_radial_f_GRE_Gs_setup(self):
+        if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+               
+        f = open(self.seq_2D_rad_f_gre_gs, 'r+')
+        lines = f.readlines()
+        lines[-26] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-22] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_gre_gs, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_gre_gs
+        
+        print('2D radial full GRE (slice) setup complete!')
+    
+    # 2D Radial Full Spin Echo (Slice Select) Sequence
+    def Image_radial_f_SE_Gs_setup(self):
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        
+        f = open(self.seq_2D_rad_f_se_gs, 'r+')
+        lines = f.readlines()
+        lines[-41] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-37] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-34] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-31] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-26] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-22] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_f_se_gs, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_f_se_gs
+        
+        print('2D radial full SE (slice) setup complete!')
+        
+    #2D Radial Half Gradient Echo (Slice Select)Sequence   
+    def Image_radial_h_GRE_Gs_setup(self):
+        if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+        f = open(self.seq_2D_rad_h_gre_gs, 'r+')
+        lines = f.readlines()
+        lines[-23] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-16] = 'PR 3, ' + str(int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 25 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_gre_gs, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_gre_gs
+        
+        print('2D radial half GRE (slice) setup complete!')
+    
+    # 2D Radial Half Spin Echo (Slice Select) Sequence
+    def Image_radial_h_SE_Gs_setup(self):
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
+            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
+            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+            
+        f = open(self.seq_2D_rad_h_se_gs, 'r+')
+        lines = f.readlines()
+        lines[-38] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-34] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-31] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-28] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-23] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-19] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-16] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 25 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+#         lines[-34] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
+#         lines[-32] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+#         lines[-29] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+#         lines[-24] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
+#         lines[-20] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+#         lines[-17] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.TS * 1000 / 2)) + '\t// Pause\n'
+#         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+#         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_rad_h_se_gs, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_rad_h_se_gs
+        
+        print('2D radial half SE (slice) setup complete!')
 
     #2D Gradient Echo Sequence   
     def Image_GRE_setup(self):
@@ -1132,13 +1395,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_gre, "w") as out_file:
+        with open(self.seq_2D_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_gre
         
-        print("2D GRE setup complete!")
+        print('2D GRE setup complete!')
     
     # 2D Spin Echo Sequence
     def Image_SE_setup(self):
@@ -1158,13 +1421,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se, "w") as out_file:
+        with open(self.seq_2D_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se
         
-        print("2D SE setup complete!")
+        print('2D SE setup complete!')
     
     # 2D Inversion Recovery GRE Sequence
     def Image_IR_GRE_setup(self):         
@@ -1186,13 +1449,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_gre, "w") as out_file:
+        with open(self.seq_2D_ir_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_gre
         
-        print("2D IR GRE setup complete!")
+        print('2D IR GRE setup complete!')
     
     # 2D Inversion Recovery SE Sequence    
     def Image_IR_SE_setup(self):        
@@ -1217,13 +1480,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_se, "w") as out_file:
+        with open(self.seq_2D_ir_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_se
         
-        print("2D IR SE setup complete!")
+        print('2D IR SE setup complete!')
         
     # 2D Saturation Inversion Recovery GRE Sequence
     def Image_SIR_GRE_setup(self):          
@@ -1253,13 +1516,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_sir_gre, "w") as out_file:
+        with open(self.seq_2D_sir_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_sir_gre
         
-        print("2D SIR GRE setup complete!")
+        print('2D SIR GRE setup complete!')
         
     #2D Gradient Echo (Slice Select) Sequence   
     def Image_GRE_Gs_setup(self):
@@ -1276,13 +1539,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_gre_gs, "w") as out_file:
+        with open(self.seq_2D_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_gre_gs
         
-        print("2D GRE (slice) setup complete!")
+        print('2D GRE (slice) setup complete!')
     
     #2D Spin Echo (Slice Select) Sequence   
     def Image_SE_Gs_setup(self):
@@ -1306,13 +1569,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se_gs, "w") as out_file:
+        with open(self.seq_2D_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se_gs
         
-        print("2D SE (slice) setup complete!")
+        print('2D SE (slice) setup complete!')
         
     def Image_IR_GRE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
@@ -1333,13 +1596,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_gre_gs, "w") as out_file:
+        with open(self.seq_2D_ir_gre_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_gre_gs
         
-        print("2D IR GRE (slice) setup complete!")
+        print('2D IR GRE (slice) setup complete!')
         
     def Image_IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
@@ -1367,13 +1630,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_ir_se_gs, "w") as out_file:
+        with open(self.seq_2D_ir_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_ir_se_gs
         
-        print("2D IR SE (slice) setup complete!")
+        print('2D IR SE (slice) setup complete!')
         
     def Image_3D_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1396,13 +1659,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_3D_se_gs, "w") as out_file:
+        with open(self.seq_3D_se_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_3D_se_gs
         
-        print("3D FFT SE (slab) setup complete!")
+        print('3D FFT SE (slab) setup complete!')
         
     def Image_3D_TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 55 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1449,13 +1712,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_3D_tse_gs, "w") as out_file:
+        with open(self.seq_3D_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_3D_tse_gs
         
-        print("3D FFT TSE (slab) setup complete!")
+        print('3D FFT TSE (slab) setup complete!')
         
     #2D Turbo Spin Echo Sequence
     def Image_TSE_setup(self):
@@ -1499,13 +1762,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_tse, "w") as out_file:
+        with open(self.seq_2D_tse, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_tse
         
-        print("2D TSE setup complete!")
+        print('2D TSE setup complete!')
         
     # 2D Turbo Spin Echo (Slice Select) Sequence
     def Image_TSE_Gs_setup(self):
@@ -1553,13 +1816,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_tse_gs, "w") as out_file:
+        with open(self.seq_2D_tse_gs, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_tse_gs
         
-        print("2D TSE (slice select) setup complete!")
+        print('2D TSE (slice select) setup complete!')
         
     def Image_EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 200 - 600 - 200 - 170 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
@@ -1578,13 +1841,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_epi, "w") as out_file:
+        with open(self.seq_2D_epi, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_epi
         
-        print("2D EPI setup complete!")
+        print('2D EPI setup complete!')
         
     def Image_EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 -200) < 0:
@@ -1607,13 +1870,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_epi_se, "w") as out_file:
+        with open(self.seq_2D_epi_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_epi_se
         
-        print("2D EPI SE setup complete!")
+        print('2D EPI SE setup complete!')
         
     def Image_SE_Diff_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 80 - 800 - 2 * params.diffusiontime - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
@@ -1636,13 +1899,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_se_diff, "w") as out_file:
+        with open(self.seq_2D_se_diff, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_se_diff
         
-        print("2D Diffusion (SE) setup complete!")
+        print('2D Diffusion (SE) setup complete!')
         
         #2D Flow Compensated Gradient Echo Sequence   
     def Image_FC_GRE_setup(self):
@@ -1659,13 +1922,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_fc_gre, "w") as out_file:
+        with open(self.seq_2D_fc_gre, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_fc_gre
         
-        print("2D FC GRE setup complete!")
+        print('2D FC GRE setup complete!')
         
     # 2D Flow Compensated Spin Echo Sequence
     def Image_FC_SE_setup(self):
@@ -1686,13 +1949,13 @@ class sequence:
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
-        with open(self.seq_2D_fc_se, "w") as out_file:
+        with open(self.seq_2D_fc_se, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
         params.sequencefile = self.seq_2D_fc_se
         
-        print("2D FC SE setup complete!")
+        print('2D FC SE setup complete!')
         
     def Sequence_upload(self):
         self.assembler = Assembler()
@@ -1709,10 +1972,10 @@ class sequence:
 
         socket.setReadBufferSize(8*params.samples)
         
-        print("Sequence uploaded!")
+        print('Sequence uploaded!')
 
     def acquire_spectrum_FID(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1736,12 +1999,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -1757,10 +2020,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1784,12 +2047,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -1805,10 +2068,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1833,15 +2096,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -1858,10 +2121,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_SE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1886,15 +2149,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
            
             
             if params.average == 1:
@@ -1912,10 +2175,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_TSE(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1940,15 +2203,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -1965,10 +2228,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_FID_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -1992,12 +2255,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2013,10 +2276,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2040,12 +2303,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2061,10 +2324,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_SIR_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2088,12 +2351,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2109,10 +2372,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2137,15 +2400,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2162,10 +2425,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_EPI_SE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2190,15 +2453,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2215,10 +2478,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
     def acquire_spectrum_TSE_Gs(self):
-        print("Acquire spectrum...")
+        print('Acquire spectrum...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2243,15 +2506,15 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*1200
-            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*1200
-            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*1200
+            self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.spectrumdata[n,self.data_idx:2*self.data_idx] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
                 time.sleep(params.TR/1000)
@@ -2268,10 +2531,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Spectrum acquired!")
+        print('Spectrum acquired!')
         
-    def acquire_rf_test(self):
-        print("Run RF test sequence...")
+    def acquire_rf_loopback_test(self):
+        print('Run RF loopback test sequence...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2295,12 +2558,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2316,10 +2579,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("RF test sequence finished!")
+        print('RF loopback test sequence finished!')
         
     def acquire_grad_test(self):
-        print("Run gradient test sequence...")
+        print('Run gradient test sequence...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2343,12 +2606,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2364,12 +2627,59 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Gradient test sequence finished!")
+        print('Gradient test sequence finished!')
         
+    def acquire_rf_sar_cal_test(self):
+        print('\033[1m' + 'WIP' + '\033[0m')
+        print('Run RF SAR calibration test sequence...')
         
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 40, 0, params.RFpulselength, 0, 0, 0, 0, 0, 0, 0))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('RF SAR calibration test sequence finished!')
   
     def acquire_projection_GRE(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2410,12 +2720,12 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
         
-                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2433,10 +2743,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_SE(self):
-        print("Acquire projection(s)...")
+        print('Acquire projection(s)...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2477,12 +2787,12 @@ class sequence:
                         datasize = socket.bytesAvailable()
                         time.sleep(0.0001)
                         if datasize == 8*params.samples:
-                            print("Readout finished : ", int(datasize/8), "Samples")
+                            print('Readout finished : ', int(datasize/8), 'Samples')
                             self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                             break
                         else: continue
         
-                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2500,10 +2810,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection(s) acquired!")
+        print('Projection(s) acquired!')
         
     def acquire_projection_GRE_angle(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2521,6 +2831,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')        
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -2541,12 +2863,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2562,10 +2884,10 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
         
     def acquire_projection_SE_angle(self):
-        print("Acquire projection...")
+        print('Acquire projection...')
         
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2583,6 +2905,18 @@ class sequence:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
             print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')        
                 
         if params.average == 0: self.avecount = 1
         else: self.avecount = params.averagecount
@@ -2603,12 +2937,12 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
         
-            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2624,10 +2958,292 @@ class sequence:
         timestamp = datetime.now() 
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Projection acquired!")
+        print('Projection acquired!')
+        
+    def acquire_projection_GRE_Gs(self):
+        print('Acquire projection(s)...')
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        for m in range(params.projaxis.shape[0]):
+            if params.projaxis[m] == 1:
+                self.ax = m
+            else:
+                self.ax = 3
+            
+            if self.ax == 3:
+                print('Projection Axis: -')
+                if os.path.isfile(params.datapath + '_' + str(m) + '.txt') == True:
+                    os.remove(params.datapath + '_' + str(m) + '.txt')
+
+            if self.ax != 3:
+                if self.ax == 0: print('Projection Axis: X')
+                if self.ax == 1: print('Projection Axis: Y')
+                if self.ax == 2: print('Projection Axis: Z')
+                
+                if params.average == 0: self.avecount = 1
+                else: self.avecount = params.averagecount
+        
+                self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+                for n in range(self.avecount):
+                    print('Average: ',n+1,'/',self.avecount)
+        
+                    socket.write(struct.pack('<IIIIIIIIII', self.ax << 16 | 36, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16, params.Gproj[self.ax]))
+
+                    while(True):
+                        if not socket.waitForBytesWritten(): break
+                        time.sleep(0.0001)
+            
+                    while True:
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
+                        time.sleep(0.0001)
+                        if datasize == 8*params.samples:
+                            print('Readout finished : ', int(datasize/8), 'Samples')
+                            self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                            break
+                        else: continue
+        
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    if params.average == 1:
+                        time.sleep(params.TR/1000)
+            
+                params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+                self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+                self.datatxt1[0,:] = params.timeaxis[:]
+                self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+                self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+                self.datatxt2 = np.transpose(self.datatxt1)
+                np.savetxt(params.datapath + '_' + str(m) + '.txt', self.datatxt2)
+            
+                time.sleep(params.TR/1000)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Projection(s) acquired!')
+        
+    def acquire_projection_SE_Gs(self):
+        print('Acquire projection(s)...')
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        for m in range(params.projaxis.shape[0]):
+            if params.projaxis[m] == 1:
+                self.ax = m
+            else:
+                self.ax = 3
+            
+            if self.ax == 3:
+                print('Projection Axis: -')
+                if os.path.isfile(params.datapath + '_' + str(m) + '.txt') == True:
+                    os.remove(params.datapath + '_' + str(m) + '.txt')
+
+            if self.ax != 3:
+                if self.ax == 0: print('Projection Axis: X')
+                if self.ax == 1: print('Projection Axis: Y')
+                if self.ax == 2: print('Projection Axis: Z')
+                
+                if params.average == 0: self.avecount = 1
+                else: self.avecount = params.averagecount
+        
+                self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+                for n in range(self.avecount):
+                    print('Average: ',n+1,'/',self.avecount)
+        
+                    socket.write(struct.pack('<IIIIIIIIII', self.ax << 16 | 37, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | params.crusheramplitude, params.Gproj[self.ax]))
+
+                    while(True):
+                        if not socket.waitForBytesWritten(): break
+                        time.sleep(0.0001)
+            
+                    while True:
+                        socket.waitForReadyRead()
+                        datasize = socket.bytesAvailable()
+                        time.sleep(0.0001)
+                        if datasize == 8*params.samples:
+                            print('Readout finished : ', int(datasize/8), 'Samples')
+                            self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                            break
+                        else: continue
+        
+                    self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    if params.average == 1:
+                        time.sleep(params.TR/1000)
+            
+                params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+                self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+                self.datatxt1[0,:] = params.timeaxis[:]
+                self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+                self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+                self.datatxt2 = np.transpose(self.datatxt1)
+                np.savetxt(params.datapath + '_' + str(m) + '.txt', self.datatxt2)
+            
+                time.sleep(params.TR/1000)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Projection(s) acquired!')
+        
+    def acquire_projection_GRE_angle_Gs(self):
+        print('Acquire projection...')
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+                
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | params.projectionangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Projection acquired!')
+        
+    def acquire_projection_SE_angle_Gs(self):
+        print('Acquire projection...')
+        
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.ax = 3
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: XY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: YZ, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: ZX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+            print('Image plane: YX, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+            print('Image plane: ZY, Angle: ' + str(params.projectionangle) + '°')
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+            print('Image plane: XZ, Angle: ' + str(params.projectionangle) + '°')
+                
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | params.projectionangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+            
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Projection acquired!')
         
     def acquire_image_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2645,11 +3261,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2662,10 +3278,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2683,11 +3299,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2700,10 +3316,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_IO(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2723,11 +3339,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
         
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -2746,10 +3362,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_GRE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2767,11 +3383,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2784,10 +3400,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2805,11 +3421,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2822,10 +3438,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Gs_IO(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2845,11 +3461,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
         
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -2868,10 +3484,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_3D_SE_Gs(self):
-        print("Acquire image...") 
+        print('Acquire image...') 
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -2891,11 +3507,11 @@ class sequence:
                     datasize = socket.bytesAvailable()
                     time.sleep(0.0001)
                     if datasize == 8*params.samples:
-                        print("Readout finished : ",int(datasize/8), "Samples")
+                        print('Readout finished : ',int(datasize/8), 'Samples')
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
-                self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]    
+                self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -2904,16 +3520,16 @@ class sequence:
         self.datatxt2 = np.matrix(np.zeros((self.data_idx, params.nPE * params.SPEsteps), dtype = np.complex64))
         for m in range(params.SPEsteps):
             self.datatxt2[:,m*params.nPE:m*params.nPE+params.nPE] = np.transpose(self.datatxt1[m,:,:])
-        np.savetxt(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt', self.datatxt2)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
         
         
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_3D_TSE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
         
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -2939,14 +3555,14 @@ class sequence:
                     datasize = socket.bytesAvailable()
                     time.sleep(0.0001)
                     if datasize == 8*params.samples:
-                        print("Readout finished : ",int(datasize/8), "Samples")
+                        print('Readout finished : ',int(datasize/8), 'Samples')
                         self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                         break
                     else: continue
-                self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-                self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-                self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-                self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+                self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+                self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+                self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             self.kspace[m,0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
             self.kspace[m,int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -2963,16 +3579,16 @@ class sequence:
         self.datatxt2 = np.matrix(np.zeros((self.data_idx, params.nPE * params.SPEsteps), dtype = np.complex64))
         for m in range(params.SPEsteps):
             self.datatxt2[:,m*params.nPE:m*params.nPE+params.nPE] = np.transpose(self.datatxt1[m,:,:])
-        np.savetxt(params.datapath + '_3D_' + str(params.SPEsteps) + '.txt', self.datatxt2)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
         
         
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_TSE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -2997,14 +3613,14 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
                 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3028,10 +3644,10 @@ class sequence:
 #         self.datatxt2 = np.transpose(self.datatxt1)
 #         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_TSE_Gs(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.nsteps = int(params.nPE / 4)
         print(self.nsteps)
@@ -3056,14 +3672,14 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]
-            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]
-            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]
+            self.kspacetemp[n, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
+            self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3087,23 +3703,23 @@ class sequence:
 #         self.datatxt2 = np.transpose(self.datatxt1)
 #         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_EPI(self):
-        print("Acquire image...")
+        print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
         #print(self.nsteps)
             
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int((params.sampledelay) * 250) #Filterdelay 350µs
-        print("sampledelay", self.sampledelay)
+        print('sampledelay', self.sampledelay)
         self.sampledelay2 = int((params.sampledelay + params.TS + 0.4 + 0.04) * 250)
-        print("sampledelay2", self.sampledelay2)
+        print('sampledelay2', self.sampledelay2)
         self.sampledelay3 = int((params.sampledelay + 2 * params.TS + 0.8) * 250)
-        print("sampledelay3", self.sampledelay3)
+        print('sampledelay3', self.sampledelay3)
         self.sampledelay4 = int((params.sampledelay + 3 * params.TS + 1.2 + 0.08) * 250)
-        print("sampledelay4", self.sampledelay4)
+        print('sampledelay4', self.sampledelay4)
         
         #self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
@@ -3124,14 +3740,14 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n*4, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
-            self.kspace[n*4+1, :] = -self.data[self.data_idx + self.sampledelay2 : self.sampledelay2 : -1]
-            self.kspace[n*4+2, :] = self.data[self.sampledelay3 : self.data_idx + self.sampledelay3]
-            self.kspace[n*4+3, :] = -self.data[self.data_idx + self.sampledelay4 : self.sampledelay4 : -1]
+            self.kspace[n*4, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            self.kspace[n*4+1, :] = -self.data[self.data_idx + self.sampledelay2 : self.sampledelay2 : -1]*params.RXscaling
+            self.kspace[n*4+2, :] = self.data[self.sampledelay3 : self.data_idx + self.sampledelay3]*params.RXscaling
+            self.kspace[n*4+3, :] = -self.data[self.data_idx + self.sampledelay4 : self.sampledelay4 : -1]*params.RXscaling
                 
             self.kspace2[n, :] = self.data[0:10000]  
 
@@ -3152,10 +3768,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_EPI_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
         #print(self.nsteps)
@@ -3180,19 +3796,19 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[n*4, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]
-            self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]
-            self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]
-            self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]
+            self.kspace[n*4, :] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+            self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+            self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
             
-#             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*1200
-#             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*1200
-#             self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*1200
-#             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*1200
+#             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+#             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
+#             self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
+#             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
                 
 #             self.kspace2[n, :] = self.data[0:10000]  
 
@@ -3213,10 +3829,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_SE_Diff(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3234,7 +3850,7 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
@@ -3252,11 +3868,11 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ",int(datasize/8), "Samples")
+                    print('Readout finished : ',int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
-            self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]  
+            self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
         params.kspace = self.kspace
         
@@ -3269,10 +3885,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_f_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3288,6 +3904,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -3306,13 +3931,13 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3329,10 +3954,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_f_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3348,6 +3973,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = params.Gproj[2]
             self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -3366,13 +4000,13 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3387,10 +4021,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_GRE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3406,6 +4040,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
 
@@ -3424,13 +4067,13 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
         
@@ -3445,10 +4088,10 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
     def acquire_image_radial_h_SE(self):
-        print("Acquire image...")
+        print('Acquire image...')
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
@@ -3464,6 +4107,15 @@ class sequence:
         elif params.imageorientation == 2:
             self.GRO1 = int(params.Gproj[2]/2)
             self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -3482,13 +4134,13 @@ class sequence:
                 datasize = socket.bytesAvailable()
                 time.sleep(0.0001)
                 if datasize == 8*params.samples:
-                    print("Readout finished : ", int(datasize/8), "Samples")
+                    print('Readout finished : ', int(datasize/8), 'Samples')
                     self.buffer[0:8*params.samples] = socket.read(8*params.samples)
                     break
                 else: continue
                 
             for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
             
             time.sleep(params.TR/1000)
 
@@ -3503,9 +4155,276 @@ class sequence:
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
         
-        print("Image acquired!")
+        print('Image acquired!')
         
-        
+    def acquire_image_radial_f_GRE_Gs(self):
+        print('Acquire image...')
 
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 180, params.radialanglestep)
+        
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+        
+        self.radialanglecount = self.radialangles.shape[0]
+
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | self.radialangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+   
+            
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Image acquired!')
+
+    def acquire_image_radial_f_SE_Gs(self):
+        print('Acquire image...')
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 180, params.radialanglestep)
+
+        if params.imageorientation == 0:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 1:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[2]
+        elif params.imageorientation == 2:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 3:
+            self.GRO1 = params.Gproj[1]
+            self.GRO2 = params.Gproj[0]
+        elif params.imageorientation == 4:
+            self.GRO1 = params.Gproj[2]
+            self.GRO2 = params.Gproj[1]
+        elif params.imageorientation == 5:
+            self.GRO1 = params.Gproj[0]
+            self.GRO2 = params.Gproj[2]
+        
+        self.radialanglecount = self.radialangles.shape[0]
+        
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | self.radialangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Image acquired!')
+        
+    def acquire_image_radial_h_GRE_Gs(self):
+        print('Acquire image...')
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+        
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)        
+        
+        self.radialanglecount = self.radialangles.shape[0]
+
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 38, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16, params.spoileramplitude << 16 | self.radialangleradmod100, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+        
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Image acquired!')
+        
+    def acquire_image_radial_h_SE_Gs(self):
+        print('Acquire image...')
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.radialangles = np.arange(0, 360, params.radialanglestep)
+
+        if params.imageorientation == 0:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 1:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        elif params.imageorientation == 2:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 3:
+            self.GRO1 = int(params.Gproj[1]/2)
+            self.GRO2 = int(params.Gproj[0]/2)
+        elif params.imageorientation == 4:
+            self.GRO1 = int(params.Gproj[2]/2)
+            self.GRO2 = int(params.Gproj[1]/2)
+        elif params.imageorientation == 5:
+            self.GRO1 = int(params.Gproj[0]/2)
+            self.GRO2 = int(params.Gproj[2]/2)
+        
+        self.radialanglecount = self.radialangles.shape[0]
+        
+        for n in range(self.radialanglecount):
+            print(n+1,'/',self.radialanglecount)
+            self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 39, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, params.GSamplitude << 16 | self.radialangleradmod100, params.spoileramplitude << 16 | params.crusheramplitude, self.GRO2 << 16 | self.GRO1))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+                
+            for n in range(self.data_idx):
+                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            
+            time.sleep(params.TR/1000)
+
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Image acquired!')
 
 seq = sequence()
