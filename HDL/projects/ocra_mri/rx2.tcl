@@ -1,3 +1,5 @@
+global dsp_clk_freq
+
 # Create xlslice
 # Trigger slice on Bit 1 (RX pulse)
 cell xilinx.com:ip:xlslice:1.0 slice_0 {
@@ -27,7 +29,7 @@ cell pavel-demin:user:axis_lfsr:1.0 lfsr_0 {} {
   aresetn /rst_0/peripheral_aresetn
 }
 
-# Create cmpy
+# The top 24 bits is the most we need, 16 would probably be fine as well
 cell xilinx.com:ip:cmpy:6.0 mult_0 {
   FLOWCONTROL Blocking
   APORTWIDTH.VALUE_SRC USER
@@ -35,7 +37,7 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
   APORTWIDTH 16
   BPORTWIDTH 24
   ROUNDMODE Random_Rounding
-  OUTPUTWIDTH 26
+  OUTPUTWIDTH 24
 } {
   S_AXIS_A fifo_0/M_AXIS
   S_AXIS_CTRL lfsr_0/M_AXIS
@@ -46,10 +48,10 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
 cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
   S_TDATA_NUM_BYTES.VALUE_SRC USER
   M_TDATA_NUM_BYTES.VALUE_SRC USER
-  S_TDATA_NUM_BYTES 8
+  S_TDATA_NUM_BYTES 6
   M_TDATA_NUM_BYTES 3
   M00_TDATA_REMAP {tdata[23:0]}
-  M01_TDATA_REMAP {tdata[55:32]}
+  M01_TDATA_REMAP {tdata[47:24]}
 } {
   S_AXIS mult_0/M_AXIS_DOUT
   aclk /ps_0/FCLK_CLK0
@@ -83,7 +85,7 @@ cell xilinx.com:ip:cic_compiler:4.0 cic_0 {
   MINIMUM_RATE 25
   MAXIMUM_RATE 8192
   FIXED_OR_INITIAL_RATE 625
-  INPUT_SAMPLE_FREQUENCY 125
+  INPUT_SAMPLE_FREQUENCY $dsp_clk_freq
   CLOCK_FREQUENCY 125
   INPUT_DATA_WIDTH 24
   QUANTIZATION Truncation
@@ -107,7 +109,7 @@ cell xilinx.com:ip:cic_compiler:4.0 cic_1 {
   MINIMUM_RATE 25
   MAXIMUM_RATE 8192
   FIXED_OR_INITIAL_RATE 625
-  INPUT_SAMPLE_FREQUENCY 125
+  INPUT_SAMPLE_FREQUENCY $dsp_clk_freq
   CLOCK_FREQUENCY 125
   INPUT_DATA_WIDTH 24
   QUANTIZATION Truncation
@@ -159,7 +161,7 @@ cell xilinx.com:ip:fir_compiler:7.2 fir_0 {
   SAMPLE_FREQUENCY 5.0
   CLOCK_FREQUENCY 125
   OUTPUT_ROUNDING_MODE Convergent_Rounding_to_Even
-  OUTPUT_WIDTH 26
+  OUTPUT_WIDTH 32
   M_DATA_HAS_TREADY true
   HAS_ARESETN true
 } {
@@ -168,43 +170,13 @@ cell xilinx.com:ip:fir_compiler:7.2 fir_0 {
   aresetn /rst_0/peripheral_aresetn
 }
 
-# Create axis_subset_converter
-cell xilinx.com:ip:axis_subset_converter:1.1 subset_0 {
-  S_TDATA_NUM_BYTES.VALUE_SRC USER
-  M_TDATA_NUM_BYTES.VALUE_SRC USER
-  S_TDATA_NUM_BYTES 4
-  M_TDATA_NUM_BYTES 3
-  TDATA_REMAP {tdata[23:0]}
-} {
-  S_AXIS fir_0/M_AXIS_DATA
-  aclk /ps_0/FCLK_CLK0
-  aresetn /rst_0/peripheral_aresetn
-}
-
-# Create floating_point
-cell xilinx.com:ip:floating_point:7.1 fp_0 {
-  OPERATION_TYPE Fixed_to_float
-  A_PRECISION_TYPE.VALUE_SRC USER
-  C_A_EXPONENT_WIDTH.VALUE_SRC USER
-  C_A_FRACTION_WIDTH.VALUE_SRC USER
-  A_PRECISION_TYPE Custom
-  C_A_EXPONENT_WIDTH 2
-  C_A_FRACTION_WIDTH 22
-  RESULT_PRECISION_TYPE Single
-  HAS_ARESETN true
-} {
-  S_AXIS_A subset_0/M_AXIS
-  aclk /ps_0/FCLK_CLK0
-  aresetn /rst_0/peripheral_aresetn
-}
-
-# Create axis_dwidth_converter
+# Convert the 64 bit wide complex word into sequential 32 bit words of real and imag
 cell xilinx.com:ip:axis_dwidth_converter:1.1 conv_1 {
   S_TDATA_NUM_BYTES.VALUE_SRC USER
   S_TDATA_NUM_BYTES 4
   M_TDATA_NUM_BYTES 8
 } {
-  S_AXIS fp_0/M_AXIS_RESULT
+  S_AXIS fir_0/M_AXIS_DATA
   aclk /ps_0/FCLK_CLK0
   aresetn /rst_0/peripheral_aresetn
 }
