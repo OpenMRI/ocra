@@ -36,8 +36,6 @@ class Parameters:
         self.datapath = ''
         self.frequency = 11.3
         self.autorecenter = 1
-        self.autorecenterretry = 0
-        self.autorecentertries = 1
         self.autodataprocess = 1
         self.frequencyoffset = 0
         self.frequencyoffsetsign = 0
@@ -236,8 +234,6 @@ class Parameters:
                          self.datapath, \
                          self.frequency, \
                          self.autorecenter, \
-                         self.autorecenterretry, \
-                         self.autorecentertries, \
                          self.autodataprocess, \
                          self.frequencyoffset, \
                          self.frequencyoffsetsign, \
@@ -459,8 +455,6 @@ class Parameters:
                 self.datapath, \
                 self.frequency, \
                 self.autorecenter, \
-                self.autorecenterretry, \
-                self.autorecentertries, \
                 self.autodataprocess, \
                 self.frequencyoffset, \
                 self.frequencyoffsetsign, \
@@ -676,8 +670,6 @@ class Parameters:
         file.write('Data path: ' + str(self.datapath) + '\n')
         file.write('Frequency [MHz]: ' + str(self.frequency) + '\n')
         file.write('Auto recenter: ' + str(self.autorecenter) + '\n')
-        file.write('Auto recenter retry: ' + str(self.autorecenterretry) + '\n')
-        file.write('Auto recenter retries: ' + str(self.autorecentertries) + '\n')
         # file.write('Auto data process: ' + str(self.autodataprocess) + '\n')
         if self.frequencyoffsetsign == 1:
             file.write('RF frequency offset [Hz]: -' + str(self.frequencyoffset) + '\n')
@@ -849,8 +841,6 @@ class Parameters:
             'Data path': self.datapath,
             'Frequency [MHz]': self.frequency,
             'Auto recenter': self.autorecenter,
-            'Auto recenter retry': self.autorecenterretry,
-            'Auto recenter retries': self.autorecentertries,
             'Auto data process': self.autodataprocess,
             'RF frequency offset [Hz]':
                 -self.frequencyoffset if self.frequencyoffsetsign == 1

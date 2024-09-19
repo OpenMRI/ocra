@@ -13,7 +13,6 @@ import math
 import time
 import shutil
 
-#beginSAR
 import serial
 import serial.tools.list_ports
 import asyncio
@@ -22,7 +21,6 @@ import struct
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
 from PyQt5.QtCore import Qt, QSize, QRect
 from enum import Enum
-#endSAR
 
 import json
 
@@ -197,8 +195,6 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.motor_error(-1, message=msg[4:])
 
     def motor_error(self, error, message=''):
-        self.motor.blockSignals(True)
-
         # 0: there is no error, 12: not defined but can also occur during normal operation
         if error != 12 and error != 0:
             params.motor_available = False
@@ -1654,9 +1650,6 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.Frequency_doubleSpinBox.setValue(params.frequency)
 
         if params.autorecenter == 1: self.auto_recenter_radioButton.setChecked(True)
-        
-        if params.autorecenterretry == 1: self.Retry_Recenter_radioButton.setChecked(True)
-        self.Retry_Recenter_spinBox.setValue(params.autorecentertries)
 
         self.RF_Pulselength_spinBox.setValue(params.RFpulselength)
         self.RF_Attenuation_doubleSpinBox.setValue(params.RFattenuation)
@@ -1711,10 +1704,6 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         else: params.autorecenter = 0
         params.RFpulselength = (round(self.RF_Pulselength_spinBox.value() / 10) * 10)
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
-        
-        if self.Retry_Recenter_radioButton.isChecked(): params.autorecenterretry = 1
-        else: params.autorecenterretry = 0
-        params.autorecentertries = self.Retry_Recenter_spinBox.value()
 
         if params.GSamplitude == 0: params.GSposttime = 0
         else: params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
@@ -2970,7 +2959,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
         self.ui = loadUi('ui/plotview.ui')
         self.setWindowTitle('Plotvalues - ' + params.datapath + '.txt')
-        self.setGeometry(10, 490, 400, 530)
+        self.setGeometry(10, 490, 400, 500)
 
         self.Animate_pushButton.setEnabled(False)
         self.View_3D_Data_pushButton.setEnabled(False)
@@ -4750,7 +4739,7 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
 
         self.ui = loadUi('ui/motor_tools.ui')
         self.setWindowTitle('Motor Tools')
-        self.setGeometry(420, 40, 400, 370)
+        self.setGeometry(420, 40, 400, 300)
 
         self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='to'))
         self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='by'))
