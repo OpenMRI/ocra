@@ -9,6 +9,7 @@ all: sim
 
 sim: $(VERILATED)
 	./$(VERILATED)
+	gtkwave sim.vcd
 
 $(VERILATED): $(SRC_FILES) $(CPP_FILES)
 	$(VERILATOR) -Wall --cc $(SRC_FILES) --exe $(CPP_FILES) --top-module $(TOP_MODULE) --trace --timing

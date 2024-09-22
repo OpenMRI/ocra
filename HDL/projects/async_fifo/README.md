@@ -7,4 +7,4 @@ clock-domain crossing issues.
 
 ## Requirements
 
-This project requires verilator.
+This project requires verilator and gtkwave.
