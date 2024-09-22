@@ -71,7 +71,7 @@ module tb_async_fifo;
             @(posedge wr_clk);
             if (!full) begin
                 wr_en = 1;
-                wr_data = write_count;
+                wr_data = write_count[DATA_WIDTH-1:0];
                 write_count = write_count + 1;
             end else begin
                 wr_en = 0;
@@ -107,8 +107,8 @@ module tb_async_fifo;
                 $display("ERROR: Data Mismatch at time %t: Expected %0d, Got %0d", $time, expected_data, rd_data);
                 $stop;
             end else begin
-                expected_data = expected_data + 1;
-                read_count = read_count + 1;
+                expected_data <= expected_data + 1;
+                read_count <= read_count + 1;
             end
         end
     end
