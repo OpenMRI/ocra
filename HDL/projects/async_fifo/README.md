@@ -7,4 +7,4 @@ clock-domain crossing issues.
 
 ## Requirements
 
-This project requires verilator and gtkwave.
+This project requires verilator and a tool to display the simulations. There are either gtkwave or surfer project that I would recommend.
