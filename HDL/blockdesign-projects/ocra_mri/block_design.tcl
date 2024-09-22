@@ -101,7 +101,7 @@ cell xilinx.com:ip:xlconstant:1.1 const_0
 # Removed this connection from rx:
 # slice_0/Din rst_slice_0/Dout
 module rx_0 {
-  source projects/ocra_mri/rx2.tcl
+  source blockdesign-projects/ocra_mri/rx2.tcl
 } {
   rate_slice/Din cfg8/config_2
   fifo_0/S_AXIS adc_0/M_AXIS
@@ -111,7 +111,7 @@ module rx_0 {
 
 #  axis_interpolator_0/cfg_data cfg8/config_0  
 module tx_0 {
-  source projects/ocra_mri/tx6.tcl
+  source blockdesign-projects/ocra_mri/tx6.tcl
 } {
   slice_1/Din cfg8/config_3
   axis_interpolator_0/cfg_data cfg8/config_0
@@ -121,7 +121,7 @@ module tx_0 {
 }
 
 module nco_0 {
-    source projects/ocra_mri/nco.tcl
+    source blockdesign-projects/ocra_mri/nco.tcl
 } {
   slice_1/Din cfg8/config_1
   bcast_nco/M00_AXIS rx_0/mult_0/S_AXIS_B
@@ -346,7 +346,7 @@ set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 set_property OFFSET 0x40008000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 
 module gradient_dac_0 {
-    source projects/ocra_mri/gradient_dacs.tcl
+    source blockdesign-projects/ocra_mri/gradient_dacs.tcl
 } {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
