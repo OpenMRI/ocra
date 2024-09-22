@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
     // Variables for simulation
     vluint64_t main_time = 0;           // Current simulation time
-    const vluint64_t sim_time = 100000; // Adjust as needed
+    const vluint64_t sim_time = 4000000; // Adjust as needed
 
     // Open VCD dump file
     Verilated::traceEverOn(true);
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         prev_rd_clk = top->rd_clk;
 
         // Check for simulation end
-        if (write_count >= 50 && read_count >= 50)
+        if (write_count >= 500 && read_count >= 500)
         {
             std::cout << "Simulation completed successfully at time " << main_time << std::endl;
             break;
