@@ -22,7 +22,7 @@ module tb_async_fifo;
     reg [DATA_WIDTH-1:0]   expected_data;
 
     // Instantiate the FIFO
-    async_fifo_custom #(
+    async_fifo  #(
         .DATA_WIDTH(DATA_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH)
     ) fifo_inst (

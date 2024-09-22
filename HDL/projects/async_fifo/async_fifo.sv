@@ -1,4 +1,4 @@
-module async_fifo_custom #(
+module async_fifo #(
     parameter DATA_WIDTH = 16,
     parameter ADDR_WIDTH = 4  // FIFO depth = 2^ADDR_WIDTH
 )(
