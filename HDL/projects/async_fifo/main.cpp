@@ -1,5 +1,5 @@
 // main.cpp
-#include "Vtb_async_fifo.h"
+#include "Vasync_fifo.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include <iostream>
@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
 
     // Instantiate the top module
-    Vtb_async_fifo *top = new Vtb_async_fifo;
+    Vasync_fifo *top = new Vasync_fifo;
 
     // Initialize simulation inputs
     top->wr_clk = 0;
@@ -42,6 +42,10 @@ int main(int argc, char **argv)
     top->wr_rst_n = 1;
     top->rd_rst_n = 1;
 
+    uint16_t write_count = 0;
+    uint16_t read_count = 0;
+    uint16_t expected_data = 0;
+    uint16_t wr_data = 0;
     bool prev_wr_clk = 0;
     bool prev_rd_clk = 0;
 

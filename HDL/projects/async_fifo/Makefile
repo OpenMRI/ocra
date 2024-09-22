@@ -1,8 +1,8 @@
 VERILATOR = verilator
-TOP_MODULE = tb_async_fifo
+TOP_MODULE = async_fifo
 VERILATED = obj_dir/V$(TOP_MODULE)
 
-SRC_FILES = async_fifo.sv tb_async_fifo.sv
+SRC_FILES = async_fifo.sv
 CPP_FILES = main.cpp
 
 all: sim
