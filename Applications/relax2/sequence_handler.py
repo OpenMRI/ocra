@@ -14,11 +14,9 @@ import math
 from datetime import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import QMessageBox
 
 import numpy as np
-#import pandas as pd
-#from scipy.optimize import curve_fit, brentq
-# just for debugging calculations:
 import matplotlib.pyplot as plt
 
 from TCPsocket import socket, connected, unconnected
@@ -527,7 +525,7 @@ class sequence:
     # Free Induction Decay sequence    
     def FID_setup(self):
         if int(params.TE * 1000 - params.flippulselength/2 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength/2 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength/2 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_fid, 'r+')
@@ -548,7 +546,7 @@ class sequence:
     #Spin Echo Sequence
     def SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_se, 'r+')
@@ -573,10 +571,10 @@ class sequence:
     # Inversion Recovery Free Induction Decay sequence    
     def IR_FID_setup(self):
         if int(params.TI * 1000 - params.RFpulselength - 10 - 100 - params.flippulselength / 2) < 0:
-            params.TI = (params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000
+            params.TI = math.ceil(10*((params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE * 1000 - params.flippulselength/2 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength/2 + params.TS * 1000 / 2) / 1000 
+            params.TE = math.ceil(10*((params.flippulselength/2 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_ir_fid, 'r+')
@@ -599,10 +597,10 @@ class sequence:
     # Inversion Recovery Spin Echo sequence    
     def IR_SE_setup(self):  
         if int(params.TI * 1000 - params.RFpulselength - 10 - 100 - params.flippulselength / 2) < 0:
-            params.TI = (params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000
+            params.TI = math.ceil(10*((params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_ir_se, 'r+')
@@ -628,25 +626,29 @@ class sequence:
         
     # Free Induction Decay sequence    
     def SIR_FID_setup(self):
-        if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2
-            print('TE to short!! TE set to:', params.TE, 'ms') 
-        self.TFID = 1
-        if int(self.TFID * 1000 - params.flippulselength/2 - params.TS * 1000 / 2) < 0:
-            self.TFID = (params.flippulselength/2 + params.TS * 1000 / 2) / 1000
-            print('T FID set to:', self.TFID, 'ms')    
+        if int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
+            params.SIR_TE = math.ceil(10*((params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if params.SIR_TE < 1:
+            params.SIR_TE = 1
+            print('SIR TE to short!! TE set to:', params.SIR_TE, 'ms')
+        if int(params.TE * 1000 - params.flippulselength/2 - params.TS * 1000 / 2) < 0:
+            params.TE = math.ceil(10*((params.flippulselength/2 + params.TS * 1000 / 2) / 1000))/10
+            print('TE to short!! TE set to:', params.TE, 'ms')    
             
         f = open(self.seq_sir_fid, 'r+')
         lines = f.readlines()
         lines[-33] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-31] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-31] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
         lines[-28] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
         lines[-23] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
         lines[-19] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
-        lines[-16] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
         lines[-13] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
-        #lines[-11] = 'PR 3, ' + str(int(params.TE * 1000 - params.RFpulselength + 10 - params.TS * 1000 / 2)) + '\t// Pause\n'
-        lines[-11] = 'PR 3, ' + str(int(self.TFID * 1000 - params.flippulselength/2 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-11] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength/2 - params.TS * 1000 / 2)) + '\t// Pause\n'
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
@@ -660,18 +662,27 @@ class sequence:
 
     #Spin Echo Sequence
     def SIR_SE_setup(self):
+        if int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
+            params.SIR_TE = math.ceil(10*((params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if params.SIR_TE < 1:
+            params.SIR_TE = 1
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_sir_se, 'r+')
         lines = f.readlines()
         lines[-48] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-46] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-46] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
         lines[-43] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
         lines[-38] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
         lines[-34] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
-        lines[-31] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
+        lines[-31] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
         lines[-28] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
         lines[-26] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
         lines[-23] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
@@ -691,7 +702,7 @@ class sequence:
         
     def EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 50 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
-            params.TE = (params.flippulselength / 2 + 50 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 50 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_epi, 'r+')
@@ -715,7 +726,7 @@ class sequence:
         
     def EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 *2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 *2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_epi_se, 'r+')
@@ -744,7 +755,7 @@ class sequence:
     #Turbo Spin Echo Sequence
     def TSE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_tse, 'r+')
@@ -786,7 +797,7 @@ class sequence:
         
     def FID_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_fid_gs, 'r+')
@@ -808,10 +819,10 @@ class sequence:
     #2D Spin Echo (Slice Select) Sequence   
     def SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_se_gs, 'r+')
@@ -836,10 +847,10 @@ class sequence:
         
     def IR_FID_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
-            params.TI = (4*params.RFpulselength + 20 + 200 + 4*params.flippulselength/2) / 1000
+            params.TI = math.ceil(10*((4*params.RFpulselength + 20 + 200 + 4*params.flippulselength/2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_ir_fid_gs, 'r+')
@@ -862,13 +873,13 @@ class sequence:
         
     def IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 4*params.RFpulselength - 20 - 200 - 4*params.flippulselength/2) < 0:
-            params.TI = (4*params.RFpulselength + 20 + 200 + 4*params.flippulselength/2) / 1000
+            params.TI = math.ceil(10*((4*params.RFpulselength + 20 + 200 + 4*params.flippulselength/2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_ir_se_gs, 'r+')
@@ -894,25 +905,30 @@ class sequence:
         print('IR SE (slice) setup complete!')
         
     def SIR_FID_Gs_setup(self):
+        if int(params.SIR_TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((4*params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + 200 + 4*params.flippulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if params.SIR_TE < 1:
+            params.SIR_TE = 1
+            print('SIR TE to short!! TE set to:', params.SIR_TE, 'ms')
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000
-            print('TE to short!! TE set to:', params.TE, 'ms')
-        self.TFID = 1
-        if int(self.TFID * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2) < 0:
-            self.TFID = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000
-            print('T FID set to:', self.TFID, 'ms') 
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 20 + params.TS * 1000 / 2) / 1000))/10
+            print('TE set to:', params.TE, 'ms') 
         
         f = open(self.seq_sir_fid_gs, 'r+')
         lines = f.readlines()
         lines[-40] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-38] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-38] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
         lines[-35] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
         lines[-30] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
         lines[-26] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
-        lines[-23] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2)) + '\t// Pause\n'
+        lines[-23] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2)) + '\t// Pause\n'
         lines[-18] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
         lines[-14] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
-        lines[-11] = 'PR 3, ' + str(int(self.TFID * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-11] = 'PR 3, ' + str(int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 20 - params.TS * 1000 / 2)) + '\t// Pause\n'
         lines[-10] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
         f.close()
@@ -925,21 +941,30 @@ class sequence:
         print('SIR FID (slice) setup complete!')
         
     def SIR_SE_Gs_setup(self):
-        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2
-            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((4*params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + 200 + 4*params.flippulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if params.SIR_TE < 1:
+            params.SIR_TE = 1
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_sir_se_gs, 'r+')
         lines = f.readlines()
         lines[-55] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-53] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-53] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - 4*params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
         lines[-50] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
         lines[-45] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
         lines[-41] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
-        lines[-38] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2)) + '\t// Pause\n'
+        lines[-38] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - 200 - 4*params.flippulselength/2)) + '\t// Pause\n'
         lines[-33] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
         lines[-29] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
         lines[-26] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
@@ -960,7 +985,7 @@ class sequence:
         
     def EPI_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_epi_gs, 'r+')
@@ -986,10 +1011,10 @@ class sequence:
     #2D EPI SE (Slice Select) Sequence   
     def EPI_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 4*params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
-            params.TE = (4*params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_epi_se_gs, 'r+')
@@ -1018,10 +1043,10 @@ class sequence:
         
     def TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 30 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 30 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_tse_gs, 'r+')
@@ -1173,7 +1198,7 @@ class sequence:
     #2D Radial Full Gradient Echo Sequence   
     def Image_radial_f_GRE_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_rad_f_gre, 'r+')
@@ -1195,7 +1220,7 @@ class sequence:
     # 2D Radial Full Spin Echo Sequence
     def Image_radial_f_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_rad_f_se, 'r+')
@@ -1221,7 +1246,7 @@ class sequence:
     #2D Radial Half Gradient Echo Sequence   
     def Image_radial_h_GRE_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_rad_h_gre, 'r+')
@@ -1242,10 +1267,10 @@ class sequence:
     # 2D Radial Half Spin Echo Sequence
     def Image_radial_h_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
-            params.TE = (params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2
+            params.TE = math.ceil(10*((params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
             
@@ -1271,7 +1296,7 @@ class sequence:
     #2D Radial Full Gradient Echo (Slice Select) Sequence   
     def Image_radial_f_GRE_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
                
         f = open(self.seq_2D_rad_f_gre_gs, 'r+')
@@ -1294,10 +1319,10 @@ class sequence:
     # 2D Radial Full Spin Echo (Slice Select) Sequence
     def Image_radial_f_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_rad_f_se_gs, 'r+')
@@ -1324,7 +1349,7 @@ class sequence:
     #2D Radial Half Gradient Echo (Slice Select)Sequence   
     def Image_radial_h_GRE_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_rad_h_gre_gs, 'r+')
@@ -1346,10 +1371,10 @@ class sequence:
     # 2D Radial Half Spin Echo (Slice Select) Sequence
     def Image_radial_h_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 25 - 200 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 25 + 200 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
             
@@ -1384,7 +1409,7 @@ class sequence:
     #2D Gradient Echo Sequence   
     def Image_GRE_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_gre, 'r+')
@@ -1406,7 +1431,7 @@ class sequence:
     # 2D Spin Echo Sequence
     def Image_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_se, 'r+')
@@ -1432,10 +1457,10 @@ class sequence:
     # 2D Inversion Recovery GRE Sequence
     def Image_IR_GRE_setup(self):         
         if int(params.TI * 1000 - params.RFpulselength - 10 - 100 - params.flippulselength / 2) < 0:
-            params.TI = (params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000
+            params.TI = math.ceil(10*((params.RFpulselength + 10 + 100 + params.flippulselength / 2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength / 2 + 10 + 30 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 10 + 30 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
             
@@ -1460,10 +1485,10 @@ class sequence:
     # 2D Inversion Recovery SE Sequence    
     def Image_IR_SE_setup(self):        
         if int(params.TI * 1000 - params.RFpulselength - 10 - 100 - params.flippulselength / 2) < 0:
-            params.TI = (params.RFpulselength - 10 - 100 - params.flippulselength / 2) / 1000
+            params.TI = math.ceil(10*((params.RFpulselength - 10 - 100 - params.flippulselength / 2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_ir_se, 'r+')
@@ -1490,28 +1515,29 @@ class sequence:
         
     # 2D Saturation Inversion Recovery GRE Sequence
     def Image_SIR_GRE_setup(self):          
-        if int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
-            params.TE = (params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2
-            print('TE to short!! TE set to:', params.TE, 'ms')
-        if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2
-            print('TE to short!! TE set to:', params.TE, 'ms')
-        self.TGRE = 1
-        if int(self.TGRE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            self.TGRE = (params.flippulselength / 2 + 10 + 30 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
-            print('T GRE set to:', self.TGRE, 'ms')
-        
+        if int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength) < 0:
+            params.SIR_TE = math.ceil(10*((params.flippulselength/2 + 200 + params.crushertime + 200 + 30 + params.RFpulselength) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2) < 0:
+            params.SIR_TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 20 + 100 + params.flippulselength/2) / 1000 * 2))/10
+            print('SIR TE to short!! SIR TE set to:', params.SIR_TE, 'ms')
+        if params.SIR_TE < 1:
+            params.SIR_TE = 1
+            print('SIR TE to short!! TE set to:', params.SIR_TE, 'ms')
+        if int(params.TE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 10 + 30 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
+            print('SIR TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_sir_gre, 'r+')
         lines = f.readlines()
         lines[-41] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-39] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
+        lines[-39] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.flippulselength/2 - 200 - params.crushertime - 200 - 30 - params.RFpulselength)) + '\t// Pause\n'
         lines[-36] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
         lines[-31] = 'PR 5, ' + str(2 * params.RFpulselength) + '\t// 180deg RF Pulse\n'
         lines[-27] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
-        lines[-24] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
+        lines[-24] = 'PR 3, ' + str(int(params.SIR_TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 20 - 100 - params.flippulselength/2)) + '\t// Pause\n'
         lines[-21] = 'PR 5, ' + str(params.flippulselength) + '\t// Flip RF Pulse\n'
-        lines[-19] = 'PR 3, ' + str(int(self.TGRE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE * 1000 - params.flippulselength / 2 - 10 - 30 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
         lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
         lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
         lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
@@ -1527,7 +1553,7 @@ class sequence:
     #2D Gradient Echo (Slice Select) Sequence   
     def Image_GRE_Gs_setup(self):
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 45 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 45 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_gre_gs, 'r+')
@@ -1550,10 +1576,10 @@ class sequence:
     #2D Spin Echo (Slice Select) Sequence   
     def Image_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_se_gs, 'r+')
@@ -1579,10 +1605,10 @@ class sequence:
         
     def Image_IR_GRE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
-            params.TI = (2*4*params.RFpulselength/2 + 20 + 100 + 100 + 4*params.flippulselength/2) / 1000
+            params.TI = math.ceil(10*((2*4*params.RFpulselength/2 + 20 + 100 + 100 + 4*params.flippulselength/2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_ir_gre_gs, 'r+')
@@ -1606,13 +1632,13 @@ class sequence:
         
     def Image_IR_SE_Gs_setup(self):
         if int(params.TI * 1000 - 2*4*params.RFpulselength/2 - 20 - 100 - 100 - 4*params.flippulselength/2) < 0:
-            params.TI = (2*4*params.RFpulselength/2 + 20 + 100 + 100 + 4*params.flippulselength/2) / 1000
+            params.TI = math.ceil(10*((2*4*params.RFpulselength/2 + 20 + 100 + 100 + 4*params.flippulselength/2) / 1000))/10
             print('TI to short!! TI set to:', params.TI, 'ms')
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_ir_se_gs, 'r+')
@@ -1640,10 +1666,10 @@ class sequence:
         
     def Image_3D_SE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 40 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 40 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_3D_se_gs, 'r+')
@@ -1669,10 +1695,10 @@ class sequence:
         
     def Image_3D_TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 55 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_3D_tse_gs, 'r+')
@@ -1723,7 +1749,7 @@ class sequence:
     #2D Turbo Spin Echo Sequence
     def Image_TSE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 55 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_tse, 'r+')
@@ -1773,10 +1799,10 @@ class sequence:
     # 2D Turbo Spin Echo (Slice Select) Sequence
     def Image_TSE_Gs_setup(self):
         if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 55 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 55 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 45 - 2*4*params.RFpulselength/2) < 0:
-            params.TE = (4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_tse_gs, 'r+')
@@ -1826,7 +1852,7 @@ class sequence:
         
     def Image_EPI_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 200 - 600 - 200 - 170 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 - 200) < 0:
-            params.TE = (params.flippulselength / 2 + 200 + 600 + 200 + 70 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 200 + 600 + 200 + 70 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_epi, 'r+')
@@ -1851,7 +1877,7 @@ class sequence:
         
     def Image_EPI_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 60 - 200 - params.GROpretime - 400 - params.TS * 1000 - 400 - params.TS * 1000 -200) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 60 + 200 + params.GROpretime + 400 + params.TS * 1000 + 400 + params.TS * 1000 + 200) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_epi_se, 'r+')
@@ -1880,7 +1906,7 @@ class sequence:
         
     def Image_SE_Diff_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 80 - 800 - 2 * params.diffusiontime - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 80 + 800 + 2 * params.diffusiontime + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 80 + 800 + 2 * params.diffusiontime + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_se_diff, 'r+')
@@ -1910,7 +1936,7 @@ class sequence:
         #2D Flow Compensated Gradient Echo Sequence   
     def Image_FC_GRE_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 10 - 200 - params.GROfcpretime1 - 400 - params.GROfcpretime2 - 400 - 35 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.flippulselength / 2 + 10 + 200 + params.GROfcpretime1 + 400 + params.GROfcpretime2 + 400 + 35 + params.TS * 1000 / 2) / 1000
+            params.TE = math.ceil(10*((params.flippulselength / 2 + 10 + 200 + params.GROfcpretime1 + 400 + params.GROfcpretime2 + 400 + 35 + params.TS * 1000 / 2) / 1000))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
         
         f = open(self.seq_2D_fc_gre, 'r+')
@@ -1933,7 +1959,7 @@ class sequence:
     # 2D Flow Compensated Spin Echo Sequence
     def Image_FC_SE_setup(self):
         if int(params.TE / 2 * 1000 - params.RFpulselength - 200 - params.crushertime - 200 - 200 - params.GROfcpretime1 - 400 - params.GROfcpretime2 - 400 - 55 - params.TS * 1000 / 2) < 0:
-            params.TE = (params.RFpulselength + 200 + params.crushertime + 200 + 200 + params.GROfcpretime1 + 400 + params.GROfcpretime2 + 400 + 55 + params.TS * 1000 / 2) / 1000 * 2
+            params.TE = math.ceil(10*((params.RFpulselength + 200 + params.crushertime + 200 + 200 + params.GROfcpretime1 + 400 + params.GROfcpretime2 + 400 + 55 + params.TS * 1000 / 2) / 1000 * 2))/10
             print('TE to short!! TE set to:', params.TE, 'ms')
             
         f = open(self.seq_2D_fc_se, 'r+')
@@ -1984,6 +2010,8 @@ class sequence:
         else: self.avecount = params.averagecount
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+
+        if params.sequence == 0: self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
@@ -2006,7 +2034,18 @@ class sequence:
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                if params.sequence == 0: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
         
@@ -2033,6 +2072,10 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
+        if params.sequence == 1: self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.sequence == 2 or params.sequence == 3: self.estimated_time = self.avecount * ((100 + params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.sequence == 4 or params.sequence == 5: self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2054,7 +2097,21 @@ class sequence:
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                
+                if params.sequence == 1: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.sequence == 2 or params.sequence == 3: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.sequence == 4 or params.sequence == 5: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
         
@@ -2159,7 +2216,6 @@ class sequence:
             self.spectrumdata[n,2*self.data_idx:3*self.data_idx] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
            
-            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2189,6 +2245,8 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,4*self.data_idx), dtype = np.complex64))
         
+        self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2214,7 +2272,18 @@ class sequence:
             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, 4*params.TS, 4*self.data_idx)
         
@@ -2241,6 +2310,8 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
+        if params.sequence == 9: self.estimated_time = self.avecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2262,7 +2333,18 @@ class sequence:
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                if params.sequence == 9: self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
         
@@ -2289,6 +2371,9 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
+        if params.sequence == 10: self.estimated_time = self.avecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.sequence == 11 or params.sequence == 12: self.estimated_time = self.avecount * ((100 + 4*params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2310,7 +2395,19 @@ class sequence:
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                if params.sequence == 10: self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.sequence == 11 or params.sequence == 12: self.remaining_time = (self.estimated_time - n * ((100 + 4*params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
         
@@ -2337,6 +2434,8 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
+        self.estimated_time = self.avecount * ((100 + 2*params.flippulselength + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2358,7 +2457,18 @@ class sequence:
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
         
@@ -2492,6 +2602,8 @@ class sequence:
         
         self.spectrumdata = np.matrix(np.zeros((self.avecount,4*self.data_idx), dtype = np.complex64))
         
+        self.estimated_time = self.avecount * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
         
@@ -2517,7 +2629,18 @@ class sequence:
             self.spectrumdata[n,3*self.data_idx:4*self.data_idx] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
             if params.average == 1:
-                time.sleep(params.TR/1000)
+                self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+            
+                msg_box = QMessageBox()
+                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, 4*params.TS, 4*self.data_idx)
         
@@ -3248,7 +3371,9 @@ class sequence:
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-            
+        
+        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 8, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3266,6 +3391,18 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
             
         params.kspace = self.kspace
         
@@ -3286,7 +3423,9 @@ class sequence:
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-            
+        
+        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 9, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3304,6 +3443,18 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
             
         params.kspace = self.kspace
         
@@ -3326,6 +3477,8 @@ class sequence:
         
         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        
+        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
             
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 34, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3344,7 +3497,19 @@ class sequence:
                     break
                 else: continue
             self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
-        
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
             self.kspace[int(params.nPE/2+n),:] = self.kspacetemp[2*n+1,:]
@@ -3370,7 +3535,9 @@ class sequence:
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-            
+        
+        self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 10, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3388,6 +3555,18 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
             
         params.kspace = self.kspace
         
@@ -3408,6 +3587,8 @@ class sequence:
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        
+        self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
             
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 11, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3426,6 +3607,18 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
             
         params.kspace = self.kspace
         
@@ -3448,6 +3641,8 @@ class sequence:
         
         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        
+        self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
             
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 35, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3466,7 +3661,19 @@ class sequence:
                     break
                 else: continue
             self.kspacetemp[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
-        
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
             self.kspace[int(params.nPE/2+n),:] = self.kspacetemp[2*n+1,:]
@@ -3492,6 +3699,8 @@ class sequence:
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.array(np.zeros((params.SPEsteps, params.nPE, self.data_idx), dtype = np.complex64))
+        
+        self.estimated_time = params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
             
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 12, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.spoileramplitude << 16 | params.crusheramplitude, params.SPEsteps << 16 | params.GSPEstep, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3513,6 +3722,18 @@ class sequence:
                     else: continue
                 self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
+                self.remaining_time = (self.estimated_time - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+                
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+                
         params.kspace = self.kspace
         
         self.datatxt1 = np.array(np.zeros((params.SPEsteps, params.nPE, self.data_idx), dtype = np.complex64))
@@ -3564,6 +3785,13 @@ class sequence:
                 self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
                 self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1+m*self.nsteps) + '/' + str(self.nsteps*params.SPEsteps))
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            
             self.kspace[m,0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
             self.kspace[m,int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
             self.kspace[m,int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
@@ -3599,8 +3827,10 @@ class sequence:
         
         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-#         self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
-            
+        # self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
+
+        self.estimated_time = self.nsteps * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 21, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
 
         while(True):
@@ -3621,7 +3851,19 @@ class sequence:
             self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
             self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
-                
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps):int(self.nsteps+self.nsteps/2), :] = -self.kspacetemp[int(self.nsteps):int(self.nsteps+self.nsteps/2), :]
@@ -3658,8 +3900,10 @@ class sequence:
         
         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-#         self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
-            
+        # self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
+
+        self.estimated_time = self.nsteps * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 23, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))         
 
         while(True):
@@ -3680,6 +3924,18 @@ class sequence:
             self.kspacetemp[n+self.nsteps, :] = self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
             self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3709,7 +3965,7 @@ class sequence:
         print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
-        #print(self.nsteps)
+        # print(self.nsteps)
             
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int((params.sampledelay) * 250) #Filterdelay 350µs
@@ -3721,13 +3977,13 @@ class sequence:
         self.sampledelay4 = int((params.sampledelay + 3 * params.TS + 1.2 + 0.08) * 250)
         print('sampledelay4', self.sampledelay4)
         
-        #self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        # self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
         
-
+        self.estimated_time = self.nsteps * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
             
-            #socket.write(struct.pack('<IIIIIIIIII', 6, 0, 0, 0, 0, params.Gdiffamplitude, 1 << 16, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
+        # socket.write(struct.pack('<IIIIIIIIII', 6, 0, 0, 0, 0, params.Gdiffamplitude, 1 << 16, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 24, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16, params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
 
         while(True):
@@ -3749,7 +4005,20 @@ class sequence:
             self.kspace[n*4+2, :] = self.data[self.sampledelay3 : self.data_idx + self.sampledelay3]*params.RXscaling
             self.kspace[n*4+3, :] = -self.data[self.data_idx + self.sampledelay4 : self.sampledelay4 : -1]*params.RXscaling
                 
-            self.kspace2[n, :] = self.data[0:10000]  
+            self.kspace2[n, :] = self.data[0:10000]
+            
+            # To-do
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
 
         params.kspace = self.kspace
         
@@ -3774,16 +4043,18 @@ class sequence:
         print('Acquire image...')
             
         self.nsteps = int(params.nPE / 4)
-        #print(self.nsteps)
+        # print(self.nsteps)
             
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int((params.sampledelay) * 250) #Filterdelay 350µs
         self.EPIdelay = int((params.TS + 0.41) * 250)
         
-#         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
+        # self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
-#         self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
+        # self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
             
+        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 22, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
 
         while(True):
@@ -3804,6 +4075,19 @@ class sequence:
             self.kspace[n*4+1, :] = -self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
             self.kspace[n*4+2, :] = self.data[self.sampledelay+2*self.EPIdelay:self.data_idx+self.sampledelay+2*self.EPIdelay]*params.RXscaling
             self.kspace[n*4+3, :] = -self.data[self.data_idx+self.sampledelay+3*self.EPIdelay:self.sampledelay+3*self.EPIdelay:-1]*params.RXscaling
+            
+            # To-do
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
             
 #             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
 #             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
@@ -3838,6 +4122,8 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((2*params.nPE, self.data_idx), dtype = np.complex64))
             
+        self.estimated_time = 2 * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 13, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.spoileramplitude << 16 | params.crusheramplitude, 0, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3855,6 +4141,18 @@ class sequence:
                     break
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
                 
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 13, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100,params.spoileramplitude << 16 | params.crusheramplitude, params.Gdiffamplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3874,6 +4172,18 @@ class sequence:
                 else: continue
             self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
+            self.remaining_time = (self.estimated_time - (n + params.nPE) * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1+params.nPE) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            
         params.kspace = self.kspace
         
         self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
@@ -3892,7 +4202,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 180, params.radialanglestep)
         
         if params.imageorientation == 0:
@@ -3915,6 +4226,8 @@ class sequence:
             self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
+        
+        self.estimated_time = self.radialanglecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
@@ -3936,18 +4249,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE/2*params.radialosfactor + math.sin(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor)), int(params.nPE/2*params.radialosfactor + math.cos(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor))] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
-   
-            
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -3961,7 +4283,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 180, params.radialanglestep)
 
         if params.imageorientation == 0:
@@ -3985,6 +4308,8 @@ class sequence:
         
         self.radialanglecount = self.radialangles.shape[0]
         
+        self.estimated_time = self.radialanglecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
             self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
@@ -4005,16 +4330,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE/2*params.radialosfactor + math.sin(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor)), int(params.nPE/2*params.radialosfactor + math.cos(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor))] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
+                        
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
             
-            time.sleep(params.TR/1000)
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4028,7 +4364,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 360, params.radialanglestep)
         
         if params.imageorientation == 0:
@@ -4051,6 +4388,8 @@ class sequence:
             self.GRO2 = int(params.Gproj[2]/2)
         
         self.radialanglecount = self.radialangles.shape[0]
+        
+        self.estimated_time = self.radialanglecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
@@ -4072,16 +4411,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE*params.radialosfactor + math.sin(self.radialangleradmod100/100)*m), int(params.nPE*params.radialosfactor + math.cos(self.radialangleradmod100/100)*m)] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4095,7 +4445,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 360, params.radialanglestep)
 
         if params.imageorientation == 0:
@@ -4119,6 +4470,8 @@ class sequence:
         
         self.radialanglecount = self.radialangles.shape[0]
         
+        self.estimated_time = self.radialanglecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
             self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
@@ -4139,16 +4492,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE*params.radialosfactor + math.sin(self.radialangleradmod100/100)*m), int(params.nPE*params.radialosfactor + math.cos(self.radialangleradmod100/100)*m)] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
 
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4162,7 +4526,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 180, params.radialanglestep)
         
         if params.imageorientation == 0:
@@ -4185,6 +4550,8 @@ class sequence:
             self.GRO2 = params.Gproj[2]
         
         self.radialanglecount = self.radialangles.shape[0]
+
+        self.estimated_time = self.radialanglecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
@@ -4206,18 +4573,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE/2*params.radialosfactor + math.sin(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor)), int(params.nPE/2*params.radialosfactor + math.cos(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor))] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
-   
-            
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4231,7 +4607,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((self.data_idx, self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 180, params.radialanglestep)
 
         if params.imageorientation == 0:
@@ -4255,6 +4632,8 @@ class sequence:
         
         self.radialanglecount = self.radialangles.shape[0]
         
+        self.estimated_time = self.radialanglecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
             self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
@@ -4275,16 +4654,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx/2 + math.sin(self.radialangleradmod100/100)*(n-self.data_idx/2)), int(self.data_idx/2 + math.cos(self.radialangleradmod100/100)*(n-self.data_idx/2))] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE/2*params.radialosfactor + math.sin(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor)), int(params.nPE/2*params.radialosfactor + math.cos(self.radialangleradmod100/100)*(m-params.nPE/2*params.radialosfactor))] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((params.nPE*params.radialosfactor, params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4298,7 +4688,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 360, params.radialanglestep)
         
         if params.imageorientation == 0:
@@ -4321,6 +4712,8 @@ class sequence:
             self.GRO2 = int(params.Gproj[2]/2)        
         
         self.radialanglecount = self.radialangles.shape[0]
+        
+        self.estimated_time = self.radialanglecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
@@ -4342,16 +4735,27 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE*params.radialosfactor + math.sin(self.radialangleradmod100/100)*m), int(params.nPE*params.radialosfactor + math.cos(self.radialangleradmod100/100)*m)] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
         
         params.kspace = self.kspace
         
-        self.datatxt1 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt1 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt1 = params.kspace
-        self.datatxt2 = np.matrix(np.zeros((2*self.data_idx,2*self.data_idx), dtype = np.complex64))
+        self.datatxt2 = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.datatxt2 = np.transpose(self.datatxt1)
         np.savetxt(params.datapath + '.txt', self.datatxt2)
         
@@ -4365,7 +4769,8 @@ class sequence:
 
         self.data_idx = int(params.TS * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
-        self.kspace = np.matrix(np.zeros((2*self.data_idx, 2*self.data_idx), dtype = np.complex64))
+        self.kspacestep = self.data_idx/(params.nPE*params.radialosfactor)
+        self.kspace = np.matrix(np.zeros((2*params.nPE*params.radialosfactor, 2*params.nPE*params.radialosfactor), dtype = np.complex64))
         self.radialangles = np.arange(0, 360, params.radialanglestep)
 
         if params.imageorientation == 0:
@@ -4389,6 +4794,8 @@ class sequence:
         
         self.radialanglecount = self.radialangles.shape[0]
         
+        self.estimated_time = self.radialanglecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
         for n in range(self.radialanglecount):
             print(n+1,'/',self.radialanglecount)
             self.radialangleradmod100 = int((math.radians(self.radialangles[n]) % (2*np.pi))*100)
@@ -4409,10 +4816,21 @@ class sequence:
                     break
                 else: continue
                 
-            for n in range(self.data_idx):
-                self.kspace[int(self.data_idx + math.sin(self.radialangleradmod100/100)*n), int(self.data_idx + math.cos(self.radialangleradmod100/100)*n)] = self.data[self.sampledelay+n]*params.RXscaling
+            for m in range(params.nPE*params.radialosfactor):
+                self.kspace[int(params.nPE*params.radialosfactor + math.sin(self.radialangleradmod100/100)*m), int(params.nPE*params.radialosfactor + math.cos(self.radialangleradmod100/100)*m)] = self.data[int(self.sampledelay + m*self.kspacestep)]*params.RXscaling
             
-            time.sleep(params.TR/1000)
+            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            msg_box = QMessageBox()
+            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+            time.sleep(0.1)
 
         params.kspace = self.kspace
         
