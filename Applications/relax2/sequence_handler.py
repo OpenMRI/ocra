@@ -2073,7 +2073,7 @@ class sequence:
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
         if params.sequence == 1: self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-        if params.sequence == 2 or params.sequence == 3: self.estimated_time = self.avecount * ((100 + params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.sequence == 2 or params.sequence == 3: self.estimated_time = self.avecount * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         if params.sequence == 4 or params.sequence == 5: self.estimated_time = self.avecount * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         
         for n in range(self.avecount):
@@ -2099,7 +2099,7 @@ class sequence:
             if params.average == 1:
                 
                 if params.sequence == 1: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
-                if params.sequence == 2 or params.sequence == 3: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.sequence == 2 or params.sequence == 3: self.remaining_time = (self.estimated_time - n * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
                 if params.sequence == 4 or params.sequence == 5: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
@@ -2372,7 +2372,7 @@ class sequence:
         self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
         
         if params.sequence == 10: self.estimated_time = self.avecount * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-        if params.sequence == 11 or params.sequence == 12: self.estimated_time = self.avecount * ((100 + 4*params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.sequence == 11 or params.sequence == 12: self.estimated_time = self.avecount * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         for n in range(self.avecount):
             print('Average: ',n+1,'/',self.avecount)
@@ -2396,7 +2396,7 @@ class sequence:
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
             if params.average == 1:
                 if params.sequence == 10: self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
-                if params.sequence == 11 or params.sequence == 12: self.remaining_time = (self.estimated_time - n * ((100 + 4*params.flippulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.sequence == 11 or params.sequence == 12: self.remaining_time = (self.estimated_time - n * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
@@ -3372,8 +3372,12 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         
-        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and (params.sequence == 4 or params.sequence == 15): self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 7: self.estimated_time = params.nPE * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 0: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 1: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
+        
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 8, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3392,13 +3396,18 @@ class sequence:
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and (params.sequence == 4 or params.sequence == 15): self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 7: self.remaining_time = (self.estimated_time - n * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 0: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 1: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3424,8 +3433,12 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         
-        self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-        
+        if params.GUImode == 1 and (params.sequence == 5 or params.sequence == 16): self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 8: self.estimated_time = params.nPE * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 9: self.estimated_time = params.nPE * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 2: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 3: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 9, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3444,7 +3457,12 @@ class sequence:
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and (params.sequence == 5 or params.sequence == 16): self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 8: self.remaining_time = (self.estimated_time - n * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 9: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.SIR_TE*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 2: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 3: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
@@ -3536,7 +3554,10 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         
-        self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 21: self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 24: self.estimated_time = params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 5: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 6: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 10, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
@@ -3556,7 +3577,10 @@ class sequence:
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 21: self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 24: self.remaining_time = (self.estimated_time - n * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 5: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 6: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
@@ -3588,8 +3612,11 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         
-        self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-            
+        if params.GUImode == 1 and (params.sequence == 22 or params.sequence == 23): self.estimated_time = params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 25: self.estimated_time = params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 7: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 8: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 11, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3608,7 +3635,10 @@ class sequence:
                 else: continue
             self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and (params.sequence == 22 or params.sequence == 23): self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 25: self.remaining_time = (self.estimated_time - n * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 7: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 8: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + 4*params.RFpulselength + params.TI*1000 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
@@ -3700,8 +3730,9 @@ class sequence:
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         self.kspace = np.array(np.zeros((params.SPEsteps, params.nPE, self.data_idx), dtype = np.complex64))
         
-        self.estimated_time = params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-            
+        if params.GUImode == 1 and params.sequence == 35: self.estimated_time = params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 10: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 12, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.spoileramplitude << 16 | params.crusheramplitude, params.SPEsteps << 16 | params.GSPEstep, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
@@ -3722,7 +3753,8 @@ class sequence:
                     else: continue
                 self.kspace[m,n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
             
-                self.remaining_time = (self.estimated_time - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.GUImode == 1 and params.sequence == 35: self.remaining_time = (self.estimated_time - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.GUImode == 5 and params.sequence == 10: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
@@ -3829,7 +3861,8 @@ class sequence:
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         # self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
 
-        self.estimated_time = self.nsteps * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 11: self.estimated_time = self.nsteps * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 4: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * self.nsteps * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 21, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))
 
@@ -3852,7 +3885,8 @@ class sequence:
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
             self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 11: self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 4: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + params.flippulselength/2 + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
@@ -3902,7 +3936,8 @@ class sequence:
         self.kspace = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         # self.kspace2 = np.matrix(np.zeros((self.nsteps, 10000), dtype = np.complex64))
 
-        self.estimated_time = self.nsteps * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 1 and params.sequence == 28: self.estimated_time = self.nsteps * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5 and params.sequence == 9: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * self.nsteps * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 23, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))         
 
@@ -3925,7 +3960,8 @@ class sequence:
             self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
             self.kspacetemp[n+3*self.nsteps, :] = self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
             
-            self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 1 and params.sequence == 28: self.remaining_time = (self.estimated_time - n * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            if params.GUImode == 5 and params.sequence == 9: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - n * ((100 + 2*params.flippulselength + 4*params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
             self.remaining_time_h = math.floor(self.remaining_time / (3600))
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)

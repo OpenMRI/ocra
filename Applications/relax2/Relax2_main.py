@@ -83,6 +83,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.setStyleSheet(params.stylesheet)
         self.setGeometry(10, 40, 400, 410)
         
+        params.GUImode = 0
+        params.sequence = 0
         params.projaxis = np.zeros(3)
         params.ustime = 0
         params.usphase = 0
@@ -305,7 +307,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
                                             , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('rawdata/Image_Stitching_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/Image_Stitching/Image_Stitching_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
 
     def set_sequence(self, idx):
@@ -853,30 +855,36 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 \
                                       or params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
                                       or params.sequence == 8 or params.sequence == 9):
-            if os.path.isfile(params.datapath + '_1.txt') == True:
-                if os.path.isfile(params.datapath + '_Header.json') == True:
-                    proc.image_stitching_2D_json_process()
-                elif os.path.isfile(params.datapath + '_Header.txt') == True:
-                    proc.image_stitching_2D_txt_process()
-                else:
-                    print('No header file!!')
-                proc.image_analytics()
-                if params.single_plot == 1:
-                    if self.dialog_plot != None:
-                        self.dialog_plot.hide()
-                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                        if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
+            
+            self.datapath_split = params.datapath.split('/')
+            
+            if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) == True:
+                if os.path.isfile(params.datapath + '_1.txt') == True:
+                    if os.path.isfile(params.datapath + '_Header.json') == True:
+                        proc.image_stitching_2D_json_process()
+                    elif os.path.isfile(params.datapath + '_Header.txt') == True:
+                        proc.image_stitching_2D_txt_process()
+                    else:
+                        print('No header file!!')
+                    proc.image_analytics()
+                    if params.single_plot == 1:
+                        if self.dialog_plot != None:
+                            self.dialog_plot.hide()
+                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
+                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
+                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                        else:
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
                     else:
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                 else:
-                    self.dialog_plot = PlotWindow(self)
-                    self.dialog_plot.show()
+                    print('No file!!')
             else:
-                print('No file!!')
+                print('No directory!!')
         elif params.GUImode == 5 and params.sequence == 10:
             if os.path.isfile(params.datapath + '_1.txt') == True:
                 if os.path.isfile(params.datapath + '_Header.json') == True:
@@ -1100,6 +1108,8 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Motor_AC_Position_doubleSpinBox.valueChanged.connect(self.update_params)
         self.Motor_AC_Here_pushButton.clicked.connect(lambda: self.motor_AC_here())
         self.Motor_AC_Position_Center_radioButton.toggled.connect(self.update_params)
+        self.Motor_AC_Inbetween_radioButton.toggled.connect(self.update_params)
+        self.Motor_AC_Inbetween_Step_spinBox.valueChanged.connect(self.update_params)
 
         self.Motor_Start_Position_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
         self.Motor_Start_Position_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
@@ -1263,7 +1273,10 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         if params.motor_AC_position_center == 1: params.motor_AC_position = round(10*((params.motor_start_position + params.motor_end_position)/2))/10
         self.Motor_AC_Position_doubleSpinBox.setValue(params.motor_AC_position)
         if params.motor_AC_position_center == 1: self.Motor_AC_Position_Center_radioButton.setChecked(True)
-
+        if params.motor_AC_inbetween == 1: self.Motor_AC_Inbetween_radioButton.setChecked(True)
+        self.Motor_AC_Inbetween_Step_spinBox.setValue(params.motor_AC_inbetween_step)
+    
+        
     def update_flippulselength(self):
         params.flipangletime = self.Flipangle_Time_spinBox.value()
 
@@ -1572,7 +1585,9 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.motor_AC_position = round(10*((params.motor_start_position + params.motor_end_position)/2))/10
             self.Motor_AC_Position_doubleSpinBox.setValue(params.motor_AC_position)
         else: params.motor_AC_position_center = 0
-        
+        if self.Motor_AC_Inbetween_radioButton.isChecked():params.motor_AC_inbetween= 1
+        else: params.motor_AC_inbetween = 0
+        params.motor_AC_inbetween_step = self.Motor_AC_Inbetween_Step_spinBox.value()
 
         params.saveFileParameter()
 

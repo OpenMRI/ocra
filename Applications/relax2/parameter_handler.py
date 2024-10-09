@@ -217,9 +217,12 @@ class Parameters:
         self.motor_total_image_length = 100
         self.motor_movement_step = 10
         self.motor_image_count = 11
+        self.motor_current_image_count = 0
         self.motor_settling_time = 1.0
         self.motor_AC_position = 50
         self.motor_AC_position_center = 1
+        self.motor_AC_inbetween = 1
+        self.motor_AC_inbetween_step = 1
         self.single_plot = 1
         self.ernstanglecalc_T1 = 1700
         self.ernstanglecalc_TR = 500
@@ -384,9 +387,12 @@ class Parameters:
                          self.motor_total_image_length, \
                          self.motor_movement_step, \
                          self.motor_image_count, \
+                         self.motor_current_image_count, \
                          self.motor_settling_time, \
                          self.motor_AC_position, \
                          self.motor_AC_position_center, \
+                         self.motor_AC_inbetween, \
+                         self.motor_AC_inbetween_step, \
                          self.single_plot, \
                          self.ernstanglecalc_T1, \
                          self.ernstanglecalc_TR, \
@@ -610,9 +616,12 @@ class Parameters:
                 self.motor_total_image_length, \
                 self.motor_movement_step, \
                 self.motor_image_count, \
+                self.motor_current_image_count, \
                 self.motor_settling_time, \
                 self.motor_AC_position, \
                 self.motor_AC_position_center, \
+                self.motor_AC_inbetween, \
+                self.motor_AC_inbetween_step, \
                 self.single_plot, \
                 self.ernstanglecalc_T1, \
                 self.ernstanglecalc_TR, \
@@ -836,9 +845,12 @@ class Parameters:
         file.write('Motor total image length [mm]: ' + str(self.motor_total_image_length) + '\n')
         file.write('Motor movement step [mm]: ' + str(self.motor_movement_step) + '\n')
         file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
+        file.write('Motor current image count: ' + str(self.motor_current_image_count) + '\n')
         file.write('Motor settling time: ' + str(self.motor_settling_time) + '\n')
         file.write('Motor Autocenter position [mm]: ' + str(self.motor_AC_position) + '\n')
         file.write('Motor Autocenter position keep in center: ' + str(self.motor_AC_position_center) + '\n')
+        file.write('Motor Autocenter In-between: ' + str(self.motor_AC_inbetween) + '\n')
+        file.write('Motor Autocenter In-between Image Step: ' + str(self.motor_AC_inbetween_step) + '\n')
         # file.write('Single plot: ' + str(self.single_plot) + '\n')
         # file.write('Ernst Angle Calculator T1 [ms]: ' + str(self.ernstanglecalc_T1) + '\n')
         # file.write('Ernst Angle Calculator TR [ms]: ' + str(self.ernstanglecalc_TR) + '\n')
@@ -956,9 +968,12 @@ class Parameters:
             'Motor total image length [mm]':self.motor_total_image_length,
             'Motor movement step [mm]': self.motor_movement_step,
             'Motor image count': self.motor_image_count,
+            'Motor current image count': self.motor_current_image_count,
             'Motor settling time': self.motor_settling_time,
             'Motor Autocenter position [mm]': self.motor_AC_position,
-            'Motor Autocenter position keep in center': self.motor_AC_position_center
+            'Motor Autocenter position keep in center': self.motor_AC_position_center,
+            'Motor Autocenter In-between': self.motor_AC_inbetween,
+            'Motor Autocenter In-between Image Step': self.motor_AC_inbetween_step
         }
 
         out_file = open(filename, 'w')

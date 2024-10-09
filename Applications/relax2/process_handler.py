@@ -8,6 +8,8 @@
 import sys
 import struct
 import time
+import os
+import shutil
 
 from datetime import datetime
 
@@ -462,12 +464,21 @@ class process:
 
     def image_stitching_2D_GRE(self, motor=None):
         print('Measuring stitched images 2D GRE...')
-
+        self.datapath_split = params.datapath.split('/')
+        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        else:
+            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
+            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+            
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.nPE*((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
         
         if params.autorecenter == 1:
             params.motor_goto_position = params.motor_AC_position
@@ -492,8 +503,8 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.saveFileParameter()
             params.frequencyoffset = self.frequencyoffsettemp
+            params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             msg_box = QMessageBox()
             msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
@@ -502,9 +513,46 @@ class process:
             msg_box.button(QMessageBox.Ok).hide()
             msg_box.exec()
             time.sleep(0.1)
-                        
+            
+            params.motor_current_image_count = 0
+            
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.motor_current_image_count = n
+                                
+                if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
+                    params.motor_goto_position = params.motor_AC_position
+                    self.motor_move(motor=motor)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Settling for Autocenter...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    time.sleep(0.1)
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -524,10 +572,8 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
         else:
@@ -552,24 +598,20 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
-
-                #time.sleep(params.TR / 1000)
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
         params.datapath = self.datapathtemp
-
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
-        else:
-            params.save_header_file_json()
 
         print('Stitched images acquired!')
 
     def image_stitching_2D_SE(self, motor=None):
         print('Measuring stitched images 2D SE...')
+        self.datapath_split = params.datapath.split('/')
+        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        else:
+            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
+            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -577,6 +619,9 @@ class process:
         
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.nPE*((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+                
         if params.autorecenter == 1:
             params.motor_goto_position = params.motor_AC_position
             self.motor_move(motor=motor)
@@ -600,8 +645,8 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.saveFileParameter()
             params.frequencyoffset = self.frequencyoffsettemp
+            params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             msg_box = QMessageBox()
             msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
@@ -610,9 +655,46 @@ class process:
             msg_box.button(QMessageBox.Ok).hide()
             msg_box.exec()
             time.sleep(0.1)
+            
+            params.motor_current_image_count = 0
                         
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.motor_current_image_count = n
+                
+                if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
+                    params.motor_goto_position = params.motor_AC_position
+                    self.motor_move(motor=motor)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Settling for Autocenter...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    time.sleep(0.1)
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -632,10 +714,8 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
         else:
@@ -660,24 +740,22 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
 
         params.datapath = self.datapathtemp
 
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
-        else:
-            params.save_header_file_json()
-
         print('Stitched images acquired!')
         
     def image_stitching_2D_GRE_slice(self, motor=None):
         print('Measuring stitched images 2D GRE slice...')
+        self.datapath_split = params.datapath.split('/')
+        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        else:
+            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
+            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -686,6 +764,9 @@ class process:
         
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.nPE*((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+                
         if params.autorecenter == 1:
             params.motor_goto_position = params.motor_AC_position
             self.motor_move(motor=motor)
@@ -709,8 +790,8 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.saveFileParameter()
             params.frequencyoffset = self.frequencyoffsettemp
+            params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             msg_box = QMessageBox()
             msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
@@ -720,8 +801,45 @@ class process:
             msg_box.exec()
             time.sleep(0.1)
             
+            params.motor_current_image_count = 0
+            
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.motor_current_image_count = n
+                
+                if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
+                    params.motor_goto_position = params.motor_AC_position
+                    self.motor_move(motor=motor)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Settling for Autocenter...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.FID_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_FID_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    time.sleep(0.1)
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -741,10 +859,8 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
         else:
@@ -769,24 +885,22 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
 
         params.datapath = self.datapathtemp
 
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
-        else:
-            params.save_header_file_json()
-
         print('Stitched slice images acquired!')
         
     def image_stitching_2D_SE_slice(self, motor=None):
         print('Measuring stitched images 2D SE slice...')
+        self.datapath_split = params.datapath.split('/')
+        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        else:
+            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
+            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -794,7 +908,10 @@ class process:
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
 
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.nPE*((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-
+        
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+                
         if params.autorecenter == 1:
             params.motor_goto_position = params.motor_AC_position
             self.motor_move(motor=motor)
@@ -818,8 +935,8 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.saveFileParameter()
             params.frequencyoffset = self.frequencyoffsettemp
+            params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             msg_box = QMessageBox()
             msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
@@ -829,8 +946,45 @@ class process:
             msg_box.exec()
             time.sleep(0.1)
             
+            params.motor_current_image_count = 0
+            
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.motor_current_image_count = n
+                
+                if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
+                    params.motor_goto_position = params.motor_AC_position
+                    self.motor_move(motor=motor)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Settling for Autocenter...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    
+                    self.frequencyoffsettemp = 0
+                    self.frequencyoffsettemp = params.frequencyoffset
+                    params.frequencyoffset = 0
+                    seq.RXconfig_upload()
+                    seq.Gradients_upload()
+                    seq.Frequency_upload()
+                    seq.RFattenuation_upload()
+                    seq.SE_Gs_setup()
+                    seq.Sequence_upload()
+                    seq.acquire_spectrum_SE_Gs()
+                    proc.spectrum_process()
+                    proc.spectrum_analytics()
+                    params.frequency = params.centerfrequency
+                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.saveFileParameter()
+                    print('Autorecenter to:', params.frequency)
+                    msg_box = QMessageBox()
+                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                    time.sleep(0.1)
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -850,10 +1004,8 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
         else:
@@ -878,26 +1030,19 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
 
         params.datapath = self.datapathtemp
-
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
-        else:
-            params.save_header_file_json()
 
         print('Stitched slice images acquired!')
 
     def image_stitching_2D_json_process(self):
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
-
+        
         with open(params.datapath + '_Header.json', 'r') as j:
             jsonparams = json.loads(j.read())
 
@@ -1018,6 +1163,11 @@ class process:
 
     def image_stitching_3D_slab(self, motor=None):
         print('Measuring stitched images 3D SE slab...')
+        self.datapath_split = params.datapath.split('/')
+        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        else:
+            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
+            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
 
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
@@ -1026,6 +1176,9 @@ class process:
         
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.SPEsteps*params.nPE*((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
 
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+                
         if params.autorecenter == 1:
             params.motor_goto_position = params.motor_AC_position
             self.motor_move(motor=motor)
@@ -1060,8 +1213,11 @@ class process:
             msg_box.exec()
             time.sleep(0.1)
             
+            params.motor_current_image_count = 0
+            
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.motor_current_image_count = n
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -1081,10 +1237,8 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
         else:
@@ -1109,19 +1263,12 @@ class process:
 
                 seq.sequence_upload()
 
-                if params.headerfileformat == 0:
-                    params.save_header_file_txt()
-                else:
-                    params.save_header_file_json()
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
 
                 #time.sleep(params.TR / 1000)
 
         params.datapath = self.datapathtemp
-
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
-        else:
-            params.save_header_file_json()
 
         print('Stitched 3D slabs acquired!')
 
