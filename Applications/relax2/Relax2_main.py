@@ -38,6 +38,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
+from matplotlib.image import NonUniformImage
 
 from parameter_handler import params
 from sequence_handler import seq
@@ -5144,9 +5145,13 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             self.SPEsteps = 1
             
         self.slicethickness = jsonparams['Slice/Slab thickness [mm]']
+
+        self.motor_movement_step = jsonparams['Motor movement step [mm]']
         
         self.aspect = np.zeros(3)
         self.aspect[0] = 1.0
+        
+        self.mode2D = False
         
         if self.imageorientation == 'XY':
             self.view3D_RO_PE_SPE_lineEdit.setText('X, Y, Z')
@@ -5185,16 +5190,6 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             self.ZX = 0
             self.YZ = 1
         
-        if self.ZX == 0:
-            self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
-            self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
-        elif self.XY == 0:
-            self.aspect[1] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
-            self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
-        else:
-            self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
-            self.aspect[2] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
-        
         if params.GUImode == 1:
             self.image = params.img_mag
             self.phase = params.img_pha
@@ -5202,29 +5197,47 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             self.imagelength = self.slicethickness
             
         elif params.GUImode == 5 and params.sequence != 10:
+            self.mode2D = True
             self.motor_image_count = int(jsonparams['Motor image count'])
-            
-            self.image = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
-            self.phase = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
             
             datapathtemp = params.datapath
             
-            print('3D layers plot processing')
-            
-            for n in range(0, self.motor_image_count):
-                print(n+1,'/',params.motor_image_count) 
-                params.datapath = (datapathtemp + '_' + str(n + 1))
-                proc.image_process()
+            if self.slicethickness >= self.motor_movement_step:
+                self.image = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
+                self.phase = np.array(np.zeros((self.motor_image_count, self.nPE, self.nPE)))
                 
-                self.image[n, :, :] = params.img_mag[:, :]
-                self.phase[n, :, :] = params.img_pha[:, :]
-                
-            params.datapath = datapathtemp
+                for n in range(0, self.motor_image_count):
+                    self.image[n, :, :] = params.img_st_mag[:, n * self.nPE:int(n * self.nPE + self.nPE)]
+                    self.phase[n, :, :] = params.img_st_pha[:, n * self.nPE:int(n * self.nPE + self.nPE)]
+                    
+                self.imagelength = jsonparams['Motor total image length [mm]'] + self.motor_movement_step
+            else:
+                    self.factor2D = 4
+                    precision = 0.01
+                    self.image = np.array(np.zeros((self.motor_image_count*self.factor2D - 2, self.nPE, self.nPE)))
+                    self.phase = np.array(np.zeros((self.motor_image_count*self.factor2D - 2, self.nPE, self.nPE)))
+                    self.movement_positions = np.array(np.zeros(self.motor_image_count*self.factor2D - 2))
+                    self.image_positions = np.linspace(0, self.nPE, self.nPE)
+                    
+                    for n in range(0, self.motor_image_count):
+                            self.image[n*self.factor2D, :, :] = params.img_st_mag[:, int(n * self.nPE):int(n * self.nPE + self.nPE)]
+                            self.phase[n*self.factor2D, :, :] = params.img_st_pha[:, int(n * self.nPE):int(n * self.nPE + self.nPE)]
+                            self.movement_positions[n*self.factor2D] = n * self.motor_movement_step + precision
+                            
+                            self.image[n*self.factor2D+1, :, :] = params.img_st_mag[:, int(n * self.nPE):int(n * self.nPE + self.nPE)]
+                            self.phase[n*self.factor2D+1, :, :] = params.img_st_pha[:, int(n * self.nPE):int(n * self.nPE + self.nPE)]
+                            self.movement_positions[n*self.factor2D+1] = n * self.motor_movement_step + self.slicethickness - precision
+                            
+                            if n != self.motor_image_count - 1:
+                                self.movement_positions[n*self.factor2D+2] = n * self.motor_movement_step + self.slicethickness + precision
+                                self.movement_positions[n*self.factor2D+3] = (n+1) * self.motor_movement_step - precision                   
+                            
+                    self.imagelength = np.max(self.movement_positions) + precision
+                    print(str(self.movement_positions))
+                    print(str(self.imagelength))
             
             self.mirrored = False
-            
-            self.imagelength = jsonparams['Motor total image length [mm]'] + self.slicethickness
-        else:        
+        else:
             self.image = np.flip(params.img_st_mag, axis=0)
             self.phase = np.flip(params.img_st_pha, axis=0)
             
@@ -5233,6 +5246,21 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
                 self.imagelength = jsonparams['Motor total image length [mm]'] + self.motor_movement_step
             else:
                 self.imagelength = jsonparams['Motor total image length [mm]'] + self.FOV
+                
+        if self.ZX == 0:
+            if self.mode2D and (self.slicethickness > self.motor_movement_step):
+                self.aspect[1] = (self.motor_movement_step/self.SPEsteps) / (self.FOV/self.nPE)
+                self.aspect[2] = (self.FOV/self.nPE) / (self.motor_movement_step/self.SPEsteps)
+                self.mode2D = False
+            else:
+                self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
+                self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+        elif self.XY == 0:
+            self.aspect[1] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+            self.aspect[2] = (self.FOV/self.nPE) / (self.slicethickness/self.SPEsteps)
+        else:
+            self.aspect[1] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
+            self.aspect[2] = (self.slicethickness/self.SPEsteps) / (self.FOV/self.nPE)
                 
         if self.ro_switched:
             temp_image = self.image
@@ -5259,7 +5287,10 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.current_slice_ZX = 1
         self.slice_count_ZX = self.image.shape[self.ZX]
         self.view3D_ZX_slider.setMinimum(1)
-        self.view3D_ZX_slider.setMaximum(self.slice_count_ZX)
+        if self.mode2D:
+            self.view3D_ZX_slider.setMaximum(int(self.slice_count_ZX / 2))
+        else:
+            self.view3D_ZX_slider.setMaximum(self.slice_count_ZX)
         self.view3D_ZX_slider.setSingleStep(1)
         self.view3D_ZX_slider.setPageStep(1)
         self.view3D_ZX_slider.setSliderPosition(int(round(self.view3D_ZX_slider.maximum()/2)))
@@ -5282,13 +5313,23 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.view3D_XY_slider.setSliderPosition(int(round(self.view3D_XY_slider.maximum()/2)))
         self.view3D_XY_slider.valueChanged.connect(lambda value: self.update_image(self.current_slice_ZX, value, self.current_slice_YZ))
         self.ax_XY = fig.add_subplot(gs[0, 1])
-        self.img_handle_XY = self.ax_XY.imshow(self.get_slice_data(self.image, self.XY, 0))
+        if self.mode2D:
+            self.img_handle_XY = NonUniformImage(self.ax_XY, cmap=params.imagecolormap, extent = (0, self.imagelength, 0, self.nPE))
+            self.img_handle_XY.set_data(self.movement_positions, self.image_positions, self.get_slice_data(self.image, self.XY, 0))
+            self.ax_XY.add_image(self.img_handle_XY)
+            self.ax_XY.set_xlim(0, self.imagelength)
+            self.ax_XY.set_ylim(0, self.nPE)
+        else:
+            self.img_handle_XY = self.ax_XY.imshow(self.get_slice_data(self.image, self.XY, 0))
         self.line_handle_XY_X = self.ax_XY.axhline(0, color='w', dashes = (1,5), linewidth=2.0)
         self.line_handle_XY_Y = self.ax_XY.axvline(0, color='w', dashes = (1,5), linewidth=2.0)
         self.ax_XY.grid(False)
         self.ax_XY.axis('off')
         self.ax_XY.set_title('XY (viewed as YX)', color='w')
-        self.ax_XY.set_aspect(self.aspect[self.XY])
+        if not self.mode2D:
+            self.ax_XY.set_aspect(self.aspect[self.XY])
+        else:
+            self.ax_XY.set_aspect(self.FOV/self.imagelength)
         
         self.current_slice_YZ = 1
         self.slice_count_YZ = self.image.shape[self.YZ]
@@ -5299,13 +5340,23 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.view3D_YZ_slider.setSliderPosition(int(round(self.view3D_YZ_slider.maximum()/2)))
         self.view3D_YZ_slider.valueChanged.connect(lambda value: self.update_image(self.current_slice_ZX, self.current_slice_XY, value))
         self.ax_YZ = fig.add_subplot(gs[1, 0])
-        self.img_handle_YZ = self.ax_YZ.imshow(self.get_slice_data(self.image, self.YZ, 0))
+        if self.mode2D:
+            self.img_handle_YZ = NonUniformImage(self.ax_YZ, cmap=params.imagecolormap, extent = (0, self.nPE, 0, self.imagelength))
+            self.img_handle_YZ.set_data(self.image_positions, self.movement_positions, self.get_slice_data(self.image, self.YZ, 0))
+            self.ax_YZ.add_image(self.img_handle_YZ)
+            self.ax_YZ.set_xlim(0, self.nPE)
+            self.ax_YZ.set_ylim(0, self.imagelength)
+        else:
+            self.img_handle_YZ = self.ax_YZ.imshow(self.get_slice_data(self.image, self.YZ, 0))        
         self.line_handle_YZ_Y = self.ax_YZ.axhline(0, color='w', dashes = (1,5), linewidth = 2.0)
         self.line_handle_YZ_Z = self.ax_YZ.axvline(0, color='w', dashes = (1,5), linewidth = 2.0)
         self.ax_YZ.grid(False)
         self.ax_YZ.axis('off')
         self.ax_YZ.set_title('YZ (viewed as ZY)', color='w')
-        self.ax_YZ.set_aspect(self.aspect[self.YZ])
+        if not self.mode2D:
+            self.ax_YZ.set_aspect(self.aspect[self.YZ])
+        else:
+            self.ax_YZ.set_aspect(self.imagelength/self.FOV)
         
         fig.tight_layout()
         
@@ -5391,6 +5442,9 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.canvas.draw()
         
     def update_single_image(self, slice=None, count=None, index=None):
+        if index == self.ZX and self.mode2D:
+            slice = slice*2
+        
         if self.mirrored:
             alt_slice = slice
             slice = count - slice
@@ -5398,15 +5452,27 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             alt_slice = count - slice
             slice = slice - 1
             
-        if index == self.ZX:
-            self.f_line_handles[index].set_data([slice, slice], [0, self.f_line_counts[index]])
-            self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [alt_slice, alt_slice])
-        if index == self.YZ:
-            self.f_line_handles[index].set_data([0, self.f_line_counts[index]], [slice, slice])
-            self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [slice, slice])
-        if index == self.XY:
-            self.f_line_handles[index].set_data([alt_slice, alt_slice], [0, self.f_line_counts[index]])
-            self.s_line_handles[index].set_data([alt_slice, alt_slice], [0, self.s_line_counts[index]])
+        if self.mode2D:
+            if index == self.ZX:
+                position = (self.movement_positions[slice] + self.movement_positions[slice - 1]) / 2
+                self.f_line_handles[index].set_data([position, position], [0, self.f_line_counts[index]])
+                self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [position, position])
+            if index == self.YZ:
+                self.f_line_handles[index].set_data([0, self.f_line_counts[index]], [slice, slice])
+                self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [alt_slice, alt_slice])
+            if index == self.XY:
+                self.f_line_handles[index].set_data([alt_slice, alt_slice], [0, self.f_line_counts[index]])
+                self.s_line_handles[index].set_data([alt_slice, alt_slice], [0, self.s_line_counts[index]])
+        else:
+            if index == self.ZX:
+                self.f_line_handles[index].set_data([slice, slice], [0, self.f_line_counts[index]])
+                self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [alt_slice, alt_slice])
+            if index == self.YZ:
+                self.f_line_handles[index].set_data([0, self.f_line_counts[index]], [slice, slice])
+                self.s_line_handles[index].set_data([0, self.s_line_counts[index]], [slice, slice])
+            if index == self.XY:
+                self.f_line_handles[index].set_data([alt_slice, alt_slice], [0, self.f_line_counts[index]])
+                self.s_line_handles[index].set_data([alt_slice, alt_slice], [0, self.s_line_counts[index]])
         
         handle = self.img_handles[index]
             
@@ -5421,16 +5487,29 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         else:
             data = self.image
             handle.set_clim(vmin=self.image_min, vmax=self.image_max)
-            handle.set_cmap(params.imagecolormap)
+            if not self.mode2D:
+                handle.set_cmap(params.imagecolormap)
             if params.imagefilter == 1:
-                handle.set_interpolation('gaussian')
+                if self.mode2D:
+                    handle.set_interpolation('bilinear')
+                else:
+                    handle.set_interpolation('gaussian')
             else:
-                handle.set_interpolation('none')
+                if self.mode2D:
+                    handle.set_interpolation('nearest')
+                else:
+                    handle.set_interpolation('none')
         
         if (self.ZX == index and self.XY == 0) or (self.XY == index and self.ZX == 0) or (self.YZ == index and self.XY == 0):
-            handle.set_data(self.get_slice_data(data, index, alt_slice))
-        else:            
-            handle.set_data(self.get_slice_data(data, index, slice))
+            if self.mode2D:
+                handle.set_data(self.movement_positions, self.image_positions, self.get_slice_data(data, index, alt_slice))
+            else:
+                handle.set_data(self.get_slice_data(data, index, alt_slice))
+        else:
+            if self.mode2D and self.ZX is not index:
+                handle.set_data(self.image_positions, self.movement_positions, self.get_slice_data(data, index, slice))
+            else:
+                handle.set_data(self.get_slice_data(data, index, slice))
 
     def get_slice_data(self, data, handler_index, slice_index):
         if handler_index == self.ZX:
@@ -5448,7 +5527,10 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
                 # TODO
                return data[:, slice_index, :]
             elif handler_index == 2:
-                return np.transpose(data[:, :, slice_index])
+                if self.mode2D:
+                    return np.flip(np.transpose(data[:, :, slice_index]), axis = 0)
+                else:
+                    return np.transpose(data[:, :, slice_index])
         elif handler_index == self.YZ:
             if handler_index == 0:
                 # TODO
