@@ -598,9 +598,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.repaint()
         
         if self.dialog_plot != None:
-            print('Hi')
             if self.dialog_plot.dialog_3D_layers != None:
-                print('juhu')
                 self.dialog_plot.dialog_3D_layers.hide()
 
         if params.GUImode == 0:
@@ -5233,8 +5231,6 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
                                 self.movement_positions[n*self.factor2D+3] = (n+1) * self.motor_movement_step - precision                   
                             
                     self.imagelength = np.max(self.movement_positions) + precision
-                    print(str(self.movement_positions))
-                    print(str(self.imagelength))
             
             self.mirrored = False
         else:
@@ -5326,10 +5322,12 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.ax_XY.grid(False)
         self.ax_XY.axis('off')
         self.ax_XY.set_title('XY (viewed as YX)', color='w')
-        if not self.mode2D:
-            self.ax_XY.set_aspect(self.aspect[self.XY])
-        else:
-            self.ax_XY.set_aspect(self.FOV/self.imagelength)
+        if not self.mode2D: self.ax_XY.set_aspect(self.aspect[self.XY])
+        #else:
+            #print(self.FOV)
+            #print(self.imagelength)
+            #print(self.ax_XY.get_aspect())
+            #self.ax_XY.set_aspect(self.FOV/self.imagelength)
         
         self.current_slice_YZ = 1
         self.slice_count_YZ = self.image.shape[self.YZ]
@@ -5353,10 +5351,9 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.ax_YZ.grid(False)
         self.ax_YZ.axis('off')
         self.ax_YZ.set_title('YZ (viewed as ZY)', color='w')
-        if not self.mode2D:
-            self.ax_YZ.set_aspect(self.aspect[self.YZ])
-        else:
-            self.ax_YZ.set_aspect(self.imagelength/self.FOV)
+        if not self.mode2D: self.ax_YZ.set_aspect(self.aspect[self.YZ])
+        #else:
+            #self.ax_YZ.set_aspect(self.imagelength/self.FOV)
         
         fig.tight_layout()
         

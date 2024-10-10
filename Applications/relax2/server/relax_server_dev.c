@@ -17443,7 +17443,7 @@ int main(int argc)
         for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
 			while(*rx_cntr < 10000) usleep(500);
@@ -17497,7 +17497,7 @@ int main(int argc)
         for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17551,7 +17551,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17607,7 +17607,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17667,7 +17667,7 @@ int main(int argc)
           for(int reps=0; reps<npe; reps++) {
             // printf("TR[%d]: go!!\n",reps);
             seq_config[0] = 0x00000007;
-            usleep(1000000); // Sleep 1s
+            usleep(1000); // Sleep 1ms
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
@@ -17725,7 +17725,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17750,7 +17750,7 @@ int main(int argc)
         update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
 
         usleep(10); // Sleep 10us
-
+        
         RF_flip_amp = command[4] + command[5]*0x100 + command[6]*0x10000 + command[7]*0x1000000; // RF flip pulse amplitude
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
@@ -17771,7 +17771,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17779,7 +17779,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17815,7 +17814,7 @@ int main(int argc)
         update_gradient_waveforms_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17823,7 +17822,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17859,7 +17857,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17867,7 +17865,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17904,7 +17901,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17912,7 +17909,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17948,7 +17944,7 @@ int main(int argc)
         update_gradient_waveforms_FID_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,sl ,sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17956,7 +17952,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17994,7 +17989,7 @@ int main(int argc)
         update_gradient_waveforms_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18002,7 +17997,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18037,7 +18031,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18045,7 +18039,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18088,7 +18081,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 5000) usleep(500);
@@ -18142,7 +18135,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18198,7 +18191,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18251,7 +18244,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18298,7 +18291,7 @@ int main(int argc)
         update_gradient_waveforms_EPI(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,ro ,sp, imor, gradient_offset);
 
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18306,7 +18299,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18343,7 +18335,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18351,7 +18343,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18389,7 +18380,7 @@ int main(int argc)
         update_gradient_waveforms_SIR_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18397,7 +18388,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18434,7 +18424,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,sl ,sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18442,7 +18432,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18481,7 +18470,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, sl, slref, cr, sp, imor, gradient_offset);
 
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18489,7 +18478,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18528,7 +18516,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_angle(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, projection_angle, ro1, ro2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18536,7 +18524,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18574,7 +18561,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_angle(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, projection_angle, ro1, ro2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18582,7 +18569,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18631,7 +18617,7 @@ int main(int argc)
           for(int reps=0; reps<npe; reps++) {
             // printf("TR[%d]: go!!\n",reps);
             seq_config[0] = 0x00000007;
-            usleep(1000000); // sleep 1s
+            usleep(1000); // sleep 1ms
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
@@ -18673,7 +18659,7 @@ int main(int argc)
         update_gradient_waveforms_GRAD_TEST(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18681,7 +18667,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18726,7 +18711,7 @@ int main(int argc)
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18741,7 +18726,7 @@ int main(int argc)
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
             for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
@@ -18795,7 +18780,7 @@ int main(int argc)
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18809,7 +18794,7 @@ int main(int argc)
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18854,7 +18839,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,sl, ro, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18862,7 +18847,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18901,7 +18885,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18909,7 +18893,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18948,7 +18931,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_angle_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, projection_angle, ro1, ro2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18956,7 +18939,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18997,7 +18979,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_angle_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, projection_angle, ro1, ro2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -19005,7 +18987,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -19029,7 +19010,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -19037,7 +19018,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;

@@ -3407,7 +3407,7 @@ class sequence:
             
             msg_box = QMessageBox()
             if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3468,7 +3468,8 @@ class sequence:
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3586,7 +3587,8 @@ class sequence:
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3644,7 +3646,8 @@ class sequence:
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3760,7 +3763,8 @@ class sequence:
                 self.remaining_time_s = int(self.remaining_time % 60)
                 
                 msg_box = QMessageBox()
-                msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE*params.SPEsteps + n+1+m*params.nPE) + '/' + str(params.motor_image_count*params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
                 msg_box.setStandardButtons(QMessageBox.Ok)
                 msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
                 msg_box.button(QMessageBox.Ok).hide()
@@ -3892,7 +3896,8 @@ class sequence:
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(arams.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
@@ -3967,7 +3972,8 @@ class sequence:
             self.remaining_time_s = int(self.remaining_time % 60)
             
             msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(params.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
             msg_box.button(QMessageBox.Ok).hide()
