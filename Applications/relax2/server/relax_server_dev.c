@@ -13683,7 +13683,7 @@ void update_gradient_waveforms_2D_TSE(volatile uint32_t *gx,volatile uint32_t *g
       gx[i] = 0x001fffff & (ival | 0x00100000);
     }
   }
-  else if (imor == 3){
+  else if (imor == 5){
     fRO = offset.gradient_x;
     fPE = offset.gradient_z;
     fSL = offset.gradient_y;
@@ -17422,7 +17422,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
@@ -17443,7 +17443,7 @@ int main(int argc)
         for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
 			while(*rx_cntr < 10000) usleep(500);
@@ -17451,7 +17451,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_GRE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17475,7 +17475,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -17497,7 +17497,7 @@ int main(int argc)
         for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17505,7 +17505,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17529,7 +17529,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -17551,7 +17551,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17559,7 +17559,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_GRE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17583,7 +17583,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -17607,7 +17607,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17615,7 +17615,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17639,7 +17639,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         float snpe = command[26] + command[27]*0x100; // Slice phase steps
@@ -17667,7 +17667,7 @@ int main(int argc)
           for(int reps=0; reps<npe; reps++) {
             // printf("TR[%d]: go!!\n",reps);
             seq_config[0] = 0x00000007;
-            usleep(1000000); // Sleep 1s
+            usleep(1000); // Sleep 1ms
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
@@ -17675,13 +17675,13 @@ int main(int argc)
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
-            pe = pe+pe_step; // Next phase gradient amplitude
+            pe = pe-pe_step; // Next phase gradient amplitude
             //printf("PE to set = %d\n", pe);
             update_gradient_waveforms_3D_SE_slab(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, pe_step, spe, cr, sp, imor,gradient_offset);
             usleep(tr*1000); // Wait TR
           }
           spe = spe+spe_step; // Next slice phase gradient amplitude
-          pe = -(npe/2)*pe_step + pe_step/2; // Reset phase gradient start amplitude
+          pe = (npe/2)*pe_step - pe_step/2; // Reset phase gradient start amplitude
         }
         printf("---------------------------------------\n");
         continue;
@@ -17702,7 +17702,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         da = ((float)command[24] + (float)command[25]*0x100)/1000; // Diffusion amplitude
         cr = ((float)command[20] + (float)command[21]*0x100)/1000; // Crusher amplitude
@@ -17725,7 +17725,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -17733,7 +17733,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_diff(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, da, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -17750,7 +17750,7 @@ int main(int argc)
         update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
 
         usleep(10); // Sleep 10us
-
+        
         RF_flip_amp = command[4] + command[5]*0x100 + command[6]*0x10000 + command[7]*0x1000000; // RF flip pulse amplitude
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
@@ -17771,7 +17771,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17779,7 +17779,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17815,7 +17814,7 @@ int main(int argc)
         update_gradient_waveforms_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17823,7 +17822,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17859,7 +17857,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17867,7 +17865,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17904,7 +17901,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17912,7 +17909,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17948,7 +17944,7 @@ int main(int argc)
         update_gradient_waveforms_FID_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,sl ,sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -17956,7 +17952,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -17994,7 +17989,7 @@ int main(int argc)
         update_gradient_waveforms_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18002,7 +17997,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18037,7 +18031,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18045,7 +18039,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18066,7 +18059,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18088,7 +18081,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 5000) usleep(500);
@@ -18096,7 +18089,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_TSE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, npe, pe_step, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18120,7 +18113,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18142,7 +18135,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18150,7 +18143,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_EPI_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, npe, pe_step, reps+1, cr, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18174,7 +18167,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -18198,7 +18191,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18206,7 +18199,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_TSE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, npe, pe_step, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18230,7 +18223,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
         imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
@@ -18251,7 +18244,7 @@ int main(int argc)
 		for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18259,7 +18252,7 @@ int main(int argc)
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
-          pe = pe+pe_step; // Next phase gradient amplitude
+          pe = pe-pe_step; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_EPI(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, npe, pe_step, reps+1, sp, imor, gradient_offset);
           usleep(tr*1000); // Wait TR
@@ -18298,7 +18291,7 @@ int main(int argc)
         update_gradient_waveforms_EPI(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,ro ,sp, imor, gradient_offset);
 
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18306,7 +18299,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18343,7 +18335,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18351,7 +18343,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18389,7 +18380,7 @@ int main(int argc)
         update_gradient_waveforms_SIR_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18397,7 +18388,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18434,7 +18424,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,sl ,sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18442,7 +18432,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18481,7 +18470,7 @@ int main(int argc)
         update_gradient_waveforms_EPI_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, sl, slref, cr, sp, imor, gradient_offset);
 
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18489,7 +18478,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18528,7 +18516,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_angle(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, projection_angle, ro1, ro2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18536,7 +18524,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18574,7 +18561,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_angle(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, projection_angle, ro1, ro2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18582,7 +18569,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18603,7 +18589,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient step size
-        pe = -(npe/2)*pe_step + pe_step/2; // Phase gradient start amplitude
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         float snpe = command[22] + command[23]*0x100; // Slice phase steps
@@ -18631,7 +18617,7 @@ int main(int argc)
           for(int reps=0; reps<npe; reps++) {
             // printf("TR[%d]: go!!\n",reps);
             seq_config[0] = 0x00000007;
-            usleep(1000000); // sleep 1s
+            usleep(1000); // sleep 1ms
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
@@ -18639,13 +18625,13 @@ int main(int argc)
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
-            pe = pe+pe_step; // Next phase gradient amplitude
+            pe = pe-pe_step; // Next phase gradient amplitude
             //printf("PE to set = %d\n", pe);
             update_gradient_waveforms_3D_TSE_slab(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, sl, slref, cr, sp, imor, npe, pe_step, spe, gradient_offset);
             usleep(tr*1000); // Wait TR
           }
           spe = spe+spe_step; // Next slice phase gradient amplitude
-          pe = -(npe/2)*pe_step + pe_step/2; // Reset phase gradient start amplitude
+          pe = (npe/2)*pe_step - pe_step/2; // Reset phase gradient start amplitude
         }
         printf("---------------------------------------\n");
         continue;
@@ -18673,7 +18659,7 @@ int main(int argc)
         update_gradient_waveforms_GRAD_TEST(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1s
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18681,7 +18667,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18702,7 +18687,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -pe_step/2; // Phase gradient start amplitude
+        pe = pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
         sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
@@ -18722,11 +18707,11 @@ int main(int argc)
         update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, cr, sp, imor, gradient_offset);
         
         for(int reps=0; reps<npe/2; reps++) {
-          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
+          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18736,12 +18721,12 @@ int main(int argc)
           seq_config[0] = 0x00000000;
           usleep(tr*1000); // Wait TR
           
-          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
+          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, cr, sp, imor, gradient_offset);
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
             for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
@@ -18769,7 +18754,7 @@ int main(int argc)
         RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
         RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
         pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
-        pe = -pe_step/2; // Phase gradient start amplitude
+        pe = pe_step/2; // Phase gradient start amplitude
         ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
         sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
         cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
@@ -18791,11 +18776,11 @@ int main(int argc)
         update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, sl, slref, cr, sp, imor, gradient_offset);
         
         for(int reps=0; reps<npe/2; reps++) {
-          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
+          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18805,11 +18790,11 @@ int main(int argc)
           seq_config[0] = 0x00000000;
           usleep(tr*1000); // Wait TR
           
-          pe = reps*pe_step+pe_step/2; // Next phase gradient amplitude
+          pe = -(reps*pe_step+pe_step/2); // Next phase gradient amplitude
           //printf("PE to set = %d\n", pe);
           update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, sl, slref, cr, sp, imor, gradient_offset);
           seq_config[0] = 0x00000007;
-          usleep(1000000); // Sleep 1s
+          usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
@@ -18854,7 +18839,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2 ,sl, ro, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18862,7 +18847,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18901,7 +18885,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, ro, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18909,7 +18893,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18948,7 +18931,7 @@ int main(int argc)
         update_gradient_waveforms_proj_GRE_angle_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, projection_angle, ro1, ro2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -18956,7 +18939,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -18997,7 +18979,7 @@ int main(int argc)
         update_gradient_waveforms_proj_SE_angle_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sl, slref, projection_angle, ro1, ro2, cr, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -19005,7 +18987,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
@@ -19029,7 +19010,7 @@ int main(int argc)
         update_gradient_waveforms_FID(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, sp, imor, gradient_offset);
      
         seq_config[0] = 0x00000007;
-        usleep(1000000); // Sleep 1s
+        usleep(1000); // Sleep 1ms
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
@@ -19037,7 +19018,6 @@ int main(int argc)
           send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
-        usleep(500000); // Sleep 0.5s
       
         printf("---------------------------------------\n");
         continue;
