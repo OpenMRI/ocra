@@ -5244,7 +5244,7 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
                 self.imagelength = jsonparams['Motor total image length [mm]'] + self.FOV
                 
         if self.ZX == 0:
-            if self.mode2D and (self.slicethickness > self.motor_movement_step):
+            if self.mode2D and (self.slicethickness >= self.motor_movement_step):
                 self.aspect[1] = (self.motor_movement_step/self.SPEsteps) / (self.FOV/self.nPE)
                 self.aspect[2] = (self.FOV/self.nPE) / (self.motor_movement_step/self.SPEsteps)
                 self.mode2D = False
@@ -5504,7 +5504,7 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
                 handle.set_data(self.get_slice_data(data, index, alt_slice))
         else:
             if self.mode2D and self.ZX is not index:
-                handle.set_data(self.image_positions, self.movement_positions, self.get_slice_data(data, index, slice))
+                handle.set_data(self.image_positions, self.movement_positions, self.get_slice_data(data, index, alt_slice))
             else:
                 handle.set_data(self.get_slice_data(data, index, slice))
 
