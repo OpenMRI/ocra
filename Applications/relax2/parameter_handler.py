@@ -56,6 +56,7 @@ class Parameters:
         self.ROBWscaler = 1
         self.TE = 12
         self.TI = 1700
+        self.SIR_TE = 10
         self.TR = 500
         self.grad = [0, 0, 0, 0]
         self.Gradientorientation = [0, 1, 2, 3]
@@ -127,6 +128,7 @@ class Parameters:
         self.T2imgvalues = []
         self.projaxis = []
         self.average = 0
+        self.average_complex = 1
         self.averagecount = 10
         self.imagplots = 0
         self.cutcirc = 0
@@ -163,6 +165,7 @@ class Parameters:
         self.GROfcpretime1 = 0
         self.GROfcpretime2 = 0
         self.radialanglestep = 45
+        self.radialosfactor = 2
         self.radialanglestepradmod100 = 0
         self.lnkspacemag = 0
         self.autograd = 1
@@ -201,6 +204,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
+        self.motor_enable = 0
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -212,8 +216,13 @@ class Parameters:
         self.motor_end_position = 100
         self.motor_total_image_length = 100
         self.motor_movement_step = 10
-        self.motor_image_count = 10
+        self.motor_image_count = 11
+        self.motor_current_image_count = 0
         self.motor_settling_time = 1.0
+        self.motor_AC_position = 50
+        self.motor_AC_position_center = 1
+        self.motor_AC_inbetween = 1
+        self.motor_AC_inbetween_step = 1
         self.single_plot = 1
         self.ernstanglecalc_T1 = 1700
         self.ernstanglecalc_TR = 500
@@ -253,6 +262,7 @@ class Parameters:
                          self.ROBWscaler, \
                          self.TE, \
                          self.TI, \
+                         self.SIR_TE, \
                          self.TR, \
                          self.grad, \
                          self.Gradientorientation, \
@@ -293,6 +303,7 @@ class Parameters:
                          self.T2stepsimg, \
                          self.projaxis, \
                          self.average, \
+                         self.average_complex, \
                          self.averagecount, \
                          self.imagplots, \
                          self.cutcirc, \
@@ -328,6 +339,7 @@ class Parameters:
                          self.GROfcpretime1, \
                          self.GROfcpretime2, \
                          self.radialanglestep, \
+                         self.radialosfactor, \
                          self.radialanglestepradmod100, \
                          self.lnkspacemag, \
                          self.autograd, \
@@ -362,6 +374,7 @@ class Parameters:
                          self.SAR_status,\
                          self.SAR_max_power,\
                          self.headerfileformat, \
+                         self.motor_enable, \
                          self.motor_available, \
                          self.motor_port, \
                          self.motor_axis_limit_negative, \
@@ -374,7 +387,12 @@ class Parameters:
                          self.motor_total_image_length, \
                          self.motor_movement_step, \
                          self.motor_image_count, \
+                         self.motor_current_image_count, \
                          self.motor_settling_time, \
+                         self.motor_AC_position, \
+                         self.motor_AC_position_center, \
+                         self.motor_AC_inbetween, \
+                         self.motor_AC_inbetween_step, \
                          self.single_plot, \
                          self.ernstanglecalc_T1, \
                          self.ernstanglecalc_TR, \
@@ -473,6 +491,7 @@ class Parameters:
                 self.ROBWscaler, \
                 self.TE, \
                 self.TI, \
+                self.SIR_TE, \
                 self.TR, \
                 self.grad, \
                 self.Gradientorientation, \
@@ -513,6 +532,7 @@ class Parameters:
                 self.T2stepsimg, \
                 self.projaxis, \
                 self.average, \
+                self.average_complex, \
                 self.averagecount, \
                 self.imagplots, \
                 self.cutcirc, \
@@ -548,6 +568,7 @@ class Parameters:
                 self.GROfcpretime1, \
                 self.GROfcpretime2, \
                 self.radialanglestep, \
+                self.radialosfactor, \
                 self.radialanglestepradmod100, \
                 self.lnkspacemag, \
                 self.autograd, \
@@ -582,6 +603,7 @@ class Parameters:
                 self.SAR_status,\
                 self.SAR_max_power,\
                 self.headerfileformat, \
+                self.motor_enable, \
                 self.motor_available, \
                 self.motor_port , \
                 self.motor_axis_limit_negative, \
@@ -594,7 +616,12 @@ class Parameters:
                 self.motor_total_image_length, \
                 self.motor_movement_step, \
                 self.motor_image_count, \
+                self.motor_current_image_count, \
                 self.motor_settling_time, \
+                self.motor_AC_position, \
+                self.motor_AC_position_center, \
+                self.motor_AC_inbetween, \
+                self.motor_AC_inbetween_step, \
                 self.single_plot, \
                 self.ernstanglecalc_T1, \
                 self.ernstanglecalc_TR, \
@@ -689,6 +716,7 @@ class Parameters:
         file.write('Readout bandwidth scaling: ' + str(self.ROBWscaler) + '\n')
         file.write('TE [ms]: ' + str(self.TE) + '\n')
         file.write('TI [ms]: ' + str(self.TI) + '\n')
+        file.write('SIR TE [ms]: ' + str(self.SIR_TE) + '\n')
         file.write('TR [ms]: ' + str(self.TR) + '\n')
         file.write('Shim values [mA]: ' + str(self.grad) + '\n')
         file.write('Gradient orientation: ' + str(self.Gradientorientation) + '\n')
@@ -740,6 +768,7 @@ class Parameters:
         # file.write(': ' + str(self.T2stepsimg) + '\n')
         file.write('Projection axes: ' + str(self.projaxis) + '\n')
         file.write('Average: ' + str(self.average) + '\n')
+        file.write('Average complex: ' + str(self.average_complex) + '\n')
         file.write('Number of averages: ' + str(self.averagecount) + '\n')
         # file.write(': ' + str(self.imagplots) + '\n')
         # file.write(': ' + str(self.cutcirc) + '\n')
@@ -775,6 +804,7 @@ class Parameters:
         file.write('Fluid compensation readout gradient prephaser 1 duration [µs]: ' + str(self.GROfcpretime1) + '\n')
         file.write('Fluid compensation readout gradient prephaser 2 duration [µs]: ' + str(self.GROfcpretime2) + '\n')
         file.write('Radial angle [°]: ' + str(self.radialanglestep) + '\n')
+        file.write('Radial oversampling factor: ' + str(self.radialosfactor) + '\n')
         file.write('Radial angle [rad]: ' + str(self.radialanglestepradmod100) + '\n')
         # file.write(': ' + str(self.lnkspacemag) + '\n')
         file.write('Auto gradients: ' + str(self.autograd) + '\n')
@@ -802,6 +832,7 @@ class Parameters:
             file.write('Header File Format: .txt\n')
         elif self.headerfileformat == 1:
             file.write('Header File Format: .json\n')
+        file.write('Motor enable: ' + str(self.motor_enable) + '\n')
         file.write('Motor available: ' + str(self.motor_available) + '\n')
         file.write('Motor COM Port: ' + str(self.motor_port) + '\n')
         file.write('Motor axis limit negative [mm]: ' + str(self.motor_axis_limit_negative) + '\n')
@@ -814,7 +845,12 @@ class Parameters:
         file.write('Motor total image length [mm]: ' + str(self.motor_total_image_length) + '\n')
         file.write('Motor movement step [mm]: ' + str(self.motor_movement_step) + '\n')
         file.write('Motor image count: ' + str(self.motor_image_count) + '\n')
+        file.write('Motor current image count: ' + str(self.motor_current_image_count) + '\n')
         file.write('Motor settling time: ' + str(self.motor_settling_time) + '\n')
+        file.write('Motor Autocenter position [mm]: ' + str(self.motor_AC_position) + '\n')
+        file.write('Motor Autocenter position keep in center: ' + str(self.motor_AC_position_center) + '\n')
+        file.write('Motor Autocenter In-between: ' + str(self.motor_AC_inbetween) + '\n')
+        file.write('Motor Autocenter In-between Image Step: ' + str(self.motor_AC_inbetween_step) + '\n')
         # file.write('Single plot: ' + str(self.single_plot) + '\n')
         # file.write('Ernst Angle Calculator T1 [ms]: ' + str(self.ernstanglecalc_T1) + '\n')
         # file.write('Ernst Angle Calculator TR [ms]: ' + str(self.ernstanglecalc_TR) + '\n')
@@ -858,6 +894,7 @@ class Parameters:
             'Readout bandwidth scaling': self.ROBWscaler,
             'TE [ms]': self.TE,
             'TI [ms]': self.TI,
+            'SIR TE [ms]': self.SIR_TE,
             'TR [ms]': self.TR,
             'Shim values [mA]': list(self.grad),
             'Gradient orientation': list(self.Gradientorientation),
@@ -881,6 +918,7 @@ class Parameters:
             'TE steps': self.TEsteps,
             'Projection axes': list(self.projaxis),
             'Average': self.average,
+            'Average complex': self.average_complex,
             'Number of averages': self.averagecount,
             'Projection gradient amplitude [mA]': list(self.Gproj),
             'Projection angle [°]': self.projectionangle,
@@ -904,6 +942,7 @@ class Parameters:
             'Fluid compensation readout gradient prephaser 2 duration [µs]':
                 self.GROfcpretime2,
             'Radial angle [°]': self.radialanglestep,
+            'Radial oversampling factor': self.radialosfactor,
             'Radial angle [rad]': self.radialanglestepradmod100,
             'Auto gradients': self.autograd,
             'FOV [mm]': self.FOV,
@@ -916,6 +955,7 @@ class Parameters:
             'SAR status': self.SAR_status,
             'Header File Format': '.txt' if self.headerfileformat == 0
             else ('.json'),
+            'Motor enable': self.motor_enable,
             'Motor available': self.motor_available,
             'Motor COM Port': self.motor_port,
             'Motor axis limit negative [mm]': self.motor_axis_limit_negative,
@@ -928,7 +968,12 @@ class Parameters:
             'Motor total image length [mm]':self.motor_total_image_length,
             'Motor movement step [mm]': self.motor_movement_step,
             'Motor image count': self.motor_image_count,
-            'Motor settling time': self.motor_settling_time
+            'Motor current image count': self.motor_current_image_count,
+            'Motor settling time': self.motor_settling_time,
+            'Motor Autocenter position [mm]': self.motor_AC_position,
+            'Motor Autocenter position keep in center': self.motor_AC_position_center,
+            'Motor Autocenter In-between': self.motor_AC_inbetween,
+            'Motor Autocenter In-between Image Step': self.motor_AC_inbetween_step
         }
 
         out_file = open(filename, 'w')

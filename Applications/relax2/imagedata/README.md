@@ -1,1 +1,1 @@
-In this folder you will find the saved image data and field map data.
+In this folder you will find the saved image data.
