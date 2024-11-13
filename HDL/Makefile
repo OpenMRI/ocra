@@ -36,6 +36,8 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 .ONESHELL:
 all: setup tmp/%.bin
 
+.ONESHELL:
+xsa: setup tmp/%.xsa
 
 .ONESHELL:
 xpr: setup tmp/%.xpr
