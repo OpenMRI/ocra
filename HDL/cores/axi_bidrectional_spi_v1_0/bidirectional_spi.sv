@@ -5,7 +5,11 @@ module bidirectional_spi (
     output reg [31:0] transaction_read_data;
 
     input wire reset_n;
-    input wire spi_clk; 
+    input wire spi_clk_0;  // 0 degree clock
+    input wire spi_clk_90; // 90 degree clock 
+    // SPI Mode control
+    input wire spi_cpol;   // Clock polarity
+    input wire spi_cpha;   // Clock phase
 
     inout wire spi_sdio;
     output reg spi_sclk;
