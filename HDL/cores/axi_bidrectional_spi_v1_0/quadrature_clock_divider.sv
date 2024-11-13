@@ -1,19 +1,23 @@
 // this divider uses the counts per quarter cycle to ensure the division is always valid
 // the application for this simple module is the generation of quadrature clocks that are
-// divided from a fast input clock. 
+// divided from a fast input clock.
+// The bit-width of the division factor is configurable for this module and refers to the
+// number of bits in the quarter cycle count 
 // Common applications are SPI buses for example.
-module quadrature_clock_divider (
+module quadrature_clock_divider #(
+    parameter DIVIDER_WIDTH = 8
+)(
     input wire clk_in,                 // Fast input clock
     input wire reset_n,                // Reset signal
-    input wire [7:0] div_factor_4,     // Division factor as multiplier to 4
+    input wire [DIVIDER_WIDTH-1:0] div_factor_4,     // Division factor as multiplier to 4
                                        // or "counts per quarter cycle"
     output reg sck_0,                  // 0-degree phase clock
     output reg sck_90                  // 90-degree phase-shifted clock
 );
 
-    reg [9:0] counter;                 // Counter for clock division
-    reg [8:0] half_cycle;              // Half-cycle count for 50% duty cycle
-    reg [7:0] quarter_cycle;           // Quarter-cycle count for 90-degree shift
+    reg [DIVIDER_WIDTH+1:0] counter;                 // Counter for clock division
+    reg [DIVIDER_WIDTH:0] half_cycle;              // Half-cycle count for 50% duty cycle
+    reg [DIVIDER_WIDTH-1:0] quarter_cycle;           // Quarter-cycle count for 90-degree shift
 
     always @(posedge clk_in or negedge reset_n) begin
         if (~reset_n) begin
