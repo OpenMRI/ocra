@@ -10,18 +10,21 @@ module spi_clock_generator (
     // Generate spi_clk based on cpol
     always_comb begin
         if (cpol == 0) begin
-            spi_clk = clk_0;       // SPI clock idle state low
+            if (cpha == 0) begin
+                spi_clk = clk_90;   // SPI mode 0
+                shift_clk = clk_0;  
+            end else begin
+                spi_clk = clk_0;  // SPI mode 1
+                shift_clk = clk_90;
+            end
         end else begin
-            spi_clk = ~clk_0;      // SPI clock idle state high
-        end
-    end
-
-    // Generate shift_clk based on cpha
-    always_comb begin
-        if (cpha == 0) begin
-            shift_clk = clk_0;     // Sample on first edge of spi_clk
-        end else begin
-            shift_clk = clk_90;    // Sample on second edge of spi_clk
+            if (cpha == 0) begin
+                spi_clk = ~clk_90;   // SPI mode 2
+                shift_clk = clk_0;
+            end else begin
+                spi_clk = ~clk_0;  // SPI mode 3
+                shift_clk = clk_90;
+            end
         end
     end
 

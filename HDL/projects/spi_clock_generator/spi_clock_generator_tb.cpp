@@ -42,7 +42,7 @@ int main(int argc, char **argv)
                 // Toggle clocks
                 if (clk_0_count % 2 == 0)
                     toggle_clock(clk_0);
-                if (clk_0_count % 4 == 0)
+                if (clk_0_count % 2 == 1)
                     toggle_clock(clk_90); // 90° phase assumes clk_90 toggles half as often
 
                 // Drive inputs
