@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     int clk_0_count = 0;
 
     // Test CPOL and CPHA configurations
+    // The way of doing these tests is causing ugly glitches in the cpol=1 case
     for (int cpol = 0; cpol <= 1; ++cpol)
     {
         for (int cpha = 0; cpha <= 1; ++cpha)
