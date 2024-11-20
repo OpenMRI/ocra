@@ -27,22 +27,55 @@ module bidirectional_spi #(
 
     inout wire spi_sdio,
     output reg spi_sclk,
-    output reg spi_cs_n,
+    output reg spi_cs_n
 );
 
   reg spi_dir;           // Direction control for the SPI interface (1 for write, 0 for read)
-  reg [31:0] shift_out;  // SPI Data to be shifted out
-  reg [31:0] shift_in;   // SPI Data to be shifted in
+  reg [DATA_WIDTH-1:0] shift_out;  // SPI Data to be shifted out
+  reg [DATA_WIDTH-1:0] shift_in;   // SPI Data to be shifted in
   assign spi_sdio = spi_dir ? shift_out[31] : 1'bz;
+  wire spi_data_clk;
 
-  // State Machine to Control the SPI Interface
-  always @(posedge spi_clk or negedge reset_n) begin
+  // Reset logic for the core
+  always @(posedge fabric_clk or negedge reset_n) begin
     if (~reset_n) begin
         spi_dir <= 1'b1;
         shift_out <= 32'b0;
-        shift_in <= 32'b0;  
+        shift_in <= 32'b0;
+        spi_sclk <= 1'b0;
+        spi_cs_n <= 1'b1;
     end
   end 
+
+  // assign the SPI clocks based on the SPI mode
+  spi_clock_generator #(
+    .DATA_WIDTH(DATA_WIDTH)
+  ) spi_clock_gen (
+    .clk_0(spi_clk_0),
+    .clk_90(spi_clk_90),
+    .cpol(spi_cpol),
+    .cpha(spi_cpha),
+    .spi_clk(spi_data_clk),
+    .shift_clk(spi_sclk)
+  );
+
+  // Instantiate the asynchronous FIFO for the transaction length
+  async_fifo #(
+    .DATA_WIDTH(TRANSACTION_LEN_WIDTH),
+    .ADDR_WIDTH(3)
+  ) fifo (
+    .wr_clk(fabric_clk),
+    .wr_rst_n(reset_n),
+    .wr_data(transaction_length),
+    .wr_en(1'b1),
+    .rd_clk(spi_data_clk),
+    .rd_rst_n(reset_n),
+    .rd_data(transaction_length),
+    .rd_en(1'b1),
+    .empty(),
+    .almost_empty()
+  );
+
 
   endmodule
 
