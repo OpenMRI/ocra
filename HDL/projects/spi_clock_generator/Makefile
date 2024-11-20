@@ -1,9 +1,9 @@
 VERILATOR = verilator
-TOP_MODULE = bidirectional_spi
+TOP_MODULE = spi_clock_generator
 VERILATED = obj_dir/V$(TOP_MODULE)
 
-SRC_FILES = bidirectional_spi.sv
-CPP_FILES = bidirectional_spi_tb.cpp
+SRC_FILES = spi_clock_generator.sv
+CPP_FILES = spi_clock_generator_tb.cpp
 
 all: sim
 

@@ -3,7 +3,7 @@ module spi_clock_generator (
     input  wire clk_90,            // External clock (90° phase)
     input  wire cpol,              // Clock Polarity
     input  wire cpha,              // Clock Phase
-    output logic spi_clk,          // Generated SPI clock
+    output reg spi_clk,          // Generated SPI clock
     output logic shift_clk         // Data shift clock
 );
 
