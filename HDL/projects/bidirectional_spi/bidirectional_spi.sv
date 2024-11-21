@@ -124,7 +124,6 @@ module bidirectional_spi #(
     if (~reset_n_sc) begin
       spi_dir <= 1'b1;
       shift_out <= 1'b0;
-      spi_sclk <= 1'b0;
       spi_cs_n <= 1'b1;
       to_fabric_filo_wr_en <= 1'b0;
     end
@@ -148,17 +147,19 @@ module bidirectional_spi #(
   end 
 
   // generate the spi clock output
-  always_ff @(posedge spi_clk) begin
+  always_ff @(posedge spi_clk or negedge reset_n_sc) begin
     if (reset_n_sc) begin
       if (spi_state == WRITE) begin
         spi_sclk <= spi_clk;
       end else begin
         spi_sclk <= 1'b0;
       end
+    end else begin
+      spi_sclk <= 1'b0;
     end
   end
 
-  always_ff @(posedge spi_data_clk) begin
+  always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
     if (reset_n_sc) begin
       if (spi_state == IDLE) begin
         to_fabric_filo_wr_en <= 1'b0;
