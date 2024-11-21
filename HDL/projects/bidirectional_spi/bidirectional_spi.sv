@@ -81,6 +81,7 @@ module bidirectional_spi #(
     .shift_clk(spi_data_clk)
   );
 
+  reg to_spi_fifo_rd_en;
   // Instantiate the asynchronous FIFO for the data going to the SPI side
   async_fifo #(
     .DATA_WIDTH(TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
@@ -93,7 +94,7 @@ module bidirectional_spi #(
     .rd_clk(spi_data_clk),
     .rd_rst_n(reset_n),
     .rd_data(sc_data),
-    .rd_en(1'b1),
+    .rd_en(to_spi_fifo_rd_en),
     .empty(to_spi_fifo_empty),
     /* verilator lint_off PINCONNECTEMPTY */
     .almost_empty(),
@@ -132,6 +133,7 @@ module bidirectional_spi #(
       shift_out <= 1'b0;
       spi_cs_n <= 1'b1;
       to_fabric_filo_wr_en <= 1'b0;
+      to_spi_fifo_rd_en <= 1'b0;
     end
   end 
 
@@ -171,16 +173,18 @@ module bidirectional_spi #(
         to_fabric_filo_wr_en <= 1'b0;
         if(~to_spi_fifo_empty) begin
           spi_state <= CS_ASSERT;
-          // copy the data from the fifo
-          bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
-          transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
-          transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
+          to_spi_fifo_rd_en <= 1'b1; // assert the read enable
          end else begin
           spi_state <= IDLE;
          end
       end else if (spi_state == CS_ASSERT) begin
         spi_state <= WRITE;
         spi_cs_n <= 1'b0;
+        to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
+         // copy the data from the fifo
+        bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
+        transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
+        transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
       end else if (spi_state == WRITE) begin
         if (bitcounter_sc == 0) begin
           spi_state <= DONE;
