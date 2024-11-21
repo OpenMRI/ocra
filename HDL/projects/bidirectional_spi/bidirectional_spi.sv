@@ -31,51 +31,175 @@ module bidirectional_spi #(
 );
 
   reg spi_dir;           // Direction control for the SPI interface (1 for write, 0 for read)
-  reg [DATA_WIDTH-1:0] shift_out;  // SPI Data to be shifted out
-  reg [DATA_WIDTH-1:0] shift_in;   // SPI Data to be shifted in
-  assign spi_sdio = spi_dir ? shift_out[31] : 1'bz;
+  reg shift_out;  // SPI Data to be shifted out
+
+  // Some of our data in the spi_clk domain
+  reg [TRANSACTION_LEN_WIDTH-1:0] bitcounter_sc; 
+  reg [DATA_WIDTH-1:0] transaction_rw_mask_sc;
+  reg [DATA_WIDTH-1:0] transaction_data_sc;
+
+  reg [TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:0] sc_data, fc_data;
+
+  reg [DATA_WIDTH-1:0] transaction_read_data_sc;
+
+  assign fc_data = {transaction_length, transaction_rw_mask, transaction_data};
+
+  assign spi_sdio = spi_dir ? shift_out : 1'bz;
   wire spi_data_clk;
+  wire spi_clk;
+
+  reg to_spi_fifo_empty;
 
   // Reset logic for the core
   always @(posedge fabric_clk or negedge reset_n) begin
     if (~reset_n) begin
-        spi_dir <= 1'b1;
-        shift_out <= 32'b0;
-        shift_in <= 32'b0;
-        spi_sclk <= 1'b0;
-        spi_cs_n <= 1'b1;
+
     end
   end 
 
+  // Reset synchronizer
+  wire reset_n_sc;
+  reset_synchronizer reset_sync (
+    .reset_n(reset_n),
+    .clk(spi_data_clk),
+    .sync_reset_n(reset_n_sc)
+  );
+
   // assign the SPI clocks based on the SPI mode
-  spi_clock_generator #(
-    .DATA_WIDTH(DATA_WIDTH)
-  ) spi_clock_gen (
+  spi_clock_generator spi_clock_gen (
     .clk_0(spi_clk_0),
     .clk_90(spi_clk_90),
     .cpol(spi_cpol),
     .cpha(spi_cpha),
-    .spi_clk(spi_data_clk),
-    .shift_clk(spi_sclk)
+    .spi_clk(spi_clk),
+    .shift_clk(spi_data_clk)
   );
 
   // Instantiate the asynchronous FIFO for the transaction length
   async_fifo #(
-    .DATA_WIDTH(TRANSACTION_LEN_WIDTH),
+    .DATA_WIDTH(TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
     .ADDR_WIDTH(3)
-  ) fifo (
+  ) to_spi_fifo (
     .wr_clk(fabric_clk),
     .wr_rst_n(reset_n),
-    .wr_data(transaction_length),
+    .wr_data(fc_data),
     .wr_en(1'b1),
     .rd_clk(spi_data_clk),
     .rd_rst_n(reset_n),
-    .rd_data(transaction_length),
+    .rd_data(sc_data),
     .rd_en(1'b1),
-    .empty(),
-    .almost_empty()
+    .empty(to_spi_fifo_empty),
+    /* verilator lint_off PINCONNECTEMPTY */
+    .almost_empty(),
+    .full(),
+    .almost_full()
+    /* verilator lint_on PINCONNECTEMPTY */ 
   );
 
+  reg to_fabric_fifo_full, to_fabric_filo_wr_en;
+
+  // Instantiate the asynchronous FIFO for the write data
+  async_fifo #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(3)
+  ) to_fabric_fifo (
+    .wr_clk(spi_data_clk),
+    .wr_rst_n(reset_n),
+    .wr_data(transaction_read_data_sc),
+    .wr_en(to_fabric_filo_wr_en),
+    .rd_clk(fabric_clk),
+    .rd_rst_n(reset_n),
+    .rd_data(transaction_read_data),
+    .rd_en(1'b1),
+    .full(to_fabric_fifo_full),
+    /* verilator lint_off PINCONNECTEMPTY */
+    .empty(),  
+    .almost_empty(),
+    .almost_full()
+    /* verilator lint_on PINCONNECTEMPTY */ 
+  );
+
+  // SPI side reset logic
+  always @(posedge spi_data_clk or negedge reset_n_sc) begin
+    if (~reset_n_sc) begin
+      spi_dir <= 1'b1;
+      shift_out <= 1'b0;
+      spi_sclk <= 1'b0;
+      spi_cs_n <= 1'b1;
+      to_fabric_filo_wr_en <= 1'b0;
+    end
+  end 
+
+  // SPI state machine stuff
+  typedef enum logic [1:0] {
+    IDLE,     
+    CS_ASSERT,
+    WRITE,
+    DONE
+  } state_t;
+
+  state_t spi_state;
+
+  // reset the state machine
+  always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
+    if (~reset_n_sc) begin
+      spi_state <= IDLE;
+    end
+  end 
+
+  // generate the spi clock output
+  always_ff @(posedge spi_clk) begin
+    if (reset_n_sc) begin
+      if (spi_state == WRITE) begin
+        spi_sclk <= spi_clk;
+      end else begin
+        spi_sclk <= 1'b0;
+      end
+    end
+  end
+
+  always_ff @(posedge spi_data_clk) begin
+    if (reset_n_sc) begin
+      if (spi_state == IDLE) begin
+        to_fabric_filo_wr_en <= 1'b0;
+        if(~to_spi_fifo_empty) begin
+          spi_state <= CS_ASSERT;
+          // copy the data from the fifo
+          bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
+          transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
+          transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
+         end else begin
+          spi_state <= IDLE;
+         end
+      end else if (spi_state == CS_ASSERT) begin
+        spi_state <= WRITE;
+        spi_cs_n <= 1'b0;
+      end else if (spi_state == WRITE) begin
+        if (bitcounter_sc == 0) begin
+          spi_state <= DONE;
+          spi_cs_n <= 1'b1;
+          spi_dir <= 1'b1;
+        end else begin
+          spi_state <= WRITE;
+          spi_dir <= transaction_rw_mask_sc[bitcounter_sc - 1];
+          shift_out <= transaction_data_sc[bitcounter_sc - 1];
+          bitcounter_sc <= bitcounter_sc - 1;
+          if (~transaction_rw_mask_sc[bitcounter_sc - 1]) begin
+            transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
+          end else begin
+            transaction_read_data_sc[bitcounter_sc -1] <= 0;
+          end
+        end
+      end else if (spi_state == DONE) begin
+        if (~to_fabric_fifo_full) begin
+          spi_state <= IDLE;
+          to_fabric_filo_wr_en <= 1'b1;
+        end else begin
+          spi_state <= DONE;
+        end
+      end
+    end
+  end
 
   endmodule
 
