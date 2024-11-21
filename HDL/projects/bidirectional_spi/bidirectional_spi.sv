@@ -58,11 +58,17 @@ module bidirectional_spi #(
   end 
 
   // Reset synchronizer
-  wire reset_n_sc;
+  wire reset_n_sc, reset_n_sc2;
   reset_synchronizer reset_sync (
     .reset_n(reset_n),
     .clk(spi_data_clk),
     .sync_reset_n(reset_n_sc)
+  );
+
+  reset_synchronizer reset_sync2 (
+    .reset_n(reset_n),
+    .clk(spi_clk),
+    .sync_reset_n(reset_n_sc2)
   );
 
   // assign the SPI clocks based on the SPI mode
@@ -75,7 +81,7 @@ module bidirectional_spi #(
     .shift_clk(spi_data_clk)
   );
 
-  // Instantiate the asynchronous FIFO for the transaction length
+  // Instantiate the asynchronous FIFO for the data going to the SPI side
   async_fifo #(
     .DATA_WIDTH(TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
     .ADDR_WIDTH(3)
@@ -98,7 +104,7 @@ module bidirectional_spi #(
 
   reg to_fabric_fifo_full, to_fabric_filo_wr_en;
 
-  // Instantiate the asynchronous FIFO for the write data
+  // Instantiate the asynchronous FIFO for the data coming from the SPI side
   async_fifo #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(3)
@@ -147,8 +153,8 @@ module bidirectional_spi #(
   end 
 
   // generate the spi clock output
-  always_ff @(posedge spi_clk or negedge reset_n_sc) begin
-    if (reset_n_sc) begin
+  always_ff @(posedge spi_clk or negedge reset_n_sc2) begin
+    if (reset_n_sc2) begin
       if (spi_state == WRITE) begin
         spi_sclk <= spi_clk;
       end else begin
