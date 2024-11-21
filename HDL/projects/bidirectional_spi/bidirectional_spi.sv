@@ -34,7 +34,9 @@ module bidirectional_spi #(
   reg shift_out;  // SPI Data to be shifted out
 
   // Some of our data in the spi_clk domain
-  reg [TRANSACTION_LEN_WIDTH-1:0] bitcounter_sc; 
+  reg [TRANSACTION_LEN_WIDTH-1:0] bitcounter_sc;
+  reg [TRANSACTION_LEN_WIDTH-1:0] read_bitcounter_sc;
+
   reg [DATA_WIDTH-1:0] transaction_rw_mask_sc;
   reg [DATA_WIDTH-1:0] transaction_data_sc;
 
@@ -134,6 +136,7 @@ module bidirectional_spi #(
       spi_cs_n <= 1'b1;
       to_fabric_filo_wr_en <= 1'b0;
       to_spi_fifo_rd_en <= 1'b0;
+      read_bitcounter_sc <= 0;
     end
   end 
 
@@ -185,6 +188,9 @@ module bidirectional_spi #(
         bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
         transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
         transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
+
+        read_bitcounter_sc <= 0;
+        transaction_read_data_sc <= 0;
       end else if (spi_state == WRITE) begin
         if (bitcounter_sc == 0) begin
           spi_state <= DONE;
@@ -196,13 +202,18 @@ module bidirectional_spi #(
           shift_out <= transaction_data_sc[bitcounter_sc - 1];
           bitcounter_sc <= bitcounter_sc - 1;
           if (~transaction_rw_mask_sc[bitcounter_sc - 1]) begin
+            read_bitcounter_sc <= read_bitcounter_sc + 1;
             transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
           end else begin
+            // this is to fill in blank bits if the mask is not continuous
             transaction_read_data_sc[bitcounter_sc -1] <= 0;
           end
         end
       end else if (spi_state == DONE) begin
-        if (~to_fabric_fifo_full) begin
+        if (read_bitcounter_sc == 0) begin
+          spi_state <= IDLE;
+          to_fabric_filo_wr_en <= 1'b0;
+        end else if (~to_fabric_fifo_full) begin
           spi_state <= IDLE;
           to_fabric_filo_wr_en <= 1'b1;
         end else begin
