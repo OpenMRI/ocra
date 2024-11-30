@@ -16,8 +16,8 @@ module quadrature_clock_divider #(
 );
 
     reg [DIVIDER_WIDTH+1:0] counter;                 // Counter for clock division
-    reg [DIVIDER_WIDTH:0] half_cycle;              // Half-cycle count for 50% duty cycle
-    reg [DIVIDER_WIDTH-1:0] quarter_cycle;           // Quarter-cycle count for 90-degree shift
+    reg [DIVIDER_WIDTH+1:0] half_cycle;              // Half-cycle count for 50% duty cycle
+    reg [DIVIDER_WIDTH+1:0] quarter_cycle;           // Quarter-cycle count for 90-degree shift
 
     always @(posedge clk_in or negedge reset_n) begin
         if (~reset_n) begin
@@ -26,11 +26,11 @@ module quadrature_clock_divider #(
             sck_90 <= 0;
         end else begin
             // Calculate half and quarter cycles based on the division factor
-            half_cycle <= div_factor << 1;          // 50% duty cycle
-            quarter_cycle <= div_factor;            // 90-degree phase shift
+            half_cycle <= {1'b0, div_factor_4, 1'b0};          // 50% duty cycle
+            quarter_cycle <= {2'b00, div_factor_4};            // 90-degree phase shift
 
             // Counter logic to generate sck_0 and sck_90
-            if (counter >= (div_factor << 2) - 1) begin
+            if (counter >= {div_factor_4, 2'b00} - 1) begin
                 counter <= 0;  // Reset counter at the end of the cycle
             end else begin
                 counter <= counter + 1;
@@ -51,3 +51,4 @@ module quadrature_clock_divider #(
         end
     end
 endmodule
+
