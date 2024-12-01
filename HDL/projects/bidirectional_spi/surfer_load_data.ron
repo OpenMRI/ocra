@@ -1,0 +1,396 @@
+(
+    show_hierarchy: None,
+    show_menu: None,
+    show_ticks: None,
+    show_toolbar: None,
+    show_tooltip: None,
+    show_overview: None,
+    show_statusbar: None,
+    align_names_right: None,
+    show_variable_indices: None,
+    show_variable_direction: None,
+    show_empty_scopes: None,
+    show_parameters_in_scopes: None,
+    waves: Some((
+        source: File("sim_load_value.vcd"),
+        format: Vcd,
+        active_scope: Some(WaveScope((
+            strs: [
+                "TOP",
+                "bidirectional_spi",
+            ],
+        ))),
+        displayed_items_order: [
+            (1),
+            (2),
+            (3),
+            (4),
+            (5),
+            (6),
+            (7),
+            (8),
+            (9),
+            (10),
+            (11),
+            (12),
+            (14),
+            (13),
+            (15),
+            (16),
+            (17),
+        ],
+        displayed_items: {
+            (16): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_state",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "spi_state [2:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (4): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                        ],
+                    ),
+                    name: "transaction_length",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "transaction_length [7:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (7): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "to_spi_fifo_empty",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "to_spi_fifo_empty",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (12): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_cs_n",
+                ),
+                color: Some("red"),
+                background_color: None,
+                display_name: "spi_cs_n",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (17): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "bitcounter_sc",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "bitcounter_sc [7:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: Some("Unsigned"),
+                field_formats: [],
+            )),
+            (5): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "to_spi_fifo_wr_en",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "to_spi_fifo_wr_en",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (1): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                        ],
+                    ),
+                    name: "reset_n",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "reset_n",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (14): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_sclk",
+                ),
+                color: Some("red"),
+                background_color: None,
+                display_name: "spi_sclk",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (8): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_data_clk",
+                ),
+                color: Some("yellow"),
+                background_color: None,
+                display_name: "spi_data_clk",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (9): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_clk",
+                ),
+                color: Some("yellow"),
+                background_color: None,
+                display_name: "spi_clk",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (6): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                            "to_spi_fifo",
+                            "mem",
+                        ],
+                    ),
+                    name: "[0]",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "[0] [71:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (2): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                        ],
+                    ),
+                    name: "fabric_clk",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "fabric_clk",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (10): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "to_spi_fifo_rd_en",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "to_spi_fifo_rd_en",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (15): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_dir",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "spi_dir",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (11): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "transaction_data_sc",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "transaction_data_sc [31:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (13): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_sdio",
+                ),
+                color: Some("blue"),
+                background_color: None,
+                display_name: "spi_sdio",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (3): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                        ],
+                    ),
+                    name: "transaction_data",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "transaction_data [31:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+        },
+        display_item_ref_counter: 17,
+        viewports: [
+            (
+                curr_left: (-0.14871098911518355),
+                curr_right: (0.8662955966984591),
+                target_left: (0.0),
+                target_right: (1.0),
+                move_start_left: (0.0),
+                move_start_right: (1.0),
+                move_duration: None,
+                move_strategy: Instant,
+            ),
+        ],
+        cursor: Some((1, [
+            450,
+        ])),
+        markers: {},
+        focused_item: Some((16)),
+        focused_transaction: (None, None),
+        selected_items: [],
+        default_variable_name_type: Unique,
+        scroll_offset: 0.0,
+        display_variable_indices: true,
+        graphics: {},
+    )),
+    drag_started: false,
+    drag_source_idx: None,
+    drag_target_idx: None,
+    previous_waves: None,
+    count: None,
+    blacklisted_translators: [],
+    show_about: false,
+    show_keys: false,
+    show_gestures: false,
+    show_quick_start: false,
+    show_license: false,
+    show_performance: false,
+    show_logs: false,
+    show_cursor_window: false,
+    wanted_timeunit: PicoSeconds,
+    time_string_format: None,
+    show_url_entry: false,
+    variable_name_filter_focused: false,
+    variable_name_filter_type: Fuzzy,
+    variable_name_filter_case_insensitive: true,
+    rename_target: None,
+    sidepanel_width: Some(300.0),
+    ui_zoom_factor: None,
+)

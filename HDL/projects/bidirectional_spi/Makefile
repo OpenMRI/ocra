@@ -17,5 +17,10 @@ $(VERILATED): $(SRC_FILES) $(CPP_FILES)
 clean:
 	rm -rf obj_dir
 	rm -f sim.vcd
+	rm -r sim_reset_n_clock.vcd
+	rm -r sim_load_value_mode0.vcd
+	rm -r sim_load_value_mode1.vcd
+	rm -r sim_load_value_mode2.vcd
+	rm -r sim_load_value_mode3.vcd
 
 .PHONY: all sim clean
