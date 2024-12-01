@@ -2,7 +2,7 @@ VERILATOR = verilator
 TOP_MODULE = bidirectional_spi
 VERILATED = obj_dir/V$(TOP_MODULE)
 
-SRC_FILES = bidirectional_spi.sv ../async_fifo/async_fifo.sv ../spi_clock_generator/spi_clock_generator.sv ../reset_synchronizer/reset_synchronizer.sv
+SRC_FILES = bidirectional_spi.sv ../async_fifo/async_fifo.sv ../spi_clock_generator/spi_clock_generator.sv ../reset_synchronizer/reset_synchronizer.sv ../quadrature_clock_divider/quadrature_clock_divider.sv
 CPP_FILES = bidirectional_spi_tb.cpp
 
 all: sim

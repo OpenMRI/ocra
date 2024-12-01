@@ -19,8 +19,6 @@ int main(int argc, char **argv)
     top->transaction_read_data = 0;
     top->reset_n = 0;
     top->fabric_clk = 0;
-    top->spi_clk_0 = 0;
-    top->spi_clk_90 = 0;
     top->spi_cpol = 0;
     top->spi_cpha = 0;
     top->spi_sdio = 0;

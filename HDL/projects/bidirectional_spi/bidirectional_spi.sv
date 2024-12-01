@@ -19,8 +19,7 @@ module bidirectional_spi #(
 
     input wire reset_n,
     input wire fabric_clk,
-    input wire spi_clk_0,  // 0 degree clock
-    input wire spi_clk_90, // 90 degree clock 
+
     // SPI Mode control
     input wire spi_cpol,   // Clock polarity
     input wire spi_cpha,   // Clock phase
@@ -51,13 +50,46 @@ module bidirectional_spi #(
   wire spi_clk;
 
   reg to_spi_fifo_empty;
+  
+  // fabric side state machine states
+  typedef enum logic [1:0] {
+    F_IDLE,     
+    F_WRITE,
+    F_DONE
+  } fstate_t;
 
-  // Reset logic for the core
+  fstate_t fabric_state;
+
+  // Fabric side state machine
   always @(posedge fabric_clk or negedge reset_n) begin
     if (~reset_n) begin
-
+      to_spi_fifo_wr_en <= 1'b0;
+      to_fabric_fifo_rd_en <= 1'b0;
+      fabric_state <= F_IDLE;
+    end else if (fabric_state == F_IDLE) begin
+      if (transaction_length > 0) begin
+        fabric_state <= F_WRITE;
+        to_spi_fifo_wr_en <= 1'b1;
+      end else begin
+        fabric_state <= F_IDLE;
+      end
+    end else if (fabric_state == F_WRITE) begin
+      fabric_state <= F_IDLE;
+      to_spi_fifo_wr_en <= 1'b0;
     end
   end 
+
+
+  wire spi_clk_0,spi_clk_90;
+
+  // Generate the clocks
+  quadrature_clock_divider clock_div (
+    .reset_n(reset_n),
+    .clk_in(fabric_clk),
+    .div_factor_4(2),
+    .sck_0(spi_clk_0),
+    .sck_90(spi_clk_90)
+  );
 
   // Reset synchronizer
   wire reset_n_sc, reset_n_sc2;
@@ -83,7 +115,7 @@ module bidirectional_spi #(
     .shift_clk(spi_data_clk)
   );
 
-  reg to_spi_fifo_rd_en;
+  reg to_spi_fifo_rd_en, to_spi_fifo_wr_en;
   // Instantiate the asynchronous FIFO for the data going to the SPI side
   async_fifo #(
     .DATA_WIDTH(TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
@@ -92,7 +124,7 @@ module bidirectional_spi #(
     .wr_clk(fabric_clk),
     .wr_rst_n(reset_n),
     .wr_data(fc_data),
-    .wr_en(1'b1),
+    .wr_en(to_spi_fifo_wr_en),
     .rd_clk(spi_data_clk),
     .rd_rst_n(reset_n),
     .rd_data(sc_data),
@@ -105,7 +137,7 @@ module bidirectional_spi #(
     /* verilator lint_on PINCONNECTEMPTY */ 
   );
 
-  reg to_fabric_fifo_full, to_fabric_filo_wr_en;
+  reg to_fabric_fifo_full, to_fabric_fifo_wr_en, to_fabric_fifo_rd_en;
 
   // Instantiate the asynchronous FIFO for the data coming from the SPI side
   async_fifo #(
@@ -115,11 +147,11 @@ module bidirectional_spi #(
     .wr_clk(spi_data_clk),
     .wr_rst_n(reset_n),
     .wr_data(transaction_read_data_sc),
-    .wr_en(to_fabric_filo_wr_en),
+    .wr_en(to_fabric_fifo_wr_en),
     .rd_clk(fabric_clk),
     .rd_rst_n(reset_n),
     .rd_data(transaction_read_data),
-    .rd_en(1'b1),
+    .rd_en(to_fabric_fifo_rd_en),
     .full(to_fabric_fifo_full),
     /* verilator lint_off PINCONNECTEMPTY */
     .empty(),  
@@ -134,7 +166,7 @@ module bidirectional_spi #(
       spi_dir <= 1'b1;
       shift_out <= 1'b0;
       spi_cs_n <= 1'b1;
-      to_fabric_filo_wr_en <= 1'b0;
+      to_fabric_fifo_wr_en <= 1'b0;
       to_spi_fifo_rd_en <= 1'b0;
       read_bitcounter_sc <= 0;
     end
@@ -173,7 +205,7 @@ module bidirectional_spi #(
   always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
     if (reset_n_sc) begin
       if (spi_state == IDLE) begin
-        to_fabric_filo_wr_en <= 1'b0;
+        to_fabric_fifo_wr_en <= 1'b0;
         if(~to_spi_fifo_empty) begin
           spi_state <= CS_ASSERT;
           to_spi_fifo_rd_en <= 1'b1; // assert the read enable
@@ -212,10 +244,10 @@ module bidirectional_spi #(
       end else if (spi_state == DONE) begin
         if (read_bitcounter_sc == 0) begin
           spi_state <= IDLE;
-          to_fabric_filo_wr_en <= 1'b0;
+          to_fabric_fifo_wr_en <= 1'b0;
         end else if (~to_fabric_fifo_full) begin
           spi_state <= IDLE;
-          to_fabric_filo_wr_en <= 1'b1;
+          to_fabric_fifo_wr_en <= 1'b1;
         end else begin
           spi_state <= DONE;
         end
