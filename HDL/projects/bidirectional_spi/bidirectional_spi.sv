@@ -211,6 +211,9 @@ module bidirectional_spi #(
   always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc2) begin
     if (~reset_n_sc2) begin
       spi_clk_en <= 1'b0;
+      // delete the read data stuff
+      read_bitcounter_sc <= 0;
+      transaction_read_data_sc <= 0;
     end else begin
       // manage the clock enable signal only on rising edge
       if (spi_clk) begin
@@ -220,6 +223,7 @@ module bidirectional_spi #(
           spi_clk_en <= 1'b0;
         end
       end
+      
       // do the reads on either the rising or falling edge of the clock, depending
       // on the SPI mode
       if (spi_clock_hot && spi_dir == 0) begin
@@ -227,6 +231,9 @@ module bidirectional_spi #(
           read_bitcounter_sc <= read_bitcounter_sc + 1;
           transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
         end
+      end else if (spi_state == IDLE) begin
+        read_bitcounter_sc <= 0;
+        transaction_read_data_sc <= 0;
       end
     end 
   end
@@ -238,6 +245,7 @@ module bidirectional_spi #(
       if (spi_state == IDLE) begin
         to_fabric_fifo_wr_en <= 1'b0;
         shift_out <= 1'b0;
+        spi_cs_n <= 1'b1;
         if(~to_spi_fifo_empty) begin
           spi_state <= FIFO_READ;
           to_spi_fifo_rd_en <= 1'b1; // assert the read enable
@@ -252,11 +260,6 @@ module bidirectional_spi #(
         bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
         transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
         transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
-
-        /*
-        read_bitcounter_sc <= 0;
-        transaction_read_data_sc <= 0;
-        */
         if (spi_cpha) begin
           spi_clock_hot <= 1'b1;
         end
@@ -284,15 +287,6 @@ module bidirectional_spi #(
             shift_out <= 0;
           end
           bitcounter_sc <= bitcounter_sc - 1;
-          /*
-          if (~transaction_rw_mask_sc[bitcounter_sc - 1]) begin
-            read_bitcounter_sc <= read_bitcounter_sc + 1;
-            transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
-          end else begin
-            // this is to fill in blank bits if the mask is not continuous
-            transaction_read_data_sc[bitcounter_sc -1] <= 0;
-          end
-          */
         end
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;

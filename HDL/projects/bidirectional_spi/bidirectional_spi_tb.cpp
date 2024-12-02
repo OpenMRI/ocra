@@ -294,6 +294,7 @@ int main(int argc, char **argv)
             top->transaction_data = 0x00000000;
             top->transaction_rw_mask = 0x00000000;
         }
+
         top->fabric_clk = !top->fabric_clk;
         top->eval();           // Evaluate model
         tfp7->dump(main_time); // Dump signals to VCD file
