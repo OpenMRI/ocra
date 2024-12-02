@@ -179,7 +179,7 @@ module bidirectional_spi #(
       spi_cs_n <= 1'b1;
       to_fabric_fifo_wr_en <= 1'b0;
       to_spi_fifo_rd_en <= 1'b0;
-      read_bitcounter_sc <= 0;
+      //read_bitcounter_sc <= 0;
     end
   end 
 
@@ -213,6 +213,10 @@ module bidirectional_spi #(
       spi_clk_en <= 1'b0;
     end else if (spi_clock_hot) begin
       spi_clk_en <= 1'b1;
+      if (spi_dir == 0) begin
+        read_bitcounter_sc <= read_bitcounter_sc + 1;
+        transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
+      end
     end else begin
       spi_clk_en <= 1'b0;
     end
@@ -240,8 +244,10 @@ module bidirectional_spi #(
         transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
         transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
 
+        /*
         read_bitcounter_sc <= 0;
         transaction_read_data_sc <= 0;
+        */
         if (spi_cpha) begin
           spi_clock_hot <= 1'b1;
         end
@@ -254,6 +260,7 @@ module bidirectional_spi #(
           spi_cs_n <= 1'b1;
           spi_dir <= 1'b1;
           spi_clock_hot <= 1'b0;
+          shift_out <= 0;
         end else begin
           if (spi_cpha && bitcounter_sc == 1) begin
             spi_clock_hot <= 1'b0;
@@ -262,8 +269,13 @@ module bidirectional_spi #(
           end
           spi_state <= WRITE;
           spi_dir <= transaction_rw_mask_sc[bitcounter_sc - 1];
-          shift_out <= transaction_data_sc[bitcounter_sc - 1];
+          if (transaction_rw_mask_sc[bitcounter_sc - 1]) begin
+            shift_out <= transaction_data_sc[bitcounter_sc - 1];
+          end else begin
+            shift_out <= 0;
+          end
           bitcounter_sc <= bitcounter_sc - 1;
+          /*
           if (~transaction_rw_mask_sc[bitcounter_sc - 1]) begin
             read_bitcounter_sc <= read_bitcounter_sc + 1;
             transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
@@ -271,6 +283,7 @@ module bidirectional_spi #(
             // this is to fill in blank bits if the mask is not continuous
             transaction_read_data_sc[bitcounter_sc -1] <= 0;
           end
+          */
         end
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;

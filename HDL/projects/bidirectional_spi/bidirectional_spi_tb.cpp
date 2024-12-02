@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     vluint64_t main_time = 0;                      // Current simulation time
     const vluint64_t sim_time_reset_n_clock = 100; // Adjust as needed
     const vluint64_t sim_load_value_fifo = 600;    // Adjust as needed
+    const vluint64_t sim_load_value_fifo_32 = 700; // Adjust as needed
 
     // Open VCD dump file
     Verilated::traceEverOn(true);
@@ -35,6 +36,8 @@ int main(int argc, char **argv)
     VerilatedVcdC *tfp3 = new VerilatedVcdC;
     VerilatedVcdC *tfp4 = new VerilatedVcdC;
     VerilatedVcdC *tfp5 = new VerilatedVcdC;
+    VerilatedVcdC *tfp6 = new VerilatedVcdC;
+    VerilatedVcdC *tfp7 = new VerilatedVcdC;
 
     top->trace(tfp, 99); // Trace 99 levels of hierarchy
     tfp->open("sim_reset_n_clock.vcd");
@@ -218,6 +221,84 @@ int main(int argc, char **argv)
     }
     // cleanup sim file
     tfp5->close();
+
+    top->trace(tfp6, 99); // Trace 99 levels of hierarchy
+    tfp6->open("sim_load_value_mode0_32bit.vcd");
+    main_time = 0; // Reset time
+
+    top->spi_cpol = 0;
+    top->spi_cpha = 0;
+    // Reset sequence
+    while (main_time < 20)
+    {
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();
+        tfp6->dump(main_time);
+        main_time++;
+    }
+    top->reset_n = 1;
+
+    while (main_time < sim_load_value_fifo_32)
+    {
+        if (main_time == 20)
+        {
+            top->transaction_length = 32;
+            top->transaction_data = 0xAAA00F0F;
+            top->transaction_rw_mask = 0xFFFFFFFF;
+        }
+        else
+        {
+            top->transaction_length = 0;
+            top->transaction_data = 0x00000000;
+            top->transaction_rw_mask = 0x00000000;
+        }
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();           // Evaluate model
+        tfp6->dump(main_time); // Dump signals to VCD file
+
+        main_time++;
+    }
+    // cleanup sim file
+    tfp6->close();
+
+    top->trace(tfp7, 99); // Trace 99 levels of hierarchy
+    tfp7->open("sim_load_value_mode0_24_8rbit.vcd");
+    main_time = 0; // Reset time
+
+    top->spi_cpol = 1;
+    top->spi_cpha = 0;
+    // Reset sequence
+    while (main_time < 20)
+    {
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();
+        tfp7->dump(main_time);
+        main_time++;
+    }
+    top->reset_n = 1;
+
+    while (main_time < sim_load_value_fifo_32)
+    {
+        if (main_time == 20)
+        {
+            top->transaction_length = 32;
+            top->transaction_data = 0xAAA00F0F;
+            top->transaction_rw_mask = 0xFFFFFF00;
+        }
+        else
+        {
+            top->transaction_length = 0;
+            top->transaction_data = 0x00000000;
+            top->transaction_rw_mask = 0x00000000;
+        }
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();           // Evaluate model
+        tfp7->dump(main_time); // Dump signals to VCD file
+
+        main_time++;
+    }
+    // cleanup sim file
+    tfp7->close();
     delete top;
     return 0;
 }
