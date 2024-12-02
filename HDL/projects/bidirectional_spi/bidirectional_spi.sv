@@ -10,7 +10,7 @@
 // this core can be adapted to full-duplex SPI by adding a second data wire.
 module bidirectional_spi #(
   parameter DATA_WIDTH = 32,
-  parameter TRANSACTION_LEN_WIDTH = 8
+  parameter TRANSACTION_LEN_WIDTH = 6
 )(
     input wire [TRANSACTION_LEN_WIDTH-1:0]  transaction_length,
     input wire [DATA_WIDTH-1:0] transaction_data,
@@ -32,9 +32,11 @@ module bidirectional_spi #(
   reg spi_dir;           // Direction control for the SPI interface (1 for write, 0 for read)
   reg shift_out;  // SPI Data to be shifted out
 
+  localparam BIT_COUNT_WIDTH = $clog2(DATA_WIDTH);
+
   // Some of our data in the spi_clk domain
-  reg [TRANSACTION_LEN_WIDTH-1:0] bitcounter_sc, r_transaction_length;
-  reg [TRANSACTION_LEN_WIDTH-1:0] read_bitcounter_sc;
+  reg [TRANSACTION_LEN_WIDTH-1:0] r_transaction_length;
+  reg [BIT_COUNT_WIDTH-1:0] bitcounter_sc, read_bitcounter_sc;
 
   reg [DATA_WIDTH-1:0] transaction_rw_mask_sc, r_transaction_rw_mask;
   reg [DATA_WIDTH-1:0] transaction_data_sc, r_transaction_data;
@@ -242,7 +244,7 @@ module bidirectional_spi #(
       if (spi_clock_hot && spi_dir == 0) begin
         if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
           read_bitcounter_sc <= read_bitcounter_sc + 1;
-          transaction_read_data_sc[bitcounter_sc -1] <= 1'b1; //spi_sdio;
+          transaction_read_data_sc[bitcounter_sc] <= 1'b1; //spi_sdio;
         end
       end else if (spi_state == IDLE) begin
         read_bitcounter_sc <= 0;
@@ -252,6 +254,10 @@ module bidirectional_spi #(
   end
 
   reg spi_clock_hot;
+  /* verilator lint_off UNUSEDSIGNAL */
+  wire[BIT_COUNT_WIDTH:0] intermediate_bitcounter;
+  assign intermediate_bitcounter = sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH] - 1;
+  /* verilator lint_on UNUSEDSIGNAL */
 
   always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
     if (reset_n_sc) begin
@@ -270,7 +276,7 @@ module bidirectional_spi #(
         spi_cs_n <= 1'b0;
         to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
          // copy the data from the fifo
-        bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
+        bitcounter_sc <= intermediate_bitcounter[BIT_COUNT_WIDTH-1:0];
         transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
         transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
         if (spi_cpha) begin
@@ -293,9 +299,9 @@ module bidirectional_spi #(
             spi_clock_hot <= 1'b1;
           end
           spi_state <= WRITE;
-          spi_dir <= transaction_rw_mask_sc[bitcounter_sc - 1];
-          if (transaction_rw_mask_sc[bitcounter_sc - 1]) begin
-            shift_out <= transaction_data_sc[bitcounter_sc - 1];
+          spi_dir <= transaction_rw_mask_sc[bitcounter_sc];
+          if (transaction_rw_mask_sc[bitcounter_sc]) begin
+            shift_out <= transaction_data_sc[bitcounter_sc];
           end else begin
             shift_out <= 0;
           end
