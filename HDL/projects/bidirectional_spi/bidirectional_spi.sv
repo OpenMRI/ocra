@@ -208,18 +208,27 @@ module bidirectional_spi #(
   reg spi_clk_en;
 
   // Synchronize the SPI clock enable signal
-  always_ff @(posedge spi_clk or negedge reset_n_sc2) begin
+  always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc2) begin
     if (~reset_n_sc2) begin
       spi_clk_en <= 1'b0;
-    end else if (spi_clock_hot) begin
-      spi_clk_en <= 1'b1;
-      if (spi_dir == 0) begin
-        read_bitcounter_sc <= read_bitcounter_sc + 1;
-        transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
-      end
     end else begin
-      spi_clk_en <= 1'b0;
-    end
+      // manage the clock enable signal only on rising edge
+      if (spi_clk) begin
+        if (spi_clock_hot) begin
+          spi_clk_en <= 1'b1;
+        end else begin
+          spi_clk_en <= 1'b0;
+        end
+      end
+      // do the reads on either the rising or falling edge of the clock, depending
+      // on the SPI mode
+      if (spi_clock_hot && spi_dir == 0) begin
+        if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
+          read_bitcounter_sc <= read_bitcounter_sc + 1;
+          transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
+        end
+      end
+    end 
   end
 
   reg spi_clock_hot;

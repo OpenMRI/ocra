@@ -266,7 +266,7 @@ int main(int argc, char **argv)
     main_time = 0; // Reset time
 
     top->spi_cpol = 1;
-    top->spi_cpha = 0;
+    top->spi_cpha = 1;
     // Reset sequence
     while (main_time < 20)
     {
