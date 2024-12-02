@@ -55,6 +55,7 @@ module bidirectional_spi #(
   typedef enum logic [1:0] {
     F_IDLE,     
     F_WRITE,
+    F_READ,
     F_DONE
   } fstate_t;
 
@@ -79,9 +80,21 @@ module bidirectional_spi #(
       end else begin
         fabric_state <= F_IDLE;
       end
+      // check if there is something to read
+      if (~to_fabric_fifo_empty) begin
+        to_fabric_fifo_rd_en <= 1'b1;
+        fabric_state <= F_READ;
+      end else begin
+        to_fabric_fifo_rd_en <= 1'b0;
+      end
     end else if (fabric_state == F_WRITE) begin
       fabric_state <= F_IDLE;
       to_spi_fifo_wr_en <= 1'b0;
+    end else if (fabric_state == F_READ) begin
+      to_fabric_fifo_rd_en <= 1'b0;
+      fabric_state <= F_IDLE;
+      // should also copy the data from the FIFO
+
     end
   end 
 
@@ -148,7 +161,7 @@ module bidirectional_spi #(
     /* verilator lint_on PINCONNECTEMPTY */ 
   );
 
-  reg to_fabric_fifo_full, to_fabric_fifo_wr_en, to_fabric_fifo_rd_en;
+  reg to_fabric_fifo_full, to_fabric_fifo_empty, to_fabric_fifo_wr_en, to_fabric_fifo_rd_en;
 
   // Instantiate the asynchronous FIFO for the data coming from the SPI side
   async_fifo #(
@@ -164,8 +177,8 @@ module bidirectional_spi #(
     .rd_data(transaction_read_data),
     .rd_en(to_fabric_fifo_rd_en),
     .full(to_fabric_fifo_full),
+    .empty(to_fabric_fifo_empty),
     /* verilator lint_off PINCONNECTEMPTY */
-    .empty(),  
     .almost_empty(),
     .almost_full()
     /* verilator lint_on PINCONNECTEMPTY */ 
@@ -229,7 +242,7 @@ module bidirectional_spi #(
       if (spi_clock_hot && spi_dir == 0) begin
         if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
           read_bitcounter_sc <= read_bitcounter_sc + 1;
-          transaction_read_data_sc[bitcounter_sc -1] <= spi_sdio;
+          transaction_read_data_sc[bitcounter_sc -1] <= 1'b1; //spi_sdio;
         end
       end else if (spi_state == IDLE) begin
         read_bitcounter_sc <= 0;
