@@ -36,7 +36,7 @@ module bidirectional_spi #(
 
   // Some of our data in the spi_clk domain
   reg [TRANSACTION_LEN_WIDTH-1:0] r_transaction_length;
-  reg [BIT_COUNT_WIDTH-1:0] bitcounter_sc, read_bitcounter_sc;
+  reg [BIT_COUNT_WIDTH:0] bitcounter_sc, read_bitcounter_sc;
 
   reg [DATA_WIDTH-1:0] transaction_rw_mask_sc, r_transaction_rw_mask;
   reg [DATA_WIDTH-1:0] transaction_data_sc, r_transaction_data;
@@ -48,7 +48,6 @@ module bidirectional_spi #(
   assign fc_data = {r_transaction_length, r_transaction_rw_mask, r_transaction_data};
 
   assign spi_sdio = spi_dir ? shift_out : 1'bz;
-  wire spi_data_clk;
   wire spi_clk, spi_clk_gen;
 
   reg to_spi_fifo_empty;
@@ -98,46 +97,28 @@ module bidirectional_spi #(
       // should also copy the data from the FIFO
 
     end
-  end 
-
-
-  wire spi_clk_0,spi_clk_90;
+  end
 
   // Generate the clocks
   quadrature_clock_divider clock_div (
     .reset_n(reset_n),
     .clk_in(fabric_clk),
     .div_factor_4(2),
-    .sck_0(spi_clk_0),
-    .sck_90(spi_clk_90)
+    .sck_0(spi_clk_gen),
+    /* verilator lint_off PINCONNECTEMPTY */
+    .sck_90()
+    /* verilator lint_on PINCONNECTEMPTY */
   );
 
   // Reset synchronizer
-  wire reset_n_sc, reset_n_sc2;
+  wire reset_n_sc;
+
   reset_synchronizer reset_sync (
     .reset_n(reset_n),
-    .clk(spi_data_clk),
+    .clk(spi_clk),
     .sync_reset_n(reset_n_sc)
   );
-
   
-  reset_synchronizer reset_sync2 (
-    .reset_n(reset_n),
-    .clk(spi_clk),
-    .sync_reset_n(reset_n_sc2)
-  );
-  
-
-  // assign the SPI clocks based on the SPI mode
-  spi_clock_generator spi_clock_gen (
-    .clk_0(spi_clk_0),
-    .clk_90(spi_clk_90),
-    .cpol(spi_cpol),
-    .cpha(spi_cpha),
-    .spi_clk(spi_clk_gen),
-    .shift_clk(spi_data_clk)
-  );
-
   // I know this is super hacky, but it allows the logic below to look cleaner
   assign spi_clk = spi_cpol ? ~spi_clk_gen : spi_clk_gen;
 
@@ -151,7 +132,7 @@ module bidirectional_spi #(
     .wr_rst_n(reset_n),
     .wr_data(fc_data),
     .wr_en(to_spi_fifo_wr_en),
-    .rd_clk(spi_data_clk),
+    .rd_clk(spi_clk),
     .rd_rst_n(reset_n),
     .rd_data(sc_data),
     .rd_en(to_spi_fifo_rd_en),
@@ -170,7 +151,7 @@ module bidirectional_spi #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(3)
   ) to_fabric_fifo (
-    .wr_clk(spi_data_clk),
+    .wr_clk(spi_clk),
     .wr_rst_n(reset_n),
     .wr_data(transaction_read_data_sc),
     .wr_en(to_fabric_fifo_wr_en),
@@ -186,18 +167,6 @@ module bidirectional_spi #(
     /* verilator lint_on PINCONNECTEMPTY */ 
   );
 
-  // SPI side reset logic
-  always @(posedge spi_data_clk or negedge reset_n_sc) begin
-    if (~reset_n_sc) begin
-      spi_dir <= 1'b1;
-      shift_out <= 1'b0;
-      spi_cs_n <= 1'b1;
-      to_fabric_fifo_wr_en <= 1'b0;
-      to_spi_fifo_rd_en <= 1'b0;
-      //read_bitcounter_sc <= 0;
-    end
-  end 
-
   // SPI state machine stuff
   typedef enum logic [2:0] {
     IDLE,
@@ -209,19 +178,10 @@ module bidirectional_spi #(
 
   state_t spi_state;
 
-  // reset the state machine
-  always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
-    if (~reset_n_sc) begin
-      spi_state <= IDLE;
-      spi_clock_hot <= 1'b0;
-    end
-  end 
-
   // combinatorial logic to assign the SPI clock
-  assign spi_sclk = spi_clk_en ? (spi_cpol ? ~spi_clk : spi_clk) : spi_cpol;
+  assign spi_sclk = spi_clock_hot ? (spi_cpol ? ~spi_clk : spi_clk) : spi_cpol;
 
-  reg spi_clk_en;
-
+  /*
   // Synchronize the SPI clock enable signal
   always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc2) begin
     if (~reset_n_sc2) begin
@@ -244,7 +204,7 @@ module bidirectional_spi #(
       if (spi_clock_hot && spi_dir == 0) begin
         if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
           read_bitcounter_sc <= read_bitcounter_sc + 1;
-          transaction_read_data_sc[bitcounter_sc] <= 1'b1; //spi_sdio;
+          //transaction_read_data_sc[bitcounter_sc] <= 1'b1; //spi_sdio;
         end
       end else if (spi_state == IDLE) begin
         read_bitcounter_sc <= 0;
@@ -253,14 +213,26 @@ module bidirectional_spi #(
     end 
   end
 
+  */
+
   reg spi_clock_hot;
   /* verilator lint_off UNUSEDSIGNAL */
   wire[BIT_COUNT_WIDTH:0] intermediate_bitcounter;
-  assign intermediate_bitcounter = sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH] - 1;
+  assign intermediate_bitcounter = sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
   /* verilator lint_on UNUSEDSIGNAL */
 
-  always_ff @(posedge spi_data_clk or negedge reset_n_sc) begin
-    if (reset_n_sc) begin
+  always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc) begin
+    if (~reset_n_sc) begin
+      spi_dir <= 1'b1;
+      shift_out <= 1'b0;
+      spi_cs_n <= 1'b1;
+      to_spi_fifo_rd_en <= 1'b0;
+      to_fabric_fifo_wr_en <= 1'b0;
+      spi_state <= IDLE;
+      spi_clock_hot <= 1'b0;
+      transaction_read_data_sc <= 0;
+      read_bitcounter_sc <= 0;
+    end else begin
       if (spi_state == IDLE) begin
         to_fabric_fifo_wr_en <= 1'b0;
         shift_out <= 1'b0;
@@ -272,19 +244,25 @@ module bidirectional_spi #(
           spi_state <= IDLE;
          end
       end else if (spi_state == FIFO_READ) begin
-        spi_state <= WRITE;
-        spi_cs_n <= 1'b0;
+        spi_state <= CS_ASSERT;
         to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
          // copy the data from the fifo
-        bitcounter_sc <= intermediate_bitcounter[BIT_COUNT_WIDTH-1:0];
+        bitcounter_sc <= intermediate_bitcounter; //[BIT_COUNT_WIDTH-1:0];
         transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
         transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
-        if (spi_cpha) begin
-          spi_clock_hot <= 1'b1;
-        end
       end else if (spi_state == CS_ASSERT) begin
         spi_state <= WRITE;
         spi_cs_n <= 1'b0;
+        spi_clock_hot <= 1'b1;
+        if (~spi_clk && ~spi_cpha) begin
+          spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
+          if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
+            shift_out <= transaction_data_sc[bitcounter_sc-1];
+          end else begin
+            shift_out <= 0;
+          end
+          bitcounter_sc <= bitcounter_sc - 1;
+        end
       end else if (spi_state == WRITE) begin
         if (bitcounter_sc == 0) begin
           spi_state <= DONE;
@@ -293,19 +271,25 @@ module bidirectional_spi #(
           spi_clock_hot <= 1'b0;
           shift_out <= 0;
         end else begin
+          /*
           if (spi_cpha && bitcounter_sc == 1) begin
             spi_clock_hot <= 1'b0;
           end else begin
             spi_clock_hot <= 1'b1;
           end
-          spi_state <= WRITE;
-          spi_dir <= transaction_rw_mask_sc[bitcounter_sc];
-          if (transaction_rw_mask_sc[bitcounter_sc]) begin
-            shift_out <= transaction_data_sc[bitcounter_sc];
-          end else begin
-            shift_out <= 0;
+          */
+          if ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) begin
+          
+            spi_state <= WRITE;
+            bitcounter_sc <= bitcounter_sc - 1;
+    
+            spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
+            if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
+              shift_out <= transaction_data_sc[bitcounter_sc-1];
+            end else begin
+              shift_out <= 0;
+            end
           end
-          bitcounter_sc <= bitcounter_sc - 1;
         end
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;
