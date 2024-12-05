@@ -254,7 +254,7 @@ module bidirectional_spi #(
         spi_state <= WRITE;
         spi_cs_n <= 1'b0;
         spi_clock_hot <= 1'b1;
-        if (~spi_clk && ~spi_cpha) begin
+        if (~spi_cpol && ~spi_clk && ~spi_cpha) begin
           spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
           if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
             shift_out <= transaction_data_sc[bitcounter_sc-1];
@@ -266,33 +266,24 @@ module bidirectional_spi #(
       end else if (spi_state == WRITE) begin
         if (bitcounter_sc == 0) begin
           spi_state <= DONE;
-          spi_cs_n <= 1'b1;
-          spi_dir <= 1'b1;
-          spi_clock_hot <= 1'b0;
-          shift_out <= 0;
         end else begin
-          /*
-          if (spi_cpha && bitcounter_sc == 1) begin
-            spi_clock_hot <= 1'b0;
-          end else begin
-            spi_clock_hot <= 1'b1;
-          end
-          */
-          if ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) begin
-          
-            spi_state <= WRITE;
-            bitcounter_sc <= bitcounter_sc - 1;
+          spi_state <= WRITE;
+        end
+        if ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) begin  
+          bitcounter_sc <= bitcounter_sc - 1;
     
-            spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
-            if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
-              shift_out <= transaction_data_sc[bitcounter_sc-1];
-            end else begin
-              shift_out <= 0;
-            end
+          spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
+          if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
+            shift_out <= transaction_data_sc[bitcounter_sc-1];
+          end else begin
+            shift_out <= 0;
           end
         end
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;
+        spi_clock_hot <= 1'b0;
+        spi_dir <= 1'b1;
+        spi_cs_n <= 1'b1;
         if (read_bitcounter_sc == 0) begin
           spi_state <= IDLE;
           to_fabric_fifo_wr_en <= 1'b0;
