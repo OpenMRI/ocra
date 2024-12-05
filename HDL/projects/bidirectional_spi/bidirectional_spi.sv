@@ -259,6 +259,7 @@ module bidirectional_spi #(
           if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
             shift_out <= transaction_data_sc[bitcounter_sc-1];
           end else begin
+            read_bitcounter_sc <= read_bitcounter_sc + 1;
             shift_out <= 0;
           end
           bitcounter_sc <= bitcounter_sc - 1;
@@ -275,9 +276,14 @@ module bidirectional_spi #(
           spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
           if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
             shift_out <= transaction_data_sc[bitcounter_sc-1];
-          end else begin
-            shift_out <= 0;
           end
+        end 
+        if (~spi_dir) begin
+          // this is where the reading takes place
+          if (spi_clk && ~spi_cpha) begin
+              read_bitcounter_sc <= read_bitcounter_sc + 1;
+              shift_out <= 0;
+          end 
         end
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;
