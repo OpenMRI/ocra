@@ -265,7 +265,7 @@ int main(int argc, char **argv)
     tfp6->close();
 
     top->trace(tfp7, 99); // Trace 99 levels of hierarchy
-    tfp7->open("sim_load_value_mode0_24_8rbit_mode0.vcd");
+    tfp7->open("sim_load_value_24w_8rbit_mode0.vcd");
     main_time = 0; // Reset time
 
     top->spi_cpol = 0;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     tfp7->close();
 
     top->trace(tfp8, 99); // Trace 99 levels of hierarchy
-    tfp8->open("sim_load_value_mode0_24_8rbit_mode1.vcd");
+    tfp8->open("sim_load_value_24w_8rbit_mode1.vcd");
     main_time = 0; // Reset time
 
     top->spi_cpol = 0;
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
     tfp8->close();
 
     top->trace(tfp9, 99); // Trace 99 levels of hierarchy
-    tfp9->open("sim_load_value_mode0_24_8rbit_mode2.vcd");
+    tfp9->open("sim_load_value_24w_8rbit_mode2.vcd");
     main_time = 0; // Reset time
 
     top->spi_cpol = 1;
@@ -383,7 +383,7 @@ int main(int argc, char **argv)
     tfp9->close();
 
     top->trace(tfp10, 99); // Trace 99 levels of hierarchy
-    tfp10->open("sim_load_value_mode0_24_8rbit_mode3.vcd");
+    tfp10->open("sim_load_value_24w_8rbit_mode3.vcd");
     main_time = 0; // Reset time
 
     top->spi_cpol = 1;
