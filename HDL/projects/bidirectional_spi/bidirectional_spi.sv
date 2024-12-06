@@ -232,9 +232,9 @@ module bidirectional_spi #(
         spi_cs_n <= 1'b0;
         spi_clock_hot <= 1'b1;
 
-        // deal with the write case for Mode 0, I doubt there is a read case here
+        // deal with the write case for Mode 0 & 2, I doubt there is a read case here
         // at all directly after CS is asserted
-        if (~spi_cpol && ~spi_clk && ~spi_cpha && spi_dir) begin
+        if (~spi_clk && ~spi_cpha && spi_dir) begin
           spi_dir <= rw_shift_register[DATA_WIDTH-1];
           rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
 
