@@ -185,11 +185,6 @@ module bidirectional_spi #(
   assign spi_sclk = spi_clock_hot ? (spi_cpol ? ~spi_clk : spi_clk) : spi_cpol;
 
   reg spi_clock_hot;
-  /* verilator lint_off UNUSEDSIGNAL */
-  wire[BIT_COUNT_WIDTH:0] intermediate_bitcounter;
-  assign intermediate_bitcounter = sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
-  /* verilator lint_on UNUSEDSIGNAL */
-
   reg [DATA_WIDTH-1:0] shiftout_register, rw_shift_register, shiftin_register;
 
   assign transaction_read_data_sc = shiftin_register;
@@ -220,7 +215,7 @@ module bidirectional_spi #(
         spi_state <= CS_ASSERT;
         to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
          // copy the data from the fifo
-        bitcounter_sc <= intermediate_bitcounter; //[BIT_COUNT_WIDTH-1:0];  
+        bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
         shiftout_register <= sc_data[DATA_WIDTH-1:0];
         rw_shift_register <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
       end else if (spi_state == CS_ASSERT) begin
