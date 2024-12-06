@@ -12,7 +12,7 @@
     show_empty_scopes: None,
     show_parameters_in_scopes: None,
     waves: Some((
-        source: File("sim_load_value_mode0_24_8rbit_mode0.vcd"),
+        source: File("sim_load_value_24r_8w_mode0.vcd"),
         format: Vcd,
         active_scope: Some(WaveScope((
             strs: [
@@ -39,9 +39,10 @@
             (16),
             (17),
             (18),
+            (19),
         ],
         displayed_items: {
-            (12): Variable((
+            (9): Variable((
                 variable_ref: (
                     path: (
                         strs: [
@@ -49,11 +50,103 @@
                             "bidirectional_spi",
                         ],
                     ),
-                    name: "spi_cs_n",
+                    name: "spi_clk",
                 ),
-                color: Some("red"),
+                color: Some("yellow"),
                 background_color: None,
-                display_name: "spi_cs_n",
+                display_name: "spi_clk",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (6): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                            "to_spi_fifo",
+                            "mem",
+                        ],
+                    ),
+                    name: "[0]",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "[0] [69:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (7): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "to_spi_fifo_empty",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "to_spi_fifo_empty",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (18): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "read_bitcounter_sc",
+                ),
+                color: Some("violet"),
+                background_color: None,
+                display_name: "read_bitcounter_sc [5:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (13): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_sdio",
+                ),
+                color: Some("blue"),
+                background_color: None,
+                display_name: "spi_sdio",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (19): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "transaction_read_data_sc",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "transaction_read_data_sc [31:0]",
                 display_name_type: Unique,
                 manual_name: None,
                 format: None,
@@ -94,7 +187,7 @@
                 format: None,
                 field_formats: [],
             )),
-            (9): Variable((
+            (14): Variable((
                 variable_ref: (
                     path: (
                         strs: [
@@ -102,17 +195,17 @@
                             "bidirectional_spi",
                         ],
                     ),
-                    name: "spi_clk",
+                    name: "spi_sclk",
                 ),
-                color: Some("yellow"),
+                color: Some("red"),
                 background_color: None,
-                display_name: "spi_clk",
+                display_name: "spi_sclk",
                 display_name_type: Unique,
                 manual_name: None,
                 format: None,
                 field_formats: [],
             )),
-            (18): Variable((
+            (17): Variable((
                 variable_ref: (
                     path: (
                         strs: [
@@ -120,14 +213,14 @@
                             "bidirectional_spi",
                         ],
                     ),
-                    name: "read_bitcounter_sc",
+                    name: "bitcounter_sc",
                 ),
-                color: Some("violet"),
+                color: None,
                 background_color: None,
-                display_name: "read_bitcounter_sc [7:0]",
+                display_name: "bitcounter_sc [5:0]",
                 display_name_type: Unique,
                 manual_name: None,
-                format: None,
+                format: Some("Unsigned"),
                 field_formats: [],
             )),
             (15): Variable((
@@ -148,7 +241,7 @@
                 format: None,
                 field_formats: [],
             )),
-            (16): Variable((
+            (12): Variable((
                 variable_ref: (
                     path: (
                         strs: [
@@ -156,11 +249,11 @@
                             "bidirectional_spi",
                         ],
                     ),
-                    name: "spi_state",
+                    name: "spi_cs_n",
                 ),
-                color: None,
+                color: Some("red"),
                 background_color: None,
-                display_name: "spi_state [2:0]",
+                display_name: "spi_cs_n",
                 display_name_type: Unique,
                 manual_name: None,
                 format: None,
@@ -178,43 +271,6 @@
                 color: None,
                 background_color: None,
                 display_name: "transaction_data [31:0]",
-                display_name_type: Unique,
-                manual_name: None,
-                format: None,
-                field_formats: [],
-            )),
-            (6): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                            "bidirectional_spi",
-                            "to_spi_fifo",
-                            "mem",
-                        ],
-                    ),
-                    name: "[0]",
-                ),
-                color: None,
-                background_color: None,
-                display_name: "[0] [71:0]",
-                display_name_type: Unique,
-                manual_name: None,
-                format: None,
-                field_formats: [],
-            )),
-            (1): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                        ],
-                    ),
-                    name: "reset_n",
-                ),
-                color: None,
-                background_color: None,
-                display_name: "reset_n",
                 display_name_type: Unique,
                 manual_name: None,
                 format: None,
@@ -238,61 +294,24 @@
                 format: None,
                 field_formats: [],
             )),
-            (7): Variable((
+            (1): Variable((
                 variable_ref: (
                     path: (
                         strs: [
                             "TOP",
-                            "bidirectional_spi",
                         ],
                     ),
-                    name: "to_spi_fifo_empty",
+                    name: "reset_n",
                 ),
                 color: None,
                 background_color: None,
-                display_name: "to_spi_fifo_empty",
+                display_name: "reset_n",
                 display_name_type: Unique,
                 manual_name: None,
                 format: None,
                 field_formats: [],
             )),
-            (14): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                            "bidirectional_spi",
-                        ],
-                    ),
-                    name: "spi_sclk",
-                ),
-                color: Some("red"),
-                background_color: None,
-                display_name: "spi_sclk",
-                display_name_type: Unique,
-                manual_name: None,
-                format: None,
-                field_formats: [],
-            )),
-            (13): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                            "bidirectional_spi",
-                        ],
-                    ),
-                    name: "spi_sdio",
-                ),
-                color: Some("blue"),
-                background_color: None,
-                display_name: "spi_sdio",
-                display_name_type: Unique,
-                manual_name: None,
-                format: None,
-                field_formats: [],
-            )),
-            (11): Variable((
+            (11): Placeholder((
                 variable_ref: (
                     path: (
                         strs: [
@@ -310,7 +329,42 @@
                 format: None,
                 field_formats: [],
             )),
-            (8): Variable((
+            (4): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                        ],
+                    ),
+                    name: "transaction_length",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "transaction_length [5:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (16): Variable((
+                variable_ref: (
+                    path: (
+                        strs: [
+                            "TOP",
+                            "bidirectional_spi",
+                        ],
+                    ),
+                    name: "spi_state",
+                ),
+                color: None,
+                background_color: None,
+                display_name: "spi_state [2:0]",
+                display_name_type: Unique,
+                manual_name: None,
+                format: None,
+                field_formats: [],
+            )),
+            (8): Placeholder((
                 variable_ref: (
                     path: (
                         strs: [
@@ -328,47 +382,12 @@
                 format: None,
                 field_formats: [],
             )),
-            (4): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                        ],
-                    ),
-                    name: "transaction_length",
-                ),
-                color: None,
-                background_color: None,
-                display_name: "transaction_length [7:0]",
-                display_name_type: Unique,
-                manual_name: None,
-                format: None,
-                field_formats: [],
-            )),
-            (17): Variable((
-                variable_ref: (
-                    path: (
-                        strs: [
-                            "TOP",
-                            "bidirectional_spi",
-                        ],
-                    ),
-                    name: "bitcounter_sc",
-                ),
-                color: None,
-                background_color: None,
-                display_name: "bitcounter_sc [7:0]",
-                display_name_type: Unique,
-                manual_name: None,
-                format: Some("Unsigned"),
-                field_formats: [],
-            )),
         },
-        display_item_ref_counter: 18,
+        display_item_ref_counter: 20,
         viewports: [
             (
-                curr_left: (0.5484446044212009),
-                curr_right: (0.8239406535331145),
+                curr_left: (0.0005178343624356449),
+                curr_right: (0.551509932586263),
                 target_left: (0.0),
                 target_right: (1.0),
                 move_start_left: (0.0),
@@ -381,7 +400,7 @@
             450,
         ])),
         markers: {},
-        focused_item: Some((17)),
+        focused_item: Some((18)),
         focused_transaction: (None, None),
         selected_items: [],
         default_variable_name_type: Unique,
