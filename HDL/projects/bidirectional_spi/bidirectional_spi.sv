@@ -33,25 +33,27 @@ module bidirectional_spi #(
   reg shift_out;  // SPI Data to be shifted out
 
   localparam BIT_COUNT_WIDTH = $clog2(DATA_WIDTH);
-
+  //localparam integer IMASK = (1 << $clog2(DATA_WIDTH)) - 1;
   // Some of our data in the spi_clk domain
   reg [TRANSACTION_LEN_WIDTH-1:0] r_transaction_length;
   reg [BIT_COUNT_WIDTH:0] bitcounter_sc, read_bitcounter_sc;
 
-  reg [DATA_WIDTH-1:0] transaction_rw_mask_sc, r_transaction_rw_mask;
-  reg [DATA_WIDTH-1:0] transaction_data_sc, r_transaction_data;
+  //reg [DATA_WIDTH-1:0] transaction_rw_mask_sc
+  reg [DATA_WIDTH-1:0] r_transaction_rw_mask;
+  //reg [DATA_WIDTH-1:0] transaction_data_sc, 
+  reg [DATA_WIDTH-1:0] r_transaction_data;
 
   reg [TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:0] sc_data, fc_data;
 
   reg [DATA_WIDTH-1:0] transaction_read_data_sc;
-
+  
   assign fc_data = {r_transaction_length, r_transaction_rw_mask, r_transaction_data};
 
   assign spi_sdio = spi_dir ? shift_out : 1'bz;
   wire spi_clk, spi_clk_gen;
 
   reg to_spi_fifo_empty;
-  
+
   // fabric side state machine states
   typedef enum logic [1:0] {
     F_IDLE,     
@@ -221,6 +223,8 @@ module bidirectional_spi #(
   assign intermediate_bitcounter = sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
   /* verilator lint_on UNUSEDSIGNAL */
 
+  reg [DATA_WIDTH-1:0] shiftout_register, rw_shift_register;
+
   always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc) begin
     if (~reset_n_sc) begin
       spi_dir <= 1'b1;
@@ -247,44 +251,61 @@ module bidirectional_spi #(
         spi_state <= CS_ASSERT;
         to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
          // copy the data from the fifo
-        bitcounter_sc <= intermediate_bitcounter; //[BIT_COUNT_WIDTH-1:0];
-        transaction_rw_mask_sc <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
-        transaction_data_sc <= sc_data[DATA_WIDTH-1:0];
+        bitcounter_sc <= intermediate_bitcounter; //[BIT_COUNT_WIDTH-1:0];  
+        shiftout_register <= sc_data[DATA_WIDTH-1:0];
+        /*
+        if (DATA_WIDTH > 1) begin
+          rw_shift_register <= {sc_data[DATA_WIDTH+DATA_WIDTH-2:DATA_WIDTH], 1'b1};
+        end else begin
+          rw_shift_register <= 1;
+        end
+        spi_dir <= sc_data[DATA_WIDTH+DATA_WIDTH-1];
+        */
+        rw_shift_register <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
       end else if (spi_state == CS_ASSERT) begin
         spi_state <= WRITE;
         spi_cs_n <= 1'b0;
         spi_clock_hot <= 1'b1;
-        if (~spi_cpol && ~spi_clk && ~spi_cpha) begin
-          spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
-          if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
-            shift_out <= transaction_data_sc[bitcounter_sc-1];
-          end else begin
-            read_bitcounter_sc <= read_bitcounter_sc + 1;
-            shift_out <= 0;
-          end
+
+        // deal with the write case for Mode 0, I doubt there is a read case here
+        // at all directly after CS is asserted
+        if (~spi_cpol && ~spi_clk && ~spi_cpha && spi_dir) begin
+          spi_dir <= rw_shift_register[DATA_WIDTH-1];
+          rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
+
+          shift_out <= shiftout_register[DATA_WIDTH-1];
+          shiftout_register <= {shiftout_register[DATA_WIDTH-2:0],1'b0};
           bitcounter_sc <= bitcounter_sc - 1;
         end
+
       end else if (spi_state == WRITE) begin
         if (bitcounter_sc == 0) begin
           spi_state <= DONE;
         end else begin
           spi_state <= WRITE;
         end
-        if ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) begin  
-          bitcounter_sc <= bitcounter_sc - 1;
-    
-          spi_dir <= transaction_rw_mask_sc[bitcounter_sc-1];
-          if (transaction_rw_mask_sc[bitcounter_sc-1]) begin
-            shift_out <= transaction_data_sc[bitcounter_sc-1];
+
+        // all valid transitions that advance the state machine
+        if ((spi_dir && ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha))) || 
+            (~spi_dir && spi_clk && ~spi_cpha)) begin
+          spi_dir <= rw_shift_register[DATA_WIDTH-1];
+          rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
+          if (spi_dir == rw_shift_register[DATA_WIDTH-1]) begin
+            // do not decrement when the direction changes
+            bitcounter_sc <= bitcounter_sc - 1;
           end
-        end 
-        if (~spi_dir) begin
-          // this is where the reading takes place
-          if (spi_clk && ~spi_cpha) begin
-              read_bitcounter_sc <= read_bitcounter_sc + 1;
-              shift_out <= 0;
-          end 
         end
+
+        if (((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) && spi_dir) begin  
+          shift_out <= shiftout_register[DATA_WIDTH-1];
+          shiftout_register <= {shiftout_register[DATA_WIDTH-2:0],1'b0};
+          
+        end else if (~spi_dir && spi_clk && ~spi_cpha) begin
+          // it is a read transaction, so increment the read counter
+          read_bitcounter_sc <= read_bitcounter_sc + 1;
+        end
+
+
       end else if (spi_state == DONE) begin
         shift_out <= 1'b0;
         spi_clock_hot <= 1'b0;
