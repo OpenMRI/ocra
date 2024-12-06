@@ -277,7 +277,7 @@ module bidirectional_spi #(
         end else begin
           spi_state <= READ;
         end
-        if (spi_clk && ~spi_cpha) begin
+        if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
           if (~rw_shift_register[DATA_WIDTH-1]) begin
             spi_dir <= rw_shift_register[DATA_WIDTH-1];
             rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
@@ -286,7 +286,7 @@ module bidirectional_spi #(
           end
         end
 
-        if (~spi_dir && spi_clk && ~spi_cpha) begin
+        if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
           // it is a read transaction, so increment the read counter
           read_bitcounter_sc <= read_bitcounter_sc + 1;
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b1};
