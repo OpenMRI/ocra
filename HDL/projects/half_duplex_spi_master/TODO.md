@@ -12,3 +12,4 @@ Important issues remaining on this core
 - [ ] check for unnecessary priority encoders (not done)
 - [ ] change the state machine to follow standard pattern (not done)
 - [ ] implement and test error detection (not done)
+- [ ] bring a busy flag to the fabric domain using a double flop synchronizer (not done)
