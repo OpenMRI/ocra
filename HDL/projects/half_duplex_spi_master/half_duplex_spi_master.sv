@@ -31,6 +31,7 @@ module half_duplex_spi_master #(
 
   reg spi_dir;           // Direction control for the SPI interface (1 for write, 0 for read)
   reg shift_out;  // SPI Data to be shifted out
+  reg r_spi_cpol, r_spi_cpha, spi_cpol_sc, spi_cpha_sc;
 
   localparam BIT_COUNT_WIDTH = $clog2(DATA_WIDTH);
 
@@ -44,11 +45,11 @@ module half_duplex_spi_master #(
   reg [DATA_WIDTH-1:0] r_transaction_data;
   reg [DATA_WIDTH-1:0] r_transaction_read_data, f_transaction_read_data;
 
-  reg [TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:0] sc_data, fc_data;
+  reg [2+TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:0] sc_data, fc_data;
 
   reg [DATA_WIDTH-1:0] transaction_read_data_sc;
   
-  assign fc_data = {r_transaction_length, r_transaction_rw_mask, r_transaction_data};
+  assign fc_data = {r_spi_cpol, r_spi_cpha, r_transaction_length, r_transaction_rw_mask, r_transaction_data};
 
   assign spi_sdio = spi_dir ? shift_out : 1'bz;
 
@@ -77,6 +78,8 @@ module half_duplex_spi_master #(
       r_transaction_length <= 0;
       r_transaction_rw_mask <= 0;
       r_transaction_data <= 0;
+      r_spi_cpol <= 0;
+      r_spi_cpha <= 0;
     end else if (fabric_state == F_IDLE) begin
       if (transaction_length > 0) begin
         fabric_state <= F_WRITE;
@@ -84,6 +87,8 @@ module half_duplex_spi_master #(
         r_transaction_length <= transaction_length;
         r_transaction_rw_mask <= transaction_rw_mask;
         r_transaction_data <= transaction_data;
+        r_spi_cpol <= spi_cpol;
+        r_spi_cpha <=  spi_cpha;
       end else begin
         fabric_state <= F_IDLE;
       end
@@ -115,12 +120,12 @@ module half_duplex_spi_master #(
   );
   
   // I know this is super hacky, but it allows the logic below to look cleaner
-  assign spi_clk = spi_cpol ? ~spi_clk_in : spi_clk_in;
+  assign spi_clk = spi_cpol_sc ? ~spi_clk_in : spi_clk_in;
 
   reg to_spi_fifo_rd_en, to_spi_fifo_wr_en;
   // Instantiate the asynchronous FIFO for the data going to the SPI side
   async_fifo #(
-    .DATA_WIDTH(TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
+    .DATA_WIDTH(2+TRANSACTION_LEN_WIDTH+2*DATA_WIDTH),
     .ADDR_WIDTH(3)
   ) to_spi_fifo (
     .wr_clk(fabric_clk),
@@ -176,7 +181,7 @@ module half_duplex_spi_master #(
   state_t spi_state;
 
   // combinatorial logic to assign the SPI clock
-  assign spi_sclk = spi_clock_hot ? (spi_cpol ? ~spi_clk : spi_clk) : spi_cpol;
+  assign spi_sclk = spi_clock_hot ? (spi_cpol_sc ? ~spi_clk : spi_clk) : spi_cpol_sc;
 
   reg spi_clock_hot;
   reg [DATA_WIDTH-1:0] shiftout_register, rw_shift_register, shiftin_register;
@@ -194,6 +199,9 @@ module half_duplex_spi_master #(
       spi_clock_hot <= 1'b0;
       read_bitcounter_sc <= 0;
       shiftin_register <= 0;
+      // pickup the mode on reset
+      spi_cpol_sc <= spi_cpol;
+      spi_cpha_sc <= spi_cpha;
     end else begin
       if (spi_state == IDLE) begin
         to_fabric_fifo_wr_en <= 1'b0;
@@ -210,7 +218,9 @@ module half_duplex_spi_master #(
       end else if (spi_state == FIFO_READ) begin
         spi_state <= CS_ASSERT;
         to_spi_fifo_rd_en <= 1'b0; // deassert the read enable
-         // copy the data from the fifo
+        // copy the data from the fifo
+        spi_cpol_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH+1];
+        spi_cpha_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH];
         bitcounter_sc <= sc_data[TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH+DATA_WIDTH];
         shiftout_register <= sc_data[DATA_WIDTH-1:0];
         rw_shift_register <= sc_data[DATA_WIDTH+DATA_WIDTH-1:DATA_WIDTH];
@@ -225,7 +235,7 @@ module half_duplex_spi_master #(
 
         // deal with the write case for Mode 0 & 2, I doubt there is a read case here
         // at all directly after CS is asserted
-        if (~spi_clk && ~spi_cpha && spi_dir) begin
+        if (~spi_clk && ~spi_cpha_sc && spi_dir) begin
           spi_dir <= rw_shift_register[DATA_WIDTH-1];
           rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
 
@@ -245,7 +255,7 @@ module half_duplex_spi_master #(
         end
 
         // all valid transitions that advance the state machine
-        if ((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) begin
+        if ((spi_clk && spi_cpha_sc) || (~spi_clk && ~spi_cpha_sc)) begin
           spi_dir <= rw_shift_register[DATA_WIDTH-1];
           rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
           if (rw_shift_register[DATA_WIDTH-1]) begin
@@ -256,7 +266,7 @@ module half_duplex_spi_master #(
           end
         end
 
-        if (((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) && rw_shift_register[DATA_WIDTH-1]) begin  
+        if (((spi_clk && spi_cpha_sc) || (~spi_clk && ~spi_cpha_sc)) && rw_shift_register[DATA_WIDTH-1]) begin  
           shift_out <= shiftout_register[DATA_WIDTH-1];
           shiftout_register <= {shiftout_register[DATA_WIDTH-2:0],1'b0};
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b0};
@@ -268,7 +278,7 @@ module half_duplex_spi_master #(
         end else begin
           spi_state <= READ;
         end
-        if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
+        if ((spi_clk && ~spi_cpha_sc) || (~spi_clk && spi_cpha_sc)) begin
           if (~rw_shift_register[DATA_WIDTH-1]) begin
             spi_dir <= rw_shift_register[DATA_WIDTH-1];
             rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
@@ -277,7 +287,7 @@ module half_duplex_spi_master #(
           end
         end
 
-        if ((spi_clk && ~spi_cpha) || (~spi_clk && spi_cpha)) begin
+        if ((spi_clk && ~spi_cpha_sc) || (~spi_clk && spi_cpha_sc)) begin
           // it is a read transaction, so increment the read counter
           read_bitcounter_sc <= read_bitcounter_sc + 1;
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b1};
