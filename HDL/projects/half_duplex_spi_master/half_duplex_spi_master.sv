@@ -1,14 +1,12 @@
-// bidirectional_spi module
-// This module implements a bidirectional SPI interface with the following features:
+// half_duplex_spi_master module
+// This module implements a half-duplex (bidirectional) SPI master interface with the following features:
 // - uses a mask to determine which bits are written or read
 // - supports all four SPI modes (CPOL=0, CPHA=0; CPOL=0, CPHA=1; CPOL=1, CPHA=0; CPOL=1, CPHA=1)
 // - supports configurable data width
-// - supports input of an arbitary quadrature clock for SPI clocking
+// - supports input of an arbitary spi clock
 // - raise an error flag if invalid parameters are used
-// Bidirectional SPI is an interface where the data can be written and read using a single wire.
-// this is also known as half-duplex SPI.
-// this core can be adapted to full-duplex SPI by adding a second data wire.
-module bidirectional_spi #(
+// Half-duplex SPI is an interface where the data can be written and read using a single wire.
+module half_duplex_spi_master #(
   parameter DATA_WIDTH = 32,
   parameter TRANSACTION_LEN_WIDTH = 6
 )(
@@ -33,7 +31,7 @@ module bidirectional_spi #(
   reg shift_out;  // SPI Data to be shifted out
 
   localparam BIT_COUNT_WIDTH = $clog2(DATA_WIDTH);
-  //localparam integer IMASK = (1 << $clog2(DATA_WIDTH)) - 1;
+
   // Some of our data in the spi_clk domain
   reg [TRANSACTION_LEN_WIDTH-1:0] r_transaction_length;
   reg [BIT_COUNT_WIDTH:0] bitcounter_sc, read_bitcounter_sc;

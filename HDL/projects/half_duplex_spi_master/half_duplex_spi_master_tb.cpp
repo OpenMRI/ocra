@@ -1,5 +1,5 @@
 // main.cpp
-#include "Vbidirectional_spi.h"
+#include "Vhalf_duplex_spi_master.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include <iostream>
@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
 
     // Instantiate the top module
-    Vbidirectional_spi *top = new Vbidirectional_spi;
+    Vhalf_duplex_spi_master *top = new Vhalf_duplex_spi_master;
 
     // Initialize simulation inputs
     top->transaction_length = 0;
