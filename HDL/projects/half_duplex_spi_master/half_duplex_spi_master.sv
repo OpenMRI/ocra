@@ -178,7 +178,9 @@ module half_duplex_spi_master #(
     FIFO_WRITE
   } state_t;
 
-  state_t spi_state;
+  /* verilator lint_off UNUSEDSIGNAL */
+  state_t spi_state, next_spi_state;
+  /* verilator lint_on UNUSEDSIGNAL */
 
   // combinatorial logic to assign the SPI clock
   assign spi_sclk = spi_clock_hot ? (spi_cpol_sc ? ~spi_clk : spi_clk) : spi_cpol_sc;
@@ -187,6 +189,58 @@ module half_duplex_spi_master #(
   reg [DATA_WIDTH-1:0] shiftout_register, rw_shift_register, shiftin_register;
 
   assign transaction_read_data_sc = shiftin_register;
+
+  // traditional FSM pattern
+
+  always_comb begin
+    next_spi_state = spi_state;
+
+    case (spi_state)
+      IDLE: begin
+        if(~to_spi_fifo_empty) next_spi_state = FIFO_READ;
+      end
+
+      FIFO_READ: begin
+        next_spi_state = CS_ASSERT;
+      end
+
+      CS_ASSERT: begin
+        if (rw_shift_register[DATA_WIDTH-1]) begin
+          next_spi_state = WRITE;
+        end else begin
+          next_spi_state = READ;
+        end
+      end
+
+      WRITE: begin
+        if (bitcounter_sc == 0) begin
+          next_spi_state = DONE;
+        end else if (~rw_shift_register[DATA_WIDTH-1]) begin
+          next_spi_state = READ;
+        end
+      end
+
+      READ: begin
+        if (bitcounter_sc == 0) begin
+          next_spi_state = DONE;
+        end else if (rw_shift_register[DATA_WIDTH-1]) begin
+          next_spi_state = WRITE;
+        end
+      end
+
+      DONE: begin
+        if (read_bitcounter_sc == 0 || to_fabric_fifo_full) begin
+          next_spi_state = IDLE;
+        end else begin
+          next_spi_state = FIFO_WRITE;
+        end
+      end
+
+      FIFO_WRITE: next_spi_state = IDLE;
+
+      default: next_spi_state = IDLE;
+    endcase
+  end
 
   always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc) begin
     if (~reset_n_sc) begin
