@@ -1,8 +1,8 @@
 VERILATOR = verilator
-TOP_MODULE = half_duplex_spi_master
+TOP_MODULE = half_duplex_spi_master_clkdiv
 VERILATED = obj_dir/V$(TOP_MODULE)
 
-SRC_FILES = half_duplex_spi_master.sv ../async_fifo/async_fifo.sv ../reset_synchronizer/reset_synchronizer.sv ../quadrature_clock_divider/quadrature_clock_divider.sv
+SRC_FILES = half_duplex_spi_master_clkdiv.sv half_duplex_spi_master.sv ../async_fifo/async_fifo.sv ../reset_synchronizer/reset_synchronizer.sv ../quadrature_clock_divider/quadrature_clock_divider.sv
 CPP_FILES = half_duplex_spi_master_tb.cpp
 
 all: sim

@@ -17,11 +17,13 @@ module half_duplex_spi_master #(
 
     input wire reset_n,
     input wire fabric_clk,
+    input wire spi_clk_in,
 
     // SPI Mode control
     input wire spi_cpol,   // Clock polarity
     input wire spi_cpha,   // Clock phase
 
+    // The 3-wire output
     inout wire spi_sdio,
     output reg spi_sclk,
     output reg spi_cs_n
@@ -52,7 +54,7 @@ module half_duplex_spi_master #(
 
   assign transaction_read_data = r_transaction_read_data;
 
-  wire spi_clk, spi_clk_gen;
+  wire spi_clk;
 
   reg to_spi_fifo_empty;
 
@@ -103,17 +105,6 @@ module half_duplex_spi_master #(
     end
   end
 
-  // Generate the clocks
-  quadrature_clock_divider clock_div (
-    .reset_n(reset_n),
-    .clk_in(fabric_clk),
-    .div_factor_4(2),
-    .sck_0(spi_clk_gen),
-    /* verilator lint_off PINCONNECTEMPTY */
-    .sck_90()
-    /* verilator lint_on PINCONNECTEMPTY */
-  );
-
   // Reset synchronizer
   wire reset_n_sc;
 
@@ -124,7 +115,7 @@ module half_duplex_spi_master #(
   );
   
   // I know this is super hacky, but it allows the logic below to look cleaner
-  assign spi_clk = spi_cpol ? ~spi_clk_gen : spi_clk_gen;
+  assign spi_clk = spi_cpol ? ~spi_clk_in : spi_clk_in;
 
   reg to_spi_fifo_rd_en, to_spi_fifo_wr_en;
   // Instantiate the asynchronous FIFO for the data going to the SPI side
@@ -317,4 +308,3 @@ module half_duplex_spi_master #(
   end
 
   endmodule
-

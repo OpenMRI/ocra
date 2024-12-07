@@ -5,4 +5,5 @@ Important issues remaining on this core
 - [ ] inout doesn't work in test bench (not done)
 - [x] correct bitlengths for transaction length and bitcounters (done)
 - [x] remove dual clock approach and replace with simple single clock (done)
-- [ ] make a separate module for the verilator tests (not done)
+- [x] make a separate module for the verilator tests (done)
+- [ ] check all the reset conditions (not done)
