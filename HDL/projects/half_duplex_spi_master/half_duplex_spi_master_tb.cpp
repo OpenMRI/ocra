@@ -48,6 +48,8 @@ int main(int argc, char **argv)
     VerilatedVcdC *tfp15 = new VerilatedVcdC;
     VerilatedVcdC *tfp16 = new VerilatedVcdC;
     VerilatedVcdC *tfp17 = new VerilatedVcdC;
+    VerilatedVcdC *tfp18 = new VerilatedVcdC;
+    VerilatedVcdC *tfp19 = new VerilatedVcdC;
 
     top->trace(tfp, 99); // Trace 99 levels of hierarchy
     tfp->open("sim_reset_n_clock.vcd");
@@ -703,6 +705,87 @@ int main(int argc, char **argv)
     // cleanup sim file
     tfp14->close();
 
+    /* this test case is unrealistic, as reading before writing doesn't make any
+       sense in most practical scenarios, nevertheless it should work */
+    top->trace(tfp18, 99); // Trace 99 levels of hierarchy
+    tfp18->open("sim_load_value_32inter_mode0.vcd");
+    main_time = 0; // Reset time
+    top->reset_n = 0;
+    top->spi_cpol = 0;
+    top->spi_cpha = 0;
+    // Reset sequence
+    while (main_time < 20)
+    {
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();
+        tfp18->dump(main_time);
+        main_time++;
+    }
+    top->reset_n = 1;
+
+    while (main_time < sim_load_value_fifo_32)
+    {
+        if (main_time == 20)
+        {
+            top->transaction_length = 32;
+            top->transaction_data = 0xFFFFFFFF;
+            top->transaction_rw_mask = 0xAAAAAAAA;
+        }
+        else
+        {
+            top->transaction_length = 0;
+            top->transaction_data = 0x00000000;
+            top->transaction_rw_mask = 0x00000000;
+        }
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();            // Evaluate model
+        tfp18->dump(main_time); // Dump signals to VCD file
+
+        main_time++;
+    }
+    // cleanup sim file
+    tfp18->close();
+
+    /* this test case is unrealistic, as reading before writing doesn't make any
+       sense in most practical scenarios, nevertheless it should work */
+    top->trace(tfp19, 99); // Trace 99 levels of hierarchy
+    tfp19->open("sim_load_value_32interb_mode0.vcd");
+    main_time = 0; // Reset time
+    top->reset_n = 0;
+    top->spi_cpol = 0;
+    top->spi_cpha = 0;
+    // Reset sequence
+    while (main_time < 20)
+    {
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();
+        tfp19->dump(main_time);
+        main_time++;
+    }
+    top->reset_n = 1;
+
+    while (main_time < sim_load_value_fifo_32)
+    {
+        if (main_time == 20)
+        {
+            top->transaction_length = 32;
+            top->transaction_data = 0xFFFFFFFF;
+            top->transaction_rw_mask = 0x55555555;
+        }
+        else
+        {
+            top->transaction_length = 0;
+            top->transaction_data = 0x00000000;
+            top->transaction_rw_mask = 0x00000000;
+        }
+        top->fabric_clk = !top->fabric_clk;
+        top->eval();            // Evaluate model
+        tfp19->dump(main_time); // Dump signals to VCD file
+
+        main_time++;
+    }
+    // cleanup sim file
+    tfp19->close();
     delete top;
     return 0;
 }
