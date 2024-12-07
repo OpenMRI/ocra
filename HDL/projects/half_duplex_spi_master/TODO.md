@@ -7,4 +7,4 @@ Important issues remaining on this core
 - [x] remove dual clock approach and replace with simple single clock (done)
 - [x] make a separate module for the verilator tests (done)
 - [ ] check all the reset conditions (not done)
-- [x] fix the input shift register shifts when writing out
+- [x] fix the input shift register shifts when writing out (done)

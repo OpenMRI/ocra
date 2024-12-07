@@ -256,7 +256,7 @@ module half_duplex_spi_master #(
           end
         end
 
-        if (((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) && spi_dir) begin  
+        if (((spi_clk && spi_cpha) || (~spi_clk && ~spi_cpha)) && rw_shift_register[DATA_WIDTH-1]) begin  
           shift_out <= shiftout_register[DATA_WIDTH-1];
           shiftout_register <= {shiftout_register[DATA_WIDTH-2:0],1'b0};
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b0};
