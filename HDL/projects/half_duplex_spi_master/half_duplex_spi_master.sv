@@ -278,20 +278,17 @@ module half_duplex_spi_master #(
         end else begin
           spi_state <= READ;
         end
+
         if ((spi_clk && ~spi_cpha_sc) || (~spi_clk && spi_cpha_sc)) begin
+          read_bitcounter_sc <= read_bitcounter_sc + 1;
+          shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b1};
+          bitcounter_sc <= bitcounter_sc - 1;
           if (~rw_shift_register[DATA_WIDTH-1]) begin
             spi_dir <= rw_shift_register[DATA_WIDTH-1];
             rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
           end else begin
             spi_state <= WRITE;
           end
-        end
-
-        if ((spi_clk && ~spi_cpha_sc) || (~spi_clk && spi_cpha_sc)) begin
-          // it is a read transaction, so increment the read counter
-          read_bitcounter_sc <= read_bitcounter_sc + 1;
-          shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b1};
-          bitcounter_sc <= bitcounter_sc - 1;
         end
 
       end else if (spi_state == DONE) begin
