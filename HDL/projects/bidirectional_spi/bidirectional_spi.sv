@@ -42,6 +42,7 @@ module bidirectional_spi #(
   reg [DATA_WIDTH-1:0] r_transaction_rw_mask;
   //reg [DATA_WIDTH-1:0] transaction_data_sc, 
   reg [DATA_WIDTH-1:0] r_transaction_data;
+  reg [DATA_WIDTH-1:0] r_transaction_read_data, f_transaction_read_data;
 
   reg [TRANSACTION_LEN_WIDTH+DATA_WIDTH+DATA_WIDTH-1:0] sc_data, fc_data;
 
@@ -50,6 +51,9 @@ module bidirectional_spi #(
   assign fc_data = {r_transaction_length, r_transaction_rw_mask, r_transaction_data};
 
   assign spi_sdio = spi_dir ? shift_out : 1'bz;
+
+  assign transaction_read_data = r_transaction_read_data;
+
   wire spi_clk, spi_clk_gen;
 
   reg to_spi_fifo_empty;
@@ -97,7 +101,7 @@ module bidirectional_spi #(
       to_fabric_fifo_rd_en <= 1'b0;
       fabric_state <= F_IDLE;
       // should also copy the data from the FIFO
-
+      r_transaction_read_data <= f_transaction_read_data;
     end
   end
 
@@ -159,7 +163,7 @@ module bidirectional_spi #(
     .wr_en(to_fabric_fifo_wr_en),
     .rd_clk(fabric_clk),
     .rd_rst_n(reset_n),
-    .rd_data(transaction_read_data),
+    .rd_data(f_transaction_read_data),
     .rd_en(to_fabric_fifo_rd_en),
     .full(to_fabric_fifo_full),
     .empty(to_fabric_fifo_empty),
@@ -176,7 +180,8 @@ module bidirectional_spi #(
     CS_ASSERT,
     READ,
     WRITE,
-    DONE
+    DONE,
+    FIFO_WRITE
   } state_t;
 
   state_t spi_state;
@@ -205,6 +210,8 @@ module bidirectional_spi #(
         to_fabric_fifo_wr_en <= 1'b0;
         shift_out <= 1'b0;
         spi_cs_n <= 1'b1;
+        read_bitcounter_sc <= 0;
+        shiftin_register <= 0;
         if(~to_spi_fifo_empty) begin
           spi_state <= FIFO_READ;
           to_spi_fifo_rd_en <= 1'b1; // assert the read enable
@@ -289,18 +296,23 @@ module bidirectional_spi #(
         end
 
       end else if (spi_state == DONE) begin
-        shift_out <= 1'b0;
-        spi_clock_hot <= 1'b0;
-        spi_dir <= 1'b1;
-        spi_cs_n <= 1'b1;
-        if (read_bitcounter_sc == 0) begin
+        if (spi_clk) begin
+          shift_out <= 1'b0;
+          spi_clock_hot <= 1'b0;
+          spi_dir <= 1'b1;
+          spi_cs_n <= 1'b1;
+          if (read_bitcounter_sc == 0 || to_fabric_fifo_full) begin
+            spi_state <= IDLE;
+            to_fabric_fifo_wr_en <= 1'b0;
+          end else begin
+            spi_state <= FIFO_WRITE;
+            to_fabric_fifo_wr_en <= 1'b1;
+          end          
+        end
+      end else if (spi_state == FIFO_WRITE) begin
+        if (spi_clk) begin
           spi_state <= IDLE;
           to_fabric_fifo_wr_en <= 1'b0;
-        end else if (~to_fabric_fifo_full) begin
-          spi_state <= IDLE;
-          to_fabric_fifo_wr_en <= 1'b1;
-        end else begin
-          spi_state <= DONE;
         end
       end
     end
