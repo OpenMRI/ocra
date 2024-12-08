@@ -76,13 +76,15 @@ cell pavel-demin:user:axis_interpolator:1.0 axis_interpolator_0 {
 # ROUNDMODE Random_Rounding
 # No control connection needed
 # S_AXIS_CTRL lfsr_0/M_AXIS
+
+# take the top 16 bit of the product. This means TX pulses should be scaled full range of a signed short in the data to the FPGA
 cell xilinx.com:ip:cmpy:6.0 mult_0 {
   FLOWCONTROL Blocking
   APORTWIDTH.VALUE_SRC USER
   BPORTWIDTH.VALUE_SRC USER
   APORTWIDTH 16
   BPORTWIDTH 24
-  OUTPUTWIDTH 41
+  OUTPUTWIDTH 16
 } {
   S_AXIS_A axis_interpolator_0/M_AXIS
   aclk /ps_0/FCLK_CLK0
@@ -93,40 +95,14 @@ cell xilinx.com:ip:cmpy:6.0 mult_0 {
 cell xilinx.com:ip:axis_subset_converter:1.1 real_0 {
     S_TDATA_NUM_BYTES.VALUE_SRC USER
     M_TDATA_NUM_BYTES.VALUE_SRC USER
-    S_TDATA_NUM_BYTES 10
+    S_TDATA_NUM_BYTES 4
     M_TDATA_NUM_BYTES 2
-    TDATA_REMAP {tdata[40:25]}
+    TDATA_REMAP {tdata[15:0]}
 } {
     S_AXIS mult_0/M_AXIS_DOUT
     aclk /ps_0/FCLK_CLK0
     aresetn /rst_0/peripheral_aresetn
 }
-
-# extract the real component of the product using a broadcaster in to I and Q
-# a simpler alternative would be to use a axis_subset_converter
-cell xilinx.com:ip:axis_subset_converter:1.1 quotient_0 {
-    S_TDATA_NUM_BYTES.VALUE_SRC USER
-    M_TDATA_NUM_BYTES.VALUE_SRC USER
-    S_TDATA_NUM_BYTES 4
-    M_TDATA_NUM_BYTES 2
-    TDATA_REMAP {tdata[31:16]}
-} {
-    aclk /ps_0/FCLK_CLK0
-    aresetn /rst_0/peripheral_aresetn
-}
-
-#cell xilinx.com:ip:axis_broadcaster:1.1 bcast_0 {
-#  S_TDATA_NUM_BYTES.VALUE_SRC USER
-#  M_TDATA_NUM_BYTES.VALUE_SRC USER
-#  S_TDATA_NUM_BYTES 8
-#  M_TDATA_NUM_BYTES 3
-#  M00_TDATA_REMAP {tdata[23:0]}
-#  M01_TDATA_REMAP {tdata[55:32]}
-#} {
-#  S_AXIS mult_0/M_AXIS_DOUT
-#  aclk /ps_0/FCLK_CLK0
-#  aresetn /rst_0/peripheral_aresetn
-#}
 
 # Create axis_clock_converter
 cell xilinx.com:ip:axis_clock_converter:1.1 fifo_1 {
@@ -138,18 +114,3 @@ cell xilinx.com:ip:axis_clock_converter:1.1 fifo_1 {
   s_axis_aresetn /rst_0/peripheral_aresetn
 }
 
-## DO all this below to insert the divider by 4
-create_bd_cell -type ip -vlnv xilinx.com:ip:div_gen:5.1 div_gen_0
-create_bd_cell -type ip -vlnv pavel-demin:user:axis_constant:1.0 axis_constant_0
-set_property -dict [list CONFIG.AXIS_TDATA_WIDTH {16}] [get_bd_cells axis_constant_0]
-connect_bd_intf_net [get_bd_intf_pins axis_constant_0/M_AXIS] [get_bd_intf_pins div_gen_0/S_AXIS_DIVISOR]
-create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_0
-# Constant was 4, now its 1
-set_property -dict [list CONFIG.CONST_WIDTH {16} CONFIG.CONST_VAL {1}] [get_bd_cells xlconstant_0]
-connect_bd_net [get_bd_pins xlconstant_0/dout] [get_bd_pins axis_constant_0/cfg_data]
-connect_bd_net [get_bd_pins aclk] [get_bd_pins axis_constant_0/aclk]
-connect_bd_net [get_bd_pins aclk] [get_bd_pins div_gen_0/aclk]
-delete_bd_objs [get_bd_intf_nets real_0_M_AXIS]
-connect_bd_intf_net [get_bd_intf_pins real_0/M_AXIS] [get_bd_intf_pins div_gen_0/S_AXIS_DIVIDEND]
-connect_bd_intf_net [get_bd_intf_pins div_gen_0/M_AXIS_DOUT] [get_bd_intf_pins quotient_0/S_AXIS]
-connect_bd_intf_net [get_bd_intf_pins quotient_0/M_AXIS] [get_bd_intf_pins fifo_1/S_AXIS]

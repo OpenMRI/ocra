@@ -25,6 +25,4 @@
       <position name="0" component="part0"/>
     </jtag_chain>
   </jtag_chains>
-  <connections>
-  </connections>
 </board>

@@ -17076,6 +17076,21 @@ void update_RF_SAR_cal_pulses(volatile uint16_t *tx_size, void *tx_data,  int32_
   memcpy(tx_data, pulse, 2 * size);
 }
 
+typedef __attribute__((packed)) union mixer {
+  uint64_t x;
+  int32_t y[2];
+  float z[2];
+} mixer_t;
+
+// new function to take over the conversion to float, because it would be tough in numpy
+uint64_t cast_int32cplx_float32cplx(uint64_t x)
+{
+  mixer_t X,Y;
+  X.x = x;
+  Y.z[0] = (float)(X.y[0]);
+  Y.z[1] = (float)(X.y[1]);
+  return Y.x;
+}
 
 int main(int argc)
 {
@@ -17446,8 +17461,12 @@ int main(int argc)
           usleep(1000); // Sleep 1ms
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
-			while(*rx_cntr < 10000) usleep(500);
-			for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            while(*rx_cntr < 10000) usleep(500);
+            for(j = 0; j < 5000; ++j) {
+	      
+	      buffer[j] = cast_int32cplx_float32cplx(*rx_data);
+
+	    }
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -17501,7 +17520,8 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j)
+	      buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -17555,7 +17575,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -17611,7 +17631,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -17671,7 +17691,7 @@ int main(int argc)
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
-              for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+              for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
@@ -17729,7 +17749,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -17775,8 +17795,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -17818,8 +17838,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -17861,8 +17881,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -17905,8 +17925,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -17948,8 +17968,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -17993,8 +18013,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18035,8 +18055,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18085,7 +18105,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 5000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18139,7 +18159,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18195,7 +18215,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18248,7 +18268,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18295,8 +18315,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18339,8 +18359,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18384,8 +18404,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18428,8 +18448,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18474,8 +18494,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18520,8 +18540,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18565,8 +18585,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18621,7 +18641,7 @@ int main(int argc)
             // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
             for(i = 0; i < 10; ++i) {
               while(*rx_cntr < 10000) usleep(500);
-              for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+              for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
               send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
             }
             seq_config[0] = 0x00000000;
@@ -18663,8 +18683,8 @@ int main(int argc)
         //printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
         for(i = 0; i < 10; ++i) {
           while(*rx_cntr < 10000) usleep(500);
-          for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
-          send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
         }
         seq_config[0] = 0x00000000;
       
@@ -18715,7 +18735,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18729,7 +18749,7 @@ int main(int argc)
           usleep(1000); // Sleep 1ms
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18784,7 +18804,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
@@ -18798,7 +18818,7 @@ int main(int argc)
           // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
           for(i = 0; i < 10; ++i) {
             while(*rx_cntr < 10000) usleep(500);
-            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            for(j = 0; j < 5000; ++j) buffer[j] = cast_int32cplx_float32cplx(*rx_data);
             send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
           }
           seq_config[0] = 0x00000000;
