@@ -183,12 +183,26 @@ module half_duplex_spi_master #(
   /* verilator lint_on UNUSEDSIGNAL */
 
   // combinatorial logic to assign the SPI clock
-  assign spi_sclk = spi_clock_hot ? (spi_cpol_sc ? ~spi_clk : spi_clk) : spi_cpol_sc;
+  assign spi_sclk = spi_clock_hot ? (spi_cpol_sc ? ~odd_strobe : odd_strobe) : spi_cpol_sc;
 
   reg spi_clock_hot;
   reg [DATA_WIDTH-1:0] shiftout_register, rw_shift_register, shiftin_register;
 
   assign transaction_read_data_sc = shiftin_register;
+
+  // the even-odd strobe 
+  reg eotoggle;
+  wire even_strobe, odd_strobe;
+  assign even_strobe = ~eotoggle;
+  assign odd_strobe = eotoggle;
+
+  always @(posedge spi_clk or negedge reset_n_sc) begin
+    if (~reset_n_sc) begin
+      eotoggle <= 1'b0;
+    end else begin
+      eotoggle <= ~eotoggle;
+    end
+  end
 
   // traditional FSM pattern
 
@@ -242,7 +256,7 @@ module half_duplex_spi_master #(
     endcase
   end
 
-  always_ff @(posedge spi_clk or negedge spi_clk or negedge reset_n_sc) begin
+  always_ff @(posedge spi_clk or negedge reset_n_sc) begin
     if (~reset_n_sc) begin
       spi_dir <= 1'b1;
       shift_out <= 1'b0;
@@ -289,7 +303,7 @@ module half_duplex_spi_master #(
 
         // deal with the write case for Mode 0 & 2, I doubt there is a read case here
         // at all directly after CS is asserted
-        if (~spi_clk && ~spi_cpha_sc && spi_dir) begin
+        if (odd_strobe && ~spi_cpha_sc && spi_dir) begin
           spi_dir <= rw_shift_register[DATA_WIDTH-1];
           rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
 
@@ -309,7 +323,7 @@ module half_duplex_spi_master #(
         end
 
         // all valid transitions that advance the state machine
-        if ((spi_clk && spi_cpha_sc) || (~spi_clk && ~spi_cpha_sc)) begin
+        if ((even_strobe && spi_cpha_sc) || (odd_strobe && ~spi_cpha_sc)) begin
           spi_dir <= rw_shift_register[DATA_WIDTH-1];
           rw_shift_register <= {rw_shift_register[DATA_WIDTH-2:0], 1'b0};
           if (rw_shift_register[DATA_WIDTH-1]) begin
@@ -320,7 +334,7 @@ module half_duplex_spi_master #(
           end
         end
 
-        if (((spi_clk && spi_cpha_sc) || (~spi_clk && ~spi_cpha_sc)) && rw_shift_register[DATA_WIDTH-1]) begin  
+        if (((even_strobe && spi_cpha_sc) || (odd_strobe && ~spi_cpha_sc)) && rw_shift_register[DATA_WIDTH-1]) begin  
           shift_out <= shiftout_register[DATA_WIDTH-1];
           shiftout_register <= {shiftout_register[DATA_WIDTH-2:0],1'b0};
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b0};
@@ -333,7 +347,7 @@ module half_duplex_spi_master #(
           spi_state <= READ;
         end
 
-        if ((spi_clk && ~spi_cpha_sc) || (~spi_clk && spi_cpha_sc)) begin
+        if ((even_strobe && ~spi_cpha_sc) || (odd_strobe && spi_cpha_sc)) begin
           read_bitcounter_sc <= read_bitcounter_sc + 1;
           shiftin_register <= {shiftin_register[DATA_WIDTH-2:0],1'b1};
           bitcounter_sc <= bitcounter_sc - 1;
@@ -346,7 +360,7 @@ module half_duplex_spi_master #(
         end
 
       end else if (spi_state == DONE) begin
-        if (spi_clk) begin
+        if (even_strobe) begin
           shift_out <= 1'b0;
           spi_clock_hot <= 1'b0;
           spi_dir <= 1'b1;
@@ -360,7 +374,7 @@ module half_duplex_spi_master #(
           end          
         end
       end else if (spi_state == FIFO_WRITE) begin
-        if (spi_clk) begin
+        if (even_strobe) begin
           spi_state <= IDLE;
           to_fabric_fifo_wr_en <= 1'b0;
         end

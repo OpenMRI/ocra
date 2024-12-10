@@ -13,3 +13,4 @@ Important issues remaining on this core
 - [ ] change the state machine to follow standard pattern (not done)
 - [ ] implement and test error detection (not done)
 - [ ] bring a busy flag to the fabric domain using a double flop synchronizer (not done)
+- [x] rewrite to use a FSM running on double clock speed to only have positive edge sensitivity (not done)

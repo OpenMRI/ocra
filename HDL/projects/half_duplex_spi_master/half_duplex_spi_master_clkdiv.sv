@@ -2,7 +2,7 @@
 module half_duplex_spi_master_clkdiv #(
   parameter DATA_WIDTH = 32,
   parameter TRANSACTION_LEN_WIDTH = 6,
-  parameter CLOCK_DIVIDER = 2
+  parameter CLOCK_DIVIDER = 1
 )(
     input wire [TRANSACTION_LEN_WIDTH-1:0]  transaction_length,
     input wire [DATA_WIDTH-1:0] transaction_data,
