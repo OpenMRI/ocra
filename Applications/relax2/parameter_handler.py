@@ -5,7 +5,6 @@
 #
 ################################################################################
 
-import sys
 import pickle
 import json
 from PyQt5.QtCore import QFile, QTextStream
@@ -65,7 +64,7 @@ class Parameters:
         self.nPE = 32
         self.frequencyrange = 250000
         self.samples = 50000
-        self.sampledelay = 0.35
+        self.sampledelay = 0.344
         self.spectrumdata = []
         self.dataTimestamp = ''
         self.timeaxis = []
@@ -137,10 +136,11 @@ class Parameters:
         self.cutoutside = 0
         self.cutcentervalue = 20
         self.cutoutsidevalue = 70
+        self.usmethode = 1
         self.ustime = 0
         self.usphase = 0
-        self.ustimeidx = 0
-        self.usphaseidx = 0
+        self.ustimeidx = 2
+        self.usphaseidx = 2
         self.Gproj = [0, 0, 0]
         self.projx = []
         self.projy = []
@@ -230,6 +230,7 @@ class Parameters:
         self.imagecolormap = 'viridis'
         self.imageminimum = 0.0
         self.imagemaximum = 1.0
+        self.measurement_time_dialog = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -312,6 +313,7 @@ class Parameters:
                          self.cutoutside, \
                          self.cutcentervalue, \
                          self.cutoutsidevalue, \
+                         self.usmethode, \
                          self.ustime, \
                          self.usphase, \
                          self.ustimeidx, \
@@ -399,7 +401,8 @@ class Parameters:
                          self.ernstanglecalc_EA, \
                          self.imagecolormap, \
                          self.imageminimum, \
-                         self.imagemaximum], file)
+                         self.imagemaximum, \
+                         self.measurement_time_dialog], file)
        
         print('Parameters saved!')
         
@@ -541,6 +544,7 @@ class Parameters:
                 self.cutoutside, \
                 self.cutcentervalue, \
                 self.cutoutsidevalue, \
+                self.usmethode, \
                 self.ustime, \
                 self.usphase, \
                 self.ustimeidx, \
@@ -628,7 +632,8 @@ class Parameters:
                 self.ernstanglecalc_EA, \
                 self.imagecolormap, \
                 self.imageminimum, \
-                self.imagemaximum = pickle.load(file)
+                self.imagemaximum, \
+                self.measurement_time_dialog= pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -777,6 +782,7 @@ class Parameters:
         # file.write(': ' + str(self.cutoutside) + '\n')
         # file.write(': ' + str(self.cutcentervalue) + '\n')
         # file.write(': ' + str(self.cutoutsidevalue) + '\n')
+        # file.write(': ' + str(self.usmethode) + '\n')
         # file.write(': ' + str(self.ustime) + '\n')
         # file.write(': ' + str(self.usphase) + '\n')
         # file.write(': ' + str(self.ustimeidx) + '\n')
@@ -858,6 +864,7 @@ class Parameters:
         # file.write('Image Colormap: ' + str(self.imagecolormap) + '\n')
         # file.write('Image Minimum: ' + str(self.imageminimum) + '\n')
         # file.write('Image Maximum: ' + str(self.imagemaximum) + '\n')
+        # file.write(': ' + str(self.measurement_time_dialog) + '\n')
         
         file.close()
 

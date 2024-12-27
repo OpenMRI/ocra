@@ -1107,7 +1107,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="Projection_Z_radioButton">
+       <widget class="QRadioButton" name="Projection_X_radioButton">
         <property name="minimumSize">
          <size>
           <width>40</width>
@@ -1121,7 +1121,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Z</string>
+         <string>X</string>
         </property>
         <property name="autoExclusive">
          <bool>false</bool>
@@ -1151,7 +1151,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="Projection_X_radioButton">
+       <widget class="QRadioButton" name="Projection_Z_radioButton">
         <property name="minimumSize">
          <size>
           <width>40</width>
@@ -1165,7 +1165,7 @@
          </size>
         </property>
         <property name="text">
-         <string>X</string>
+         <string>Z</string>
         </property>
         <property name="autoExclusive">
          <bool>false</bool>

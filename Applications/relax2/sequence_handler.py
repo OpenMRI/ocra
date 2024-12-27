@@ -5,7 +5,6 @@
 #
 ################################################################################
 
-import sys
 import struct
 import time
 import os
@@ -17,7 +16,6 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from TCPsocket import socket, connected, unconnected
 from parameter_handler import params
@@ -50,7 +48,10 @@ class sequence:
         self.seq_epi_se_gs = 'sequences/spectroscopy/EPI_SE_Gs.txt'
         self.seq_tse_gs = 'sequences/spectroscopy/TSE_Gs.txt'
         
-        self.seq_rf_loopback_test = 'sequences/spectroscopy/RF_Loopback_Test.txt'
+        self.seq_rf_loopback_test_rect_flip = 'sequences/spectroscopy/RF_Loopback_Test_Rect_Flip.txt'
+        self.seq_rf_loopback_test_rect_180 = 'sequences/spectroscopy/RF_Loopback_Test_Rect_180.txt'
+        self.seq_rf_loopback_test_sinc_flip = 'sequences/spectroscopy/RF_Loopback_Test_Sinc_Flip.txt'
+        self.seq_rf_loopback_test_sinc_180 = 'sequences/spectroscopy/RF_Loopback_Test_Sinc_180.txt'
         self.seq_grad_test = 'sequences/spectroscopy/Gradient_Test.txt'
         self.seq_rf_sar_cal_test = 'sequences/spectroscopy/RF_SAR_Calibration_Test.txt'
         
@@ -77,6 +78,7 @@ class sequence:
         self.seq_2D_epi_se = 'sequences/imaging/2D_EPI_SE.txt'
         self.seq_2D_epi = 'sequences/imaging/2D_EPI.txt'
         self.seq_2D_se_diff = 'sequences/imaging/2D_SE_DIFF.txt'
+        self.seq_2D_se_gs_diff = 'sequences/imaging/2D_SE_Gs_DIFF.txt'
         self.seq_2D_fc_gre = 'sequences/imaging/2D_FC_GRE.txt'
         self.seq_2D_fc_se = 'sequences/imaging/2D_FC_SE.txt'
         self.seq_2D_sir_gre = 'sequences/imaging/2D_SIR_GRE.txt'
@@ -163,16 +165,31 @@ class sequence:
                 self.acquire_spectrum_TSE_Gs()
             elif params.sequence == 18:
                 print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
-                # self.rf_loopback_test_setup()
+                # self.rf_loopback_test_rect_flip_setup()
                 # self.Sequence_upload()
-                # self.acquire_rf__loopback_test()
+                # self.acquire_rf_loopback_test_rect_flip()
             elif params.sequence == 19:
+                print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
+                # self.rf_loopback_test_rect_180_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf_loopback_test_rect_180()
+            elif params.sequence == 20:
+                print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
+                # self.rf_loopback_test_sinc_flip_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf_loopback_test_sinc_flip()
+            elif params.sequence == 21:
+                print('\033[1m' + 'Not active. Warning: In this sequence TX while RX is programmed! To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
+                # self.rf_loopback_test_sinc_180_setup()
+                # self.Sequence_upload()
+                # self.acquire_rf_loopback_test_sinc_180()
+            elif params.sequence == 22:
                 # print('\033[1m' + 'Not active. Warning: This sequence will test all gradient channels with pulses. To activate the sequence uncomment the code below in sequence_handler.py.' + '\033[0m')
                 print('\033[1m' + 'Pulselength [us] = TR, Amplitude [mA] = Spoiler Amplitude' + '\033[0m')
                 self.grad_test_setup()
                 self.Sequence_upload()
                 self.acquire_grad_test()
-            elif params.sequence == 20:
+            elif params.sequence == 23:
                 print('\033[1m' + 'Pulselength [us] = 90° Ref. Pulselength, Pause [us] = TI [ms]' + '\033[0m')
                 self.rf_sar_cal_test_setup()
                 self.Sequence_upload()
@@ -182,25 +199,21 @@ class sequence:
         elif params.GUImode == 1:       
             if params.sequence == 0:
                 # 2D Radial (GRE, Full)
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_f_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_f_GRE()
             elif params.sequence == 1:
                 # 2D Radial (SE, Full)
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_f_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_f_SE()
             elif params.sequence == 2:
                 # WIP 2D Radial (GRE, Half)
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_h_GRE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_h_GRE()
             elif params.sequence == 3:
                 # WIP 2D Radial (SE, Half)
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_h_SE_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_h_SE()
@@ -272,29 +285,21 @@ class sequence:
                 self.acquire_image_SE()
             elif params.sequence == 17:
                 # WIP 2D Radial (Slice, GRE, Full)
-#                 print('\033[1m' + 'WIP' + '\033[0m')
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_f_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_f_GRE_Gs()
             elif params.sequence == 18:
                 # WIP 2D Radial (Slice, SE, Full)
-#                 print('\033[1m' + 'WIP' + '\033[0m')
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_f_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_f_SE_Gs()
             elif params.sequence == 19:
                 # WIP 2D Radial (Slice, GRE, Half)
-#                 print('\033[1m' + 'WIP' + '\033[0m')
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_h_GRE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_h_GRE_Gs()
             elif params.sequence == 20:
                 # WIP 2D Radial (Slice, SE, Half)
-#                 print('\033[1m' + 'WIP' + '\033[0m')
-                print('\033[1m' + 'Still WIP. Needs further optimization.' + '\033[0m')
                 self.Image_radial_h_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_radial_h_SE_Gs()
@@ -343,7 +348,10 @@ class sequence:
                 print('\033[1m' + 'WIP' + '\033[0m')
             elif params.sequence == 31:
                 # WIP 2D Diffusion (Slice, SE)
-                print('\033[1m' + 'WIP' + '\033[0m')
+                print('\033[1m' + 'Still WIP' + '\033[0m')
+                self.Image_SE_Gs_Diff_setup()
+                self.Sequence_upload()
+                self.acquire_image_SE_Gs_Diff()
             elif params.sequence == 32:
                 # WIP 2D Flow Compensation (Slice, GRE)
                 print('\033[1m' + 'WIP' + '\033[0m')
@@ -351,7 +359,7 @@ class sequence:
                 # WIP 2D Flow Compensation (Slice, SE)
                 print('\033[1m' + 'WIP' + '\033[0m')
             elif params.sequence == 34:
-                # WIP 3D FFT Spin Echo
+                # WIP 3D FFT Gradient Echo (Slab)
                 print('\033[1m' + 'WIP' + '\033[0m')
             elif params.sequence == 35:
                 # 3D FFT Spin Echo (Slab)
@@ -1087,16 +1095,55 @@ class sequence:
         
         print('TSE (slice) setup complete!')
 
-    def rf_loopback_test_setup(self):
-        f = open(self.seq_rf_loopback_test, 'r+')
+    def rf_loopback_test_rect_flip_setup(self):
+        f = open(self.seq_rf_loopback_test_rect_flip, 'r+')
         lines = f.readlines()
-        lines[-6] = 'PR 6, ' + str(int(4*params.flippulselength))
+        lines[-5] = 'PR 6, ' + str(int(params.flippulselength)) + '\t// Flip RF Pulse\n'
         f.close()
-        with open(self.seq_rf_loopback_test, 'w') as out_file:
+        with open(self.seq_rf_loopback_test_rect_flip, 'w') as out_file:
             for line in lines:
                 out_file.write(line)
                 
-        params.sequencefile = self.seq_rf_loopback_test
+        params.sequencefile = self.seq_rf_loopback_test_rect_flip
+        
+        print('RF loopback test sequence setup complete!')
+        
+    def rf_loopback_test_rect_180_setup(self):
+        f = open(self.seq_rf_loopback_test_rect_180, 'r+')
+        lines = f.readlines()
+        lines[-5] = 'PR 6, ' + str(int(2*params.RFpulselength)) + '\t// 180deg RF Pulse\n'
+        f.close()
+        with open(self.seq_rf_loopback_test_rect_180, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_rf_loopback_test_rect_180
+        
+        print('RF loopback test sequence setup complete!')
+
+    def rf_loopback_test_sinc_flip_setup(self):
+        f = open(self.seq_rf_loopback_test_sinc_flip, 'r+')
+        lines = f.readlines()
+        lines[-5] = 'PR 6, ' + str(int(4*params.flippulselength)) + '\t// Flip RF Pulse\n'
+        f.close()
+        with open(self.seq_rf_loopback_test_sinc_flip, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_rf_loopback_test_sinc_flip
+        
+        print('RF loopback test sequence setup complete!')
+        
+    def rf_loopback_test_sinc_180_setup(self):
+        f = open(self.seq_rf_loopback_test_sinc_180, 'r+')
+        lines = f.readlines()
+        lines[-5] = 'PR 6, ' + str(int(2*4*params.RFpulselength)) + '\t// 180deg RF Pulse\n'
+        f.close()
+        with open(self.seq_rf_loopback_test_sinc_180, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_rf_loopback_test_sinc_180
         
         print('RF loopback test sequence setup complete!')
         
@@ -1933,6 +1980,39 @@ class sequence:
         
         print('2D Diffusion (SE) setup complete!')
         
+    def Image_SE_Gs_Diff_setup(self):
+        if int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 800 - 2 * params.diffusiontime - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2) < 0:
+            params.TE = math.ceil(10*((2*4*params.RFpulselength/2 + 200 + params.crushertime + 200 + 800 + 2 * params.diffusiontime + 40 + 200 + params.GROpretime + 400 + params.TS * 1000 / 2) / 1000 * 2))/10
+            print('TE to short!! TE set to:', params.TE, 'ms')
+        if int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 800 - 2 * params.diffusiontime - 45 - 2*4*params.RFpulselength/2) < 0:
+            params.TE = math.ceil(10*((4*params.flippulselength/2 + 400 + params.GSposttime + 200 + 200 + params.crushertime + 200 + 800 + 2 * params.diffusiontime + 45 + 2*4*params.RFpulselength/2) / 1000 * 2))/10
+            print('TE to short!! TE set to:', params.TE, 'ms')
+            
+        f = open(self.seq_2D_se_gs_diff, 'r+')
+        lines = f.readlines()
+        lines[-59] = 'PR 5, ' + str(4*params.flippulselength) + '\t// Flip RF Pulse\n'
+        lines[-55] = 'PR 3, ' + str(int(params.GSposttime)) + '\t// Slice rephaser length\n'
+        lines[-52] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 4*params.flippulselength/2 - 400 - params.GSposttime - 200 - 200 - params.crushertime - 200 - 800 - 2 * params.diffusiontime - 45 - 2*4*params.RFpulselength/2)) + '\t// Pause\n'
+        lines[-49] = 'PR 3, ' + str(int(params.diffusiontime)) + '\t// Diff length\n'
+        lines[-46] = 'PR 3, ' + str(int(params.diffusiontime)) + '\t// Diff length\n'
+        lines[-40] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-35] = 'PR 5, ' + str(2*4*params.RFpulselength) + '\t// 180deg RF Pulse\n'
+        lines[-31] = 'PR 3, ' + str(int(params.crushertime)) + '\t// Crusher length\n'
+        lines[-25] = 'PR 3, ' + str(int(params.diffusiontime)) + '\t// Diff length\n'
+        lines[-22] = 'PR 3, ' + str(int(params.diffusiontime)) + '\t// Diff length\n'
+        lines[-19] = 'PR 3, ' + str(int(params.TE / 2 * 1000 - 2*4*params.RFpulselength/2 - 200 - params.crushertime - 200 - 800 - 2 * params.diffusiontime - 40 - 200 - params.GROpretime - 400 - params.TS * 1000 / 2)) + '\t// Pause\n'
+        lines[-16] = 'PR 3, ' + str(int(params.GROpretime)) + '\t// Readout prephaser length\n'
+        lines[-13] = 'PR 4, ' + str(int(params.TS*1000)) + '\t// Sampling window\n'
+        lines[-7] = 'PR 4, ' + str(int(params.spoilertime)) + '\t// Spoiler length\n'
+        f.close()
+        with open(self.seq_2D_se_gs_diff, 'w') as out_file:
+            for line in lines:
+                out_file.write(line)
+                
+        params.sequencefile = self.seq_2D_se_gs_diff
+        
+        print('2D Diffusion (SE, Slice) setup complete!')
+        
         #2D Flow Compensated Gradient Echo Sequence   
     def Image_FC_GRE_setup(self):
         if int(params.TE * 1000 - params.flippulselength / 2 - 10 - 200 - params.GROfcpretime1 - 400 - params.GROfcpretime2 - 400 - 35 - params.TS * 1000 / 2) < 0:
@@ -2038,13 +2118,14 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
@@ -2104,13 +2185,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
@@ -2276,13 +2359,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, 4*params.TS, 4*self.data_idx)
@@ -2337,13 +2422,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
@@ -2400,13 +2487,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
@@ -2461,13 +2550,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, params.TS, self.data_idx)
@@ -2633,13 +2724,15 @@ class sequence:
                 self.remaining_time_h = math.floor(self.remaining_time / (3600))
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Averaging... ' + str(n+1) + '/' + str(self.avecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 time.sleep(0.1)
             
         params.timeaxis = np.linspace(0, 4*params.TS, 4*self.data_idx)
@@ -2656,10 +2749,10 @@ class sequence:
         
         print('Spectrum acquired!')
         
-    def acquire_rf_loopback_test(self):
+    def acquire_rf_loopback_test_rect_flip(self):
         print('Run RF loopback test sequence...')
         
-        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.data_idx = int(params.flippulselength/1000 * 250) #250 Samples/ms
         self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
         
         if params.average == 0: self.avecount = 1
@@ -2687,11 +2780,159 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
-        params.timeaxis = np.linspace(0, params.TS, self.data_idx)
+        params.timeaxis = np.linspace(0, params.flippulselength, self.data_idx)
+
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
         
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('RF loopback test sequence finished!')
+        
+    def acquire_rf_loopback_test_rect_180(self):
+        print('Run RF loopback test sequence...')
+        
+        self.data_idx = int(2*params.RFpulselength/1000 * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 20, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, 0, 0))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, 2*params.RFpulselength, self.data_idx)
+
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('RF loopback test sequence finished!')
+        
+    def acquire_rf_loopback_test_sinc_flip(self):
+        print('Run RF loopback test sequence...')
+        
+        self.data_idx = int(4*params.flippulselength/1000 * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 20, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, 0, 0))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, 4*params.flippulselength, self.data_idx)
+
+        self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
+        self.datatxt1[0,:] = params.timeaxis[:]
+        self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,self.avecount+1), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now() 
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('RF loopback test sequence finished!')
+        
+    def acquire_rf_loopback_test_sinc_180(self):
+        print('Run RF loopback test sequence...')
+        
+        self.data_idx = int(2*4*params.RFpulselength/1000 * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        
+        if params.average == 0: self.avecount = 1
+        else: self.avecount = params.averagecount
+        
+        self.spectrumdata = np.matrix(np.zeros((self.avecount,self.data_idx), dtype = np.complex64))
+        
+        for n in range(self.avecount):
+            print('Average: ',n+1,'/',self.avecount)
+        
+            socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 20, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, 0, 0, 0, 0))
+
+            while(True):
+                if not socket.waitForBytesWritten(): break
+                time.sleep(0.0001)
+            
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ', int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+        
+            self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
+            if params.average == 1:
+                time.sleep(params.TR/1000)
+            
+        params.timeaxis = np.linspace(0, 2*4*params.RFpulselength, self.data_idx)
+
         self.datatxt1 = np.matrix(np.zeros((self.avecount+1,self.data_idx), dtype = np.complex64))
         self.datatxt1[0,:] = params.timeaxis[:]
         self.datatxt1[1:self.avecount+1,:] = self.spectrumdata[:,:]
@@ -2735,6 +2976,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2784,6 +3026,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -2849,6 +3092,7 @@ class sequence:
                         else: continue
         
                     self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2916,6 +3160,7 @@ class sequence:
                         else: continue
         
                     self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -2992,6 +3237,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -3066,6 +3312,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -3131,6 +3378,7 @@ class sequence:
                         else: continue
         
                     self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -3198,6 +3446,7 @@ class sequence:
                         else: continue
         
                     self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+                    
                     if params.average == 1:
                         time.sleep(params.TR/1000)
             
@@ -3274,6 +3523,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -3348,6 +3598,7 @@ class sequence:
                 else: continue
         
             self.spectrumdata[n,:] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
+            
             if params.average == 1:
                 time.sleep(params.TR/1000)
             
@@ -3405,13 +3656,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         params.kspace = self.kspace
         
@@ -3467,13 +3720,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         params.kspace = self.kspace
         
@@ -3522,12 +3777,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -3586,13 +3843,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         params.kspace = self.kspace
         
@@ -3645,13 +3904,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE + n+1) + '/' + str(params.motor_image_count*params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         params.kspace = self.kspace
         
@@ -3700,12 +3961,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         for n in range(int(params.nPE/2)):
             self.kspace[n,:] = self.kspacetemp[2*n,:]
@@ -3762,13 +4025,15 @@ class sequence:
                 self.remaining_time_min = math.floor(self.remaining_time / 60)
                 self.remaining_time_s = int(self.remaining_time % 60)
                 
-                msg_box = QMessageBox()
-                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE*params.SPEsteps + n+1+m*params.nPE) + '/' + str(params.motor_image_count*params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*params.nPE*params.SPEsteps + n+1+m*params.nPE) + '/' + str(params.motor_image_count*params.nPE*params.SPEsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
                 
         params.kspace = self.kspace
         
@@ -3820,13 +4085,15 @@ class sequence:
                 self.kspacetemp[n+self.nsteps, :] = -self.data[self.sampledelay+self.TEdelay:self.data_idx+self.sampledelay+self.TEdelay]*params.RXscaling
                 self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
                 self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
-            
-                msg_box = QMessageBox()
-                msg_box.setText('Measuring... ' + str(n+1+m*self.nsteps) + '/' + str(self.nsteps*params.SPEsteps))
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                msg_box.button(QMessageBox.Ok).hide()
-                msg_box.exec()
+                
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Measuring... ' + str(n+1+m*self.nsteps) + '/' + str(self.nsteps*params.SPEsteps))
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else: time.sleep((params.TR-100)/1000)
             
             self.kspace[m,0:int(self.nsteps/2), :] = self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
             self.kspace[m,int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3844,7 +4111,6 @@ class sequence:
         for m in range(params.SPEsteps):
             self.datatxt2[:,m*params.nPE:m*params.nPE+params.nPE] = np.transpose(self.datatxt1[m,:,:])
         np.savetxt(params.datapath + '.txt', self.datatxt2)
-        
         
         timestamp = datetime.now()
         params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
@@ -3895,13 +4161,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(arams.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(arams.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -3971,13 +4239,15 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(params.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nMeasuring... ' + str(params.motor_current_image_count*self.nsteps + n+1) + '/' + str(params.motor_image_count*self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
 
         self.kspace[0:int(self.nsteps/2), :] = -self.kspacetemp[int(3*self.nsteps):int(3*self.nsteps+self.nsteps/2), :]
         self.kspace[int(self.nsteps/2):int(self.nsteps), :] = self.kspacetemp[int(2*self.nsteps):int(2*self.nsteps+self.nsteps/2), :]
@@ -4055,12 +4325,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
 
         params.kspace = self.kspace
         
@@ -4124,12 +4396,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.nsteps) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
 #             self.spectrumdata[n,0:self.data_idx] = self.data[self.sampledelay:self.data_idx+self.sampledelay]*params.RXscaling
 #             self.spectrumdata[n,self.data_idx:2*self.data_idx] = self.data[self.data_idx+self.sampledelay+self.EPIdelay:self.sampledelay+self.EPIdelay:-1]*params.RXscaling
@@ -4189,14 +4463,16 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
                 
-        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 13, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100,params.spoileramplitude << 16 | params.crusheramplitude, params.Gdiffamplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
+        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 13, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.spoileramplitude << 16 | params.crusheramplitude, params.Gdiffamplitude, params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
 
         while(True):
             if not socket.waitForBytesWritten(): break
@@ -4219,12 +4495,100 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1+params.nPE) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1+params.nPE) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            
+        params.kspace = self.kspace
+        
+        self.datatxt1 = np.matrix(np.zeros((params.nPE,self.data_idx), dtype = np.complex64))
+        self.datatxt1 = params.kspace
+        self.datatxt2 = np.matrix(np.zeros((self.data_idx,params.nPE), dtype = np.complex64))
+        self.datatxt2 = np.transpose(self.datatxt1)
+        np.savetxt(params.datapath + '.txt', self.datatxt2)
+        
+        timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%m/%d/%Y, %H:%M:%S')
+        
+        print('Image acquired!')
+        
+    def acquire_image_SE_Gs_Diff(self):
+        print('Acquire image...')
+
+        self.data_idx = int(params.TS * 250) #250 Samples/ms
+        self.sampledelay = int(params.sampledelay * 250) #Filterdelay 350µs
+        self.kspace = np.matrix(np.zeros((2*params.nPE, self.data_idx), dtype = np.complex64))
+            
+        self.estimated_time = 2 * params.nPE * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
+        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 41, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, 0, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
+
+        while(True):
+            if not socket.waitForBytesWritten(): break
+            time.sleep(0.0001)
+        for n in range(params.nPE):
+            print(n+1,'/',params.nPE*2)
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ',int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+            self.kspace[n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]
+            
+            self.remaining_time = (self.estimated_time - n * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+                
+        socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 41, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.Gdiffamplitude, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | params.nPE, params.TR))
+
+        while(True):
+            if not socket.waitForBytesWritten(): break
+            time.sleep(0.0001)
+        for n in range(params.nPE):
+            print(n+1+params.nPE,'/',params.nPE*2)
+            while True:
+                socket.waitForReadyRead()
+                datasize = socket.bytesAvailable()
+                time.sleep(0.0001)
+                if datasize == 8*params.samples:
+                    print('Readout finished : ',int(datasize/8), 'Samples')
+                    self.buffer[0:8*params.samples] = socket.read(8*params.samples)
+                    break
+                else: continue
+            self.kspace[params.nPE+n, :] = self.data[self.sampledelay : self.data_idx + self.sampledelay]*params.RXscaling
+            
+            self.remaining_time = (self.estimated_time - (n + params.nPE) * ((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+            self.remaining_time_h = math.floor(self.remaining_time / (3600))
+            self.remaining_time_min = math.floor(self.remaining_time / 60)
+            self.remaining_time_s = int(self.remaining_time % 60)
+            
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1+params.nPE) + '/' + str(params.nPE*2) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             
         params.kspace = self.kspace
         
@@ -4299,12 +4663,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4380,12 +4746,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4461,12 +4829,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4542,12 +4912,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
 
         params.kspace = self.kspace
@@ -4623,12 +4995,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4704,12 +5078,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4785,12 +5161,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
         
         params.kspace = self.kspace
@@ -4866,12 +5244,14 @@ class sequence:
             self.remaining_time_min = math.floor(self.remaining_time / 60)
             self.remaining_time_s = int(self.remaining_time % 60)
             
-            msg_box = QMessageBox()
-            msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-            msg_box.button(QMessageBox.Ok).hide()
-            msg_box.exec()
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Measuring... ' + str(n+1) + '/' + str(self.radialanglecount) + '\nRemaining time: ' + str(self.remaining_time_h) + 'h' + str(self.remaining_time_min) + 'min' + str(self.remaining_time_s) + 's')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
 
         params.kspace = self.kspace

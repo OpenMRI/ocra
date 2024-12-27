@@ -86,9 +86,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
         params.GUImode = 0
         params.sequence = 0
+        params.sequencefile = ''
         params.projaxis = np.zeros(3)
+        params.usmethode = 1
         params.ustime = 0
         params.usphase = 0
+        params.ustimeidx = 2
+        params.usphaseidx = 2
         params.flipangletime = 90
         params.flipangleamplitude = 90
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
@@ -255,7 +259,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
                                             , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
-                                            , 'RF Loopback Test Sequence', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence'])
+                                            , 'RF Loopback Test Sequence (Rect, Flip)', 'RF Loopback Test Sequence (Rect, 180°)', 'RF Loopback Test Sequence (Sinc, Flip)' \
+                                            , 'RF Loopback Test Sequence (Sinc, 180°)', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -271,8 +276,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
-                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', '2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Gradient Echo (Slab)' \
                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
@@ -433,17 +438,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                        or params.sequence == 32:
+                        or params.sequence == 32 or params.sequence == 34:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -460,12 +467,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
@@ -488,19 +497,20 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                        or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                        or params.sequence == 36:
+                        or params.sequence == 33 or params.sequence == 35 or params.sequence == 36:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -517,12 +527,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
             else:
@@ -1708,23 +1720,16 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.kSpace_Cut_Center_spinBox.valueChanged.connect(self.update_params)
         self.kSpace_Cut_Outside_spinBox.setKeyboardTracking(False)
         self.kSpace_Cut_Outside_spinBox.valueChanged.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.clear()
-        self.Undersampling_Time_comboBox.addItems(['2', '5', '10', '50'])
-        self.Undersampling_Time_comboBox.setCurrentIndex(0)
-
-        self.Undersampling_Phase_comboBox.clear()
-        self.Undersampling_Phase_comboBox.addItems(['2', '4', '8'])
-        self.Undersampling_Phase_comboBox.setCurrentIndex(0)
+        
+        self.Undersampling_Methode_1_radioButton.toggled.connect(self.update_undersampling_methode1)
+        self.Undersampling_Methode_2_radioButton.toggled.connect(self.update_undersampling_methode2)
+        self.Undersampling_Time_spinBox.setKeyboardTracking(False)
+        self.Undersampling_Time_spinBox.valueChanged.connect(self.update_params)
+        self.Undersampling_Phase_spinBox.setKeyboardTracking(False)
+        self.Undersampling_Phase_spinBox.valueChanged.connect(self.update_params)
 
         self.Undersampling_Time_radioButton.toggled.connect(self.update_params)
         self.Undersampling_Phase_radioButton.toggled.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
 
         self.GRO_Length_Scaler_doubleSpinBox.setKeyboardTracking(False)
         self.GRO_Length_Scaler_doubleSpinBox.valueChanged.connect(self.update_params)
@@ -1756,6 +1761,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         self.Auto_Data_Process_radioButton.toggled.connect(self.update_params)
         self.Single_Plot_radioButton.toggled.connect(self.update_params)
+        self.Measurement_Time_Dialog_radioButton.toggled.connect(self.update_params)
         
         self.Image_Colormap_comboBox.clear()
         self.Image_Colormap_comboBox.addItems(['viridis', 'jet', 'gray', 'bone', 'inferno', 'plasma'])
@@ -1797,17 +1803,25 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         else:
             self.Average_Complex_radioButton.setChecked(False)
             self.Average_Abs_radioButton.setChecked(True)
-
-        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
-        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
-
-        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
-        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
-        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
-        self.kSpace_Cut_Outside_spinBox.setValue(params.cutoutsidevalue)
-
+            
+        if params.usmethode == 1:
+            self.Undersampling_Methode_1_radioButton.setChecked(True)
+            self.Undersampling_Methode_2_radioButton.setChecked(False)
+        else:
+            self.Undersampling_Methode_1_radioButton.setChecked(False)
+            self.Undersampling_Methode_2_radioButton.setChecked(True)
+        
+        self.Undersampling_Time_spinBox.setValue(params.ustimeidx)
+        self.Undersampling_Phase_spinBox.setValue(params.usphaseidx)
         if params.ustime == 1: self.Undersampling_Time_radioButton.setChecked(True)
         if params.usphase == 1: self.Undersampling_Phase_radioButton.setChecked(True)
+        
+        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
+        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
+        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
+        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
+        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
+        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
 
         self.GRO_Length_Scaler_doubleSpinBox.setValue(params.GROpretimescaler)
 
@@ -1823,6 +1837,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         if params.autodataprocess == 1: self.Auto_Data_Process_radioButton.setChecked(True)
         if params.single_plot == 1: self.Single_Plot_radioButton.setChecked(True)
+        if params.measurement_time_dialog == 1: self.Measurement_Time_Dialog_radioButton.setChecked(True)
         
         if params.imagecolormap == 'viridis': self.Image_Colormap_comboBox.setCurrentIndex(0)
         elif params.imagecolormap == 'jet': self.Image_Colormap_comboBox.setCurrentIndex(1)
@@ -1873,16 +1888,8 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Undersampling_Phase_radioButton.isChecked(): params.usphase = 1
         else: params.usphase = 0
 
-        if self.Undersampling_Time_comboBox.currentIndex() == 0: params.ustimeidx = 2
-        elif self.Undersampling_Time_comboBox.currentIndex() == 1: params.ustimeidx = 5
-        elif self.Undersampling_Time_comboBox.currentIndex() == 2: params.ustimeidx = 10
-        elif self.Undersampling_Time_comboBox.currentIndex() == 3: params.ustimeidx = 50
-        else: params.ustimeidx = 2
-
-        if self.Undersampling_Phase_comboBox.currentIndex() == 0: params.usphaseidx = 2
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 1: params.usphaseidx = 4
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 2: params.usphaseidx = 8
-        else: params.usphaseidx = 2
+        params.ustimeidx = self.Undersampling_Time_spinBox.value()
+        params.usphaseidx = self.Undersampling_Phase_spinBox.value()
 
         params.GROpretimescaler = self.GRO_Length_Scaler_doubleSpinBox.value()
 
@@ -1916,13 +1923,16 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Single_Plot_radioButton.isChecked(): params.single_plot = 1
         else: params.single_plot = 0
         
+        if self.Measurement_Time_Dialog_radioButton.isChecked(): params.measurement_time_dialog = 1
+        else: params.measurement_time_dialog = 0
+        
         if self.Image_Colormap_comboBox.currentIndex() == 0: params.imagecolormap = 'viridis'
         elif self.Image_Colormap_comboBox.currentIndex() == 1: params.imagecolormap = 'jet'
         elif self.Image_Colormap_comboBox.currentIndex() == 2: params.imagecolormap = 'gray'
         elif self.Image_Colormap_comboBox.currentIndex() == 3: params.imagecolormap = 'bone'
         elif self.Image_Colormap_comboBox.currentIndex() == 4: params.imagecolormap = 'inferno'
-        elif self.Image_Colormap_comboBox.currentIndex() == 5: params.imagecolormap = 'plasma' 
-
+        elif self.Image_Colormap_comboBox.currentIndex() == 5: params.imagecolormap = 'plasma'
+        
         params.saveFileParameter()
 
     def update_light(self):
@@ -2005,6 +2015,18 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Average_Complex_radioButton.isChecked():
             params.average_complex = 1
             self.Average_Abs_radioButton.setChecked(False)
+            self.update_params()
+            
+    def update_undersampling_methode1(self):
+        if self.Undersampling_Methode_1_radioButton.isChecked():
+            params.usmethode = 1
+            self.Undersampling_Methode_2_radioButton.setChecked(False)
+            self.update_params()
+
+    def update_undersampling_methode2(self):
+        if self.Undersampling_Methode_2_radioButton.isChecked():
+            params.usmethode = 2
+            self.Undersampling_Methode_1_radioButton.setChecked(False)
             self.update_params()
 
 
@@ -2215,8 +2237,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.ax.set_ylabel('Signal')
             self.ax.set_title('Autocenter Signals')
             self.major_ticks = (params.ACstart, params.Reffrequency, params.ACstop)
-            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(
-                abs((params.ACstop * 1.0e6 - params.ACstart * 1.0e6)) / (params.ACstepwidth)) + 1)
+            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop * 1.0e6 - params.ACstart * 1.0e6)) / (params.ACstepwidth)) + 1)
             self.ax.set_xticks(self.major_ticks)
             self.ax.set_xticks(self.minor_ticks, minor=True)
             self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -2320,17 +2341,17 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Tool_Shim_Z2_Ref_lineEdit.setText('')
         self.repaint()
         
-        if params.GUImode == 0:
-            if params.ToolShimChannel != [0, 0, 0, 0]:
+        if params.ToolShimChannel != [0, 0, 0, 0]:
+            if params.GUImode == 0:
 
                 proc.Shimtool()
                 
-            if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                if params.single_plot == 1:
+                    if self.fig_canvas != None: self.fig_canvas.hide()
+                    if self.IMag_canvas != None: self.IMag_canvas.hide()
+                    if self.IPha_canvas != None: self.IPha_canvas.hide()
+                    if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+                    if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
                 self.fig = Figure()
                 self.fig.set_facecolor('None')
@@ -2375,10 +2396,20 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 else: self.Tool_Shim_Z2_Ref_lineEdit.setText('')
 
             else:
-                print('Please select gradient channel')
-
-            self.Tool_Shim_pushButton.setEnabled(True)
-            self.repaint()
+                self.font = self.Tool_Shim_X_Ref_lineEdit.font()
+                self.font.setPointSize(10)
+                self.Tool_Shim_X_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
+                if params.ToolShimChannel[0] == 1:
+                    self.Tool_Shim_X_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[1] == 1:
+                    self.Tool_Shim_Y_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[2] == 1:
+                    self.Tool_Shim_Z_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[3] == 1:
+                    self.Tool_Shim_Z2_Ref_lineEdit.setText('Select spectroscopy!')
             
         else:
             self.font = self.Tool_Shim_X_Ref_lineEdit.font()
@@ -2387,17 +2418,13 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
             self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
             self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-            if params.ToolShimChannel[0] == 1:
-                self.Tool_Shim_X_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[1] == 1:
-                self.Tool_Shim_Y_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[2] == 1:
-                self.Tool_Shim_Z_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[3] == 1:
-                self.Tool_Shim_Z2_Ref_lineEdit.setText('Select spectroscopy!')
-            
-            self.Tool_Shim_pushButton.setEnabled(True)
-            self.repaint()
+            self.Tool_Shim_X_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Y_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Z_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Z2_Ref_lineEdit.setText('Select shim channel!')
+
+        self.Tool_Shim_pushButton.setEnabled(True)
+        self.repaint()
 
     def Field_Map_B0(self):
         self.Field_Map_B0_pushButton.setEnabled(False)
@@ -2892,7 +2919,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
                                             , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
-                                            , 'RF Testsequence', 'Gradient Testsequence')
+                                            , 'RF Loopback Test Sequence (Rect, Flip)', 'RF Loopback Test Sequence (Rect, 180°)', 'RF Loopback Test Sequence (Sinc, Flip)' \
+                                            , 'RF Loopback Test Sequence (Sinc, 180°)', 'Gradient Testsequence')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 1:
@@ -2907,8 +2935,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
-                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', '2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Gradient Echo (Slab)' \
                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
@@ -3008,38 +3036,93 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.repaint()
 
     def protocol_acquire(self):
-        if params.GUImode == 2 and params.sequence == 0:
-            proc.T1measurement_IR_FID()
-        elif params.GUImode == 2 and params.sequence == 1:
-            proc.T1measurement_IR_SE()
-        elif params.GUImode == 2 and params.sequence == 2:
-            proc.T1measurement_IR_FID_Gs()
-        elif params.GUImode == 2 and params.sequence == 3:
-            proc.T1measurement_IR_SE_Gs()
-        elif params.GUImode == 2 and params.sequence == 4:
-            proc.T1measurement_Image_IR_GRE()
-        elif params.GUImode == 2 and params.sequence == 5:
-            proc.T1measurement_Image_IR_SE()
-        elif params.GUImode == 2 and params.sequence == 6:
-            proc.T1measurement_Image_IR_GRE_Gs()
-        elif params.GUImode == 2 and params.sequence == 7:
-            proc.T1measurement_Image_IR_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 0:
-            proc.T2measurement_SE()
-        elif params.GUImode == 3 and params.sequence == 1:
-            proc.T2measurement_SIR_FID()
-        elif params.GUImode == 3 and params.sequence == 2:
-            proc.T2measurement_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 3:
-            proc.T2measurement_SIR_FID_Gs()
-        elif params.GUImode == 3 and params.sequence == 4:
-            proc.T2measurement_Image_SE()
-        elif params.GUImode == 3 and params.sequence == 5:
-            proc.T2measurement_Image_SIR_GRE()
-        elif params.GUImode == 3 and params.sequence == 6:
-            proc.T2measurement_Image_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 7:
-            proc.T2measurement_Image_SIR_GRE_Gs()
+        if params.GUImode == 2:
+            if params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
+        elif params.GUImode == 3:
+            if params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
+        elif params.GUImode == 5:
+            if params.motor_enable == 1:
+                if params.motor_available:
+                    self.motor_reader.blockSignals(True)
+                    if params.sequence == 0:
+                        proc.image_stitching_2D_GRE(motor=self.motor)
+                    if params.sequence == 1:
+                        proc.image_stitching_2D_GRE(motor=self.motor)
+                    if params.sequence == 2:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 3:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 4:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 5:
+                        proc.image_stitching_2D_GRE_slice(motor=self.motor)
+                    if params.sequence == 6:
+                        proc.image_stitching_2D_GRE_slice(motor=self.motor)
+                    if params.sequence == 7:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 8:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 9:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 10:
+                        proc.image_stitching_3D_slab(motor=self.motor)
+                    self.motor_reader.blockSignals(False)                
+                else:
+                    print('Motor Control: Motor not available, maybe it is still homing?')
+            else:
+                if params.sequence == 0:
+                    proc.image_stitching_2D_GRE()
+                if params.sequence == 1:
+                    proc.image_stitching_2D_GRE()
+                if params.sequence == 2:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 3:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 4:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 5:
+                    proc.image_stitching_2D_GRE_slice()
+                if params.sequence == 6:
+                    proc.image_stitching_2D_GRE_slice()
+                if params.sequence == 7:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 8:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 9:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 10:
+                    proc.image_stitching_3D_slab()
+            
         elif params.GUImode == 1:
             if params.autorecenter == 1:
                 self.frequencyoffsettemp = 0
@@ -3059,13 +3142,24 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if self.dialog_config != None:
+                        self.dialog_config.load_params()
+                        self.dialog_config.repaint()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                        or params.sequence == 32:
+                        or params.sequence == 32 or params.sequence == 34:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -3077,9 +3171,20 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if self.dialog_config != None:
+                        self.dialog_config.load_params()
+                        self.dialog_config.repaint()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
@@ -3096,15 +3201,25 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if self.dialog_config != None:
+                        self.dialog_config.load_params()
+                        self.dialog_config.repaint()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                        or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                        or params.sequence == 36:
+                        or params.sequence == 33 or params.sequence == 35 or params.sequence == 36:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -3116,14 +3231,26 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if self.dialog_config != None:
+                        self.dialog_config.load_params()
+                        self.dialog_config.repaint()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
             else:
                 seq.sequence_upload()
         else:
             seq.sequence_upload()
+            
         if params.headerfileformat == 0:
             params.save_header_file_txt()
         else:
@@ -3164,7 +3291,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.Save_Pha_Image_Data_pushButton.setEnabled(False)
 
         if params.GUImode == 0:
-            self.spectrum_plot_init()
+            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21:
+                self.rf_loopback_test_spectrum_plot_init()
+            else:
+                self.spectrum_plot_init()
             self.Save_Spectrum_Data_pushButton.setEnabled(True)
             
         elif params.GUImode == 1:
@@ -3294,8 +3424,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         params.saveFileParameter()
 
         if params.GUImode == 0:
-            self.fig_canvas.hide()
-            self.spectrum_plot_init()
+            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21:
+                self.rf_loopback_test_spectrum_plot_init()
+            else:
+                self.spectrum_plot_init()
+            self.Save_Spectrum_Data_pushButton.setEnabled(True)
         elif params.GUImode == 1 and params.sequence != 34 and params.sequence != 35 and params.sequence != 36 and params.sequence != 14 and params.sequence != 31:
             if self.IMag_canvas != None: self.IMag_canvas.hide()
             if self.IPha_canvas != None: self.IPha_canvas.hide()
@@ -3328,7 +3461,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax1.grid(which='major', color='#888888', linestyle='-')
         self.ax1.grid(which='minor', color='#888888', linestyle=':')
         self.ax1.grid(which='both', visible=True)
-
+        
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.ax2.plot(params.timeaxis, params.real, label='Real')
         self.ax2.plot(params.timeaxis, params.imag, label='Imaginary')
@@ -3345,7 +3478,48 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax2.grid(which='both', visible=True)
         self.ax2.legend()
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
+        self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+        self.fig_canvas.setGeometry(420, 40, 1160, 950)
+        self.fig_canvas.show()
+        
+    def rf_loopback_test_spectrum_plot_init(self):
+        self.fig = Figure()
+        self.fig.set_facecolor('None')
+        self.fig_canvas = FigureCanvas(self.fig)
 
+        self.ax1 = self.fig.add_subplot(2, 1, 1)
+        self.ax2 = self.fig.add_subplot(2, 1, 2)
+
+        self.ax1.plot(params.freqencyaxis, params.spectrumfft)
+        self.ax1.set_xlim([-params.frequencyplotrange / 2, params.frequencyplotrange / 2])
+        self.ax1.set_ylim([0, 1.1 * np.max(params.spectrumfft)])
+        self.ax1.set_title('Spectrum')
+        self.ax1.set_ylabel('RX Signal [arb.]')
+        self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')
+        self.major_ticks = np.linspace(-params.frequencyplotrange / 2, params.frequencyplotrange / 2, 11)
+        self.minor_ticks = np.linspace(-params.frequencyplotrange / 2, params.frequencyplotrange / 2, 51)
+        self.ax1.set_xticks(self.major_ticks)
+        self.ax1.set_xticks(self.minor_ticks, minor=True)
+        self.ax1.grid(which='major', color='#888888', linestyle='-')
+        self.ax1.grid(which='minor', color='#888888', linestyle=':')
+        self.ax1.grid(which='both', visible=True)
+        
+        self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
+        self.ax2.plot(params.timeaxis, params.real, label='Real')
+        self.ax2.plot(params.timeaxis, params.imag, label='Imaginary')
+        self.ax2.set_xlim([0, params.timeaxis[int(params.timeaxis.shape[0] - 1)]])
+        self.ax2.set_title('Signal')
+        self.ax2.set_ylabel('RX Signal [mV]')
+        self.ax2.set_xlabel('time [µs]')
+        self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int((int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]))/10) + 1)
+        self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int((int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5)/10) + 1)
+        self.ax2.set_xticks(self.major_ticks)
+        self.ax2.set_xticks(self.minor_ticks, minor=True)
+        self.ax2.grid(which='major', color='#888888', linestyle='-')
+        self.ax2.grid(which='minor', color='#888888', linestyle=':')
+        self.ax2.grid(which='both', visible=True)
+        self.ax2.legend()
+        self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
         self.fig_canvas.setGeometry(420, 40, 1160, 950)
         self.fig_canvas.show()
@@ -4152,23 +4326,49 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         else:
             self.dialog_3D_layers.hide()
             self.dialog_3D_layers.show()
-        
+    
     def animate(self):
-        proc.animation_image_process()
-
-        import matplotlib.animation as animation
-
-        fig = plt.figure()
-
-        im = plt.imshow(params.animationimage[params.kspace.shape[0] - 1, :, :], cmap='gray', animated=True)
-        plt.axis('off')
-
-        def updatefig(i):
-            im.set_array(params.animationimage[i, :, :])
-            return im,
-
-        ani = animation.FuncAnimation(fig, updatefig, frames=params.kspace.shape[0], interval=params.animationstep, blit=True)
-        plt.show()
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
+            
+        self.GUImodetemp = 0
+        self.GUImodetemp = params.GUImode
+        params.GUImode = jsonparams['GUI mode']
+        self.sequencetemp = 0
+        self.sequencetemp = params.sequence
+        params.sequence = jsonparams['Sequence']
+        
+        if params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 17 \
+                                    or params.sequence == 18):
+            #Radial full
+            proc.animate_radial_full()
+        elif params.GUImode == 1 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 19 \
+                                      or params.sequence == 20):
+            #Radial half
+            proc.animate_radial_half()
+        elif params.GUImode == 1 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 7 \
+                                      or params.sequence == 8 or params.sequence == 9  or params.sequence == 10 \
+                                      or params.sequence == 15  or params.sequence == 16 or params.sequence == 21 \
+                                      or params.sequence == 22 or params.sequence == 24 or params.sequence == 25 \
+                                      or params.sequence == 26 or params.sequence == 27 or params.sequence == 32 \
+                                      or params.sequence == 33):
+            #Cartesian
+            proc.animate_cartesian()
+        elif params.GUImode == 1 and (params.sequence == 6 or params.sequence == 23):
+            #Cartesian in-out
+            proc.animate_cartesian_IO()
+        elif params.GUImode == 1 and (params.sequence == 11 or params.sequence == 28):
+            #TSE
+            print('\033[1m' + 'WIP' + '\033[0m')
+        elif params.GUImode == 1 and (params.sequence == 12 or params.sequence == 13 or params.sequence == 29 \
+                                       or params.sequence == 30):
+            #EPI
+            print('\033[1m' + 'WIP' + '\033[0m')
+        else: print('Sequence not defined!')
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        
         
 class SerialReader(QObject):
     data_received =pyqtSignal(str)
