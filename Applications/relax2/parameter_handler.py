@@ -633,7 +633,7 @@ class Parameters:
                 self.imagecolormap, \
                 self.imageminimum, \
                 self.imagemaximum, \
-                self.measurement_time_dialog= pickle.load(file)
+                self.measurement_time_dialog = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
