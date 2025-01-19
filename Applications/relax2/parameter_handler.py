@@ -169,7 +169,7 @@ class Parameters:
         self.radialanglestepradmod100 = 0
         self.lnkspacemag = 0
         self.autograd = 1
-        self.FOV = 12.0
+        self.FOV = 16.0
         self.slicethickness = 5.0
         self.gradsens = [35.0, 32.0, 36.0]
         self.gradnominal = [10.0, 10.0, 10.0]
@@ -183,7 +183,9 @@ class Parameters:
         self.ToolShimStop = 400
         self.ToolShimSteps = 20
         self.ToolShimChannel = [0, 0, 0, 0]
+        self.ToolAutoShimMode = 0
         self.STvalues = []
+        self.AutoSTvalues = []
         self.B0DeltaB0map = []
         self.B0DeltaB0mapmasked = []
         self.B1alphamap = []
@@ -204,7 +206,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
-        self.motor_enable = 0
+        self.motor_enable = 1
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -359,7 +361,9 @@ class Parameters:
                          self.ToolShimStop, \
                          self.ToolShimSteps, \
                          self.ToolShimChannel, \
+                         self.ToolAutoShimMode, \
                          self.STvalues, \
+                         self.AutoSTvalues, \
                          self.imagefilter, \
                          self.signalmask, \
                          self.SAR_enable, \
@@ -590,7 +594,9 @@ class Parameters:
                 self.ToolShimStop, \
                 self.ToolShimSteps, \
                 self.ToolShimChannel, \
+                self.ToolAutoShimMode, \
                 self.STvalues, \
+                self.AutoSTvalues, \
                 self.imagefilter, \
                 self.signalmask, \
                 self.SAR_enable, \
@@ -828,7 +834,9 @@ class Parameters:
         # file.write(': ' + str(self.ToolShimStop) + '\n')
         # file.write(': ' + str(self.ToolShimSteps) + '\n')
         # file.write(': ' + str(self.ToolShimChannel) + '\n')
+        # file.write(': ' + str(self.ToolAutoShimMode) + '\n')
         # file.write(': ' + str(self.STvalues) + '\n')
+        # file.write(': ' + str(self.AutoSTvalues) + '\n')
         # file.write(': ' + str(self.imagefilter) + '\n')
         # file.write(': ' + str(self.signalmask))
         file.write('SAR enable: ' + str(self.SAR_enable) + '\n')

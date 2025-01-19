@@ -31,7 +31,7 @@
      <x>0</x>
      <y>0</y>
      <width>761</width>
-     <height>791</height>
+     <height>793</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -1999,6 +1999,79 @@
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="21" column="2">
+     <widget class="QPushButton" name="Tool_Auto_Shim_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Auto Shim</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="21" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QRadioButton" name="Tool_Auto_Shim_Rough_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Rough (New)</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="Tool_Auto_Shim_Fine_radioButton">
+        <property name="minimumSize">
+         <size>
+          <width>55</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>55</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Fine</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

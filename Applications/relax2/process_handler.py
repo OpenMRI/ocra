@@ -469,14 +469,15 @@ class process:
 
     def image_stitching_2D_GRE(self, motor=None):
         print('Measuring stitched images 2D GRE...')
-        self.datapath_split = params.datapath.split('/')
-        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
         else:
-            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
-            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
             
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -525,7 +526,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -591,7 +592,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -615,6 +616,8 @@ class process:
 
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
+                
+        os.remove(self.datapathtemp + '/Image_Stitching.txt')
 
         params.datapath = self.datapathtemp
 
@@ -622,14 +625,16 @@ class process:
 
     def image_stitching_2D_SE(self, motor=None):
         print('Measuring stitched images 2D SE...')
-        self.datapath_split = params.datapath.split('/')
-        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
         else:
-            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
-            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
-
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
+            
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
+        
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
         self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.nPE*((100 + params.flippulselength/2 + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
@@ -678,7 +683,7 @@ class process:
             params.motor_current_image_count = 0
                         
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -743,7 +748,7 @@ class process:
                 
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -768,7 +773,7 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-                #time.sleep(params.TR / 1000)
+        os.remove(self.datapathtemp + '/Image_Stitching.txt')
 
         params.datapath = self.datapathtemp
 
@@ -776,14 +781,15 @@ class process:
         
     def image_stitching_2D_GRE_slice(self, motor=None):
         print('Measuring stitched images 2D GRE slice...')
-        self.datapath_split = params.datapath.split('/')
-        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
         else:
-            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
-            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
-
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
+            
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -832,7 +838,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -898,7 +904,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -922,6 +928,8 @@ class process:
 
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
+                
+        os.remove(self.datapathtemp + '/Image_Stitching.txt')
 
         params.datapath = self.datapathtemp
 
@@ -929,14 +937,15 @@ class process:
         
     def image_stitching_2D_SE_slice(self, motor=None):
         print('Measuring stitched images 2D SE slice...')
-        self.datapath_split = params.datapath.split('/')
-        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
         else:
-            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
-            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
-
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
+            
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
 
@@ -986,7 +995,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -1052,7 +1061,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -1077,7 +1086,7 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-                #time.sleep(params.TR / 1000)
+        os.remove(self.datapathtemp + '/Image_Stitching.txt')
 
         params.datapath = self.datapathtemp
 
@@ -1087,7 +1096,7 @@ class process:
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
         
-        with open(params.datapath + '_Header.json', 'r') as j:
+        with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
             jsonparams = json.loads(j.read())
 
         self.imageorientationtemp = ''
@@ -1124,9 +1133,9 @@ class process:
 
             for n in range(0, params.motor_image_count):
                 if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
 
                 print(n+1,'/',params.motor_image_count)
 
@@ -1158,9 +1167,9 @@ class process:
 
             for n in range(0, params.motor_image_count):
                 if jsonparams['Motor movement step [mm]'] < 0:
-                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1182,7 +1191,7 @@ class process:
             params.img_st_pha = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
 
             for n in range(0, params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1207,14 +1216,15 @@ class process:
 
     def image_stitching_3D_slab(self, motor=None):
         print('Measuring stitched images 3D SE slab...')
-        self.datapath_split = params.datapath.split('/')
-        if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) != True: os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
         else:
-            shutil.rmtree(self.datapath_split[0] + '/' + self.datapath_split[1])
-            os.mkdir(self.datapath_split[0] + '/' + self.datapath_split[1])
-
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
+            
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -1263,7 +1273,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 params.motor_goto_position = motor_positions[n]
@@ -1292,7 +1302,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -1317,7 +1327,7 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-                #time.sleep(params.TR / 1000)
+        os.remove(self.datapathtemp + '/Image_Stitching.txt')
 
         params.datapath = self.datapathtemp
 
@@ -1328,7 +1338,7 @@ class process:
         self.datapathtemp = ''
         self.datapathtemp = params.datapath
 
-        with open(params.datapath + '_Header.json', 'r') as j:
+        with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
             jsonparams = json.loads(j.read())
 
         self.imageorientationtemp = ''
@@ -1372,9 +1382,9 @@ class process:
 
             for n in range(params.motor_image_count):
                 if jsonparams['Motor movement step [mm]'] < 0:
-                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1407,9 +1417,9 @@ class process:
 
             for n in range(params.motor_image_count):
                 if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
                     
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1440,9 +1450,9 @@ class process:
 
             for n in range(params.motor_image_count):
                 if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '_' + str(n + 1))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
