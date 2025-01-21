@@ -1675,11 +1675,9 @@ class process:
         self.frequencytemp = params.frequency
         self.shimtemp = [0, 0, 0, 0]
         self.shimtemp[:] = params.grad[:]
-        # print(self.shimtemp)
 
         self.STsteps = np.linspace(params.ToolShimStart, params.ToolShimStop, params.ToolShimSteps)
         self.STsteps = self.STsteps.astype(int)
-        # print(self.STsteps)
 
         params.STvalues = np.matrix(np.zeros((5, params.ToolShimSteps)))
         params.STvalues[0, :] = self.STsteps

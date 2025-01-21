@@ -107,6 +107,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.lnkspacemag = 0
         params.ToolShimChannel = [0, 0, 0, 0]
         params.ToolAutoShimMode = 0
+        params.STgrad = [0, 0, 0, 0, 0]
         params.SAR_status = 1
         params.motor_available = 0
         params.motor_actual_position = 0
@@ -2090,25 +2091,48 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         print('Tool reference attenuation applied!')
         
     def Set_shim(self):
-        if os.path.isfile('tooldata/Shim_Tool_Data.txt') == True:
+        if params.STgrad[0] == 1:
             if params.ToolShimChannel[0] == 1:
                 if np.max(params.STvalues[1, :]) != 0:
-                    self.Shim_X_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[1, :])]))
+                    self.Shim_X_spinBox.setValue(int(params.STgrad[1]))
                     print('Tool reference X shim applied')
                 else: print('No reference X shim value')
             if params.ToolShimChannel[1] == 1:
                 if np.max(params.STvalues[2, :]) != 0:
-                    self.Shim_Y_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[2, :])]))
+                    self.Shim_Y_spinBox.setValue(int(params.STgrad[2]))
                     print('Tool reference Y shim applied')
                 else: print('No reference Y shim value')
             if params.ToolShimChannel[2] == 1:
                 if np.max(params.STvalues[3, :]) != 0:
-                    self.Shim_Z_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[3, :])]))
+                    self.Shim_Z_spinBox.setValue(int(params.STgrad[3]))
                     print('Tool reference Z shim applied')
                 else: print('No reference Z shim value')
             if params.ToolShimChannel[3] == 1:
                 if np.max(params.STvalues[4, :]) != 0:
-                    self.Shim_Z2_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[4, :])]))
+                    self.Shim_Z2_spinBox.setValue(int(params.STgrad[4]))
+                    print('Tool reference Z2 shim applied')
+                else: print('No reference Z2 shim value')
+            if params.ToolShimChannel == [0, 0, 0, 0]:
+                print('Please select shim channel in Tools!')
+        elif params.STgrad[0] == 2:
+            if params.ToolShimChannel[0] == 1:
+                if np.max(params.AutoSTvalues[1, :]) != 0:
+                    self.Shim_X_spinBox.setValue(int(params.STgrad[1]))
+                    print('Tool reference X shim applied')
+                else: print('No reference X shim value')
+            if params.ToolShimChannel[1] == 1:
+                if np.max(params.AutoSTvalues[3, :]) != 0:
+                    self.Shim_Y_spinBox.setValue(int(params.STgrad[2]))
+                    print('Tool reference Y shim applied')
+                else: print('No reference Y shim value')
+            if params.ToolShimChannel[2] == 1:
+                if np.max(params.AutoSTvalues[5, :]) != 0:
+                    self.Shim_Z_spinBox.setValue(int(params.STgrad[3]))
+                    print('Tool reference Z shim applied')
+                else: print('No reference Z shim value')
+            if params.ToolShimChannel[3] == 1:
+                if np.max(params.AutoSTvalues[7, :]) != 0:
+                    self.Shim_Z2_spinBox.setValue(int(params.STgrad[4]))
                     print('Tool reference Z2 shim applied')
                 else: print('No reference Z2 shim value')
             if params.ToolShimChannel == [0, 0, 0, 0]:
@@ -2492,6 +2516,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         
         if params.ToolShimChannel != [0, 0, 0, 0]:
             if params.GUImode == 0:
+                
+                params.STgrad[0] = 0
 
                 proc.Shimtool()
                 
@@ -2535,14 +2561,25 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-                if params.ToolShimChannel[0] == 1: self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[1, :])]))
+                
+                if params.ToolShimChannel[0] == 1:
+                    params.STgrad[1] = params.STvalues[0, np.argmax(params.STvalues[1, :])]
+                    self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
                 else: self.Tool_Shim_X_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[1] == 1: self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[2, :])]))
+                if params.ToolShimChannel[1] == 1:
+                    params.STgrad[2] = params.STvalues[0, np.argmax(params.STvalues[2, :])]
+                    self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
                 else: self.Tool_Shim_Y_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[2] == 1: self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[3, :])]))
+                if params.ToolShimChannel[2] == 1:
+                    params.STgrad[3] = params.STvalues[0, np.argmax(params.STvalues[3, :])]
+                    self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
                 else: self.Tool_Shim_Z_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[3] == 1: self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[4, :])]))
+                if params.ToolShimChannel[3] == 1:
+                    params.STgrad[4] = params.STvalues[0, np.argmax(params.STvalues[4, :])]
+                    self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
                 else: self.Tool_Shim_Z2_Ref_lineEdit.setText('')
+                
+                params.STgrad[0] = 1
 
             else:
                 self.font = self.Tool_Shim_X_Ref_lineEdit.font()
@@ -2589,6 +2626,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.ToolShimSteps_temp = 0
             self.ToolShimSteps_temp = params.ToolShimSteps
             
+            params.STgrad[0] = 0
+            
             if params.ToolAutoShimMode == 1:
                 print('Auto shim fine...')
             
@@ -2605,7 +2644,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[0, :] = params.STvalues[0, :]
                 params.AutoSTvalues[1, :] = params.STvalues[1, :]
                 
-                params.grad[0] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.STgrad[1] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.grad[0] = params.STgrad[1]
                 params.ToolShimStart = int(self.grad_temp[1] - 60)
                 params.ToolShimStop = int(self.grad_temp[1] + 60)
                 params.ToolShimChannel = [0, 1, 0, 0]
@@ -2616,7 +2656,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[2, :] = params.STvalues[0, :]
                 params.AutoSTvalues[3, :] = params.STvalues[2, :]
                 
-                params.grad[1] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.STgrad[2] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.grad[1] = params.STgrad[2]
                 params.ToolShimStart = int(self.grad_temp[2] - 60)
                 params.ToolShimStop = int(self.grad_temp[2] + 60)
                 params.ToolShimChannel = [0, 0, 1, 0]
@@ -2627,7 +2668,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[4, :] = params.STvalues[0, :]
                 params.AutoSTvalues[5, :] = params.STvalues[3, :]
                 
-                params.grad[2] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.STgrad[3] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.grad[2] = params.STgrad[3]
                 params.ToolShimStart = int(self.grad_temp[3] - 60)
                 params.ToolShimStop = int(self.grad_temp[3] + 60)
                 params.ToolShimChannel = [0, 0, 0, 1]
@@ -2638,7 +2680,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[6, :] = params.STvalues[0, :]
                 params.AutoSTvalues[7, :] = params.STvalues[4, :]
                 
-                params.grad[3] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.STgrad[4] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.grad[3] = params.STgrad[4]
                 params.saveFileParameter()
                 
                 self.font = self.Tool_Shim_X_Ref_lineEdit.font()
@@ -2647,10 +2690,12 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.grad[0]))
-                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.grad[1]))
-                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.grad[2]))
-                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.grad[3]))
+                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
+                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
+                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
+                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
+                
+                params.STgrad[0] = 2
                 
             else:
                 print('Auto shim rough...')
@@ -2669,7 +2714,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[0, :] = params.STvalues[0, :]
                 params.AutoSTvalues[1, :] = params.STvalues[1, :]
                 
-                params.grad[0] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.STgrad[1] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.grad[0] = params.STgrad[1]
                 params.ToolShimChannel = [0, 1, 0, 0]
                 params.saveFileParameter()
                 
@@ -2678,7 +2724,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[2, :] = params.STvalues[0, :]
                 params.AutoSTvalues[3, :] = params.STvalues[2, :]
                 
-                params.grad[1] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.STgrad[2] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.grad[1] = params.STgrad[2]
                 params.ToolShimChannel = [0, 0, 1, 0]
                 params.saveFileParameter()
                 
@@ -2687,7 +2734,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[4, :] = params.STvalues[0, :]
                 params.AutoSTvalues[5, :] = params.STvalues[3, :]
                 
-                params.grad[2] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.STgrad[3] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.grad[2] = params.STgrad[3]
                 params.ToolShimChannel = [0, 0, 0, 1]
                 params.saveFileParameter()
                 
@@ -2696,7 +2744,8 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.AutoSTvalues[6, :] = params.STvalues[0, :]
                 params.AutoSTvalues[7, :] = params.STvalues[4, :]
                 
-                params.grad[3] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.STgrad[4] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.grad[3] = params.STgrad[4]
                 params.saveFileParameter()
                 
                 self.font = self.Tool_Shim_X_Ref_lineEdit.font()
@@ -2705,10 +2754,12 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.grad[0]))
-                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.grad[1]))
-                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.grad[2]))
-                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.grad[3]))
+                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
+                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
+                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
+                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
+                
+                params.STgrad[0] = 2
                 
             params.grad = self.grad_temp
             params.ToolShimStart = self.ToolShimStart_temp

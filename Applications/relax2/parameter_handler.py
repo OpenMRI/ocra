@@ -186,6 +186,7 @@ class Parameters:
         self.ToolAutoShimMode = 0
         self.STvalues = []
         self.AutoSTvalues = []
+        self.STgrad = []
         self.B0DeltaB0map = []
         self.B0DeltaB0mapmasked = []
         self.B1alphamap = []
@@ -206,7 +207,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
-        self.motor_enable = 1
+        self.motor_enable = 0
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -364,6 +365,7 @@ class Parameters:
                          self.ToolAutoShimMode, \
                          self.STvalues, \
                          self.AutoSTvalues, \
+                         self.STgrad, \
                          self.imagefilter, \
                          self.signalmask, \
                          self.SAR_enable, \
@@ -597,6 +599,7 @@ class Parameters:
                 self.ToolAutoShimMode, \
                 self.STvalues, \
                 self.AutoSTvalues, \
+                self.STgrad, \
                 self.imagefilter, \
                 self.signalmask, \
                 self.SAR_enable, \
@@ -837,6 +840,7 @@ class Parameters:
         # file.write(': ' + str(self.ToolAutoShimMode) + '\n')
         # file.write(': ' + str(self.STvalues) + '\n')
         # file.write(': ' + str(self.AutoSTvalues) + '\n')
+        # file.write(': ' + str(self.STgrad) + '\n')
         # file.write(': ' + str(self.imagefilter) + '\n')
         # file.write(': ' + str(self.signalmask))
         file.write('SAR enable: ' + str(self.SAR_enable) + '\n')
