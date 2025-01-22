@@ -86,9 +86,13 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         
         params.GUImode = 0
         params.sequence = 0
+        params.sequencefile = ''
         params.projaxis = np.zeros(3)
+        params.usmethode = 1
         params.ustime = 0
         params.usphase = 0
+        params.ustimeidx = 2
+        params.usphaseidx = 2
         params.flipangletime = 90
         params.flipangleamplitude = 90
         params.flippulselength = int(params.RFpulselength / 90 * params.flipangletime)
@@ -102,6 +106,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.phaseoffsetradmod100 = 0
         params.lnkspacemag = 0
         params.ToolShimChannel = [0, 0, 0, 0]
+        params.ToolAutoShimMode = 0
+        params.STgrad = [0, 0, 0, 0, 0]
         params.SAR_status = 1
         params.motor_available = 0
         params.motor_actual_position = 0
@@ -117,7 +123,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             params.GSposttime = 0
         else:
             params.GSposttime = int((200 * params.GSamplitude + 4 * params.flippulselength * params.GSamplitude) / 2 - 200 * params.GSamplitude / 2) / (params.GSamplitude / 2)
-
+        
         self.establish_conn()
 
         self.Mode_Spectroscopy_pushButton.clicked.connect(lambda: self.switch_GUImode(0))
@@ -132,7 +138,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         self.Sequence_comboBox.clear()
         self.Sequence_comboBox.addItems(['Please select mode!'])
         self.Sequence_comboBox.currentIndexChanged.connect(self.set_sequence)
-
+        
         self.Parameters_pushButton.clicked.connect(lambda: self.parameter_window())
         self.Acquire_pushButton.clicked.connect(lambda: self.acquire())
         self.Data_Process_pushButton.clicked.connect(lambda: self.dataprocess())
@@ -255,7 +261,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
                                             , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
-                                            , 'RF Loopback Test Sequence', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence'])
+                                            , 'RF Loopback Test Sequence (Rect, Flip)', 'RF Loopback Test Sequence (Rect, 180°)', 'RF Loopback Test Sequence (Sinc, Flip)' \
+                                            , 'RF Loopback Test Sequence (Sinc, 180°)', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Spectrum_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
@@ -271,8 +278,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
-                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', '2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Gradient Echo (Slab)' \
                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             self.Datapath_lineEdit.setText('rawdata/Image_rawdata')
@@ -308,7 +315,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                             , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
                                             , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
-            self.Datapath_lineEdit.setText('rawdata/Image_Stitching/Image_Stitching_rawdata')
+            self.Datapath_lineEdit.setText('rawdata/Image_Stitching_rawdata')
             params.datapath = self.Datapath_lineEdit.text()
 
     def set_sequence(self, idx):
@@ -433,17 +440,19 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                        or params.sequence == 32:
+                        or params.sequence == 32 or params.sequence == 34:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -460,12 +469,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
@@ -488,19 +499,20 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                        or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                        or params.sequence == 36:
+                        or params.sequence == 33 or params.sequence == 35 or params.sequence == 36:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -517,12 +529,14 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     if self.dialog_config != None:
                         self.dialog_config.load_params()
                         self.dialog_config.repaint()
-                    msg_box = QMessageBox()
-                    msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
-                    msg_box.setStandardButtons(QMessageBox.Ok)
-                    msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
-                    msg_box.button(QMessageBox.Ok).hide()
-                    msg_box.exec()
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
                     time.sleep(0.1)
                     seq.sequence_upload()
             else:
@@ -533,10 +547,24 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         params.saveFileParameter()
         params.saveFileData()
         
-        if params.headerfileformat == 0:
-            params.save_header_file_txt()
+        if params.GUImode == 5:
+            self.datapathtemp = ''
+            self.datapathtemp = params.datapath
+            params.datapath = params.datapath + '/Image_Stitching'
+            
+            if params.headerfileformat == 0:
+                params.save_header_file_txt()
+            else:
+                params.save_header_file_json()
+                
+            params.datapath = self.datapathtemp
+            
         else:
-            params.save_header_file_json()
+            if params.headerfileformat == 0:
+                params.save_header_file_txt()
+            else:
+                params.save_header_file_json()
+            
 
         if self.dialog_params != None:
             self.SIR_TEtemp = 0
@@ -855,13 +883,11 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                                       or params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
                                       or params.sequence == 8 or params.sequence == 9):
             
-            self.datapath_split = params.datapath.split('/')
-            
-            if os.path.isdir(self.datapath_split[0] + '/' + self.datapath_split[1]) == True:
-                if os.path.isfile(params.datapath + '_1.txt') == True:
-                    if os.path.isfile(params.datapath + '_Header.json') == True:
+            if os.path.isdir(params.datapath) == True:
+                if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
+                    if os.path.isfile(params.datapath + '/Image_Stitching_Header.json') == True:
                         proc.image_stitching_2D_json_process()
-                    elif os.path.isfile(params.datapath + '_Header.txt') == True:
+                    elif os.path.isfile(params.datapath + '/Image_Stitching_Header.txt') == True:
                         proc.image_stitching_2D_txt_process()
                     else:
                         print('No header file!!')
@@ -884,29 +910,33 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     print('No file!!')
             else:
                 print('No directory!!')
+                
         elif params.GUImode == 5 and params.sequence == 10:
-            if os.path.isfile(params.datapath + '_1.txt') == True:
-                if os.path.isfile(params.datapath + '_Header.json') == True:
-                    proc.image_stitching_3D_json_process()
-                elif os.path.isfile(params.datapath + '_Header.txt') == True:
-                    proc.image_stitching_3D_txt_process()
-                else:
-                    print('No header file!!')
-                # proc.image_analytics()
-                if params.single_plot == 1:
-                    if self.dialog_plot != None:
-                        self.dialog_plot.hide()
-                        if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
+            if os.path.isdir(params.datapath) == True:
+                if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
+                    if os.path.isfile(params.datapath + '/Image_Stitching_Header.json') == True:
+                        proc.image_stitching_3D_json_process()
+                    elif os.path.isfile(params.datapath + '/Image_Stitching_Header.txt') == True:
+                        proc.image_stitching_3D_txt_process()
+                    else:
+                        print('No header file!!')
+                    # proc.image_analytics()
+                    if params.single_plot == 1:
+                        if self.dialog_plot != None:
+                            self.dialog_plot.hide()
+                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
+                        else:
+                            self.dialog_plot = PlotWindow(self)
+                            self.dialog_plot.show()
                     else:
                         self.dialog_plot = PlotWindow(self)
                         self.dialog_plot.show()
                 else:
-                    self.dialog_plot = PlotWindow(self)
-                    self.dialog_plot.show()
+                    print('No file!!')
             else:
-                print('No file!!')
+                print('No directory!!')
 
         params.saveFileData()
 
@@ -923,7 +953,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
 
     def protocol(self):
         if self.dialog_prot == None:
-            self.dialog_prot = ProtocolWindow(self)
+            self.dialog_prot = ProtocolWindow(self, motor = self.motor, motor_reader=self.motor_reader)
             self.dialog_prot.show()
         else:
             self.dialog_prot.hide()
@@ -973,7 +1003,7 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
 
         self.ui = loadUi('ui/parameters.ui')
         self.setWindowTitle('Parameters')
-        self.setGeometry(420, 40, 1160, 750)
+        self.setGeometry(420, 40, 1160, 900)
 
         self.Samplingtime_spinBox.setKeyboardTracking(False)
         self.Samplingtime_spinBox.valueChanged.connect(self.update_params)
@@ -1230,19 +1260,51 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         self.Average_spinBox.setValue(params.averagecount)
 
         self.GROamplitude_spinBox.setValue(params.GROamplitude)
+        if round(params.GROamplitude) < 300: self.GROamplitude_spinBox.setStyleSheet('color: yellow;')
+        elif round(2*params.GROamplitude) > 8500: self.GROamplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GROamplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GROamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+        
         self.GPEstep_spinBox.setValue(params.GPEstep)
+        if round(params.GPEstep * params.nPE/2) > 8500: self.GPEstep_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GPEstep_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GPEstep_spinBox.setStyleSheet('color: #eff0f1;')
+        
         self.GSamplitude_spinBox.setValue(params.GSamplitude)
+        if round(params.GSamplitude) > 8500: self.GSamplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GSamplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GSamplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
         self.Flipangle_Time_spinBox.setValue(params.flipangletime)
         self.Flipangle_Amplitude_spinBox.setValue(params.flipangleamplitude)
 
         self.GSPEstep_spinBox.setValue(params.GSPEstep)
         self.SPEsteps_spinBox.setValue(params.SPEsteps)
+        if round(params.GSPEstep * params.SPEsteps/2) > 8500: self.GSPEstep_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GSPEstep_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GSPEstep_spinBox.setStyleSheet('color: #eff0f1;')
 
         self.GDiffamplitude_spinBox.setValue(params.Gdiffamplitude)
+        if round(params.Gdiffamplitude) > 8500: self.GDiffamplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GDiffamplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GDiffamplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
         self.Crusher_Amplitude_spinBox.setValue(params.crusheramplitude)
+        if round(params.crusheramplitude) > 8500: self.Crusher_Amplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
+        
         self.Spoiler_Amplitude_spinBox.setValue(params.spoileramplitude)
+        if round(params.spoileramplitude) > 8500: self.GSpoiler_Amplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
         self.Image_Orientation_comboBox.setCurrentIndex(params.imageorientation)
 
@@ -1294,10 +1356,28 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
 
             self.Gz = (2 * np.pi * self.Deltaf) / (2 * np.pi * 42.57 * (params.slicethickness))
             params.GSamplitude = int(self.Gz / self.Gzsens * 1000)
+            
+            if round(params.GSamplitude) > 8500: self.GSamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+
+            if round(params.crusheramplitude) > 8500: self.Crusher_Amplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
+
+            if round(params.spoileramplitude) > 8500: self.GSpoiler_Amplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
             self.Gz3D = (2 * np.pi / params.slicethickness) / (2 * np.pi * 42.57 * (self.GPEtime / 1000000))
             params.GSPEstep = int(self.Gz3D / self.Gzsens * 1000)
-            print('Auto 3D SlPE max:', params.GSPEstep * params.SPEsteps / 2)
+            if round(params.GSPEstep * params.SPEsteps/2) > 8500: self.GSPEstep_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSPEstep_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSPEstep_spinBox.setStyleSheet('color: #eff0f1;')
 
             self.update_gradients()
 
@@ -1415,8 +1495,6 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
         params.GSPEstep = int(self.Gz3D / self.Gzsens * 1000)
 
         self.update_gradients()
-        print('Auto 3D SlPE max:', params.GSPEstep * params.SPEsteps / 2)
-        print('Auto GPE max: ', params.GPEstep * params.nPE / 2)
         
         params.saveFileParameter()
 
@@ -1546,13 +1624,15 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
             params.GSPEstep = int(self.Gz3D / self.Gzsens * 1000)
 
             self.update_gradients()
-            print('Auto 3D SlPE max:', params.GSPEstep * params.SPEsteps / 2)
-            print('Auto GPE max: ', params.GPEstep * params.nPE / 2)
 
         else:
             self.Gz = 0
 
         params.Gdiffamplitude = self.GDiffamplitude_spinBox.value()
+        if round(params.Gdiffamplitude) > 8500: self.GDiffamplitude_spinBox.setStyleSheet('color: red;')
+        else:
+            if params.GUItheme == 0: self.GDiffamplitude_spinBox.setStyleSheet('color: #31363B;')
+            else: self.GDiffamplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
         params.sliceoffset = self.Slice_Offset_doubleSpinBox.value()
 
@@ -1615,6 +1695,11 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
 
             params.GPEstep = self.GPEstep_spinBox.value()
             params.GROamplitude = self.GROamplitude_spinBox.value()
+            if round(params.GROamplitude) < 300: self.GROamplitude_spinBox.setStyleSheet('color: yellow;')
+            elif round(2*params.GROamplitude) > 8500: self.GROamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GROamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GROamplitude_spinBox.setStyleSheet('color: #eff0f1;')
 
             params.Gproj[0] = self.GROamplitude_spinBox.value()
             params.Gproj[1] = self.GROamplitude_spinBox.value()
@@ -1630,21 +1715,73 @@ class ParametersWindow(Para_Window_Form, Para_Window_Base):
                 params.GROfcpretime2 = int(((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
                         
             params.crusheramplitude = self.Crusher_Amplitude_spinBox.value()
-            params.spoileramplitude = self.Spoiler_Amplitude_spinBox.value()
-            params.GSamplitude = self.GSamplitude_spinBox.value()
-            params.GSPEstep = self.GSPEstep_spinBox.value()
+            if round(params.crusheramplitude) > 8500: self.Crusher_Amplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
             
-            print('Manual GPE max: ', params.GPEstep * params.nPE / 2)
+            params.spoileramplitude = self.Spoiler_Amplitude_spinBox.value()
+            if round(params.GSamplitude) > 8500: self.GSamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+            
+            params.GSamplitude = self.GSamplitude_spinBox.value()
+            if round(params.GSamplitude) > 8500: self.GSamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+            
+            params.GSPEstep = self.GSPEstep_spinBox.value()
+            if round(params.GPEstep * params.nPE/2) > 8500: self.GPEstep_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GPEstep_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GPEstep_spinBox.setStyleSheet('color: #eff0f1;')
+                
+            if round(params.GSPEstep * params.SPEsteps/2) > 8500: self.GSPEstep_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSPEstep_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSPEstep_spinBox.setStyleSheet('color: #eff0f1;')
 
             params.saveFileParameter()
 
         elif params.autograd == 1:
             self.GROamplitude_spinBox.setValue(params.GROamplitude)
+            if round(params.GROamplitude) < 300: self.GROamplitude_spinBox.setStyleSheet('color: yellow;')
+            elif round(2*params.GROamplitude) > 8500: self.GROamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GROamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GROamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+                
             self.GPEstep_spinBox.setValue(params.GPEstep)
+            if round(params.GPEstep * params.nPE/2) > 8500: self.GPEstep_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GPEstep_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GPEstep_spinBox.setStyleSheet('color: #eff0f1;')
+                
             self.Crusher_Amplitude_spinBox.setValue(params.crusheramplitude)
+            if round(params.crusheramplitude) > 8500: self.Crusher_Amplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.Crusher_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
+            
             self.Spoiler_Amplitude_spinBox.setValue(params.spoileramplitude)
+            if round(params.spoileramplitude) > 8500: self.GSpoiler_Amplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.Spoiler_Amplitude_spinBox.setStyleSheet('color: #eff0f1;')
+            
             self.GSamplitude_spinBox.setValue(params.GSamplitude)
+            if round(params.GSamplitude) > 8500: self.GSamplitude_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSamplitude_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSamplitude_spinBox.setStyleSheet('color: #eff0f1;')
+            
             self.GSPEstep_spinBox.setValue(params.GSPEstep)
+            if round(params.GSPEstep * params.SPEsteps/2) > 8500: self.GSPEstep_spinBox.setStyleSheet('color: red;')
+            else:
+                if params.GUItheme == 0: self.GSPEstep_spinBox.setStyleSheet('color: #31363B;')
+                else: self.GSPEstep_spinBox.setStyleSheet('color: #eff0f1;')
             
 
 class ConfigWindow(Config_Window_Form, Config_Window_Base):
@@ -1708,23 +1845,16 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         self.kSpace_Cut_Center_spinBox.valueChanged.connect(self.update_params)
         self.kSpace_Cut_Outside_spinBox.setKeyboardTracking(False)
         self.kSpace_Cut_Outside_spinBox.valueChanged.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.clear()
-        self.Undersampling_Time_comboBox.addItems(['2', '5', '10', '50'])
-        self.Undersampling_Time_comboBox.setCurrentIndex(0)
-
-        self.Undersampling_Phase_comboBox.clear()
-        self.Undersampling_Phase_comboBox.addItems(['2', '4', '8'])
-        self.Undersampling_Phase_comboBox.setCurrentIndex(0)
+        
+        self.Undersampling_Methode_1_radioButton.toggled.connect(self.update_undersampling_methode1)
+        self.Undersampling_Methode_2_radioButton.toggled.connect(self.update_undersampling_methode2)
+        self.Undersampling_Time_spinBox.setKeyboardTracking(False)
+        self.Undersampling_Time_spinBox.valueChanged.connect(self.update_params)
+        self.Undersampling_Phase_spinBox.setKeyboardTracking(False)
+        self.Undersampling_Phase_spinBox.valueChanged.connect(self.update_params)
 
         self.Undersampling_Time_radioButton.toggled.connect(self.update_params)
         self.Undersampling_Phase_radioButton.toggled.connect(self.update_params)
-
-        self.Undersampling_Time_comboBox.currentIndexChanged.connect(self.update_params)
-        self.Undersampling_Phase_comboBox.currentIndexChanged.connect(self.update_params)
 
         self.GRO_Length_Scaler_doubleSpinBox.setKeyboardTracking(False)
         self.GRO_Length_Scaler_doubleSpinBox.valueChanged.connect(self.update_params)
@@ -1756,6 +1886,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         self.Auto_Data_Process_radioButton.toggled.connect(self.update_params)
         self.Single_Plot_radioButton.toggled.connect(self.update_params)
+        self.Measurement_Time_Dialog_radioButton.toggled.connect(self.update_params)
         
         self.Image_Colormap_comboBox.clear()
         self.Image_Colormap_comboBox.addItems(['viridis', 'jet', 'gray', 'bone', 'inferno', 'plasma'])
@@ -1797,17 +1928,25 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         else:
             self.Average_Complex_radioButton.setChecked(False)
             self.Average_Abs_radioButton.setChecked(True)
-
-        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
-        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
-
-        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
-        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
-        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
-        self.kSpace_Cut_Outside_spinBox.setValue(params.cutoutsidevalue)
-
+            
+        if params.usmethode == 1:
+            self.Undersampling_Methode_1_radioButton.setChecked(True)
+            self.Undersampling_Methode_2_radioButton.setChecked(False)
+        else:
+            self.Undersampling_Methode_1_radioButton.setChecked(False)
+            self.Undersampling_Methode_2_radioButton.setChecked(True)
+        
+        self.Undersampling_Time_spinBox.setValue(params.ustimeidx)
+        self.Undersampling_Phase_spinBox.setValue(params.usphaseidx)
         if params.ustime == 1: self.Undersampling_Time_radioButton.setChecked(True)
         if params.usphase == 1: self.Undersampling_Phase_radioButton.setChecked(True)
+        
+        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
+        self.kSpace_Cut_Center_spinBox.setValue(params.cutcentervalue)
+        if params.cutcirc == 1: self.kspace_cut_circ_radioButton.setChecked(True)
+        if params.cutrec == 1: self.kspace_cut_rec_radioButton.setChecked(True)
+        if params.cutcenter == 1: self.kSpace_Cut_Center_radioButton.setChecked(True)
+        if params.cutoutside == 1: self.kSpace_Cut_Outside_radioButton.setChecked(True)
 
         self.GRO_Length_Scaler_doubleSpinBox.setValue(params.GROpretimescaler)
 
@@ -1823,6 +1962,7 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         
         if params.autodataprocess == 1: self.Auto_Data_Process_radioButton.setChecked(True)
         if params.single_plot == 1: self.Single_Plot_radioButton.setChecked(True)
+        if params.measurement_time_dialog == 1: self.Measurement_Time_Dialog_radioButton.setChecked(True)
         
         if params.imagecolormap == 'viridis': self.Image_Colormap_comboBox.setCurrentIndex(0)
         elif params.imagecolormap == 'jet': self.Image_Colormap_comboBox.setCurrentIndex(1)
@@ -1873,16 +2013,8 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Undersampling_Phase_radioButton.isChecked(): params.usphase = 1
         else: params.usphase = 0
 
-        if self.Undersampling_Time_comboBox.currentIndex() == 0: params.ustimeidx = 2
-        elif self.Undersampling_Time_comboBox.currentIndex() == 1: params.ustimeidx = 5
-        elif self.Undersampling_Time_comboBox.currentIndex() == 2: params.ustimeidx = 10
-        elif self.Undersampling_Time_comboBox.currentIndex() == 3: params.ustimeidx = 50
-        else: params.ustimeidx = 2
-
-        if self.Undersampling_Phase_comboBox.currentIndex() == 0: params.usphaseidx = 2
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 1: params.usphaseidx = 4
-        elif self.Undersampling_Phase_comboBox.currentIndex() == 2: params.usphaseidx = 8
-        else: params.usphaseidx = 2
+        params.ustimeidx = self.Undersampling_Time_spinBox.value()
+        params.usphaseidx = self.Undersampling_Phase_spinBox.value()
 
         params.GROpretimescaler = self.GRO_Length_Scaler_doubleSpinBox.value()
 
@@ -1916,27 +2048,34 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Single_Plot_radioButton.isChecked(): params.single_plot = 1
         else: params.single_plot = 0
         
+        if self.Measurement_Time_Dialog_radioButton.isChecked(): params.measurement_time_dialog = 1
+        else: params.measurement_time_dialog = 0
+        
         if self.Image_Colormap_comboBox.currentIndex() == 0: params.imagecolormap = 'viridis'
         elif self.Image_Colormap_comboBox.currentIndex() == 1: params.imagecolormap = 'jet'
         elif self.Image_Colormap_comboBox.currentIndex() == 2: params.imagecolormap = 'gray'
         elif self.Image_Colormap_comboBox.currentIndex() == 3: params.imagecolormap = 'bone'
         elif self.Image_Colormap_comboBox.currentIndex() == 4: params.imagecolormap = 'inferno'
-        elif self.Image_Colormap_comboBox.currentIndex() == 5: params.imagecolormap = 'plasma' 
-
+        elif self.Image_Colormap_comboBox.currentIndex() == 5: params.imagecolormap = 'plasma'
+        
         params.saveFileParameter()
 
     def update_light(self):
         if self.GUI_Light_radioButton.isChecked():
             params.GUItheme = 0
             self.GUI_Dark_radioButton.setChecked(False)
-
+        elif self.GUI_Light_radioButton.isChecked() == False and self.GUI_Dark_radioButton.isChecked() == False:
+            params.GUItheme = 0
+            self.GUI_Light_radioButton.setChecked(True)
         params.saveFileParameter()
 
     def update_dark(self):
         if self.GUI_Dark_radioButton.isChecked():
             params.GUItheme = 1
             self.GUI_Light_radioButton.setChecked(False)
-
+        elif self.GUI_Light_radioButton.isChecked() == False and self.GUI_Dark_radioButton.isChecked() == False:
+            params.GUItheme = 0
+            self.GUI_Light_radioButton.setChecked(True)
         params.saveFileParameter()
 
     def Set_AC_centerfrequency(self):
@@ -1952,25 +2091,48 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         print('Tool reference attenuation applied!')
         
     def Set_shim(self):
-        if os.path.isfile('tooldata/Shim_Tool_Data.txt') == True:
+        if params.STgrad[0] == 1:
             if params.ToolShimChannel[0] == 1:
                 if np.max(params.STvalues[1, :]) != 0:
-                    self.Shim_X_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[1, :])]))
+                    self.Shim_X_spinBox.setValue(int(params.STgrad[1]))
                     print('Tool reference X shim applied')
                 else: print('No reference X shim value')
             if params.ToolShimChannel[1] == 1:
                 if np.max(params.STvalues[2, :]) != 0:
-                    self.Shim_Y_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[2, :])]))
+                    self.Shim_Y_spinBox.setValue(int(params.STgrad[2]))
                     print('Tool reference Y shim applied')
                 else: print('No reference Y shim value')
             if params.ToolShimChannel[2] == 1:
                 if np.max(params.STvalues[3, :]) != 0:
-                    self.Shim_Z_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[3, :])]))
+                    self.Shim_Z_spinBox.setValue(int(params.STgrad[3]))
                     print('Tool reference Z shim applied')
                 else: print('No reference Z shim value')
             if params.ToolShimChannel[3] == 1:
                 if np.max(params.STvalues[4, :]) != 0:
-                    self.Shim_Z2_spinBox.setValue(int(params.STvalues[0, np.argmax(params.STvalues[4, :])]))
+                    self.Shim_Z2_spinBox.setValue(int(params.STgrad[4]))
+                    print('Tool reference Z2 shim applied')
+                else: print('No reference Z2 shim value')
+            if params.ToolShimChannel == [0, 0, 0, 0]:
+                print('Please select shim channel in Tools!')
+        elif params.STgrad[0] == 2:
+            if params.ToolShimChannel[0] == 1:
+                if np.max(params.AutoSTvalues[1, :]) != 0:
+                    self.Shim_X_spinBox.setValue(int(params.STgrad[1]))
+                    print('Tool reference X shim applied')
+                else: print('No reference X shim value')
+            if params.ToolShimChannel[1] == 1:
+                if np.max(params.AutoSTvalues[3, :]) != 0:
+                    self.Shim_Y_spinBox.setValue(int(params.STgrad[2]))
+                    print('Tool reference Y shim applied')
+                else: print('No reference Y shim value')
+            if params.ToolShimChannel[2] == 1:
+                if np.max(params.AutoSTvalues[5, :]) != 0:
+                    self.Shim_Z_spinBox.setValue(int(params.STgrad[3]))
+                    print('Tool reference Z shim applied')
+                else: print('No reference Z shim value')
+            if params.ToolShimChannel[3] == 1:
+                if np.max(params.AutoSTvalues[7, :]) != 0:
+                    self.Shim_Z2_spinBox.setValue(int(params.STgrad[4]))
                     print('Tool reference Z2 shim applied')
                 else: print('No reference Z2 shim value')
             if params.ToolShimChannel == [0, 0, 0, 0]:
@@ -1999,12 +2161,30 @@ class ConfigWindow(Config_Window_Form, Config_Window_Base):
         if self.Average_Abs_radioButton.isChecked():
             params.average_complex = 0
             self.Average_Complex_radioButton.setChecked(False)
-            self.update_params()
+        elif self.Average_Abs_radioButton.isChecked() == False and self.Average_Complex_radioButton.isChecked() == False:
+            params.average_complex = 0
+            self.Average_Complex_radioButton.setChecked(True)
+        params.saveFileParameter()
 
     def update_average_complex(self):
         if self.Average_Complex_radioButton.isChecked():
             params.average_complex = 1
             self.Average_Abs_radioButton.setChecked(False)
+        elif self.Average_Abs_radioButton.isChecked() == False and self.Average_Complex_radioButton.isChecked() == False:
+            params.average_complex = 0
+            self.Average_Complex_radioButton.setChecked(True)
+        params.saveFileParameter()
+            
+    def update_undersampling_methode1(self):
+        if self.Undersampling_Methode_1_radioButton.isChecked():
+            params.usmethode = 1
+            self.Undersampling_Methode_2_radioButton.setChecked(False)
+            self.update_params()
+
+    def update_undersampling_methode2(self):
+        if self.Undersampling_Methode_2_radioButton.isChecked():
+            params.usmethode = 2
+            self.Undersampling_Methode_1_radioButton.setChecked(False)
             self.update_params()
 
 
@@ -2065,6 +2245,11 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Tool_Shim_Z2_radioButton.toggled.connect(self.update_params)
 
         self.Tool_Shim_pushButton.clicked.connect(lambda: self.Shimtool())
+        
+        self.Tool_Auto_Shim_Rough_radioButton.clicked.connect(self.update_auto_shim_rough)
+        self.Tool_Auto_Shim_Fine_radioButton.clicked.connect(self.update_auto_shim_fine)
+        
+        self.Tool_Auto_Shim_pushButton.clicked.connect(lambda: self.Auto_Shimtool())
 
         self.Field_Map_B0_pushButton.clicked.connect(lambda: self.Field_Map_B0())
         self.Field_Map_B0_Slice_pushButton.clicked.connect(lambda: self.Field_Map_B0_Slice())
@@ -2108,6 +2293,9 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         if params.ToolShimChannel[1] == 1: self.Tool_Shim_Y_radioButton.setChecked(True)
         if params.ToolShimChannel[2] == 1: self.Tool_Shim_Z_radioButton.setChecked(True)
         if params.ToolShimChannel[3] == 1: self.Tool_Shim_Z2_radioButton.setChecked(True)
+        
+        if params.ToolAutoShimMode == 0: self.Tool_Auto_Shim_Rough_radioButton.setChecked(True)
+        if params.ToolAutoShimMode == 1: self.Tool_Auto_Shim_Fine_radioButton.setChecked(True)
 
         self.GradientScaling_XNominal_doubleSpinBox.setValue(params.gradnominal[0])
         self.GradientScaling_YNominal_doubleSpinBox.setValue(params.gradnominal[1])
@@ -2136,22 +2324,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         params.ToolShimStop = self.Tool_Shim_Stop_spinBox.value()
         params.ToolShimSteps = self.Tool_Shim_Steps_spinBox.value()
 
-        if self.Tool_Shim_X_radioButton.isChecked():
-            params.ToolShimChannel[0] = 1
-        else:
-            params.ToolShimChannel[0] = 0
-        if self.Tool_Shim_Y_radioButton.isChecked():
-            params.ToolShimChannel[1] = 1
-        else:
-            params.ToolShimChannel[1] = 0
-        if self.Tool_Shim_Z_radioButton.isChecked():
-            params.ToolShimChannel[2] = 1
-        else:
-            params.ToolShimChannel[2] = 0
-        if self.Tool_Shim_Z2_radioButton.isChecked():
-            params.ToolShimChannel[3] = 1
-        else:
-            params.ToolShimChannel[3] = 0
+        if self.Tool_Shim_X_radioButton.isChecked(): params.ToolShimChannel[0] = 1
+        else: params.ToolShimChannel[0] = 0
+        if self.Tool_Shim_Y_radioButton.isChecked(): params.ToolShimChannel[1] = 1
+        else: params.ToolShimChannel[1] = 0
+        if self.Tool_Shim_Z_radioButton.isChecked(): params.ToolShimChannel[2] = 1
+        else: params.ToolShimChannel[2] = 0
+        if self.Tool_Shim_Z2_radioButton.isChecked(): params.ToolShimChannel[3] = 1
+        else: params.ToolShimChannel[3] = 0
 
         params.saveFileParameter()
 
@@ -2176,15 +2356,30 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
     def update_ernstanglecalc(self):
         params.ernstanglecalc_T1 = self.ErnstAngleCalculator_T1_spinBox.value()
         params.ernstanglecalc_TR = self.ErnstAngleCalculator_TR_spinBox.value()
-        print(params.ernstanglecalc_TR)
-        print(params.ernstanglecalc_T1)
         
-        params.ernstanglecalc_EA = math.degrees(np.arccos(math.exp(-(params.ernstanglecalc_TR/params.ernstanglecalc_T1))))
-        print(params.ernstanglecalc_EA)
         params.ernstanglecalc_EA = round(math.degrees(np.arccos(math.exp(-(params.ernstanglecalc_TR/params.ernstanglecalc_T1)))))
-        print(params.ernstanglecalc_EA)
         self.ErnstAngleCalculator_ErnstAngle_lineEdit.setText(str(params.ernstanglecalc_EA))
         
+        params.saveFileParameter()
+        
+    def update_auto_shim_rough(self):
+        if self.Tool_Auto_Shim_Rough_radioButton.isChecked():
+            params.ToolAutoShimMode = 0
+            self.Tool_Auto_Shim_Fine_radioButton.setChecked(False)
+        elif self.Tool_Auto_Shim_Rough_radioButton.isChecked() == False and self.Tool_Auto_Shim_Fine_radioButton.isChecked() == False:
+            params.ToolAutoShimMode = 0
+            self.Tool_Auto_Shim_Rough_radioButton.setChecked(True)
+
+        params.saveFileParameter()
+
+    def update_auto_shim_fine(self):
+        if self.Tool_Auto_Shim_Fine_radioButton.isChecked():
+            params.ToolAutoShimMode = 1
+            self.Tool_Auto_Shim_Rough_radioButton.setChecked(False)
+        elif self.Tool_Auto_Shim_Rough_radioButton.isChecked() == False and self.Tool_Auto_Shim_Fine_radioButton.isChecked() == False:
+            params.ToolAutoShimMode = 0
+            self.Tool_Auto_Shim_Rough_radioButton.setChecked(True)
+
         params.saveFileParameter()
 
     def Autocentertool(self):
@@ -2215,8 +2410,7 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.ax.set_ylabel('Signal')
             self.ax.set_title('Autocenter Signals')
             self.major_ticks = (params.ACstart, params.Reffrequency, params.ACstop)
-            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(
-                abs((params.ACstop * 1.0e6 - params.ACstart * 1.0e6)) / (params.ACstepwidth)) + 1)
+            self.minor_ticks = np.linspace(params.ACstart, params.ACstop, round(abs((params.ACstop * 1.0e6 - params.ACstart * 1.0e6)) / (params.ACstepwidth)) + 1)
             self.ax.set_xticks(self.major_ticks)
             self.ax.set_xticks(self.minor_ticks, minor=True)
             self.ax.grid(which='major', color='#888888', linestyle='-')
@@ -2320,17 +2514,19 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         self.Tool_Shim_Z2_Ref_lineEdit.setText('')
         self.repaint()
         
-        if params.GUImode == 0:
-            if params.ToolShimChannel != [0, 0, 0, 0]:
+        if params.ToolShimChannel != [0, 0, 0, 0]:
+            if params.GUImode == 0:
+                
+                params.STgrad[0] = 0
 
                 proc.Shimtool()
                 
-            if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                if params.single_plot == 1:
+                    if self.fig_canvas != None: self.fig_canvas.hide()
+                    if self.IMag_canvas != None: self.IMag_canvas.hide()
+                    if self.IPha_canvas != None: self.IPha_canvas.hide()
+                    if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+                    if self.FMB1_canvas != None: self.FMB1_canvas.hide()
 
                 self.fig = Figure()
                 self.fig.set_facecolor('None')
@@ -2365,20 +2561,37 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
                 self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-                if params.ToolShimChannel[0] == 1: self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[1, :])]))
+                
+                if params.ToolShimChannel[0] == 1:
+                    params.STgrad[1] = params.STvalues[0, np.argmax(params.STvalues[1, :])]
+                    self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
                 else: self.Tool_Shim_X_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[1] == 1: self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[2, :])]))
+                if params.ToolShimChannel[1] == 1:
+                    params.STgrad[2] = params.STvalues[0, np.argmax(params.STvalues[2, :])]
+                    self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
                 else: self.Tool_Shim_Y_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[2] == 1: self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[3, :])]))
+                if params.ToolShimChannel[2] == 1:
+                    params.STgrad[3] = params.STvalues[0, np.argmax(params.STvalues[3, :])]
+                    self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
                 else: self.Tool_Shim_Z_Ref_lineEdit.setText('')
-                if params.ToolShimChannel[3] == 1: self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STvalues[0, np.argmax(params.STvalues[4, :])]))
+                if params.ToolShimChannel[3] == 1:
+                    params.STgrad[4] = params.STvalues[0, np.argmax(params.STvalues[4, :])]
+                    self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
                 else: self.Tool_Shim_Z2_Ref_lineEdit.setText('')
+                
+                params.STgrad[0] = 1
 
             else:
-                print('Please select gradient channel')
-
-            self.Tool_Shim_pushButton.setEnabled(True)
-            self.repaint()
+                self.font = self.Tool_Shim_X_Ref_lineEdit.font()
+                self.font.setPointSize(10)
+                self.Tool_Shim_X_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
+                if params.ToolShimChannel[0] == 1: self.Tool_Shim_X_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[1] == 1: self.Tool_Shim_Y_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[2] == 1: self.Tool_Shim_Z_Ref_lineEdit.setText('Select spectroscopy!')
+                if params.ToolShimChannel[3] == 1: self.Tool_Shim_Z2_Ref_lineEdit.setText('Select spectroscopy!')
             
         else:
             self.font = self.Tool_Shim_X_Ref_lineEdit.font()
@@ -2387,17 +2600,236 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
             self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
             self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
-            if params.ToolShimChannel[0] == 1:
-                self.Tool_Shim_X_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[1] == 1:
-                self.Tool_Shim_Y_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[2] == 1:
-                self.Tool_Shim_Z_Ref_lineEdit.setText('Select spectroscopy!')
-            if params.ToolShimChannel[3] == 1:
-                self.Tool_Shim_Z2_Ref_lineEdit.setText('Select spectroscopy!')
+            self.Tool_Shim_X_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Y_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Z_Ref_lineEdit.setText('Select shim channel!')
+            self.Tool_Shim_Z2_Ref_lineEdit.setText('Select shim channel!')
+
+        self.Tool_Shim_pushButton.setEnabled(True)
+        self.repaint()
+        
+    def Auto_Shimtool(self):
+        self.Tool_Auto_Shim_pushButton.setEnabled(False)
+        self.Tool_Shim_X_Ref_lineEdit.setText('')
+        self.Tool_Shim_Y_Ref_lineEdit.setText('')
+        self.Tool_Shim_Z_Ref_lineEdit.setText('')
+        self.Tool_Shim_Z2_Ref_lineEdit.setText('')
+        self.repaint()
+        
+        if params.GUImode == 0:
+            self.grad_temp = [0, 0, 0, 0]
+            self.grad_temp[:] = params.grad[:]
+            self.ToolShimStart_temp = 0
+            self.ToolShimStart_temp = params.ToolShimStart
+            self.ToolShimStop_temp = 0
+            self.ToolShimStop_temp = params.ToolShimStop
+            self.ToolShimSteps_temp = 0
+            self.ToolShimSteps_temp = params.ToolShimSteps
             
-            self.Tool_Shim_pushButton.setEnabled(True)
-            self.repaint()
+            params.STgrad[0] = 0
+            
+            if params.ToolAutoShimMode == 1:
+                print('Auto shim fine...')
+            
+                params.ToolShimSteps = 40
+                params.AutoSTvalues = np.matrix(np.zeros((8, params.ToolShimSteps)))
+        
+                params.ToolShimChannel = [1, 0, 0, 0]
+                params.ToolShimStart = int(self.grad_temp[0] - 60)
+                params.ToolShimStop = int(self.grad_temp[0] + 60)
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[0, :] = params.STvalues[0, :]
+                params.AutoSTvalues[1, :] = params.STvalues[1, :]
+                
+                params.STgrad[1] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.grad[0] = params.STgrad[1]
+                params.ToolShimStart = int(self.grad_temp[1] - 60)
+                params.ToolShimStop = int(self.grad_temp[1] + 60)
+                params.ToolShimChannel = [0, 1, 0, 0]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[2, :] = params.STvalues[0, :]
+                params.AutoSTvalues[3, :] = params.STvalues[2, :]
+                
+                params.STgrad[2] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.grad[1] = params.STgrad[2]
+                params.ToolShimStart = int(self.grad_temp[2] - 60)
+                params.ToolShimStop = int(self.grad_temp[2] + 60)
+                params.ToolShimChannel = [0, 0, 1, 0]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[4, :] = params.STvalues[0, :]
+                params.AutoSTvalues[5, :] = params.STvalues[3, :]
+                
+                params.STgrad[3] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.grad[2] = params.STgrad[3]
+                params.ToolShimStart = int(self.grad_temp[3] - 60)
+                params.ToolShimStop = int(self.grad_temp[3] + 60)
+                params.ToolShimChannel = [0, 0, 0, 1]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[6, :] = params.STvalues[0, :]
+                params.AutoSTvalues[7, :] = params.STvalues[4, :]
+                
+                params.STgrad[4] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.grad[3] = params.STgrad[4]
+                params.saveFileParameter()
+                
+                self.font = self.Tool_Shim_X_Ref_lineEdit.font()
+                self.font.setPointSize(12)
+                self.Tool_Shim_X_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
+                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
+                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
+                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
+                
+                params.STgrad[0] = 2
+                
+            else:
+                print('Auto shim rough...')
+                
+                params.grad = [0, 0, 0, 0]
+                params.ToolShimStart = -400
+                params.ToolShimStop = 400
+                params.ToolShimSteps = 40
+                params.AutoSTvalues = np.matrix(np.zeros((8, params.ToolShimSteps)))
+        
+                params.ToolShimChannel = [1, 0, 0, 0]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[0, :] = params.STvalues[0, :]
+                params.AutoSTvalues[1, :] = params.STvalues[1, :]
+                
+                params.STgrad[1] = int(params.STvalues[0, np.argmax(params.STvalues[1, :])])
+                params.grad[0] = params.STgrad[1]
+                params.ToolShimChannel = [0, 1, 0, 0]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[2, :] = params.STvalues[0, :]
+                params.AutoSTvalues[3, :] = params.STvalues[2, :]
+                
+                params.STgrad[2] = int(params.STvalues[0, np.argmax(params.STvalues[2, :])])
+                params.grad[1] = params.STgrad[2]
+                params.ToolShimChannel = [0, 0, 1, 0]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[4, :] = params.STvalues[0, :]
+                params.AutoSTvalues[5, :] = params.STvalues[3, :]
+                
+                params.STgrad[3] = int(params.STvalues[0, np.argmax(params.STvalues[3, :])])
+                params.grad[2] = params.STgrad[3]
+                params.ToolShimChannel = [0, 0, 0, 1]
+                params.saveFileParameter()
+                
+                proc.Shimtool()
+                
+                params.AutoSTvalues[6, :] = params.STvalues[0, :]
+                params.AutoSTvalues[7, :] = params.STvalues[4, :]
+                
+                params.STgrad[4] = int(params.STvalues[0, np.argmax(params.STvalues[4, :])])
+                params.grad[3] = params.STgrad[4]
+                params.saveFileParameter()
+                
+                self.font = self.Tool_Shim_X_Ref_lineEdit.font()
+                self.font.setPointSize(12)
+                self.Tool_Shim_X_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
+                self.Tool_Shim_X_Ref_lineEdit.setText(str(params.STgrad[1]))
+                self.Tool_Shim_Y_Ref_lineEdit.setText(str(params.STgrad[2]))
+                self.Tool_Shim_Z_Ref_lineEdit.setText(str(params.STgrad[3]))
+                self.Tool_Shim_Z2_Ref_lineEdit.setText(str(params.STgrad[4]))
+                
+                params.STgrad[0] = 2
+                
+            params.grad = self.grad_temp
+            params.ToolShimStart = self.ToolShimStart_temp
+            params.ToolShimStop = self.ToolShimStop_temp
+            params.ToolShimSteps = self.ToolShimSteps_temp
+            
+            params.saveFileParameter()
+                        
+            np.savetxt('tooldata/Auto_Shim_Tool_Data.txt', np.transpose(params.AutoSTvalues))
+            
+            if params.single_plot == 1:
+                if self.fig_canvas != None: self.fig_canvas.hide()
+                if self.IMag_canvas != None: self.IMag_canvas.hide()
+                if self.IPha_canvas != None: self.IPha_canvas.hide()
+                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
+                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+
+            self.fig = Figure()
+            self.fig.set_facecolor('None')
+            self.fig_canvas = FigureCanvas(self.fig)
+
+            self.ax = self.fig.add_subplot(111);
+            self.ax.plot(np.transpose(params.AutoSTvalues[0, :]), np.transpose(params.AutoSTvalues[1, :]), 'o-', color='#0072BD')
+            self.ax.plot(np.transpose(params.AutoSTvalues[2, :]), np.transpose(params.AutoSTvalues[3, :]), 'o-', color='#D95319')
+            self.ax.plot(np.transpose(params.AutoSTvalues[4, :]), np.transpose(params.AutoSTvalues[5, :]), 'o-', color='#EDB120')
+            self.ax.plot(np.transpose(params.AutoSTvalues[6, :]), np.transpose(params.AutoSTvalues[7, :]), 'o-', color='#7E2F8E')
+            self.ax.set_xlabel('Shim [mA]')
+            self.ax.set_ylabel('Signal')
+            self.ax.legend(['X', 'Y', 'Z', 'Z²'])
+            self.ax.set_title('Shim Signals')
+            if params.ToolAutoShimMode == 1: self.major_ticks = np.linspace(math.floor((np.min(params.grad)-60) / 10) * 10, math.ceil((np.max(params.grad)+60) / 10) * 10, math.ceil((np.max(params.grad)+60) / 10) - math.floor((np.min(params.grad)-60) / 10) + 1)
+            else: self.major_ticks = np.linspace(-400, 400, 41)
+            self.ax.set_xticks(self.major_ticks)
+            self.ax.grid(which='major', color='#888888', linestyle='-')
+            self.ax.grid(which='major', visible=True)
+            if params.ToolAutoShimMode == 1: self.ax.set_xlim((math.floor((np.min(params.grad)-60) / 10) * 10, math.ceil((np.max(params.grad)+60) / 10) * 10))
+            else: self.ax.set_xlim((-400, 400))
+            self.AutoSTvaluesmax = np.zeros((4))
+            self.AutoSTvaluesmax[0] = np.max(np.transpose(params.AutoSTvalues[1, :]))
+            self.AutoSTvaluesmax[1] = np.max(np.transpose(params.AutoSTvalues[3, :]))
+            self.AutoSTvaluesmax[2] = np.max(np.transpose(params.AutoSTvalues[5, :]))
+            self.AutoSTvaluesmax[3] = np.max(np.transpose(params.AutoSTvalues[7, :]))
+            self.ax.set_ylim((0, 1.1 * np.max(self.AutoSTvaluesmax)))
+            self.fig_canvas.draw()
+            self.fig_canvas.setWindowTitle('Tool Plot')
+            self.fig_canvas.setGeometry(420, 40, 1160, 950)
+            self.fig_canvas.show()
+            
+        else:
+            self.font = self.Tool_Shim_X_Ref_lineEdit.font()
+            self.font.setPointSize(10)
+            self.Tool_Shim_X_Ref_lineEdit.setFont(self.font)
+            self.Tool_Shim_Y_Ref_lineEdit.setFont(self.font)
+            self.Tool_Shim_Z_Ref_lineEdit.setFont(self.font)
+            self.Tool_Shim_Z2_Ref_lineEdit.setFont(self.font)
+            self.Tool_Shim_X_Ref_lineEdit.setText('Select spectroscopy!')
+            self.Tool_Shim_Y_Ref_lineEdit.setText('Select spectroscopy!')
+            self.Tool_Shim_Z_Ref_lineEdit.setText('Select spectroscopy!')
+            self.Tool_Shim_Z2_Ref_lineEdit.setText('Select spectroscopy!')
+            
+        self.Tool_Auto_Shim_pushButton.setEnabled(True)
+        self.repaint()
+        
+        params.ToolShimChannel = [1, 1, 1, 1]
+        params.saveFileParameter()
+        
+        self.Tool_Shim_X_radioButton.setChecked(True)
+        self.Tool_Shim_Y_radioButton.setChecked(True)
+        self.Tool_Shim_Z_radioButton.setChecked(True)
+        self.Tool_Shim_Z2_radioButton.setChecked(True)
 
     def Field_Map_B0(self):
         self.Field_Map_B0_pushButton.setEnabled(False)
@@ -2743,10 +3175,12 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
 class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
     connected = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, motor=None, motor_reader=None):
         super(ProtocolWindow, self).__init__(parent)
         self.setupUi(self)
-
+        
+        self.motor = motor
+        self.motor_reader = motor_reader
         # self.load_params()
         self.prot_datapath = 'protocol/Protocol_01'
 
@@ -2758,22 +3192,37 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
 
         self.Protocol_Datapath_lineEdit.setText(self.prot_datapath)
         self.Protocol_Datapath_lineEdit.editingFinished.connect(lambda: self.set_protocol_datapath())
-
+        
+        self.Protocol_window_init_flag = 0
         self.protocol_new_protocol()
+        self.protocol_load_protocol()
+        self.Protocol_window_init_flag = 1
+        
+        self.Protocol_Message_comboBox.clear()
+        self.Protocol_Message_comboBox.addItems(['Change Sample!', 'Move Sample!', 'Rotate Sample!'])
+        
+        self.Protocol_MoveTo_doubleSpinBox.setMaximum(params.motor_axis_limit_positive)
+        self.Protocol_MoveTo_doubleSpinBox.setMinimum(params.motor_axis_limit_negative)
 
         self.Protocol_Add_pushButton.clicked.connect(lambda: self.protocol_add())
         self.Protocol_Overwrite_pushButton.clicked.connect(lambda: self.protocol_overwrite())
         self.Protocol_Insert_pushButton.clicked.connect(lambda: self.protocol_insert())
         self.Protocol_Delete_Last_pushButton.clicked.connect(lambda: self.protocol_delete_last())
         self.Protocol_Delete_pushButton.clicked.connect(lambda: self.protocol_delete())
-        self.Protocol_Save_Protocol_pushButton.clicked.connect(lambda: self.protocol_save_protocol())
         self.Protocol_New_Protocol_pushButton.clicked.connect(lambda: self.protocol_new_protocol())
-        self.Protocol_Load_Protocol_pushButton.clicked.connect(lambda: self.protocol_load_protocol())
         self.Protocol_Execute_Protocol_pushButton.clicked.connect(lambda: self.protocol_execute_protocol())
+        
+        self.Protocol_Add_Pause_pushButton.clicked.connect(lambda: self.protocol_add_pause())
+        self.Protocol_Insert_Pause_pushButton.clicked.connect(lambda: self.protocol_insert_pause())
+        self.Protocol_Add_Message_pushButton.clicked.connect(lambda: self.protocol_add_message())
+        self.Protocol_Insert_Message_pushButton.clicked.connect(lambda: self.protocol_insert_message())
+        self.Protocol_Add_MoveTo_pushButton.clicked.connect(lambda: self.protocol_add_moveto())
+        self.Protocol_Insert_MoveTo_pushButton.clicked.connect(lambda: self.protocol_insert_moveto())
 
     def set_protocol_datapath(self):
         self.prot_datapath = self.Protocol_Datapath_lineEdit.text()
-        # print('Protocol datapath:', self.prot_datapath)
+        if os.path.isdir(self.prot_datapath) == True: self.protocol_load_protocol()
+        else: self.protocol_new_protocol()
 
     def protocol_add(self):
         self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
@@ -2781,28 +3230,37 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
         self.protocoltemp[self.protocoltemp.shape[0] - 2, 0] = params.GUImode
         self.protocoltemp[self.protocoltemp.shape[0] - 2, 1] = params.sequence
         self.protocol = self.protocoltemp
-
+        
+        if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+        if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+        
         try:
-            shutil.copyfile('parameters.pkl',
-                            self.prot_datapath + '_' + str(self.protocol.shape[0] - 1) + '_parameters.pkl')
-            time.sleep(0.001)
-        except:
-            print('No parameter file.')
+            shutil.copyfile('parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(self.protocol.shape[0] - 1) + '_parameters.pkl')
+            time.sleep(0.01)
+        except: print('No parameter file.')
 
         self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
 
     def protocol_delete_last(self):
         self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] - 1, self.protocol.shape[1])))
         self.protocoltemp[0:self.protocol.shape[0] - 1, :] = self.protocol[0:self.protocol.shape[0] - 1, :]
         self.protocol = self.protocoltemp
-
+        
+        if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+        if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+        
         try:
-            os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
-            time.sleep(0.001)
-        except:
-            print('No parameter file.')
+            os.remove(self.prot_datapath + '/Parameters/Task_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+            time.sleep(0.01)
+        except: print('No parameter file.')
 
         self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
 
     def protocol_insert(self):
         if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 1:
@@ -2812,29 +3270,33 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 1] = params.sequence
             self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[self.Protocol_Number_spinBox.value() - 1:self.protocol.shape[0] - 1, :]
             self.protocol = self.protocoltemp
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
 
             for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0] - 1):
                 try:
-                    shutil.copyfile(self.prot_datapath + '_' + str(n) + '_parameters.pkl',
-                                    self.prot_datapath + '_' + str(n) + '_parameters_temp.pkl')
-                    time.sleep(0.001)
-                except:
-                    print('No parameter file.')
-            shutil.copyfile('parameters.pkl', self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
-            time.sleep(0.001)
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+                    
+            shutil.copyfile('parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+            time.sleep(0.01)
+            
             for n in range(self.Protocol_Number_spinBox.value() + 1, self.protocol.shape[0]):
                 try:
-                    shutil.copyfile(self.prot_datapath + '_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '_' + str(n) + '_parameters.pkl')
-                    time.sleep(0.001)
-                    os.remove(self.prot_datapath + '_' + str(n - 1) + '_parameters_temp.pkl')
-                    time.sleep(0.001)
-                except:
-                    print('No parameter file.')
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
 
-        else:
-            print('Index to high!')
+        else: print('Index to high!')
 
         self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
 
     def protocol_delete(self):
         if self.Protocol_Number_spinBox.value() <= self.protocoltemp.shape[0] - 1:
@@ -2844,39 +3306,194 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
             :] = self.protocol[self.Protocol_Number_spinBox.value():self.protocol.shape[0] - 1, :]
             self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0] - 1, self.protocoltemp.shape[1])))
             self.protocol = self.protocoltemp[0:self.protocoltemp.shape[0] - 1, :]
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
 
             for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0]):
                 try:
-                    shutil.copyfile(self.prot_datapath + '_' + str(n + 1) + '_parameters.pkl', self.prot_datapath + '_' + str(n) + '_parameters.pkl')
-                    time.sleep(0.001)
-                except:
-                    print('No parameter file.')
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n + 1) + '_parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+                
             try:
-                os.remove(self.prot_datapath + '_' + str(self.protocol.shape[0]) + '_parameters.pkl')
-                time.sleep(0.001)
-            except:
-                print('No parameter file.')
+                os.remove(self.prot_datapath + '/Parameters/Task_' + str(self.protocol.shape[0]) + '_parameters.pkl')
+                time.sleep(0.01)
+            except: print('No parameter file.')
 
-        else:
-            print('Index to high!')
+        else: print('Index to high!')
 
         self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
 
     def protocol_overwrite(self):
         if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 2:
             self.protocol[self.Protocol_Number_spinBox.value() - 1, 0] = params.GUImode
             self.protocol[self.Protocol_Number_spinBox.value() - 1, 1] = params.sequence
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
 
             try:
-                shutil.copyfile('parameters.pkl', self.prot_datapath + '_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
-                time.sleep(0.001)
-            except:
-                print('No parameter file.')
+                shutil.copyfile('parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(self.Protocol_Number_spinBox.value()) + '_parameters.pkl')
+                time.sleep(0.01)
+            except: print('No parameter file.')
 
-        else:
-            print('Index to high!')
+        else: print('Index to high!')
 
         self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_add_pause(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0], :] = self.protocol[:, :]
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 0] = 6
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 1] = self.Protocol_Pause_doubleSpinBox.value()
+        self.protocol = self.protocoltemp
+        
+        if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+        if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_insert_pause(self):
+        if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[0:self.Protocol_Number_spinBox.value() - 1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 0] = 6
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 1] = self.Protocol_Pause_doubleSpinBox.value()
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[self.Protocol_Number_spinBox.value() - 1:self.protocol.shape[0] - 1, :]
+            self.protocol = self.protocoltemp
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+
+            for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0] - 1):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+            
+            for n in range(self.Protocol_Number_spinBox.value() + 1, self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+
+        else: print('Index to high!')
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_add_message(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0], :] = self.protocol[:, :]
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 0] = 7
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 1] = self.Protocol_Message_comboBox.currentIndex()
+        self.protocol = self.protocoltemp
+        
+        if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+        if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_insert_message(self):
+        if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[0:self.Protocol_Number_spinBox.value() - 1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 0] = 7
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 1] = self.Protocol_Message_comboBox.currentIndex()
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[self.Protocol_Number_spinBox.value() - 1:self.protocol.shape[0] - 1, :]
+            self.protocol = self.protocoltemp
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+
+            for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0] - 1):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+            
+            for n in range(self.Protocol_Number_spinBox.value() + 1, self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+
+        else: print('Index to high!')
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_add_moveto(self):
+        self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+        self.protocoltemp[0:self.protocol.shape[0], :] = self.protocol[:, :]
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 0] = 8
+        self.protocoltemp[self.protocoltemp.shape[0] - 2, 1] = self.Protocol_MoveTo_doubleSpinBox.value()
+        self.protocol = self.protocoltemp
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
+        
+    def protocol_insert_moveto(self):
+        if self.Protocol_Number_spinBox.value() - 1 <= self.protocoltemp.shape[0] - 1:
+            self.protocoltemp = np.matrix(np.zeros((self.protocol.shape[0] + 1, self.protocol.shape[1])))
+            self.protocoltemp[0:self.Protocol_Number_spinBox.value() - 1, :] = self.protocol[0:self.Protocol_Number_spinBox.value() - 1,:]
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 0] = 8
+            self.protocoltemp[self.Protocol_Number_spinBox.value() - 1, 1] = self.Protocol_MoveTo_doubleSpinBox.value()
+            self.protocoltemp[self.Protocol_Number_spinBox.value():self.protocoltemp.shape[0] - 1, :] = self.protocol[self.Protocol_Number_spinBox.value() - 1:self.protocol.shape[0] - 1, :]
+            self.protocol = self.protocoltemp
+            
+            if os.path.isdir(self.prot_datapath) != True: os.mkdir(self.prot_datapath)
+            if os.path.isdir(self.prot_datapath + '/Parameters') != True: os.mkdir(self.prot_datapath + '/Parameters')
+
+            for n in range(self.Protocol_Number_spinBox.value(), self.protocol.shape[0] - 1):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+            
+            for n in range(self.Protocol_Number_spinBox.value() + 1, self.protocol.shape[0]):
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl', self.prot_datapath + '/Parameters/Task_' + str(n) + '_parameters.pkl')
+                    time.sleep(0.01)
+                    os.remove(self.prot_datapath + '/Parameters/Task_' + str(n - 1) + '_parameters_temp.pkl')
+                    time.sleep(0.01)
+                except: print('No parameter file.')
+
+        else: print('Index to high!')
+
+        self.protocol_plot_table()
+        
+        np.savetxt(self.prot_datapath + '/Protocol.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
+        print('Protocol saved!')
 
     def protocol_plot_table(self):
         self.Protocol_Table_tableWidget.setRowCount(self.protocol.shape[0] - 1)
@@ -2892,7 +3509,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                                             , 'Free Induction Decay (Slice)', 'Spin Echo (Slice)', 'Inversion Recovery (FID, Slice)' \
                                             , 'Inversion Recovery (SE, Slice)', 'Saturation Inversion Recovery (FID, Slice)', 'Saturation Inversion Recovery (SE, Slice)' \
                                             , 'Echo Planar Spectrum (FID, 4 Echos, Slice)', 'Echo Planar Spectrum (SE, 4 Echos, Slice)', 'Turbo Spin Echo (4 Echos, Slice)' \
-                                            , 'RF Testsequence', 'Gradient Testsequence')
+                                            , 'RF Loopback Test Sequence (Rect, Flip)', 'RF Loopback Test Sequence (Rect, 180°)', 'RF Loopback Test Sequence (Sinc, Flip)' \
+                                            , 'RF Loopback Test Sequence (Sinc, 180°)', 'Gradient Test Sequence', 'RF SAR Calibration Test Sequence')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
                 self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 1:
@@ -2907,139 +3525,258 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                                             , '2D Radial (Slice, SE, Half)', '2D Gradient Echo (Slice)', '2D Spin Echo (Slice)' \
                                             , '2D Spin Echo (Slice, InOut)', '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)' \
                                             , 'WIP 2D Saturation Inversion Recovery (Slice, GRE)', 'WIP 2D Saturation Inversion Recovery (Slice, SE)', '2D Turbo Spin Echo (Slice, 4 Echos)' \
-                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', 'WIP 2D Diffusion (Slice, SE)' \
-                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Spin Echo' \
+                                            , 'WIP 2D Echo Planar Imaging (Slice, GRE, 4 Echos)', 'WIP 2D Echo Planar Imaging (Slice, SE, 4 Echos)', '2D Diffusion (Slice, SE)' \
+                                            , 'WIP 2D Flow Compensation (Slice, GRE)', 'WIP 2D Flow Compensation (Slice, SE)', 'WIP 3D FFT Gradient Echo (Slab)' \
                                             , '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
-                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
-                    self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 2:
                 self.Prot_Table_GUImode = 'T1 Measurement'
                 self.Prot_Table_sequence = ('Inversion Recovery (FID)', 'Inversion Recovery (SE)', 'Inversion Recovery (Slice, FID)' \
                                             , 'Inversion Recovery (Slice, SE)', '2D Inversion Recovery (GRE)', '2D Inversion Recovery (SE)' \
                                             , '2D Inversion Recovery (Slice, GRE)', '2D Inversion Recovery (Slice, SE)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
-                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
-                    self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 3:
                 self.Prot_Table_GUImode = 'T2 Measurement'
                 self.Prot_Table_sequence = ('Spin Echo', 'Saturation Inversion Recovery (FID)', 'Spin Echo (Slice)' \
                                             , 'Saturation Inversion Recovery (Slice, FID)', '2D Spin Echo', '2D Saturation Inversion Recovery (GRE)' \
                                             , '2D Spin Echo (Slice)', '2D Saturation Inversion Recovery (Slice, GRE)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
-                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
-                    self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
             elif self.protocol[n, 0] == 4:
                 self.Prot_Table_GUImode = 'Projections'
-                self.Prot_Table_sequence = ('Gradient Echo (On Axis)', 'Spin Echo (On Axis)', 'Gradient Echo (On Angle)' \
-                                            , 'Spin Echo (On Angle)', 'Gradient Echo (Slice, On Axis)', 'Spin Echo (Slice, On Axis)' \
-                                            , 'Gradient Echo (Slice, On Angle)', 'Spin Echo (Slice, On Angle)')
+                self.Prot_Table_sequence = ('2D Gradient Echo', '2D Inversion Recovery (GRE)', '2D Spin Echo' \
+                                            , '2D Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Gradient Echo (Slice)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
+                                            , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)')
                 self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
-                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(
-                    self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+            elif self.protocol[n, 0] == 5:
+                self.Prot_Table_GUImode = 'Image Stitching'
+                self.Prot_Table_sequence = ('2D Gradient Echo', '2D Inversion Recovery (GRE)', '2D Spin Echo' \
+                                            , '2D Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Gradient Echo (Slice)' \
+                                            , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
+                                            , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)')
+                self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+            elif self.protocol[n, 0] == 6:
+                self.Prot_Table_GUImode = 'Pause [s]'
+                self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(str(self.protocol[n, 1])))
+            elif self.protocol[n, 0] == 7:
+                self.Prot_Table_GUImode = 'Message'
+                self.Prot_Table_sequence = ('Change Sample!', 'Move Sample!', 'Rotate Sample!')
+                self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(self.Prot_Table_sequence[int(self.protocol[n, 1])]))
+            elif self.protocol[n, 0] == 8:
+                self.Prot_Table_GUImode = 'Move to [mm]'
+                self.Protocol_Table_tableWidget.setItem(n, 0, QTableWidgetItem(self.Prot_Table_GUImode))
+                self.Protocol_Table_tableWidget.setItem(n, 1, QTableWidgetItem(str(self.protocol[n, 1])))
 
         self.Protocol_Table_tableWidget.resizeColumnToContents(0)
         self.Protocol_Table_tableWidget.resizeColumnToContents(1)
 
         self.Protocol_Table_tableWidget.show()
 
-    def protocol_save_protocol(self):
-        np.savetxt(self.prot_datapath + '.txt', self.protocol[0:self.protocol.shape[0] - 1, :])
-        print('Protocol saved!')
-
     def protocol_new_protocol(self):
+        if self.Protocol_window_init_flag != 0:
+            if os.path.isdir(self.prot_datapath) == True:
+                shutil.rmtree(self.prot_datapath)
+                print('Protocol directory overwritten!')
+        
         self.protocol = np.matrix([0, 0])
-
         self.protocol_plot_table()
 
     def protocol_load_protocol(self):
-        if os.path.isfile(self.prot_datapath + '.txt') == True:
-            self.protocoltemp = np.genfromtxt(self.prot_datapath + '.txt')
-            self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0] + 1, self.protocoltemp.shape[1])))
-            self.protocol[0:self.protocoltemp.shape[0], :] = self.protocoltemp[:, :]
-            print(self.protocol)
-            print(self.protocol.shape)
-            self.protocol_plot_table()
+        if os.path.isdir(self.prot_datapath) == True:
+            if os.path.isfile(self.prot_datapath + '/Protocol.txt') == True:
+                self.protocoltemp = np.genfromtxt(self.prot_datapath + '/Protocol.txt')
+                self.protocol = np.matrix(np.zeros((self.protocoltemp.shape[0] + 1, self.protocoltemp.shape[1])))
+                self.protocol[0:self.protocoltemp.shape[0], :] = self.protocoltemp[:, :]
+                self.protocol_plot_table()
+            else: print('No protocol file!!')
         else:
-            print('No protocol file!!')
+            if self.Protocol_window_init_flag != 0:
+                print('No protocol directory!!')
 
     def protocol_execute_protocol(self):
         print('WIP')
 
         self.Protocol_Execute_Protocol_pushButton.setEnabled(False)
         self.repaint()
+        
+        if os.path.isdir(self.prot_datapath) == True:
+            if os.path.isdir(self.prot_datapath + '/Parameters') == True:
 
-        try:
-            shutil.copyfile('parameters.pkl', self.prot_datapath + '_parameters_temp.pkl')
-            time.sleep(0.001)
-        except:
-            print('No parameter file.')
+                try:
+                    shutil.copyfile('parameters.pkl', self.prot_datapath + '/Parameters/Parameters_temp.pkl')
+                    time.sleep(0.01)
+                except:
+                    print('No parameter file.')
 
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+                self.datapathtemp = ''
+                self.datapathtemp = params.datapath
+                self.prot_motor_actual_position_temp = 0
+                self.prot_motor_actual_position_temp = params.motor_actual_position
+                self.prot_motor_actual_position = 0
 
-        for n in range(self.protocol.shape[0] - 1):
-            print('Protocol task: ', n)
-            try:
-                shutil.copyfile(self.prot_datapath + '_' + str(n + 1) + '_parameters.pkl', 'parameters.pkl')
-                time.sleep(0.001)
-            except:
-                print('No parameter file!!')
+                for n in range(self.protocol.shape[0] - 1):
+                    self.prot_motor_actual_position = params.motor_actual_position
+                    
+                    print('Protocol task: ' + str(n + 1))
+                    if self.protocol[n, 0] < 6:
+                        try:
+                            shutil.copyfile(self.prot_datapath + '/Parameters/Task_' + str(n + 1) + '_parameters.pkl', 'parameters.pkl')
+                            time.sleep(0.01)
+                            params.loadParam()
+                            params.motor_actual_position = self.prot_motor_actual_position
+                        except:
+                            print('No parameter file!!')
+                        
+                    if self.protocol[n, 0] == 6:
+                        print('Pause')
+                        params.GUImode = 6
+                        params.TR = self.protocol[n, 1]
+                    if self.protocol[n, 0] == 7:
+                        print('Message')
+                        params.GUImode = 7
+                        params.sequence = self.protocol[n, 1]
+                    if self.protocol[n, 0] == 8:
+                        params.GUImode = 8
+                        params.motor_goto_position = self.protocol[n, 1]
+                    
+                    if params.GUImode == 0: self.datapath_mode = 'Spectroscopy'
+                    if params.GUImode == 1: self.datapath_mode = 'Imaging'
+                    if params.GUImode == 2: self.datapath_mode = 'T1 Measurement'
+                    if params.GUImode == 3: self.datapath_mode = 'T2 Measurement'
+                    if params.GUImode == 4: self.datapath_mode = 'Projections'
+                    if params.GUImode == 5: self.datapath_mode = 'Image Stitching'
+                    
+                    if params.GUImode < 6:
+                        if os.path.isdir(self.prot_datapath + '/Task_' + str(n + 1) + '_rawdata') != True: os.mkdir(self.prot_datapath + '/Task_' + str(n + 1) + '_rawdata')
+                        params.datapath = self.prot_datapath + '/Task_' + str(n + 1) + '_rawdata/' + self.datapath_mode + '_rawdata'
+                    else: params.datapath = ''
+                    
+                    self.protocol_acquire()
+                    
+                    if params.GUImode < 6:
+                        time.sleep(params.TR/1000)
+                    if params.GUImode == 8:
+                        time.sleep(1)
+                    
+                params.motor_goto_position = self.prot_motor_actual_position_temp
+                proc.motor_move(motor=self.motor)
+                time.sleep(1)
 
-            params.loadParam()
+                params.datapath = self.datapathtemp
 
-            params.datapath = self.prot_datapath + '_' + str(n + 1) + '_rawdata'
-
-            self.protocol_acquire()
-
-            time.sleep(params.TR / 1000)
-
-        params.datapath = self.datapathtemp
-
-        try:
-            shutil.copyfile(self.prot_datapath + '_parameters_temp.pkl', 'parameters.pkl')
-            time.sleep(0.001)
-        except:
-            print('No parameter file.')
-
-        params.loadParam()
-
+                try:
+                    shutil.copyfile(self.prot_datapath + '/Parameters/Parameters_temp.pkl', 'parameters.pkl')
+                    time.sleep(0.01)
+                    
+                    params.loadParam()
+                    
+                    os.remove(self.prot_datapath + '/Parameters/Parameters_temp.pkl')
+                    
+                    
+                except:
+                    print('No parameter file.')
+            
+            else: print('No protocol parameter directory!!')
+        else: print('No protocol directory!!')
+            
         self.Protocol_Execute_Protocol_pushButton.setEnabled(True)
         self.repaint()
 
     def protocol_acquire(self):
-        if params.GUImode == 2 and params.sequence == 0:
-            proc.T1measurement_IR_FID()
-        elif params.GUImode == 2 and params.sequence == 1:
-            proc.T1measurement_IR_SE()
-        elif params.GUImode == 2 and params.sequence == 2:
-            proc.T1measurement_IR_FID_Gs()
-        elif params.GUImode == 2 and params.sequence == 3:
-            proc.T1measurement_IR_SE_Gs()
-        elif params.GUImode == 2 and params.sequence == 4:
-            proc.T1measurement_Image_IR_GRE()
-        elif params.GUImode == 2 and params.sequence == 5:
-            proc.T1measurement_Image_IR_SE()
-        elif params.GUImode == 2 and params.sequence == 6:
-            proc.T1measurement_Image_IR_GRE_Gs()
-        elif params.GUImode == 2 and params.sequence == 7:
-            proc.T1measurement_Image_IR_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 0:
-            proc.T2measurement_SE()
-        elif params.GUImode == 3 and params.sequence == 1:
-            proc.T2measurement_SIR_FID()
-        elif params.GUImode == 3 and params.sequence == 2:
-            proc.T2measurement_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 3:
-            proc.T2measurement_SIR_FID_Gs()
-        elif params.GUImode == 3 and params.sequence == 4:
-            proc.T2measurement_Image_SE()
-        elif params.GUImode == 3 and params.sequence == 5:
-            proc.T2measurement_Image_SIR_GRE()
-        elif params.GUImode == 3 and params.sequence == 6:
-            proc.T2measurement_Image_SE_Gs()
-        elif params.GUImode == 3 and params.sequence == 7:
-            proc.T2measurement_Image_SIR_GRE_Gs()
+        if params.GUImode == 2:
+            if params.sequence == 0:
+                proc.T1measurement_IR_FID()
+            elif params.sequence == 1:
+                proc.T1measurement_IR_SE()
+            elif params.sequence == 2:
+                proc.T1measurement_IR_FID_Gs()
+            elif params.sequence == 3:
+                proc.T1measurement_IR_SE_Gs()
+            elif params.sequence == 4:
+                proc.T1measurement_Image_IR_GRE()
+            elif params.sequence == 5:
+                proc.T1measurement_Image_IR_SE()
+            elif params.sequence == 6:
+                proc.T1measurement_Image_IR_GRE_Gs()
+            elif params.sequence == 7:
+                proc.T1measurement_Image_IR_SE_Gs()
+        elif params.GUImode == 3:
+            if params.sequence == 0:
+                proc.T2measurement_SE()
+            elif params.sequence == 1:
+                proc.T2measurement_SIR_FID()
+            elif params.sequence == 2:
+                proc.T2measurement_SE_Gs()
+            elif params.sequence == 3:
+                proc.T2measurement_SIR_FID_Gs()
+            elif params.sequence == 4:
+                proc.T2measurement_Image_SE()
+            elif params.sequence == 5:
+                proc.T2measurement_Image_SIR_GRE()
+            elif params.sequence == 6:
+                proc.T2measurement_Image_SE_Gs()
+            elif params.sequence == 7:
+                proc.T2measurement_Image_SIR_GRE_Gs()
+        elif params.GUImode == 5:
+            if params.motor_enable == 1:
+                if params.motor_available:
+                    self.motor_reader.blockSignals(True)
+                    if params.sequence == 0:
+                        proc.image_stitching_2D_GRE(motor=self.motor)
+                    if params.sequence == 1:
+                        proc.image_stitching_2D_GRE(motor=self.motor)
+                    if params.sequence == 2:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 3:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 4:
+                        proc.image_stitching_2D_SE(motor=self.motor)
+                    if params.sequence == 5:
+                        proc.image_stitching_2D_GRE_slice(motor=self.motor)
+                    if params.sequence == 6:
+                        proc.image_stitching_2D_GRE_slice(motor=self.motor)
+                    if params.sequence == 7:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 8:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 9:
+                        proc.image_stitching_2D_SE_slice(motor=self.motor)
+                    if params.sequence == 10:
+                        proc.image_stitching_3D_slab(motor=self.motor)
+                    self.motor_reader.blockSignals(False)                
+                else:
+                    print('Motor Control: Motor not available, maybe it is still homing?')
+            else:
+                if params.sequence == 0:
+                    proc.image_stitching_2D_GRE()
+                if params.sequence == 1:
+                    proc.image_stitching_2D_GRE()
+                if params.sequence == 2:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 3:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 4:
+                    proc.image_stitching_2D_SE()
+                if params.sequence == 5:
+                    proc.image_stitching_2D_GRE_slice()
+                if params.sequence == 6:
+                    proc.image_stitching_2D_GRE_slice()
+                if params.sequence == 7:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 8:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 9:
+                    proc.image_stitching_2D_SE_slice()
+                if params.sequence == 10:
+                    proc.image_stitching_3D_slab()
+            
         elif params.GUImode == 1:
             if params.autorecenter == 1:
                 self.frequencyoffsettemp = 0
@@ -3059,13 +3796,21 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                         or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
-                        or params.sequence == 32:
+                        or params.sequence == 32 or params.sequence == 34:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -3077,9 +3822,17 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 1 or params.sequence == 3 or params.sequence == 5 \
                         or params.sequence == 6 or params.sequence == 8 or params.sequence == 10 \
@@ -3096,15 +3849,22 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
                 elif params.sequence == 18 or params.sequence == 20 or params.sequence == 22 \
                         or params.sequence == 23 or params.sequence == 25 or params.sequence == 27 \
                         or params.sequence == 28 or params.sequence == 30 or params.sequence == 31 \
-                        or params.sequence == 33 or params.sequence == 34 or params.sequence == 35 \
-                        or params.sequence == 36:
+                        or params.sequence == 33 or params.sequence == 35 or params.sequence == 36:
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
                     seq.Frequency_upload()
@@ -3116,14 +3876,39 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
                     params.saveFileParameter()
-                    print('Autorecenter to:', params.frequency)
-                    time.sleep(params.TR / 1000)
+                    print('Autorecenter to: ', params.frequency)
                     params.frequencyoffset = self.frequencyoffsettemp
+                    if params.measurement_time_dialog == 1:
+                        msg_box = QMessageBox()
+                        msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                        msg_box.setStandardButtons(QMessageBox.Ok)
+                        msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                        msg_box.button(QMessageBox.Ok).hide()
+                        msg_box.exec()
+                    else: time.sleep((params.TR-100)/1000)
+                    time.sleep(0.1)
                     seq.sequence_upload()
             else:
                 seq.sequence_upload()
+        elif params.GUImode == 6:
+            msg_box = QMessageBox()
+            msg_box.setText('Pause: ' + str(params.TR) + 's')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.button(QMessageBox.Ok).animateClick(int(params.TR*1000))
+            msg_box.button(QMessageBox.Ok).hide()
+            msg_box.exec()
+        elif params.GUImode == 7:
+            self.protocol_messagebox_string = ('Change Sample!', 'Move Sample!', 'Rotate Sample!')
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Warning)
+            msg_box.setText(self.protocol_messagebox_string[int(params.sequence)])
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.exec()
+        elif params.GUImode == 8:
+            proc.motor_move(motor=self.motor)
         else:
             seq.sequence_upload()
+            
         if params.headerfileformat == 0:
             params.save_header_file_txt()
         else:
@@ -3164,7 +3949,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.Save_Pha_Image_Data_pushButton.setEnabled(False)
 
         if params.GUImode == 0:
-            self.spectrum_plot_init()
+            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21:
+                self.rf_loopback_test_spectrum_plot_init()
+            else:
+                self.spectrum_plot_init()
             self.Save_Spectrum_Data_pushButton.setEnabled(True)
             
         elif params.GUImode == 1:
@@ -3217,15 +4005,22 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                  or params.sequence == 8 or params.sequence == 9:
                 self.imaging_stitching_plot_init()
                 
-                with open(params.datapath + '_Header.json', 'r') as j:
+                with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
                     jsonparams = json.loads(j.read())
 
                 imageorientation = jsonparams['Image orientation']
                 if imageorientation == 'ZX' or imageorientation == 'XZ':
                     self.View_3D_Data_pushButton.setEnabled(True)
+                
+                self.Save_Image_Data_pushButton.setEnabled(True)
+                self.Save_Mag_Image_Data_pushButton.setEnabled(True)
+                self.Save_Pha_Image_Data_pushButton.setEnabled(True)
                     
             elif params.sequence == 10:
                 self.imaging_stitching_3D_plot_init()
+                self.Save_Image_Data_pushButton.setEnabled(True)
+                self.Save_Mag_Image_Data_pushButton.setEnabled(True)
+                self.Save_Pha_Image_Data_pushButton.setEnabled(True)
                 self.View_3D_Data_pushButton.setEnabled(True)
 
         self.Frequncyaxisrange_spinBox.setKeyboardTracking(False)
@@ -3294,8 +4089,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         params.saveFileParameter()
 
         if params.GUImode == 0:
-            self.fig_canvas.hide()
-            self.spectrum_plot_init()
+            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21:
+                self.rf_loopback_test_spectrum_plot_init()
+            else:
+                self.spectrum_plot_init()
+            self.Save_Spectrum_Data_pushButton.setEnabled(True)
         elif params.GUImode == 1 and params.sequence != 34 and params.sequence != 35 and params.sequence != 36 and params.sequence != 14 and params.sequence != 31:
             if self.IMag_canvas != None: self.IMag_canvas.hide()
             if self.IPha_canvas != None: self.IPha_canvas.hide()
@@ -3328,7 +4126,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax1.grid(which='major', color='#888888', linestyle='-')
         self.ax1.grid(which='minor', color='#888888', linestyle=':')
         self.ax1.grid(which='both', visible=True)
-
+        
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.ax2.plot(params.timeaxis, params.real, label='Real')
         self.ax2.plot(params.timeaxis, params.imag, label='Imaginary')
@@ -3345,7 +4143,48 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax2.grid(which='both', visible=True)
         self.ax2.legend()
         self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
+        self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+        self.fig_canvas.setGeometry(420, 40, 1160, 950)
+        self.fig_canvas.show()
+        
+    def rf_loopback_test_spectrum_plot_init(self):
+        self.fig = Figure()
+        self.fig.set_facecolor('None')
+        self.fig_canvas = FigureCanvas(self.fig)
 
+        self.ax1 = self.fig.add_subplot(2, 1, 1)
+        self.ax2 = self.fig.add_subplot(2, 1, 2)
+
+        self.ax1.plot(params.freqencyaxis, params.spectrumfft)
+        self.ax1.set_xlim([-params.frequencyplotrange / 2, params.frequencyplotrange / 2])
+        self.ax1.set_ylim([0, 1.1 * np.max(params.spectrumfft)])
+        self.ax1.set_title('Spectrum')
+        self.ax1.set_ylabel('RX Signal [arb.]')
+        self.ax1.set_xlabel('$\Delta$ Frequency [Hz]')
+        self.major_ticks = np.linspace(-params.frequencyplotrange / 2, params.frequencyplotrange / 2, 11)
+        self.minor_ticks = np.linspace(-params.frequencyplotrange / 2, params.frequencyplotrange / 2, 51)
+        self.ax1.set_xticks(self.major_ticks)
+        self.ax1.set_xticks(self.minor_ticks, minor=True)
+        self.ax1.grid(which='major', color='#888888', linestyle='-')
+        self.ax1.grid(which='minor', color='#888888', linestyle=':')
+        self.ax1.grid(which='both', visible=True)
+        
+        self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
+        self.ax2.plot(params.timeaxis, params.real, label='Real')
+        self.ax2.plot(params.timeaxis, params.imag, label='Imaginary')
+        self.ax2.set_xlim([0, params.timeaxis[int(params.timeaxis.shape[0] - 1)]])
+        self.ax2.set_title('Signal')
+        self.ax2.set_ylabel('RX Signal [mV]')
+        self.ax2.set_xlabel('time [µs]')
+        self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int((int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]))/10) + 1)
+        self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int((int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5)/10) + 1)
+        self.ax2.set_xticks(self.major_ticks)
+        self.ax2.set_xticks(self.minor_ticks, minor=True)
+        self.ax2.grid(which='major', color='#888888', linestyle='-')
+        self.ax2.grid(which='minor', color='#888888', linestyle=':')
+        self.ax2.grid(which='both', visible=True)
+        self.ax2.legend()
+        self.ax2.plot(params.timeaxis, params.mag, label='Magnitude')
         self.fig_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
         self.fig_canvas.setGeometry(420, 40, 1160, 950)
         self.fig_canvas.show()
@@ -4067,6 +4906,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
 
     def save_mag_image_data(self):
         timestamp = datetime.now()
+        params.dataTimestamp = timestamp.strftime('%Y%m%d_%H%M%S')
         if params.GUImode == 1:
             if params.sequence == 32 or params.sequence == 33 or params.sequence == 34:
                 self.datatxt = np.matrix(np.zeros((params.img_mag.shape[1], params.img_mag.shape[0] * params.img_mag.shape[2])))
@@ -4152,23 +4992,49 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         else:
             self.dialog_3D_layers.hide()
             self.dialog_3D_layers.show()
-        
+    
     def animate(self):
-        proc.animation_image_process()
-
-        import matplotlib.animation as animation
-
-        fig = plt.figure()
-
-        im = plt.imshow(params.animationimage[params.kspace.shape[0] - 1, :, :], cmap='gray', animated=True)
-        plt.axis('off')
-
-        def updatefig(i):
-            im.set_array(params.animationimage[i, :, :])
-            return im,
-
-        ani = animation.FuncAnimation(fig, updatefig, frames=params.kspace.shape[0], interval=params.animationstep, blit=True)
-        plt.show()
+        with open(params.datapath + '_Header.json', 'r') as j:
+            jsonparams = json.loads(j.read())
+            
+        self.GUImodetemp = 0
+        self.GUImodetemp = params.GUImode
+        params.GUImode = jsonparams['GUI mode']
+        self.sequencetemp = 0
+        self.sequencetemp = params.sequence
+        params.sequence = jsonparams['Sequence']
+        
+        if params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 17 \
+                                    or params.sequence == 18):
+            #Radial full
+            proc.animate_radial_full()
+        elif params.GUImode == 1 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 19 \
+                                      or params.sequence == 20):
+            #Radial half
+            proc.animate_radial_half()
+        elif params.GUImode == 1 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 7 \
+                                      or params.sequence == 8 or params.sequence == 9  or params.sequence == 10 \
+                                      or params.sequence == 15  or params.sequence == 16 or params.sequence == 21 \
+                                      or params.sequence == 22 or params.sequence == 24 or params.sequence == 25 \
+                                      or params.sequence == 26 or params.sequence == 27 or params.sequence == 32 \
+                                      or params.sequence == 33):
+            #Cartesian
+            proc.animate_cartesian()
+        elif params.GUImode == 1 and (params.sequence == 6 or params.sequence == 23):
+            #Cartesian in-out
+            proc.animate_cartesian_IO()
+        elif params.GUImode == 1 and (params.sequence == 11 or params.sequence == 28):
+            #TSE
+            print('\033[1m' + 'WIP' + '\033[0m')
+        elif params.GUImode == 1 and (params.sequence == 12 or params.sequence == 13 or params.sequence == 29 \
+                                       or params.sequence == 30):
+            #EPI
+            print('\033[1m' + 'WIP' + '\033[0m')
+        else: print('Sequence not defined!')
+        
+        params.GUImode = self.GUImodetemp
+        params.sequence = self.sequencetemp
+        
         
 class SerialReader(QObject):
     data_received =pyqtSignal(str)
@@ -4956,12 +5822,14 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
 
         self.ui = loadUi('ui/motor_tools.ui')
         self.setWindowTitle('Motor Tools')
-        self.setGeometry(420, 40, 390, 290)
+        self.setGeometry(420, 40, 390, 340)
 
         self.Motor_MoveTo_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='to'))
         self.Motor_MoveBy_doubleSpinBox.valueChanged.connect(lambda: self.new_move_value(box='by'))
         self.Motor_Apply_pushButton.clicked.connect(lambda: self.apply())
         self.Motor_Home_pushButton.clicked.connect(lambda: self.home())
+        
+        self.Motor_MoveToCenter_pushButton.clicked.connect(lambda: self.move_to_center())
         
     def load_params(self):
         self.Motor_Limit_Negative_lineEdit.setText(str(params.motor_axis_limit_negative))
@@ -4975,10 +5843,12 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         
         self.Motor_Apply_pushButton.setEnabled(params.motor_available)
         self.Motor_Home_pushButton.setEnabled(params.motor_available)
+        self.Motor_MoveToCenter_pushButton.setEnabled(params.motor_available)
 
     def home(self):
         self.Motor_Home_pushButton.setEnabled(False)
         self.Motor_Apply_pushButton.setEnabled(False)
+        self.Motor_MoveToCenter_pushButton.setEnabled(False)
         home_s = 'G28\r\n'
         self.motor.write(home_s.encode('utf-8'))
 
@@ -5001,6 +5871,7 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         if params.motor_goto_position != params.motor_actual_position:
             self.Motor_Home_pushButton.setEnabled(False)
             self.Motor_Apply_pushButton.setEnabled(False)
+            self.Motor_MoveToCenter_pushButton.setEnabled(False)
         
             apply_s = 'G0 ' + str(params.motor_goto_position) + '\r\n'
             self.motor.write(apply_s.encode('utf-8'))
@@ -5029,7 +5900,49 @@ class MotorToolsWindow(Motor_Window_Form, Motor_Window_Base):
         self.Motor_MoveTo_doubleSpinBox.blockSignals(False)
 
         params.motor_goto_position = self.Motor_MoveTo_doubleSpinBox.value()
-
+        
+    def move_to_center(self):
+        self.Motor_Home_pushButton.setEnabled(False)
+        self.Motor_Apply_pushButton.setEnabled(False)
+        self.Motor_MoveToCenter_pushButton.setEnabled(False)
+        
+        params.motor_goto_position = 0
+        proc.motor_move(motor=self.motor)
+        
+        self.motor_messagebox_string = ('Align sample start to the marker. Carefully tighten the test tube holder screw.')
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setText(self.motor_messagebox_string)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.exec()
+        
+        params.motor_goto_position = 120
+        proc.motor_move(motor=self.motor)
+        
+        params.motor_actual_position = params.motor_goto_position
+        
+        self.motor_messagebox_string = ('Loosen the test tube holder screw.')
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setText(self.motor_messagebox_string)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.exec()
+        
+        params.motor_goto_position = 0
+        proc.motor_move(motor=self.motor)
+        
+        params.motor_actual_position = params.motor_goto_position
+        
+        self.motor_messagebox_string = ('Carefully tighten the test tube holder screw.')
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setText(self.motor_messagebox_string)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.exec()
+        
+        self.Motor_Home_pushButton.setEnabled(True)
+        self.Motor_Apply_pushButton.setEnabled(True)
+        self.Motor_MoveToCenter_pushButton.setEnabled(True)
 
 class ConnectionDialog(Conn_Dialog_Base, Conn_Dialog_Form):
     connected = pyqtSignal()
@@ -5131,7 +6044,7 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
         self.setWindowTitle('3D Layers Plot')
         self.setGeometry(420, 40, 1160, 950)
         
-        with open(params.datapath + '_Header.json', 'r') as j:
+        with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
             jsonparams = json.loads(j.read())
 
         self.imageorientation = jsonparams['Image orientation']

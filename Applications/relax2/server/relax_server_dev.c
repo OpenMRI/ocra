@@ -12519,6 +12519,926 @@ void update_gradient_waveforms_2D_SE_diff(volatile uint32_t *gx,volatile uint32_
   }
 }
 
+void update_gradient_waveforms_2D_SE_slice_diff(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, float Diffamp, float SLamp, float SLrefamp, float CRamp, float SPamp, float imor, gradient_offset_t offset)
+{
+  printf("Designing a gradient waveform -- 2D SE slice !\n"); fflush(stdout);
+
+  uint32_t i;
+  int32_t ival;
+  uint32_t delay = 2;
+
+  float fLSB = 10.0/((1<<15)-1);
+  //printf("fLSB = %g Volts\n",fLSB);
+  // enable the gradients with the prescribed offset current
+  ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+  gx[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+  gy[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+  gz[0] = 0x001fffff & (ival | 0x00100000);
+  ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+  gz2[0] = 0x001fffff & (ival | 0x00100000);
+
+  // enable the outputs with 2's completment coding
+  // 24'b0010 0000 0000 0000 0000 0010;
+  gx[1] = 0x00200002;
+  gy[1] = 0x00200002;
+  gz[1] = 0x00200002;
+  gz2[1] = 0x00200002;
+
+  float fROamplitude = ROamp;
+  float fROpreamplitude = ROamp*2;
+  float fROstep = fROamplitude/20.0;
+  float fROprestep = fROpreamplitude/20.0;
+  float fRO = offset.gradient_x;
+
+  float fPEamplitude = PEamp;
+  float fPEstep = fPEamplitude/20.0;
+  float fPE = offset.gradient_y;
+   
+  float fSLamplitude = SLamp;
+  float fSLrepamplitude = SLamp/2;
+  float fSLstep = fSLamplitude/20.0;
+  float fSLrepstep = fSLrepamplitude/20.0;
+  float fSLrefamplitude = SLrefamp;
+  float fSLrefstep = fSLrefamplitude/20.0;
+  float fCRamplitude = CRamp;
+  float fCRstep = fCRamplitude/20.0;
+  float fSPamplitude = SPamp;
+  float fSPstep = fSPamplitude/20.0;
+  float fSL = offset.gradient_z;
+  
+  float fDiffamplitude = Diffamp;
+  float fDiffstep = fDiffamplitude/20.0;
+  float fDiffx = offset.gradient_x;
+  float fDiffy = offset.gradient_y;
+  float fDiffz = offset.gradient_z;
+
+  // Set waveform base value
+  for(i=2; i<2000; i++) {
+     ival = (int32_t)floor(offset.gradient_x/fLSB)*16;
+     gx[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_y/fLSB)*16;
+     gy[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_z/fLSB)*16;
+     gz[i] = 0x001fffff & (ival | 0x00100000);
+     ival = (int32_t)floor(offset.gradient_z2/fLSB)*16;
+     gz2[i] = 0x001fffff & (ival | 0x00100000);
+  }
+  if (imor == 0){
+     fRO = offset.gradient_x;
+     fPE = offset.gradient_y;
+     fSL = offset.gradient_z;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 1){
+    fRO = offset.gradient_y;
+    fPE = offset.gradient_z;
+    fSL = offset.gradient_x;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 2){
+    fRO = offset.gradient_z;
+    fPE = offset.gradient_x;
+    fSL = offset.gradient_y;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 3){
+     fRO = offset.gradient_y;
+     fPE = offset.gradient_x;
+     fSL = offset.gradient_z;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 4){
+    fRO = offset.gradient_z;
+    fPE = offset.gradient_y;
+    fSL = offset.gradient_x;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+  else if (imor == 5){
+    fRO = offset.gradient_x;
+    fPE = offset.gradient_z;
+    fSL = offset.gradient_y;
+    // Readout and phase gradients - coupled
+    for(i=delay; i<(delay+20); i++) {
+      fRO -= fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE += fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+20; i<(delay+40); i++) {
+      fRO += fROprestep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+
+      fPE -= fPEstep;
+      ival = (int32_t)floor(fPE/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+40; i<(delay+60); i++) {
+      fRO += fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+60; i<(delay+80); i++) {
+      fRO -= fROstep;
+      ival = (int32_t)floor(fRO/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient
+    for(i=delay+80; i<(delay+100); i++) {
+      fSL += fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+100; i<(delay+120); i++) {
+      fSL -= fSLstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+120; i<(delay+140); i++) {
+      fSL -= fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+140; i<(delay+160); i++) {
+      fSL += fSLrepstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    // Slice gradient with crusher
+    for(i=delay+160; i<(delay+180); i++) {
+      fSL += fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+180; i<(delay+200); i++) {
+      fSL -= fCRstep;
+      fSL += fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+200; i<(delay+220); i++) {
+      fSL += fCRstep;
+      fSL -= fSLrefstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    } 
+    for(i=delay+220; i<(delay+240); i++) {
+      fSL -= fCRstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Spoiler gradient
+    for(i=delay+240; i<(delay+260); i++) {
+      fSL += fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+260; i<(delay+280); i++) {
+      fSL -= fSPstep;
+      ival = (int32_t)floor(fSL/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    //Diffusion gradient
+    for(i=delay+280; i<(delay+300); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+300; i<(delay+320); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+320; i<(delay+340); i++) {
+      fDiffx -= fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy -= fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz -= fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+    for(i=delay+340; i<(delay+360); i++) {
+      fDiffx += fDiffstep;
+      ival = (int32_t)floor(fDiffx/fLSB)*16;
+      gx[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffy += fDiffstep;
+      ival = (int32_t)floor(fDiffy/fLSB)*16;
+      gz[i] = 0x001fffff & (ival | 0x00100000);
+     
+      fDiffz += fDiffstep;
+      ival = (int32_t)floor(fDiffz/fLSB)*16;
+      gy[i] = 0x001fffff & (ival | 0x00100000);
+    }
+  }
+}
+
 void update_gradient_waveforms_2D_TSE(volatile uint32_t *gx,volatile uint32_t *gy, volatile uint32_t *gz, volatile uint32_t *gz2, float ROamp, float PEamp, float CRamp, float SPamp, float imor, float nPE, float PEstep, gradient_offset_t offset)
 {
   printf("Designing a gradient waveform -- 2D TSE !\n"); fflush(stdout);
@@ -17604,7 +18524,7 @@ int main(int argc)
         update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
         update_gradient_waveforms_2D_SE_slice(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, sl, slref, cr, sp, imor, gradient_offset);
         
-		for(int reps=0; reps<npe; reps++) {
+        for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
           usleep(1000); // Sleep 1ms
@@ -17722,7 +18642,7 @@ int main(int argc)
         update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
         update_gradient_waveforms_2D_SE_diff(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, da, cr, sp, imor, gradient_offset);
         
-		for(int reps=0; reps<npe; reps++) {
+        for(int reps=0; reps<npe; reps++) {
           // printf("TR[%d]: go!!\n",reps);
           seq_config[0] = 0x00000007;
           usleep(1000); // Sleep 1ms
@@ -19023,6 +19943,62 @@ int main(int argc)
         continue;
       }
       
+      //------------------------------------------------------------------------
+      //  Acquire 2D SE slice Diffusion
+      //------------------------------------------------------------------------
+      else if ( trig == 41 ) {
+
+        update_pulse_sequence_from_upload(pulseq_memory_upload_temp, pulseq_memory);
+
+        usleep(10); // Sleep 10us
+
+        float npe = command[32] + command[33]*0x100; // Phase steps
+        uint32_t tr = command[36] + command[37]*0x100 + command[38]*0x10000 + command[39]*0x1000000; // TR
+        RF_flip_amp = command[4] + command[5]*0x100 + command[6]*0x10000 + command[7]*0x1000000; // RF flip pulse amplitude
+        RF_pulse_length = command[8] + command[9]*0x100; // RF reference pulse lenght
+        RF_flip_length = command[10] + command[11]*0x100; // RF flip pulse length
+        pe_step = ((float)command[28] + (float)command[29]*0x100)/1000; // Phase gradient stepsize
+        pe = (npe/2)*pe_step - pe_step/2; // Phase gradient start amplitude
+        ro = ((float)command[34] + (float)command[35]*0x100)/1000; // Readout gradient amplitude
+        da = ((float)command[20] + (float)command[21]*0x100)/1000; // Diffusion amplitude
+        sl = ((float)command[30] + (float)command[31]*0x100)/1000; // Slice gradient amplitude
+        cr = ((float)command[24] + (float)command[25]*0x100)/1000; // Crusher amplitude
+        sp = ((float)command[26] + (float)command[27]*0x100)/1000; // Spoiler amplitude
+        imor = (float)command[2] + (float)command[3]*0x100; // Image orientation
+        float freq_offset; // RF frequency offset
+        if (command[18] == 1) {
+          freq_offset = -1*((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000);
+        }
+        else {
+          freq_offset = ((float)command[12] + (float)command[13]*0x100 + (float)command[14]*0x10000 + (float)command[15]*0x1000000); 
+        }
+        float phase_offset = ((float)command[16] + (float)command[17]*0x100)/100; // RF phase offset
+        slref = sl * RF_flip_length / (2* RF_pulse_length); // Slice gradient reference length
+        // printf("GRO Amplitude: %f , GPE Step: %f , GS Amplitude: %f \n", ro, pe_step, sl);
+
+        clear_gradient_waveforms(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2);
+        update_RF_pulses(tx_size, tx_data, RF_amp, RF_flip_amp, RF_pulse_length, RF_flip_length, freq_offset, phase_offset);
+        update_gradient_waveforms_2D_SE_slice_diff(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro, pe, da, sl, slref, cr, sp, imor, gradient_offset);
+        
+        for(int reps=0; reps<npe; reps++) {
+          // printf("TR[%d]: go!!\n",reps);
+          seq_config[0] = 0x00000007;
+          usleep(1000); // Sleep 1ms
+          // printf("Number of RX samples in FIFO: %d\n",*rx_cntr);
+          for(i = 0; i < 10; ++i) {
+            while(*rx_cntr < 10000) usleep(500);
+            for(j = 0; j < 5000; ++j) buffer[j] = *rx_data;
+            send(sock_client, buffer, 5000*8, MSG_NOSIGNAL | (i<9?MSG_MORE:0));
+          }
+          seq_config[0] = 0x00000000;
+          pe = pe-pe_step; // Next phase gradient amplitude
+          //printf("PE to set = %d\n", pe);
+          update_gradient_waveforms_2D_SE_slice_diff(gradient_memory_x,gradient_memory_y,gradient_memory_z,gradient_memory_z2, ro ,pe, da, sl, slref, cr, sp, imor, gradient_offset);
+          usleep(tr*1000); // Wait TR
+        }
+        printf("---------------------------------------\n");
+        continue;
+      }
     }
   }
 

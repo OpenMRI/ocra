@@ -5,7 +5,6 @@
 #
 ################################################################################
 
-import sys
 import pickle
 import json
 from PyQt5.QtCore import QFile, QTextStream
@@ -65,7 +64,7 @@ class Parameters:
         self.nPE = 32
         self.frequencyrange = 250000
         self.samples = 50000
-        self.sampledelay = 0.35
+        self.sampledelay = 0.344
         self.spectrumdata = []
         self.dataTimestamp = ''
         self.timeaxis = []
@@ -137,10 +136,11 @@ class Parameters:
         self.cutoutside = 0
         self.cutcentervalue = 20
         self.cutoutsidevalue = 70
+        self.usmethode = 1
         self.ustime = 0
         self.usphase = 0
-        self.ustimeidx = 0
-        self.usphaseidx = 0
+        self.ustimeidx = 2
+        self.usphaseidx = 2
         self.Gproj = [0, 0, 0]
         self.projx = []
         self.projy = []
@@ -169,7 +169,7 @@ class Parameters:
         self.radialanglestepradmod100 = 0
         self.lnkspacemag = 0
         self.autograd = 1
-        self.FOV = 12.0
+        self.FOV = 16.0
         self.slicethickness = 5.0
         self.gradsens = [35.0, 32.0, 36.0]
         self.gradnominal = [10.0, 10.0, 10.0]
@@ -183,7 +183,10 @@ class Parameters:
         self.ToolShimStop = 400
         self.ToolShimSteps = 20
         self.ToolShimChannel = [0, 0, 0, 0]
+        self.ToolAutoShimMode = 0
         self.STvalues = []
+        self.AutoSTvalues = []
+        self.STgrad = []
         self.B0DeltaB0map = []
         self.B0DeltaB0mapmasked = []
         self.B1alphamap = []
@@ -230,6 +233,7 @@ class Parameters:
         self.imagecolormap = 'viridis'
         self.imageminimum = 0.0
         self.imagemaximum = 1.0
+        self.measurement_time_dialog = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -312,6 +316,7 @@ class Parameters:
                          self.cutoutside, \
                          self.cutcentervalue, \
                          self.cutoutsidevalue, \
+                         self.usmethode, \
                          self.ustime, \
                          self.usphase, \
                          self.ustimeidx, \
@@ -357,7 +362,10 @@ class Parameters:
                          self.ToolShimStop, \
                          self.ToolShimSteps, \
                          self.ToolShimChannel, \
+                         self.ToolAutoShimMode, \
                          self.STvalues, \
+                         self.AutoSTvalues, \
+                         self.STgrad, \
                          self.imagefilter, \
                          self.signalmask, \
                          self.SAR_enable, \
@@ -399,7 +407,8 @@ class Parameters:
                          self.ernstanglecalc_EA, \
                          self.imagecolormap, \
                          self.imageminimum, \
-                         self.imagemaximum], file)
+                         self.imagemaximum, \
+                         self.measurement_time_dialog], file)
        
         print('Parameters saved!')
         
@@ -541,6 +550,7 @@ class Parameters:
                 self.cutoutside, \
                 self.cutcentervalue, \
                 self.cutoutsidevalue, \
+                self.usmethode, \
                 self.ustime, \
                 self.usphase, \
                 self.ustimeidx, \
@@ -586,7 +596,10 @@ class Parameters:
                 self.ToolShimStop, \
                 self.ToolShimSteps, \
                 self.ToolShimChannel, \
+                self.ToolAutoShimMode, \
                 self.STvalues, \
+                self.AutoSTvalues, \
+                self.STgrad, \
                 self.imagefilter, \
                 self.signalmask, \
                 self.SAR_enable, \
@@ -628,7 +641,8 @@ class Parameters:
                 self.ernstanglecalc_EA, \
                 self.imagecolormap, \
                 self.imageminimum, \
-                self.imagemaximum = pickle.load(file)
+                self.imagemaximum, \
+                self.measurement_time_dialog = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -777,6 +791,7 @@ class Parameters:
         # file.write(': ' + str(self.cutoutside) + '\n')
         # file.write(': ' + str(self.cutcentervalue) + '\n')
         # file.write(': ' + str(self.cutoutsidevalue) + '\n')
+        # file.write(': ' + str(self.usmethode) + '\n')
         # file.write(': ' + str(self.ustime) + '\n')
         # file.write(': ' + str(self.usphase) + '\n')
         # file.write(': ' + str(self.ustimeidx) + '\n')
@@ -822,7 +837,10 @@ class Parameters:
         # file.write(': ' + str(self.ToolShimStop) + '\n')
         # file.write(': ' + str(self.ToolShimSteps) + '\n')
         # file.write(': ' + str(self.ToolShimChannel) + '\n')
+        # file.write(': ' + str(self.ToolAutoShimMode) + '\n')
         # file.write(': ' + str(self.STvalues) + '\n')
+        # file.write(': ' + str(self.AutoSTvalues) + '\n')
+        # file.write(': ' + str(self.STgrad) + '\n')
         # file.write(': ' + str(self.imagefilter) + '\n')
         # file.write(': ' + str(self.signalmask))
         file.write('SAR enable: ' + str(self.SAR_enable) + '\n')
@@ -858,6 +876,7 @@ class Parameters:
         # file.write('Image Colormap: ' + str(self.imagecolormap) + '\n')
         # file.write('Image Minimum: ' + str(self.imageminimum) + '\n')
         # file.write('Image Maximum: ' + str(self.imagemaximum) + '\n')
+        # file.write(': ' + str(self.measurement_time_dialog) + '\n')
         
         file.close()
 
