@@ -1,7 +1,7 @@
 ################################################################################
 #
-#Author: Marcus Prier
-#Date: 2024
+# Author: Marcus Prier
+# Date: 2025
 #
 ################################################################################
 
@@ -51,6 +51,74 @@ class process:
             
             params.motor_actual_position = params.motor_goto_position
             print('Moved to ' + str(params.motor_actual_position) + 'mm')
+            
+    def recalc_gradients(self):
+        self.Delta_vpp = params.frequencyrange / (250 * params.TS)
+        self.vpp = self.Delta_vpp * params.nPE
+        self.receiverBW = self.vpp / 2
+        
+        if params.imageorientation == 0:
+            self.Gxsens = params.gradsens[0]
+            self.Gysens = params.gradsens[1]
+            self.Gzsens = params.gradsens[2]
+        elif params.imageorientation == 1:
+            self.Gxsens = params.gradsens[1]
+            self.Gysens = params.gradsens[2]
+            self.Gzsens = params.gradsens[0]
+        elif params.imageorientation == 2:
+            self.Gxsens = params.gradsens[2]
+            self.Gysens = params.gradsens[0]
+            self.Gzsens = params.gradsens[1]
+        elif params.imageorientation == 3:
+            self.Gxsens = params.gradsens[1]
+            self.Gysens = params.gradsens[0]
+            self.Gzsens = params.gradsens[2]
+        elif params.imageorientation == 4:
+            self.Gxsens = params.gradsens[2]
+            self.Gysens = params.gradsens[1]
+            self.Gzsens = params.gradsens[0]
+        elif params.imageorientation == 5:
+            self.Gxsens = params.gradsens[0]
+            self.Gysens = params.gradsens[2]
+            self.Gzsens = params.gradsens[1]
+
+        self.Gx = (4 * np.pi * self.receiverBW) / (2 * np.pi * 42.57 * params.FOV)
+        params.GROamplitude = int(self.Gx / self.Gxsens * 1000)
+        
+        params.Gproj[0] = int(self.Gx / params.gradsens[0] * 1000)
+        params.Gproj[1] = int(self.Gx / params.gradsens[1] * 1000)
+        params.Gproj[2] = int(self.Gx / params.gradsens[2] * 1000)
+
+        if params.GROamplitude == 0:
+            params.GROpretime = 0
+            self.GROfcpretime1 = 0
+            self.GROfcpretime2 = 0
+        else:
+            params.GROpretime = int((params.TS * 1000 / 2 * params.GROamplitude + 200 * params.GROamplitude / 2 - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
+            params.GROfcpretime1 = int((((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) / 2) - 200 * params.GROamplitude) / params.GROamplitude)
+            params.GROfcpretime2 = int(((200 * params.GROamplitude + params.TS * 1000 * params.GROamplitude) - 200 * 2 * params.GROamplitude) / (2 * params.GROamplitude) * params.GROpretimescaler)
+
+        self.GPEtime = params.GROpretime + 200
+        self.Gystep = (2 * np.pi / params.FOV) / (2 * np.pi * 42.57 * (self.GPEtime / 1000000))
+        params.GPEstep = int(self.Gystep / self.Gysens * 1000)
+
+        self.Achrusher = (4 * np.pi) / (2 * np.pi * 42.57 * params.slicethickness)
+        self.Gc = self.Achrusher / ((params.crushertime + 200) / 1000000)
+        params.crusheramplitude = int(self.Gc / self.Gzsens * 1000)
+
+        self.Aspoiler = (4 * np.pi) / (2 * np.pi * 42.57 * params.slicethickness)
+        self.Gs = self.Aspoiler / ((params.spoilertime + 200) / 1000000)
+        params.spoileramplitude = int(self.Gs / self.Gzsens * 1000)
+
+        self.Deltaf = 1 / (params.flippulselength) * 1000000
+
+        self.Gz = (2 * np.pi * self.Deltaf) / (2 * np.pi * 42.57 * (params.slicethickness))
+        params.GSamplitude = int(self.Gz / self.Gzsens * 1000)
+
+        self.Gz3D = (2 * np.pi / params.slicethickness) / (2 * np.pi * 42.57 * (self.GPEtime / 1000000))
+        params.GSPEstep = int(self.Gz3D / self.Gzsens * 1000)
+        
+        params.saveFileParameter()
 
     def spectrum_process(self):
         self.procdata = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
@@ -63,9 +131,6 @@ class process:
         params.mag = np.mean(np.abs(params.spectrumdata), axis=0)
         params.real = np.mean(np.real(params.spectrumdata), axis=0)
         params.imag = np.mean(np.imag(params.spectrumdata), axis=0)
-
-        #self.mag_con = np.convolve(params.mag, np.ones((50,)) / 50, mode='same')
-        #self.real_con = np.convolve(params.real, np.ones((50,)) / 50, mode='same')
 
         params.freqencyaxis = np.linspace(-params.frequencyrange / 2, params.frequencyrange / 2, self.data_idx)
 
@@ -171,26 +236,17 @@ class process:
 
         print('Image data processed!')
 
-    def image_3D_json_process(self):
-
-        with open(params.datapath + '_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-
-        self.SPEstepstemp = 0
-        self.SPEstepstemp = params.SPEsteps
-
-        params.SPEsteps = int(jsonparams['3D phase steps'])
-
+    def image_3D_process(self):
         # Load kspace from file
         self.procdata = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
-        self.kspacetemp = np.transpose(self.procdata)
+        self.kspace_temp = np.transpose(self.procdata)
 
-        params.kspace = np.array(np.zeros((params.SPEsteps, int(self.kspacetemp.shape[0] / params.SPEsteps), int(self.kspacetemp.shape[1])), dtype=np.complex64))
+        params.kspace = np.array(np.zeros((params.SPEsteps, int(self.kspace_temp.shape[0] / params.SPEsteps), int(self.kspace_temp.shape[1])), dtype=np.complex64))
 
         for n in range(params.SPEsteps):
-            self.kspacetemp2 = self.kspacetemp[int(n * self.kspacetemp.shape[0] / params.SPEsteps):int(n * self.kspacetemp.shape[0] / params.SPEsteps + self.kspacetemp.shape[0] / params.SPEsteps), :]
+            self.kspace_temp2 = self.kspace_temp[int(n * self.kspace_temp.shape[0] / params.SPEsteps):int(n * self.kspace_temp.shape[0] / params.SPEsteps + self.kspace_temp.shape[0] / params.SPEsteps), :]
 
-            params.kspace[n, 0:int(self.kspacetemp.shape[0] / params.SPEsteps), :] = self.kspacetemp[int(n * self.kspacetemp.shape[0] / params.SPEsteps):int(n * self.kspacetemp.shape[0] / params.SPEsteps + int(self.kspacetemp.shape[0] / params.SPEsteps)), :]
+            params.kspace[n, 0:int(self.kspace_temp.shape[0] / params.SPEsteps), :] = self.kspace_temp[int(n * self.kspace_temp.shape[0] / params.SPEsteps):int(n * self.kspace_temp.shape[0] / params.SPEsteps + int(self.kspace_temp.shape[0] / params.SPEsteps)), :]
 
         self.kspace_centerx = int(params.kspace.shape[2] / 2)
         self.kspace_centery = int(params.kspace.shape[1] / 2)
@@ -210,17 +266,12 @@ class process:
         params.img_mag = self.img_mag_full[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]
         params.img_pha = self.img_pha_full[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]  # print(params.img_mag.shape)
 
-        params.SPEsteps = self.SPEstepstemp
-
         print('3D Image data processed!')
-
-    def image_3D_txt_process(self):
-        print('WIP')
 
     def image_diff_process(self):
         # Load kspace from file
-        self.procdatatemp = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
-        self.procdata = self.procdatatemp[:, 0:int(self.procdatatemp.shape[1] / 2)]
+        self.procdata_temp = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
+        self.procdata = self.procdata_temp[:, 0:int(self.procdata_temp.shape[1] / 2)]
         params.kspace = np.transpose(self.procdata)
 
         self.kspace_centerx = int(params.kspace.shape[1] / 2)
@@ -305,8 +356,8 @@ class process:
         params.img_pha = self.img_pha_full[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]
 
         # Load diff kspace from file
-        self.procdatatemp = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
-        self.procdata = self.procdatatemp[:, int(self.procdatatemp.shape[1] / 2):int(self.procdatatemp.shape[1])]
+        self.procdata_temp = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
+        self.procdata = self.procdata_temp[:, int(self.procdata_temp.shape[1] / 2):int(self.procdata_temp.shape[1])]
         self.kspacediff = np.transpose(self.procdata)
         print(self.kspacediff.shape)
 
@@ -475,8 +526,8 @@ class process:
             shutil.rmtree(params.datapath)
             os.mkdir(params.datapath)
             
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
@@ -497,8 +548,8 @@ class process:
                 msg_box.button(QMessageBox.Ok).hide()
                 msg_box.exec()
             else: time.sleep(params.motor_settling_time)
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -510,7 +561,7 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             if params.measurement_time_dialog == 1:
@@ -526,7 +577,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -540,8 +591,8 @@ class process:
                         msg_box.button(QMessageBox.Ok).hide()
                         msg_box.exec()
                     else: time.sleep(params.motor_settling_time)
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
+                    self.frequencyoffset_temp = 0
+                    self.frequencyoffset_temp = params.frequencyoffset
                     params.frequencyoffset = 0
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
@@ -553,7 +604,7 @@ class process:
                     proc.spectrum_process()
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
-                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.frequencyoffset = self.frequencyoffset_temp
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
                     if params.measurement_time_dialog == 1:
@@ -592,7 +643,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -617,9 +668,9 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
                 
-        os.remove(self.datapathtemp + '/Image_Stitching.txt')
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
-        params.datapath = self.datapathtemp
+        params.datapath = self.datapath_temp
 
         print('Stitched images acquired!')
 
@@ -631,8 +682,8 @@ class process:
             shutil.rmtree(params.datapath)
             os.mkdir(params.datapath)
             
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
@@ -654,8 +705,8 @@ class process:
                 msg_box.exec()
             else: time.sleep(params.motor_settling_time)
             
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -667,7 +718,7 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             if params.measurement_time_dialog == 1:
@@ -683,7 +734,7 @@ class process:
             params.motor_current_image_count = 0
                         
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -697,8 +748,8 @@ class process:
                         msg_box.button(QMessageBox.Ok).hide()
                         msg_box.exec()
                     else: time.sleep(params.motor_settling_time)
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
+                    self.frequencyoffset_temp = 0
+                    self.frequencyoffset_temp = params.frequencyoffset
                     params.frequencyoffset = 0
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
@@ -710,7 +761,7 @@ class process:
                     proc.spectrum_process()
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
-                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.frequencyoffset = self.frequencyoffset_temp
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
                     if params.measurement_time_dialog == 1:
@@ -748,7 +799,7 @@ class process:
                 
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -773,9 +824,9 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-        os.remove(self.datapathtemp + '/Image_Stitching.txt')
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
-        params.datapath = self.datapathtemp
+        params.datapath = self.datapath_temp
 
         print('Stitched images acquired!')
         
@@ -787,8 +838,8 @@ class process:
             shutil.rmtree(params.datapath)
             os.mkdir(params.datapath)
             
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
@@ -809,8 +860,8 @@ class process:
                 msg_box.button(QMessageBox.Ok).hide()
                 msg_box.exec()
             else: time.sleep(params.motor_settling_time)
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -822,7 +873,7 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             if params.measurement_time_dialog == 1:
@@ -838,7 +889,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -852,8 +903,8 @@ class process:
                         msg_box.button(QMessageBox.Ok).hide()
                         msg_box.exec()
                     else: time.sleep(params.motor_settling_time)
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
+                    self.frequencyoffset_temp = 0
+                    self.frequencyoffset_temp = params.frequencyoffset
                     params.frequencyoffset = 0
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
@@ -865,7 +916,7 @@ class process:
                     proc.spectrum_process()
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
-                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.frequencyoffset = self.frequencyoffset_temp
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
                     if params.measurement_time_dialog == 1:
@@ -904,7 +955,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -929,9 +980,9 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
                 
-        os.remove(self.datapathtemp + '/Image_Stitching.txt')
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
-        params.datapath = self.datapathtemp
+        params.datapath = self.datapath_temp
 
         print('Stitched slice images acquired!')
         
@@ -943,8 +994,8 @@ class process:
             shutil.rmtree(params.datapath)
             os.mkdir(params.datapath)
             
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
@@ -966,8 +1017,8 @@ class process:
                 msg_box.exec()
             else: time.sleep(params.motor_settling_time)
             
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -979,7 +1030,7 @@ class process:
             proc.spectrum_process()
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
             params.saveFileParameter()
             print('Autorecenter to:', params.frequency)
             if params.measurement_time_dialog == 1:
@@ -995,7 +1046,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 if n > 0 and params.motor_AC_inbetween and (n)%params.motor_AC_inbetween_step == 0:
@@ -1009,8 +1060,8 @@ class process:
                         msg_box.button(QMessageBox.Ok).hide()
                         msg_box.exec()
                     else: time.sleep(params.motor_settling_time)
-                    self.frequencyoffsettemp = 0
-                    self.frequencyoffsettemp = params.frequencyoffset
+                    self.frequencyoffset_temp = 0
+                    self.frequencyoffset_temp = params.frequencyoffset
                     params.frequencyoffset = 0
                     seq.RXconfig_upload()
                     seq.Gradients_upload()
@@ -1022,7 +1073,7 @@ class process:
                     proc.spectrum_process()
                     proc.spectrum_analytics()
                     params.frequency = params.centerfrequency
-                    params.frequencyoffset = self.frequencyoffsettemp
+                    params.frequencyoffset = self.frequencyoffset_temp
                     params.saveFileParameter()
                     print('Autorecenter to:', params.frequency)
                     if params.measurement_time_dialog == 1:
@@ -1061,7 +1112,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -1086,35 +1137,15 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-        os.remove(self.datapathtemp + '/Image_Stitching.txt')
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
-        params.datapath = self.datapathtemp
+        params.datapath = self.datapath_temp
 
         print('Stitched slice images acquired!')
 
-    def image_stitching_2D_json_process(self):
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
-        
-        with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-
-        self.imageorientationtemp = ''
-        self.imageorientationtemp = params.imageorientation
-        self.nPEtemp = 0
-        self.nPEtemp = params.nPE
-        self.FOVtemp = 0
-        self.FOVtemp = params.FOV
-        self.motor_image_counttemp = 0
-        self.motor_image_counttemp = params.motor_image_count
-        self.motor_movement_steptemp = 0
-        self.motor_movement_steptemp = params.motor_movement_step
-
-        params.imageorientation = jsonparams['Image orientation']
-        params.nPE = int(jsonparams['Image resolution [pixel]'])
-        params.FOV = jsonparams['FOV [mm]']
-        params.motor_image_count = int(jsonparams['Motor image count'])
-        params.motor_movement_step = np.abs(jsonparams['Motor movement step [mm]'])
+    def image_stitching_2D_process(self):
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
 
         if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
             print('Processing XY or ZY')
@@ -1132,10 +1163,10 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
 
             for n in range(0, params.motor_image_count):
-                if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                if params.motor_movement_step > 0:
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
 
                 print(n+1,'/',params.motor_image_count)
 
@@ -1151,7 +1182,7 @@ class process:
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
         
         elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
-            print('Processing YZ')
+            print('Processing YZ or YX')
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
             self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
             self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.nPE)
@@ -1166,10 +1197,10 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
 
             for n in range(0, params.motor_image_count):
-                if jsonparams['Motor movement step [mm]'] < 0:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                if params.motor_movement_step < 0:
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1185,13 +1216,13 @@ class process:
                     params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
 
         elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
-            print('Processing ZX')
+            print('Processing ZX or XZ')
             params.img_st = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE), dtype=np.complex64))
             params.img_st_mag = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
             params.img_st_pha = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE)))
 
             for n in range(0, params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1201,18 +1232,9 @@ class process:
                 params.img_st_mag[:, n * params.nPE:int(n * params.nPE + params.nPE)] = params.img_mag[:, :]
                 params.img_st_pha[:, n * params.nPE:int(n * params.nPE + params.nPE)] = params.img_pha[:, :]
 
-        params.datapath = self.datapathtemp
-
-        params.imageorientation = self.imageorientationtemp
-        params.nPE = self.nPEtemp
-        params.FOV = self.FOVtemp
-        params.motor_image_count = self.motor_image_counttemp
-        params.motor_movement_step = self.motor_movement_steptemp
+        params.datapath = self.datapath_temp
 
         print('Image stitching data processed!')
-
-    def image_stitching_2D_txt_process(self):
-        print('WIP')
 
     def image_stitching_3D_slab(self, motor=None):
         print('Measuring stitched images 3D SE slab...')
@@ -1222,8 +1244,8 @@ class process:
             shutil.rmtree(params.datapath)
             os.mkdir(params.datapath)
             
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
@@ -1244,8 +1266,8 @@ class process:
                 msg_box.button(QMessageBox.Ok).hide()
                 msg_box.exec()
             else: time.sleep(params.motor_settling_time)
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -1258,7 +1280,7 @@ class process:
             proc.spectrum_analytics()
             params.frequency = params.centerfrequency
             params.saveFileParameter()
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
             print('Autorecenter to:', params.frequency)
             if params.measurement_time_dialog == 1:
                 msg_box = QMessageBox()
@@ -1273,7 +1295,7 @@ class process:
             params.motor_current_image_count = 0
             
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 params.motor_current_image_count = n
                 
                 params.motor_goto_position = motor_positions[n]
@@ -1302,7 +1324,7 @@ class process:
                 #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
-                params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 params.motor_goto_position = motor_positions[n]
                 self.motor_move(motor=motor)
@@ -1327,42 +1349,15 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-        os.remove(self.datapathtemp + '/Image_Stitching.txt')
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
-        params.datapath = self.datapathtemp
+        params.datapath = self.datapath_temp
 
         print('Stitched 3D slabs acquired!')
 
-    def image_stitching_3D_json_process(self):
-
-        self.datapathtemp = ''
-        self.datapathtemp = params.datapath
-
-        with open(params.datapath + '/Image_Stitching_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-
-        self.imageorientationtemp = ''
-        self.imageorientationtemp = params.imageorientation
-        self.nPEtemp = 0
-        self.nPEtemp = params.nPE
-        self.FOVtemp = 0
-        self.FOVtemp = params.FOV
-        self.motor_image_counttemp = 0
-        self.motor_image_counttemp = params.motor_image_count
-        self.motor_movement_steptemp = 0
-        self.motor_movement_steptemp = params.motor_movement_step
-        self.SPEstepstemp2 = 0
-        self.SPEstepstemp2 = params.SPEsteps
-        self.slicethicknesstemp = 0
-        self.slicethicknesstemp = params.slicethickness
-
-        params.imageorientation = jsonparams['Image orientation']
-        params.nPE = int(jsonparams['Image resolution [pixel]'])
-        params.FOV = jsonparams['FOV [mm]']
-        params.motor_image_count = jsonparams['Motor image count']
-        params.motor_movement_step = np.abs(jsonparams['Motor movement step [mm]'])
-        params.SPEsteps = int(jsonparams['3D phase steps'])
-        params.slicethickness = jsonparams['Slice/Slab thickness [mm]']
+    def image_stitching_3D_process(self):
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
 
         if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
@@ -1381,14 +1376,14 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step [mm]'] < 0:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                if params.motor_movement_step < 0:
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
-                proc.image_3D_json_process()
+                proc.image_3D_process()
 
                 if params.motor_movement_step <= params.FOV:
                     params.img_st[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = params.img[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel),:]
@@ -1416,14 +1411,14 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                if params.motor_movement_step > 0:
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                     
                 print(n+1,'/',params.motor_image_count)
                 
-                proc.image_3D_json_process()
+                proc.image_3D_process()
 
                 if params.motor_movement_step <= params.FOV:
                     params.img_st[:, :, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = params.img[:, :,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)]
@@ -1449,14 +1444,14 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if jsonparams['Motor movement step [mm]'] > 0:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(n + 1))
+                if params.motor_movement_step > 0:
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 else:
-                    params.datapath = (self.datapathtemp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
-                proc.image_3D_json_process()
+                proc.image_3D_process()
 
                 if params.motor_movement_step <= params.slicethickness:
                     params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = params.img[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :]
@@ -1467,20 +1462,9 @@ class process:
                     params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = params.img_mag[:, :, :]
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = params.img_pha[:, :, :]
 
-        params.datapath = self.datapathtemp
-
-        params.imageorientation = self.imageorientationtemp
-        params.nPE = self.nPEtemp
-        params.FOV = self.FOVtemp
-        params.motor_image_count = self.motor_image_counttemp
-        params.motor_movement_step = self.motor_movement_steptemp
-        params.SPEsteps = self.SPEstepstemp2
-        params.slicethickness = self.slicethicknesstemp
+        params.datapath = self.datapath_temp
 
         print('3D Image stitching data processed!')
-
-    def image_stitching_3D_txt_process(self):
-        print('WIP')
 
     def spectrum_analytics(self):
 
@@ -1517,7 +1501,7 @@ class process:
         print('Data analysed!')
 
     def image_analytics(self):
-        self.img_max = np.max(np.amax(params.img_mag))
+        self.img_max = np.max(params.img_mag)
 
         self.img_phantomcut = np.matrix(np.zeros((params.img_mag.shape[0], params.img_mag.shape[1])))
         self.img_phantomcut[:, :] = params.img_mag[:, :]
@@ -1537,18 +1521,16 @@ class process:
         #print('SNR: ', params.SNR)
             
     def image_3D_analytics(self):
-        center = int((np.round(params.img_mag.shape[0] - 1) / 2))
-        
-        self.img_max = np.max(np.amax(params.img_mag[center]))
+        self.img_max = np.max(params.img_mag)
 
-        self.img_phantomcut = np.matrix(np.zeros((params.img_mag[center].shape[0], params.img_mag[center].shape[1])))
-        self.img_phantomcut[:, :] = params.img_mag[center, :, :]
+        self.img_phantomcut = np.array(np.zeros((params.img_mag.shape[0], params.img_mag.shape[1], params.img_mag.shape[2])))
+        self.img_phantomcut[:, :, :] = params.img_mag[:, :, :]
         self.img_phantomcut[self.img_phantomcut < self.img_max / 2] = np.nan
         params.peakvalue = round(np.mean(self.img_phantomcut[np.isnan(self.img_phantomcut) == False]), 3)
         #print('Signal: ', params.peakvalue)
 
-        self.img_noisecut = np.matrix(np.zeros((params.img_mag[center].shape[0], params.img_mag[center].shape[1])))
-        self.img_noisecut[:, :] = params.img_mag[center, :, :]
+        self.img_noisecut = np.array(np.zeros((params.img_mag.shape[0], params.img_mag.shape[1], params.img_mag.shape[2])))
+        self.img_noisecut[:, :, :] = params.img_mag[:, :, :]
         self.img_noisecut[self.img_noisecut >= self.img_max * params.signalmask] = np.nan
         params.noise = round(np.mean(self.img_noisecut[np.isnan(self.img_noisecut) == False]), 3)
         #print('Noise: ', params.noise)
@@ -1556,17 +1538,84 @@ class process:
         params.SNR = round(params.peakvalue / params.noise, 1)
         if np.isnan(params.SNR) == True:
             params.SNR = 0.001
-        #print('SNR: ', params.SNR)        
+        #print('SNR: ', params.SNR)
+            
+    def image_stitching_analytics(self):
+        self.img_st_max = np.max(params.img_st_mag)
 
+        self.img_st_phantomcut = np.array(np.zeros((params.img_st_mag.shape[0], params.img_st_mag.shape[1])))
+        self.img_st_phantomcut[:, :] = params.img_st_mag[:, :]
+        self.img_st_phantomcut[self.img_st_phantomcut < self.img_st_max / 2] = np.nan
+        params.peakvalue = round(np.mean(self.img_st_phantomcut[np.isnan(self.img_st_phantomcut) == False]), 3)
+        #print('Signal: ', params.peakvalue)
+
+        self.img_st_noisecut = np.array(np.zeros((params.img_st_mag.shape[0], params.img_st_mag.shape[1])))
+        self.img_st_noisecut[:, :] = params.img_st_mag[:, :]
+        self.img_st_noisecut[self.img_st_noisecut >= self.img_st_max * params.signalmask] = np.nan
+        params.noise = round(np.mean(self.img_st_noisecut[np.isnan(self.img_st_noisecut) == False]), 3)
+        #print('Noise: ', params.noise)
+
+        params.SNR = round(params.peakvalue / params.noise, 1)
+        if np.isnan(params.SNR) == True:
+            params.SNR = 0.001
+        #print('SNR: ', params.SNR)
+            
+    def image_stitching_3D_analytics(self):
+        self.img_st_max = np.max(params.img_st_mag)
+
+        self.img_st_phantomcut = np.array(np.zeros((params.img_st_mag.shape[0], params.img_st_mag.shape[1], params.img_st_mag.shape[2])))
+        self.img_st_phantomcut[:, :, :] = params.img_st_mag[:, :, :]
+        self.img_st_phantomcut[self.img_st_phantomcut < self.img_st_max / 2] = np.nan
+        params.peakvalue = round(np.mean(self.img_st_phantomcut[np.isnan(self.img_st_phantomcut) == False]), 3)
+        #print('Signal: ', params.peakvalue)
+
+        self.img_st_noisecut = np.array(np.zeros((params.img_st_mag.shape[0], params.img_st_mag.shape[1], params.img_st_mag.shape[2])))
+        self.img_st_noisecut[:, :, :] = params.img_st_mag[:, :, :]
+        self.img_st_noisecut[self.img_st_noisecut >= self.img_st_max * params.signalmask] = np.nan
+        params.noise = round(np.mean(self.img_st_noisecut[np.isnan(self.img_st_noisecut) == False]), 3)
+        #print('Noise: ', params.noise)
+
+        params.SNR = round(params.peakvalue / params.noise, 1)
+        if np.isnan(params.SNR) == True:
+            params.SNR = 0.001
+        #print('SNR: ', params.SNR)
+            
     def Autocentertool(self):
         print('Finding signals...')
-
-        self.freqtemp = 0
-        self.freqtemp = params.frequency
-
-        # params.GUImode = 0
-        # params.sequence = 1
-        # params.TR = 2000
+        
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.GUImode_temp = 0
+            self.GUImode_temp = params.GUImode
+            self.sequence_temp = 0
+            self.sequence_temp = params.sequence
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            
+            params.GUImode = 0
+            params.sequence = 1
+            params.TS = 10
+            params.TE = 12
+            params.TR = 1000
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            
+            proc.recalc_gradients()
+            
+        self.freq_temp = 0
+        self.freq_temp = params.frequency
 
         self.ACidx = round(abs((params.ACstop * 1.0e6 - params.ACstart * 1.0e6)) / (params.ACstepwidth)) + 1
         self.ACsteps = np.linspace(params.ACstart, params.ACstop, self.ACidx)
@@ -1605,14 +1654,57 @@ class process:
         params.Reffrequency = self.ACsteps[np.argmax(self.ACpeakvalues)]
 
         np.savetxt('tooldata/Autocenter_Tool_Data.txt', np.transpose(params.ACvalues))
+        
+        if params.toolautosequence == 1:
+            params.GUImode = self.GUImode_temp
+            params.sequence = self.sequence_temp
+            params.TS = self.TS_temp
+            params.TE = self.TE_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            
+            proc.recalc_gradients()
 
-        params.frequency = self.freqtemp
+        params.frequency = self.freq_temp
+        params.datapath = self.datapath_temp
 
     def Flipangletool(self):
         print('Finding flipangles...')
+        
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.GUImode_temp = 0
+            self.GUImode_temp = params.GUImode
+            self.sequence_temp = 0
+            self.sequence_temp = params.sequence
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            
+            params.GUImode = 0
+            params.sequence = 1
+            params.TS = 10
+            params.TE = 12
+            params.TR = 1000
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            
+            proc.recalc_gradients()
 
-        self.RFattenuationtemp = 0
-        self.RFattenuationtemp = params.RFattenuation
+        self.RFattenuation_temp = 0
+        self.RFattenuation_temp = params.RFattenuation
 
         self.FAsteps = np.linspace(params.FAstart, params.FAstop, params.FAsteps)
         params.FAvalues = np.matrix(np.zeros((2, params.FAsteps)))
@@ -1665,16 +1757,65 @@ class process:
         params.RefRFattenuation = self.FAsteps[np.argmax(self.FApeakvalues)]
 
         np.savetxt('tooldata/Flipangle_Tool_Data.txt', np.transpose(params.FAvalues))
+        
+        if params.toolautosequence == 1:
+            params.GUImode = self.GUImode_temp
+            params.sequence = self.sequence_temp
+            params.TS = self.TS_temp
+            params.TE = self.TE_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            
+            proc.recalc_gradients()
 
-        params.RFattenuation = self.RFattenuationtemp
+        params.RFattenuation = self.RFattenuation_temp
+        params.datapath = self.datapath_temp
 
     def Shimtool(self):
         print('Finding shims...')
+        
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.GUImode_temp = 0
+            self.GUImode_temp = params.GUImode
+            self.sequence_temp = 0
+            self.sequence_temp = params.sequence
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            
+            params.GUImode = 0
+            params.sequence = 10
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            
+            if params.ToolAutoShimMode == 0:
+                params.TS = 20
+                params.TE = 24
+                params.TR = 1000
+            else:
+                params.TS = 30
+                params.TE = 33
+                params.TR = 4000
+                
+            proc.recalc_gradients()
 
-        self.frequencytemp = 0
-        self.frequencytemp = params.frequency
-        self.shimtemp = [0, 0, 0, 0]
-        self.shimtemp[:] = params.grad[:]
+        self.frequency_temp = 0
+        self.frequency_temp = params.frequency
+        self.shim_temp = [0, 0, 0, 0]
+        self.shim_temp[:] = params.grad[:]
 
         self.STsteps = np.linspace(params.ToolShimStart, params.ToolShimStop, params.ToolShimSteps)
         self.STsteps = self.STsteps.astype(int)
@@ -1742,8 +1883,8 @@ class process:
 
             params.STvalues[1, :] = self.STpeakvaluesX
 
-            params.frequency = self.frequencytemp
-            params.grad[0] = self.shimtemp[0]
+            params.frequency = self.frequency_temp
+            params.grad[0] = self.shim_temp[0]
 
         if params.ToolShimChannel[1] == 1:
             self.STpeakvaluesY = np.zeros(params.ToolShimSteps)
@@ -1791,8 +1932,8 @@ class process:
 
             params.STvalues[2, :] = self.STpeakvaluesY
 
-            params.frequency = self.frequencytemp
-            params.grad[1] = self.shimtemp[1]
+            params.frequency = self.frequency_temp
+            params.grad[1] = self.shim_temp[1]
 
         if params.ToolShimChannel[2] == 1:
             self.STpeakvaluesZ = np.zeros(params.ToolShimSteps)
@@ -1840,8 +1981,8 @@ class process:
 
             params.STvalues[3, :] = self.STpeakvaluesZ
 
-            params.frequency = self.frequencytemp
-            params.grad[2] = self.shimtemp[2]
+            params.frequency = self.frequency_temp
+            params.grad[2] = self.shim_temp[2]
 
         if params.ToolShimChannel[3] == 1:
             self.STpeakvaluesZ2 = np.zeros(params.ToolShimSteps)
@@ -1889,28 +2030,100 @@ class process:
 
             params.STvalues[4, :] = self.STpeakvaluesZ2
 
-            params.frequency = self.frequencytemp
-            params.grad[3] = self.shimtemp[3]
+            params.frequency = self.frequency_temp
+            params.grad[3] = self.shim_temp[3]
+            
+        if params.toolautosequence == 1:
+            params.GUImode = self.GUImode_temp
+            params.sequence = self.sequence_temp
+            params.TS = self.TS_temp
+            params.TE = self.TE_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            
+            proc.recalc_gradients()
+            
+        params.datapath = self.datapath_temp
 
         np.savetxt('tooldata/Shim_Tool_Data.txt', np.transpose(params.STvalues))
 
     def FieldMapB0(self):
         print('Measuring B0 field...')
 
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
-
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.TE_temp = 0
+        self.TE_temp = params.TE
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
         params.GUImode = 1
         params.sequence = 4
-        params.datapath = 'rawdata/Tool_rawdata'
-
-        self.TEtemp = 0
-        self.TEtemp = params.TE
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.TS = 4
+            params.TE = 4
+            params.TR = 6000
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
+        
         params.TE = 2 * params.TE
+        params.datapath = 'rawdata/Tool_Image_rawdata'  
 
         seq.sequence_upload()
         proc.image_process()
@@ -1957,8 +2170,38 @@ class process:
                         self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0] / 2) - jj - 1, int(self.FieldMapB0_S2.shape[1] / 2) + jj - ii + 1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0] / 2) - jj - 1, int(self.FieldMapB0_S2.shape[1] / 2) + jj - ii + 1] - 2 * math.pi
 
         time.sleep(params.TR / 1000)
-
-        params.TE = self.TEtemp
+        
+        params.TE = self.TE_temp
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
+            
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
@@ -2015,28 +2258,97 @@ class process:
         np.savetxt('tooldata/FieldMap_B0_Phase_Data.txt', self.FieldMapB0_pha)
         self.B0DeltaB0maps = np.concatenate((params.img_mag, params.B0DeltaB0map, params.B0DeltaB0mapmasked), axis=0)
         np.savetxt('tooldata/FieldMap_B0_deltat1ms_Mag_Map_MapMasked_Data.txt', self.B0DeltaB0maps)
+        
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def FieldMapB0Slice(self):
         print('Measuring B0 (Slice) field...')
 
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
-
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.TE_temp = 0
+        self.TE_temp = params.TE
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
         params.GUImode = 1
         params.sequence = 20
-        params.datapath = 'rawdata/Tool_rawdata'
-
-        self.TEtemp = 0
-        self.TEtemp = params.TE
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.TS = 4
+            params.TE = 4
+            params.TR = 6000
+            params.slicethickness = 4
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
+        
         params.TE = 2 * params.TE
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
@@ -2082,8 +2394,38 @@ class process:
                         self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0] / 2) - jj - 1, int(self.FieldMapB0_S2.shape[1] / 2) + jj - ii + 1] = self.FieldMapB0_S2[int(self.FieldMapB0_S2.shape[0] / 2) - jj - 1, int(self.FieldMapB0_S2.shape[1] / 2) + jj - ii + 1] - 2 * math.pi
 
         time.sleep(params.TR / 1000)
-
-        params.TE = self.TEtemp
+        
+        params.TE = self.TE_temp
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
+            
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
@@ -2140,28 +2482,98 @@ class process:
         np.savetxt('tooldata/FieldMap_B0_Phase_Data.txt', self.FieldMapB0_pha)
         self.B0DeltaB0maps = np.concatenate((params.img_mag, params.B0DeltaB0map, params.B0DeltaB0mapmasked), axis=1)
         np.savetxt('tooldata/FieldMap_B0_deltat1ms_Mag_Map_MapMasked_Data.txt', self.B0DeltaB0maps)
+        
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def FieldMapB1(self):
         print('Measuring B1 field...')
-
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
-
+        
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.datapath_temp = ''    
+        self.datapath_temp = params.datapath
+        self.flipangleamplitude_temp = 0
+        self.flipangleamplitude_temp = params.flipangleamplitude
+        
         params.GUImode = 1
         params.sequence = 4
-        params.datapath = 'rawdata/Tool_rawdata'
-
-        self.flipangleamplitudetemp = 0
-        self.flipangleamplitudetemp = params.flipangleamplitude
-
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.flipangleamplitude = 35
+            params.TS = 4
+            params.TE = 4
+            params.TR = 6000
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
+        
+        params.datapath = 'rawdata/Tool_Image_rawdata'
+            
         seq.sequence_upload()
         proc.image_process()
 
@@ -2169,8 +2581,38 @@ class process:
         self.FieldMapB1_S1[:, :] = params.img_mag[:, :]
 
         time.sleep(params.TR / 1000)
+        
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
 
         params.flipangleamplitude = params.flipangleamplitude * 2
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
@@ -2178,7 +2620,7 @@ class process:
         self.FieldMapB1_S2 = np.matrix(np.zeros((params.img_mag.shape[1], params.img_mag.shape[0])))
         self.FieldMapB1_S2[:, :] = params.img_mag[:, :]
 
-        params.flipangleamplitude = self.flipangleamplitudetemp
+        params.flipangleamplitude = self.flipangleamplitude_temp
 
         params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
         params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1], params.B1alphamap.shape[0])))
@@ -2191,26 +2633,96 @@ class process:
         self.B1alphamaps = np.concatenate((params.img_mag, params.B1alphamap, params.B1alphamapmasked), axis=1)
         np.savetxt('tooldata/FieldMap_B1_alpha' + str(params.flipangleamplitude) + 'deg_Mag_Map_MapMasked_Data.txt', self.B1alphamaps)
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
+        
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def FieldMapB1Slice(self):
         print('Measuring B1 (Slice) field...')
 
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
-
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.datapath_temp = ''    
+        self.datapath_temp = params.datapath
+        self.flipangleamplitude_temp = 0
+        self.flipangleamplitude_temp = params.flipangleamplitude
+        
         params.GUImode = 1
         params.sequence = 20
-        params.datapath = 'rawdata/Tool_rawdata'
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.flipangleamplitude = 35
+            params.TS = 4
+            params.TE = 4
+            params.TR = 6000
+            params.slicethickness = 4
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
 
-        self.flipangleamplitudetemp = 0
-        self.flipangleamplitudetemp = params.flipangleamplitude
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
@@ -2219,16 +2731,46 @@ class process:
         self.FieldMapB1_S1[:, :] = params.img_mag[:, :]
 
         time.sleep(params.TR / 1000)
+        
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.autorecenter == 1:
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.FID_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_FID_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            print('Autorecenter to :', params.frequency)
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-100)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-100)/1000)
+            time.sleep(0.1)
+            params.frequencyoffset = self.frequencyoffset_temp
 
         params.flipangleamplitude = params.flipangleamplitude * 2
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
+        
+        params.flipangleamplitude = self.flipangleamplitude_temp
 
         self.FieldMapB1_S2 = np.matrix(np.zeros((params.img_mag.shape[1], params.img_mag.shape[0])))
         self.FieldMapB1_S2[:, :] = params.img_mag[:, :]
-
-        params.flipangleamplitude = self.flipangleamplitudetemp
 
         params.B1alphamap = np.arccos(self.FieldMapB1_S2 / (2 * self.FieldMapB1_S1)) * params.flipangleamplitude
         params.B1alphamapmasked = np.matrix(np.zeros((params.B1alphamap.shape[1], params.B1alphamap.shape[0])))
@@ -2241,23 +2783,68 @@ class process:
         self.B1alphamaps = np.concatenate((params.img_mag, params.B1alphamap, params.B1alphamapmasked), axis=1)
         np.savetxt('tooldata/FieldMap_B1_alpha' + str(params.flipangleamplitude) + 'deg_Mag_Map_MapMasked_Data.txt', self.B1alphamaps)
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
+
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def FieldMapGradient(self):
         print('Gradient tool started...')
 
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 5
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.TS = 4
+            params.TE = 12
+            params.TR = 2000
+            params.slicethickness = 15
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
         
         if params.autorecenter == 1:
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -2280,33 +2867,76 @@ class process:
                 msg_box.exec()
             else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
-            params.frequencyoffset = self.frequencyoffsettemp
-            
-        params.GUImode = 1
-        params.sequence = 5
-        params.datapath = 'rawdata/Tool_rawdata'
-
-        seq.sequence_upload()
-            
+            params.frequencyoffset = self.frequencyoffset_temp
+        
+        params.datapath = 'rawdata/Tool_Image_rawdata'
+                    
+        seq.sequence_upload()    
         proc.image_process()
+        
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TE = self.TE_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def FieldMapGradientSlice(self):
         print('Gradient (Slice) tool started...')
 
-        self.GUImodetemp = 0
-        self.sequencetemp = 0
-        self.datapathtemp = ''
-        self.GUImodetemp = params.GUImode
-        self.sequencetemp = params.sequence
-        self.datapathtemp = params.datapath
+        self.GUImode_temp = 0
+        self.GUImode_temp = params.GUImode
+        self.sequence_temp = 0
+        self.sequence_temp = params.sequence
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        
+        params.GUImode = 1
+        params.sequence = 21
+        params.datapath = 'rawdata/Tool_Spectrum_rawdata'
+        
+        if params.toolautosequence == 1:
+            self.TS_temp = 0
+            self.TS_temp = params.TS
+            self.TE_temp = 0
+            self.TE_temp = params.TE
+            self.TR_temp = 0
+            self.TR_temp = params.TR
+            self.slicethickness_temp = 0
+            self.slicethickness_temp = params.slicethickness
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            self.nPE_temp = 0
+            self.nPE_temp = params.nPE
+            self.FOV_temp = 0
+            self.FOV_temp = params.FOV
+            
+            params.TS = 4
+            params.TE = 12
+            params.TR = 4000
+            params.slicethickness = 4
+            params.frequencyoffset = 0
+            params.nPE = 64
+            if params.imageorientation == 2 or params.imageorientation == 5:
+                if params.motor_enable == 0: params.FOV = 12
+                else: params.FOV = 16
+            else:
+                if params.motor_enable == 0: params.FOV = 16
+                else: params.FOV = 18
+                    
+            proc.recalc_gradients()
         
         if params.autorecenter == 1:
-            self.frequencyoffsettemp = 0
-            self.frequencyoffsettemp = params.frequencyoffset
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
             params.frequencyoffset = 0
             seq.RXconfig_upload()
             seq.Gradients_upload()
@@ -2329,24 +2959,33 @@ class process:
                 msg_box.exec()
             else: time.sleep((params.TR-100)/1000)
             time.sleep(0.1)
-            params.frequencyoffset = self.frequencyoffsettemp
+            params.frequencyoffset = self.frequencyoffset_temp
 
-        params.GUImode = 1
-        params.sequence = 21
-        params.datapath = 'rawdata/Tool_rawdata'
+        params.datapath = 'rawdata/Tool_Image_rawdata'
 
         seq.sequence_upload()
         proc.image_process()
+        
+        if params.toolautosequence == 1:
+            params.TS = self.TS_temp
+            params.TE = self.TE_temp
+            params.TR = self.TR_temp
+            params.slicethickness = self.slicethickness_temp
+            params.frequencyoffset = self.frequencyoffset_temp
+            params.nPE = self.nPE_temp
+            params.FOV = self.FOV_temp
+            
+            proc.recalc_gradients()
 
-        params.GUImode = self.GUImodetemp
-        params.sequence = self.sequencetemp
-        params.datapath = self.datapathtemp
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.datapath = self.datapath_temp
 
     def T1measurement_IR_FID(self):
         print('Measuring T1 (FID)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1values = np.matrix(np.zeros((2, params.TIsteps)))
@@ -2409,7 +3048,7 @@ class process:
         params.T1values[0, :] = self.T1steps
         params.T1values[1, :] = self.T1peakvalues
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps, 2)))
@@ -2421,8 +3060,8 @@ class process:
     def T1measurement_IR_SE(self):
         print('Measuring T1 (SE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1values = np.matrix(np.zeros((2, params.TIsteps)))
@@ -2485,7 +3124,7 @@ class process:
         params.T1values[0, :] = self.T1steps
         params.T1values[1, :] = self.T1peakvalues
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps, 2)))
@@ -2497,8 +3136,8 @@ class process:
     def T1measurement_IR_FID_Gs(self):
         print('Measuring T1 (Slice, FID)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1values = np.matrix(np.zeros((2, params.TIsteps)))
@@ -2561,7 +3200,7 @@ class process:
         params.T1values[0, :] = self.T1steps
         params.T1values[1, :] = self.T1peakvalues
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps, 2)))
@@ -2573,8 +3212,8 @@ class process:
     def T1measurement_IR_SE_Gs(self):
         print('Measuring T1 (Slice, SE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1values = np.matrix(np.zeros((2, params.TIsteps)))
@@ -2637,7 +3276,7 @@ class process:
         params.T1values[0, :] = self.T1steps
         params.T1values[1, :] = self.T1peakvalues
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TIsteps, 2)))
@@ -2676,8 +3315,8 @@ class process:
     def T1measurement_Image_IR_GRE(self):
         print('Measuring T1 (2D GRE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1stepsimg = np.zeros((params.TIsteps))
@@ -2716,7 +3355,7 @@ class process:
             params.T1img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T1stepsimg.shape[0]))
@@ -2733,8 +3372,8 @@ class process:
     def T1measurement_Image_IR_SE(self):
         print('Measuring T1 (2D SE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1stepsimg = np.zeros((params.TIsteps))
@@ -2773,7 +3412,7 @@ class process:
             params.T1img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T1stepsimg.shape[0]))
@@ -2790,8 +3429,8 @@ class process:
     def T1measurement_Image_IR_GRE_Gs(self):
         print('Measuring T1 (Slice, 2D GRE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1stepsimg = np.zeros((params.TIsteps))
@@ -2830,7 +3469,7 @@ class process:
             params.T1img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T1stepsimg.shape[0]))
@@ -2848,8 +3487,8 @@ class process:
     def T1measurement_Image_IR_SE_Gs(self):
         print('Measuring T1 (Slice, 2D SE)...')
 
-        self.TItemp = 0
-        self.TItemp = params.TI
+        self.TI_temp = 0
+        self.TI_temp = params.TI
 
         self.T1steps = np.linspace(params.TIstart, params.TIstop, params.TIsteps)
         params.T1stepsimg = np.zeros((params.TIsteps))
@@ -2888,7 +3527,7 @@ class process:
             params.T1img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.TI = self.TItemp
+        params.TI = self.TI_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T1stepsimg.shape[0]))
@@ -2944,8 +3583,8 @@ class process:
     def T2measurement_SE(self):
         print('Measuring T2 (SE)...')
 
-        self.TEtemp = 0
-        self.TEtemp = params.TE
+        self.TE_temp = 0
+        self.TE_temp = params.TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2values = np.matrix(np.zeros((2, params.TEsteps)))
@@ -3009,7 +3648,7 @@ class process:
         params.T2values[0, :] = self.T2steps
         params.T2values[1, :] = self.T2peakvalues
 
-        params.TE = self.TEtemp
+        params.TE = self.TE_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps, 2)))
@@ -3021,8 +3660,8 @@ class process:
     def T2measurement_SIR_FID(self):
         print('Measuring T2 (SIR-FID)...')
 
-        self.SIR_TEtemp = 0
-        self.SIR_TEtemp = params.SIR_TE
+        self.SIR_TE_temp = 0
+        self.SIR_TE_temp = params.SIR_TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2values = np.matrix(np.zeros((2, params.TEsteps)))
@@ -3085,7 +3724,7 @@ class process:
         params.T2values[0, :] = self.T2steps
         params.T2values[1, :] = self.T2peakvalues
 
-        params.SIR_TE = self.SIR_TEtemp
+        params.SIR_TE = self.SIR_TE_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps, 2)))
@@ -3097,8 +3736,8 @@ class process:
     def T2measurement_SE_Gs(self):
         print('Measuring T2 (Slice, SE)...')
 
-        self.TEtemp = 0
-        self.TEtemp = params.TE
+        self.TE_temp = 0
+        self.TE_temp = params.TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2values = np.matrix(np.zeros((2, params.TEsteps)))
@@ -3162,7 +3801,7 @@ class process:
         params.T2values[0, :] = self.T2steps
         params.T2values[1, :] = self.T2peakvalues
 
-        params.TE = self.TEtemp
+        params.TE = self.TE_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps, 2)))
@@ -3174,8 +3813,8 @@ class process:
     def T2measurement_SIR_FID_Gs(self):
         print('Measuring T2 (Slice, SIR-FID)...')
 
-        self.SIR_TEtemp = 0
-        self.SIR_TEtemp = params.SIR_TE
+        self.SIR_TE_temp = 0
+        self.SIR_TE_temp = params.SIR_TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2values = np.matrix(np.zeros((2, params.TEsteps)))
@@ -3238,7 +3877,7 @@ class process:
         params.T2values[0, :] = self.T2steps
         params.T2values[1, :] = self.T2peakvalues
 
-        params.SIR_TE = self.SIR_TEtemp
+        params.SIR_TE = self.SIR_TE_temp
         params.saveFileParameter()
 
         self.datatxt1 = np.matrix(np.zeros((params.TEsteps, 2)))
@@ -3266,15 +3905,15 @@ class process:
     def T2measurement_Image_SE(self):
         print('Measuring T2 (2D SE)...')
 
-        self.TEtemp = 0
-        self.TEtemp = params.TE
+        self.TE_temp = 0
+        self.TE_temp = params.TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2stepsimg = np.zeros((params.TEsteps))
         params.T2img_mag = np.array(np.zeros((params.TEsteps, params.nPE, params.nPE)))
 
         for n in range(params.TEsteps):
-            params.TE = self.TEtemp
+            params.TE = self.TE_temp
             seq.RXconfig_upload()
             seq.Gradients_upload()
             seq.Frequency_upload()
@@ -3307,7 +3946,7 @@ class process:
             params.T2img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.TE = self.TEtemp
+        params.TE = self.TE_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T2stepsimg.shape[0]))
@@ -3327,15 +3966,15 @@ class process:
     def T2measurement_Image_SE_Gs(self):
         print('Measuring T2 (Slice, 2D SE)...')
 
-        self.SIR_TEtemp = 0
-        self.SIR_TEtemp = params.SIR_TE
+        self.SIR_TE_temp = 0
+        self.SIR_TE_temp = params.SIR_TE
 
         self.T2steps = np.linspace(params.TEstart, params.TEstop, params.TEsteps)
         params.T2stepsimg = np.zeros((params.TEsteps))
         params.T2img_mag = np.array(np.zeros((params.TEsteps, params.nPE, params.nPE)))
 
         for n in range(params.TEsteps):
-            params.SIR_TE = self.TEtemp
+            params.SIR_TE = self.TE_temp
             seq.RXconfig_upload()
             seq.Gradients_upload()
             seq.Frequency_upload()
@@ -3368,7 +4007,7 @@ class process:
             params.T2img_mag[n, :, :] = params.img_mag[:, :]
             time.sleep(params.TR / 1000)
 
-        params.SIR_TE = self.SIR_TEtemp
+        params.SIR_TE = self.SIR_TE_temp
         params.saveFileData()
 
         self.datatxt1 = np.zeros((params.T2stepsimg.shape[0]))
@@ -3416,8 +4055,8 @@ class process:
     def animation_image_cartesian_process(self):
 
         self.kspaceanimate = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[1]), dtype=np.complex64))
-        self.kspaceanimatetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
-        self.animationimagetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.kspaceanimate_temp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.animationimage_temp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
         params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0] * 2)))
 
         self.kspace_centerx = int(params.kspace.shape[1] / 2)
@@ -3425,20 +4064,20 @@ class process:
 
         for n in range(params.kspace.shape[0]):
             self.kspaceanimate[n, :] = params.kspace[n, :]
-            self.kspaceanimatetemp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
+            self.kspaceanimate_temp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
 
             # Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate)))
-            self.animationimagetemp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
+            self.animationimage_temp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
             
             # Store animation array
-            params.animationimage[n, :, :] = np.concatenate((self.animationimagetemp[:, :], self.kspaceanimatetemp[:, :]), axis=1)
+            params.animationimage[n, :, :] = np.concatenate((self.animationimage_temp[:, :], self.kspaceanimate_temp[:, :]), axis=1)
 
     def animation_image_cartesian_IO_process(self):
 
         self.kspaceanimate = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[1]), dtype=np.complex64))
-        self.kspaceanimatetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
-        self.animationimagetemp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.kspaceanimate_temp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
+        self.animationimage_temp = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0])))
         params.animationimage = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0], params.kspace.shape[0] * 2)))
 
         self.kspace_centerx = int(params.kspace.shape[1] / 2)
@@ -3446,46 +4085,35 @@ class process:
 
         for n in range(int(params.kspace.shape[0]/2)):
             self.kspaceanimate[self.kspace_centery-n, :] = params.kspace[self.kspace_centery-n, :]
-            self.kspaceanimatetemp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
+            self.kspaceanimate_temp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
             
             # Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate)))
-            self.animationimagetemp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
+            self.animationimage_temp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
             
             # Store animation array
-            params.animationimage[n*2, :, :] = np.concatenate((self.animationimagetemp[:, :], self.kspaceanimatetemp[:, :]), axis=1)
+            params.animationimage[n*2, :, :] = np.concatenate((self.animationimage_temp[:, :], self.kspaceanimate_temp[:, :]), axis=1)
             
             self.kspaceanimate[self.kspace_centery+n, :] = params.kspace[self.kspace_centery+n, :]
-            self.kspaceanimatetemp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
+            self.kspaceanimate_temp = np.abs(self.kspaceanimate[:,int(self.kspace_centerx - params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(self.kspace_centerx + params.kspace.shape[0] / 2 * int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))):int(math.floor(params.kspace.shape[1] / params.kspace.shape[0]))]) / np.amax(params.k_amp)
 
             # Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate)))
-            self.animationimagetemp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
+            self.animationimage_temp[:, :] = np.abs(I[:, self.kspace_centerx - int(params.kspace.shape[0] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[0] / 2 * params.ROBWscaler)]) / np.amax(params.img_mag)
             
             # Store animation array
-            params.animationimage[n*2+1, :, :] = np.concatenate((self.animationimagetemp[:, :], self.kspaceanimatetemp[:, :]), axis=1)
+            params.animationimage[n*2+1, :, :] = np.concatenate((self.animationimage_temp[:, :], self.kspaceanimate_temp[:, :]), axis=1)
 
     def animation_image_radial_full_process(self):   
         self.kspace_center = int(params.kspace.shape[0] / 2)
-        
-        with open(params.datapath + '_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-            
-        self.radialanglesteptemp = 0
-        self.radialanglesteptemp = params.radialanglestep
-        params.radialanglestep = jsonparams['Radial angle [°]']
-        
-        self.radialosfactortemp = 0
-        self.radialosfactortemp = params.radialosfactor
-        params.radialosfactor = jsonparams['Radial oversampling factor']
         
         self.radialangles = np.arange(0, 180, params.radialanglestep)
         self.radialanglecount = self.radialangles.shape[0]
         
         self.kspaceanimate1 = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0]), dtype=np.complex64))
         self.kspaceanimate2 = np.array(np.zeros((int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor)), dtype=np.complex64))
-        self.kspaceanimatetemp = np.array(np.zeros((int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor))))
-        self.animationimagetemp = np.array(np.zeros((int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor))))
+        self.kspaceanimate_temp = np.array(np.zeros((int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor))))
+        self.animationimage_temp = np.array(np.zeros((int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor))))
         params.animationimage = np.array(np.zeros((self.radialanglecount, int(params.kspace.shape[0]/params.radialosfactor), int(params.kspace.shape[0]/params.radialosfactor) * 2)))
         
         for o in range(self.radialanglecount):
@@ -3495,37 +4123,23 @@ class process:
                     self.kspaceanimate1[int(self.kspace_center + math.sin(self.radialangleradmod100/100)*(m-self.kspace_center)), int(self.kspace_center + math.cos(self.radialangleradmod100/100)*(m-self.kspace_center))] = params.kspace[int(self.kspace_center + math.sin(self.radialangleradmod100/100)*(m-self.kspace_center)), int(self.kspace_center + math.cos(self.radialangleradmod100/100)*(m-self.kspace_center))]
                 for m in range(int(params.kspace.shape[0]/params.radialosfactor)):
                     self.kspaceanimate2[int(self.kspace_center/params.radialosfactor + math.sin(self.radialangleradmod100/100)*(m-self.kspace_center/params.radialosfactor)), int(self.kspace_center/params.radialosfactor + math.cos(self.radialangleradmod100/100)*(m-self.kspace_center/params.radialosfactor))] = params.kspace[int(self.kspace_center + math.sin(self.radialangleradmod100/100)*(m*params.radialosfactor-self.kspace_center)), int(self.kspace_center + math.cos(self.radialangleradmod100/100)*(m*params.radialosfactor-self.kspace_center))]
-            self.kspaceanimatetemp = np.abs(self.kspaceanimate2) / np.amax(params.k_amp)
+            self.kspaceanimate_temp = np.abs(self.kspaceanimate2) / np.amax(params.k_amp)
             # Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate1)))
-            self.animationimagetemp = np.abs(I[int(self.kspace_center-self.kspace_center/params.radialosfactor):int(self.kspace_center+self.kspace_center/params.radialosfactor), int(self.kspace_center-self.kspace_center/params.radialosfactor):int(self.kspace_center+self.kspace_center/params.radialosfactor)]) / np.amax(params.img_mag)
+            self.animationimage_temp = np.abs(I[int(self.kspace_center-self.kspace_center/params.radialosfactor):int(self.kspace_center+self.kspace_center/params.radialosfactor), int(self.kspace_center-self.kspace_center/params.radialosfactor):int(self.kspace_center+self.kspace_center/params.radialosfactor)]) / np.amax(params.img_mag)
             # Store animation array
-            params.animationimage[o, :, :] = np.concatenate((self.animationimagetemp[:, :], self.kspaceanimatetemp[:, :]), axis=1)
-            
-        params.radialanglestep = self.radialanglesteptemp
-        params.radialosfactor = self.radialosfactortemp
+            params.animationimage[o, :, :] = np.concatenate((self.animationimage_temp[:, :], self.kspaceanimate_temp[:, :]), axis=1)
         
     def animation_image_radial_half_process(self):
         self.kspace_center = int(params.kspace.shape[0] / 2)
-        
-        with open(params.datapath + '_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-            
-        self.radialanglesteptemp = 0
-        self.radialanglesteptemp = params.radialanglestep
-        params.radialanglestep = jsonparams['Radial angle [°]']
-        
-        self.radialosfactortemp = 0
-        self.radialosfactortemp = params.radialosfactor
-        params.radialosfactor = jsonparams['Radial oversampling factor']
         
         self.radialangles = np.arange(0, 360, params.radialanglestep)
         self.radialanglecount = self.radialangles.shape[0]
         
         self.kspaceanimate1 = np.array(np.zeros((params.kspace.shape[0], params.kspace.shape[0]), dtype=np.complex64))
         self.kspaceanimate2 = np.array(np.zeros((int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor))), dtype=np.complex64))
-        self.kspaceanimatetemp = np.array(np.zeros((int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor)))))
-        self.animationimagetemp = np.array(np.zeros((int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor)))))
+        self.kspaceanimate_temp = np.array(np.zeros((int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor)))))
+        self.animationimage_temp = np.array(np.zeros((int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor)))))
         params.animationimage = np.array(np.zeros((self.radialanglecount, int(params.kspace.shape[0]/(2*params.radialosfactor)), int(params.kspace.shape[0]/(2*params.radialosfactor)) * 2)))
         
         for o in range(self.radialanglecount):
@@ -3536,14 +4150,12 @@ class process:
                 for m in range(int(self.kspace_center/(2*params.radialosfactor))):
                     self.kspaceanimate2[int(self.kspace_center/(2*params.radialosfactor) + math.sin(self.radialangleradmod100/100)*(m)), int(self.kspace_center/(2*params.radialosfactor) + math.cos(self.radialangleradmod100/100)*(m))] = params.kspace[int(self.kspace_center + math.sin(self.radialangleradmod100/100)*(m*2*params.radialosfactor)), int(self.kspace_center + math.cos(self.radialangleradmod100/100)*(m*2*params.radialosfactor))]
             
-            self.kspaceanimatetemp = np.abs(self.kspaceanimate2) / np.amax(params.k_amp)
+            self.kspaceanimate_temp = np.abs(self.kspaceanimate2) / np.amax(params.k_amp)
             # Image calculations
             I = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.kspaceanimate1)))
-            self.animationimagetemp = np.abs(I[int(self.kspace_center-self.kspace_center/(2*params.radialosfactor)):int(self.kspace_center+self.kspace_center/(2*params.radialosfactor)), int(self.kspace_center-self.kspace_center/(2*params.radialosfactor)):int(self.kspace_center+self.kspace_center/(2*params.radialosfactor))]) / np.amax(params.img_mag)
+            self.animationimage_temp = np.abs(I[int(self.kspace_center-self.kspace_center/(2*params.radialosfactor)):int(self.kspace_center+self.kspace_center/(2*params.radialosfactor)), int(self.kspace_center-self.kspace_center/(2*params.radialosfactor)):int(self.kspace_center+self.kspace_center/(2*params.radialosfactor))]) / np.amax(params.img_mag)
             # Store animation array
-            params.animationimage[o, :, :] = np.concatenate((self.animationimagetemp[:, :], self.kspaceanimatetemp[:, :]), axis=1)
-            
-        params.radialanglestep = self.radialanglesteptemp
+            params.animationimage[o, :, :] = np.concatenate((self.animationimage_temp[:, :], self.kspaceanimate_temp[:, :]), axis=1)
 
     def animate_cartesian(self):
         proc.animation_image_cartesian_process()
@@ -3584,13 +4196,6 @@ class process:
         plt.show()
         
     def animate_radial_full(self):
-        
-        with open(params.datapath + '_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-            
-        self.radialanglesteptemp = 0
-        self.radialanglesteptemp = params.radialanglestep
-        params.radialanglestep = jsonparams['Radial angle [°]']
         self.radialangles = np.arange(0, 180, params.radialanglestep)
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -3611,17 +4216,8 @@ class process:
         ani = animation.FuncAnimation(fig, updatefig, frames=self.radialanglecount, interval=params.animationstep, blit=True)
 
         plt.show()
-        
-        params.radialanglestep = self.radialanglesteptemp
-        
+                
     def animate_radial_half(self):
-        
-        with open(params.datapath + '_Header.json', 'r') as j:
-            jsonparams = json.loads(j.read())
-            
-        self.radialanglesteptemp = 0
-        self.radialanglesteptemp = params.radialanglestep
-        params.radialanglestep = jsonparams['Radial angle [°]']
         self.radialangles = np.arange(0, 360, params.radialanglestep)
         self.radialanglecount = self.radialangles.shape[0]
         
@@ -3643,6 +4239,4 @@ class process:
 
         plt.show()
         
-        params.radialanglestep = self.radialanglesteptemp
-
 proc = process()

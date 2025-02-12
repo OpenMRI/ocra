@@ -1,7 +1,7 @@
 ################################################################################
 #
-#Author: Marcus Prier
-#Date: 2024
+# Author: Marcus Prier
+# Date: 2025
 #
 ################################################################################
 
@@ -234,6 +234,8 @@ class Parameters:
         self.imageminimum = 0.0
         self.imagemaximum = 1.0
         self.measurement_time_dialog = 0
+        self.toolautosequence = 0
+        self.image_grid = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -408,7 +410,9 @@ class Parameters:
                          self.imagecolormap, \
                          self.imageminimum, \
                          self.imagemaximum, \
-                         self.measurement_time_dialog], file)
+                         self.measurement_time_dialog, \
+                         self.toolautosequence, \
+                         self.image_grid], file)
        
         print('Parameters saved!')
         
@@ -642,7 +646,9 @@ class Parameters:
                 self.imagecolormap, \
                 self.imageminimum, \
                 self.imagemaximum, \
-                self.measurement_time_dialog = pickle.load(file)
+                self.measurement_time_dialog, \
+                self.toolautosequence, \
+                self.image_grid = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -877,6 +883,8 @@ class Parameters:
         # file.write('Image Minimum: ' + str(self.imageminimum) + '\n')
         # file.write('Image Maximum: ' + str(self.imagemaximum) + '\n')
         # file.write(': ' + str(self.measurement_time_dialog) + '\n')
+        # file.write(': ' + str(self.toolautosequence) + '\n')
+        # file.write(': ' + str(self.image_grid) + '\n')
         
         file.close()
 
