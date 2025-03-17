@@ -15,7 +15,7 @@ CORES_PAVEL = axi_axis_reader_v1_0 axi_axis_writer_v1_0 axi_bram_reader_v1_0 \
         axis_zeroer_v1_0 axis_variable_v1_0 axis_interpolator_v1_0 \
         axi_sts_register_v1_0
 
-CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0 axi_trigger_core_v1_0 axis_red_pitaya_adc_v3_0 axi_config_registers_v1_0
+CORES = micro_sequencer_v1_0 axi_dac_spi_sequencer_v1_1 axi_dac_daisy_spi_sequencer_v1_0 axis_segmented_bram_reader_v1_0 axi_serial_attenuator_v1_0 axi_four_ltc2656_spi_v1_0 axi_trigger_core_v1_0 axis_red_pitaya_adc_v3_0 axi_config_registers_v1_0 axis_red_pitaya_dac_v1_1
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = xsct
@@ -23,7 +23,7 @@ RM = rm -rf
 
 VIVADO_VER = $(shell vivado -version | grep "v20" | sed -r 's/.*v(20[0-9]{2}.[0-9]).*/\1/g')
 
-DTREE_TAG = xlnx_rel_v2022.2
+DTREE_TAG = xlnx_rel_v2024.1
 
 DTREE_DIR = tmp/device-tree-xlnx-$(DTREE_TAG)
 DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
@@ -34,8 +34,10 @@ DTREE_URL = https://github.com/Xilinx/device-tree-xlnx/
 .PHONY: clean all xpr bit dtbo setup
 
 .ONESHELL:
-all: setup tmp/%.bin tmp/%.dtbo
+all: setup tmp/%.bin
 
+.ONESHELL:
+xsa: setup tmp/%.xsa
 
 .ONESHELL:
 xpr: setup tmp/%.xpr
