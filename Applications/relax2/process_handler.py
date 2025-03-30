@@ -529,6 +529,8 @@ class process:
         self.datapath_temp = ''
         self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -671,6 +673,8 @@ class process:
         os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
         params.datapath = self.datapath_temp
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
 
         print('Stitched images acquired!')
 
@@ -685,6 +689,8 @@ class process:
         self.datapath_temp = ''
         self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -827,7 +833,9 @@ class process:
         os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
         params.datapath = self.datapath_temp
-
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
+        
         print('Stitched images acquired!')
         
     def image_stitching_2D_GRE_slice(self, motor=None):
@@ -841,6 +849,8 @@ class process:
         self.datapath_temp = ''
         self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -983,6 +993,8 @@ class process:
         os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
         params.datapath = self.datapath_temp
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
 
         print('Stitched slice images acquired!')
         
@@ -997,6 +1009,8 @@ class process:
         self.datapath_temp = ''
         self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
 
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
 
@@ -1140,6 +1154,8 @@ class process:
         os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
         params.datapath = self.datapath_temp
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
 
         print('Stitched slice images acquired!')
 
@@ -1180,7 +1196,11 @@ class process:
                     params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img[:, :]
                     params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_mag[:, :]
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
-        
+                
+            params.img_st = np.fliplr(params.img_st)
+            params.img_st_mag = np.fliplr(params.img_st_mag)
+            params.img_st_pha = np.fliplr(params.img_st_pha)
+                
         elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
             print('Processing YZ or YX')
             self.imagecrop_image_pixel = int((params.nPE * params.motor_movement_step) / params.FOV)
@@ -1214,7 +1234,11 @@ class process:
                     params.img_st[:,int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img[:, :]
                     params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_mag[:, :]
                     params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
-
+            
+            params.img_st = np.fliplr(params.img_st)
+            params.img_st_mag = np.fliplr(params.img_st_mag)
+            params.img_st_pha = np.fliplr(params.img_st_pha)
+            
         elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
             print('Processing ZX or XZ')
             params.img_st = np.array(np.zeros((params.nPE, params.motor_image_count * params.nPE), dtype=np.complex64))
@@ -1247,6 +1271,8 @@ class process:
         self.datapath_temp = ''
         self.datapath_temp = params.datapath
         params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
         
         motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
         
@@ -1352,6 +1378,8 @@ class process:
         os.remove(self.datapath_temp + '/Image_Stitching.txt')
 
         params.datapath = self.datapath_temp
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
 
         print('Stitched 3D slabs acquired!')
 
@@ -1804,11 +1832,11 @@ class process:
             if params.ToolAutoShimMode == 0:
                 params.TS = 20
                 params.TE = 24
-                params.TR = 1000
+                params.TR = 500
             else:
                 params.TS = 30
                 params.TE = 33
-                params.TR = 4000
+                params.TR = 2000
                 
             proc.recalc_gradients()
 

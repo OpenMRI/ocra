@@ -690,6 +690,28 @@
       </property>
      </spacer>
     </item>
+    <item row="12" column="2">
+     <widget class="QPushButton" name="Hist_pushButton">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Histogram</string>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>
