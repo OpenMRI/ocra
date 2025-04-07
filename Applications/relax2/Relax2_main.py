@@ -4520,7 +4520,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.ax2.set_xlim([0, params.timeaxis[int(params.timeaxis.shape[0] - 1)]])
         self.ax2.set_title('Signal')
         self.ax2.set_ylabel('RX Signal [mV]')
-        self.ax2.set_xlabel('time [ms]')
+        self.ax2.set_xlabel('Time [ms]')
         self.major_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) + 1)
         self.minor_ticks = np.linspace(0, int(math.ceil(params.timeaxis[int(params.timeaxis.shape[0] - 1)])), int(params.timeaxis[int(params.timeaxis.shape[0] - 1)]) * 5 + 1)
         self.ax2.set_xticks(self.major_ticks)
@@ -4697,7 +4697,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_ax.grid(False)
             if params.imagefilter == 1: self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], interpolation='gaussian', cmap=params.imagecolormap)
             else: self.IMag_ax.imshow(self.projzx[int(self.projzx.shape[0] / 2 - params.nPE / 2):int(self.projzx.shape[0] / 2 + params.nPE / 2), int(self.projzx.shape[1] / 2 - params.nPE / 2):int(self.projzx.shape[1] / 2 + params.nPE / 2)], cmap=params.imagecolormap)
-            self.IMag_ax.axis('off')
+            self.IMag_ax.axis(False)
             self.IMag_ax.set_aspect(1.0 / self.IMag_ax.get_data_ratio())
             self.IMag_ax.set_title('Magnitude Image')
 
@@ -4769,7 +4769,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         else:
             self.IComb_ax.imshow(params.T1img_mag[params.T1img_mag.shape[0] - 1, :, :], cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T1imgvalues, cmap='jet', alpha=0.5)
-        self.IComb_ax.axis('off')
+        self.IComb_ax.axis(False)
         self.IComb_ax.set_aspect(1.0 / self.IComb_ax.get_data_ratio())
         self.IComb_ax.set_title('T1')
         self.IComb_fig.colorbar(self.cb, label='T1 in ms')
@@ -4817,7 +4817,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         else:
             self.IComb_ax.imshow(params.T2img_mag[0, :, :], cmap='gray')
             self.cb = self.IComb_ax.imshow(params.T2imgvalues, cmap='jet', alpha=0.5)
-        self.IComb_ax.axis('off')
+        self.IComb_ax.axis(False)
         self.IComb_ax.set_aspect(1.0 / self.IComb_ax.get_data_ratio())
         self.IComb_ax.set_title('T2')
         self.IComb_fig.colorbar(self.cb, label='T2 in ms')
@@ -4842,13 +4842,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.kPha_fig.set_facecolor('None')
 
             self.IMag_ax = self.IMag_fig.add_subplot(111)
-            self.IMag_ax.grid(False)
             self.IPha_ax = self.IPha_fig.add_subplot(111)
-            self.IPha_ax.grid(False)
-            self.kMag_ax = self.kMag_fig.add_subplot(111)
-            self.kMag_ax.grid(False)
-            self.kPha_ax = self.kPha_fig.add_subplot(111)
-            self.kPha_ax.grid(False)
             
             if params.imagefilter == 1: self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
             else: self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
@@ -4858,13 +4852,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             if params.image_grid == 1:
                 self.major_ticks = np.arange(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)) + 1, 1)
                 
-                self.IMag_ax.axis('on')
+                self.IMag_ax.axis(True)
                 self.IMag_ax.set_xticks(self.major_ticks)
                 self.IMag_ax.set_yticks(self.major_ticks)
                 self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                 self.IMag_ax.grid(which='major', visible=True)
                 
-                self.IPha_ax.axis('on')
+                self.IPha_ax.axis(True)
                 self.IPha_ax.set_xticks(self.major_ticks)
                 self.IPha_ax.set_yticks(self.major_ticks)
                 self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
@@ -4902,8 +4896,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.IPha_ax.set_ylabel('Z in mm')
                     
             else:
-                self.IMag_ax.axis('off')
-                self.IPha_ax.axis('off')
+                self.IMag_ax.axis(False)
+                self.IMag_ax.grid(False)
+                self.IPha_ax.axis(False)
+                self.IPha_ax.grid(False)
                     
             if params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                 or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
@@ -4922,18 +4918,47 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.IMag_ax.set_title('Magnitude Image')
                 self.IPha_ax.set_title('Phase Image')
             
-            if params.lnkspacemag == 1:
-                self.kMag_ax.imshow(np.log(params.k_amp), cmap='inferno')
-                self.kMag_ax.set_title('ln(k-Space Magnitude)')
+            if params.projection3D == 1:
+                self.kMag_ax = self.kMag_fig.add_subplot(111, projection='3d')
+                
+                X = np.linspace(0, params.k_amp.shape[1]/250, num=params.k_amp.shape[1])
+
+                for n in range(params.k_amp.shape[0]):
+                    Y = np.ones(params.k_amp.shape[1])
+                    Y = Y * n
+                    
+                    if params.lnkspacemag == 1:
+                        self.kMag_ax.plot(X, Y, np.log(params.k_amp[n, :]), color='#000000')
+                        self.kMag_ax.set_title('ln(k-Space Magnitude)')
+                    else:
+                        self.kMag_ax.plot(X, Y, params.k_amp[n, :], color='#000000', linewidth=0.5)
+                        self.kMag_ax.set_title('k-Space Magnitude')
+                        
+                if params.image_grid == 1:
+                    self.kMag_ax.set(xlabel='Time [ms]',ylabel='Phase Encoding Step', zlabel='Signal')
+                    self.kMag_ax.grid(True)
+                else:
+                    self.kMag_ax.axis(False)
+                    self.kMag_ax.grid(False)
+                    
             else:
-                self.kMag_ax.imshow(params.k_amp, cmap='inferno')
-                self.kMag_ax.set_title('k-Space Magnitude')
+                self.kMag_ax = self.kMag_fig.add_subplot(111)
+                self.kMag_ax.grid(False)
+                
+                if params.lnkspacemag == 1:
+                    self.kMag_ax.imshow(np.log(params.k_amp), cmap='inferno')
+                    self.kMag_ax.set_title('ln(k-Space Magnitude)')
+                else:
+                    self.kMag_ax.imshow(params.k_amp, cmap='inferno')
+                    self.kMag_ax.set_title('k-Space Magnitude')	
+                
+                self.kMag_ax.axis(False)
+                self.kMag_ax.set_aspect(1.0 / self.kMag_ax.get_data_ratio())
             
-            self.kMag_ax.axis('off')
-            self.kMag_ax.set_aspect(1.0 / self.kMag_ax.get_data_ratio())
-            
+            self.kPha_ax = self.kPha_fig.add_subplot(111)
+            self.kPha_ax.grid(False)
             self.kPha_ax.imshow(params.k_pha, cmap='inferno')
-            self.kPha_ax.axis('off')
+            self.kPha_ax.axis(False)
             self.kPha_ax.set_aspect(1.0 / self.kPha_ax.get_data_ratio())
             self.kPha_ax.set_title('k-Space Phase')
 
@@ -4960,15 +4985,11 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_canvas = FigureCanvas(self.all_fig)
             self.all_fig.set_facecolor('None')
 
-            gs = GridSpec(2, 2, figure=self.all_fig)
-            self.IMag_ax = self.all_fig.add_subplot(gs[0, 0])
+            #gs = GridSpec(2, 2, figure=self.all_fig)
+            self.IMag_ax = self.all_fig.add_subplot(221)
             self.IMag_ax.grid(False)
-            self.IPha_ax = self.all_fig.add_subplot(gs[0, 1])
+            self.IPha_ax = self.all_fig.add_subplot(222)
             self.IPha_ax.grid(False)
-            self.kMag_ax = self.all_fig.add_subplot(gs[1, 0])
-            self.kMag_ax.grid(False)
-            self.kPha_ax = self.all_fig.add_subplot(gs[1, 1])
-            self.kPha_ax.grid(False)
             
             if params.imagefilter == 1: self.IMag_ax.imshow(params.img_mag, interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
             else: self.IMag_ax.imshow(params.img_mag, cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
@@ -4978,13 +4999,13 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             if params.image_grid == 1:
                 self.major_ticks = np.linspace(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)), math.floor((params.FOV / 2)) - math.ceil((-params.FOV / 2)) + 1)
                 
-                self.IMag_ax.axis('on')
+                self.IMag_ax.axis(True)
                 self.IMag_ax.set_xticks(self.major_ticks)
                 self.IMag_ax.set_yticks(self.major_ticks)
                 self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                 self.IMag_ax.grid(which='major', visible=True)
                 
-                self.IPha_ax.axis('on')
+                self.IPha_ax.axis(True)
                 self.IPha_ax.set_xticks(self.major_ticks)
                 self.IPha_ax.set_yticks(self.major_ticks)
                 self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
@@ -5022,8 +5043,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.IPha_ax.set_ylabel('Z in mm')
                 
             else:
-                self.IMag_ax.axis('off')
-                self.IPha_ax.axis('off')
+                self.IMag_ax.axis(False)
+                self.IPha_ax.axis(False)
             
             if params.sequence == 17 or params.sequence == 19 or params.sequence == 21 \
                 or params.sequence == 24 or params.sequence == 26 or params.sequence == 29 \
@@ -5041,19 +5062,49 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             else:
                 self.IMag_ax.set_title('Magnitude Image')
                 self.IPha_ax.set_title('Phase Image')
-            
-            if params.lnkspacemag == 1:
-                self.kMag_ax.imshow(np.log(params.k_amp), cmap='inferno')
-                self.kMag_ax.set_title('ln(k-Space Magnitude)')
-            else:
-                self.kMag_ax.imshow(params.k_amp, cmap='inferno')
-                self.kMag_ax.set_title('k-Space Magnitude')
                 
-            self.kMag_ax.axis('off')
-            self.kMag_ax.set_aspect(1.0 / self.kMag_ax.get_data_ratio())
+            if params.projection3D == 1:
+                self.kMag_ax = self.all_fig.add_subplot(223, projection='3d')
+                
+                X = np.linspace(0, params.k_amp.shape[1]/250, num=params.k_amp.shape[1])
+
+                for n in range(params.k_amp.shape[0]):
+                    Y = np.ones(params.k_amp.shape[1])
+                    Y = Y * n
+                    
+                    if params.lnkspacemag == 1:
+                        self.kMag_ax.plot(X, Y, np.log(params.k_amp[n, :]), color='#000000')
+                        self.kMag_ax.set_title('ln(k-Space Magnitude)')
+                    else:
+                        self.kMag_ax.plot(X, Y, params.k_amp[n, :], color='#000000', linewidth=0.5)
+                        self.kMag_ax.set_title('k-Space Magnitude')
+                        
+                if params.image_grid == 1:
+                    self.kMag_ax.set(xlabel='Time [ms]',ylabel='Phase Encoding Step', zlabel='Signal')
+                    self.kMag_ax.grid(True)
+                else:
+                    self.kMag_ax.axis(False)
+                    self.kMag_ax.grid(False)
+                    
+            else:
+                self.kMag_ax = self.all_fig.add_subplot(223)
+                self.kMag_ax.grid(False)
+                
+                if params.lnkspacemag == 1:
+                    self.kMag_ax.imshow(np.log(params.k_amp), cmap='inferno')
+                    self.kMag_ax.set_title('ln(k-Space Magnitude)')
+                else:
+                    self.kMag_ax.imshow(params.k_amp, cmap='inferno')
+                    self.kMag_ax.set_title('k-Space Magnitude')	
+                
+                self.kMag_ax.axis('off')
+                self.kMag_ax.set_aspect(1.0 / self.kMag_ax.get_data_ratio())
+            
+            self.kPha_ax = self.all_fig.add_subplot(224)
+            self.kPha_ax.grid(False)
             
             self.kPha_ax.imshow(params.k_pha, cmap='inferno')
-            self.kPha_ax.axis('off')
+            self.kPha_ax.axis(False)
             self.kPha_ax.set_aspect(1.0 / self.kPha_ax.get_data_ratio())
             self.kPha_ax.set_title('k-Space Phase')
 
@@ -5067,9 +5118,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IMag_fig = Figure()
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
             self.IMag_fig.set_facecolor('None')
-            self.IPha_fig = Figure()
-            self.IPha_canvas = FigureCanvas(self.IPha_fig)
-            self.IPha_fig.set_facecolor('None')
+            if params.projection3D == 0:
+                self.IPha_fig = Figure()
+                self.IPha_canvas = FigureCanvas(self.IPha_fig)
+                self.IPha_fig.set_facecolor('None')
             
             if params.imageorientation == 'XY' or params.imageorientation == 'ZY' or params.imageorientation == 'YZ' or params.imageorientation == 'YX':
                 self.IMag_ax = self.IMag_fig.add_subplot(111)
@@ -5208,47 +5260,100 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 if params.projection3D == 1:
                     self.IMag_ax = self.IMag_fig.add_subplot(111, projection='3d')
                     self.IMag_ax.grid(False)
-                    self.IPha_ax = self.IPha_fig.add_subplot(111, projection='3d')
-                    self.IPha_ax.grid(False)
                     
-                    self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_st_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
-                   
+                    self.img_st_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    
                     X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+                    Y = np.array(np.zeros((params.nPE, params.nPE)))
                     
                     for n in range(params.motor_image_count):
-                        self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                        self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
-                        self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                        self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
-                        self.img_st_pha_cut[:, :] = params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE]
+                        self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+                        self.img_st_mag_cut[self.img_st_mag_cut > params.imagemaximum] = params.imagemaximum
+                        self.img_st_mag_cut[self.img_st_mag_cut < params.imageminimum] = params.imageminimum
                         
-                        Y = np.full_like(X, self.image_positions[n])
-                        Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
-
-                        colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
-                        colors_2 = plt.get_cmap('gray')(np.rot90(self.img_st_pha_cut, 3))
+                        Y[:, :] = self.img_st_mag_cut[:, :]
+                        Y = (Y - params.imageminimum) / (params.imagemaximum - params.imageminimum)
                         
-                        self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
-                        self.IPha_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, linewidth=0)
-
+                        colors_1 = np.linspace(0,1,num=11)
+                        colors_1[colors_1 < np.min(Y)] = np.nan
+                        colors_1[colors_1 > np.max(Y)] = np.nan
+                        colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
+                        
+                        self.IMag_ax.contour(Y, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
+                        
                     self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
                     self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
                     
-                    self.IPha_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
-                    self.IPha_ax.set_xlim([params.motor_start_position, params.motor_end_position])
-                    
                     if params.image_grid == 1:
+                        if params.motor_total_image_length <= 20:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 1)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
+                        elif params.motor_total_image_length > 20 and params.motor_total_image_length <= 50:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 2)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 2)
+                        else:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 5)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 4)
+                        
+                        self.IMag_ax.axis('on')
+                        self.IMag_ax.set_xticks(self.x_major_ticks)
+                        self.IMag_ax.set_yticks(self.y_major_ticks)
+                        self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                        self.IMag_ax.grid(which='major', visible=True)
                         self.IMag_ax.grid(True)
-                        self.IPha_ax.grid(True)
+                        
                         if params.imageorientation == 'ZX':
                             self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
                         elif params.imageorientation == 'XZ':
                             self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
                     else:
                         self.IMag_ax.axis('off')
-                        self.IPha_ax.axis('off')
+                        
+#                     self.IMag_ax = self.IMag_fig.add_subplot(111, projection='3d')
+#                     self.IMag_ax.grid(False)
+#                     self.IPha_ax = self.IPha_fig.add_subplot(111, projection='3d')
+#                     self.IPha_ax.grid(False)
+#                     
+#                     self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+#                     self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
+#                     self.img_st_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+#                    
+#                     X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+#                     
+#                     for n in range(params.motor_image_count):
+#                         self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+#                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
+#                         self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+#                         self.img_st_mag_cut_2[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
+#                         self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
+#                         self.img_st_pha_cut[:, :] = params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE]
+#                         
+#                         Y = np.full_like(X, self.image_positions[n])
+#                         Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
+#                         Y = np.rot90(Y, 3)
+# 
+#                         colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
+#                         colors_2 = plt.get_cmap('gray')(np.rot90(self.img_st_pha_cut, 3))
+#                         
+#                         self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
+#                         self.IPha_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, linewidth=0)
+# 
+#                     self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                     self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                     
+#                     self.IPha_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                     self.IPha_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                     
+#                     if params.image_grid == 1:
+#                         self.IMag_ax.grid(True)
+#                         self.IPha_ax.grid(True)
+#                         if params.imageorientation == 'ZX':
+#                             self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
+#                         elif params.imageorientation == 'XZ':
+#                             self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
+#                     else:
+#                         self.IMag_ax.axis('off')
+#                         self.IPha_ax.axis('off')
                 else:
                     if params.motor_image_count > 6:
                         gs_IMag = GridSpec(int(np.ceil(params.motor_image_count/6)), 6, figure=self.IMag_fig)
@@ -5364,16 +5469,23 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                             else:
                                 self.IMag_ax.set_title('Magnitude Image')
                                 self.IPha_ax.set_title('Phase Image')
+            
+            if params.projection3D == 1:
+                self.IMag_canvas.draw()
+                self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                self.IMag_canvas.setGeometry(420, 40, 1160, 950)
                 
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 575, 470)
-            self.IPha_canvas.draw()
-            self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(1005, 40, 575, 470)
+                self.IMag_canvas.show()  
+            else:
+                self.IMag_canvas.draw()
+                self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                self.IMag_canvas.setGeometry(420, 40, 575, 470)
+                self.IPha_canvas.draw()
+                self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                self.IPha_canvas.setGeometry(1005, 40, 575, 470)
 
-            self.IMag_canvas.show()
-            self.IPha_canvas.show()
+                self.IMag_canvas.show()
+                self.IPha_canvas.show()
 
         else:
             self.all_fig = Figure()
@@ -5406,7 +5518,6 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 else: self.IMag_ax.imshow(params.img_st_mag[:, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
                 if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[:, :], interpolation='gaussian', cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
                 else: self.IPha_ax.imshow(params.img_st_pha[:, :], cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
-                    
 
                 if params.image_grid == 1:
                     if self.FOV_2 <= 20:
@@ -5532,49 +5643,102 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.image_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
                 
                 if params.projection3D == 1:
-                    self.IMag_ax = self.all_fig.add_subplot(121, projection='3d')
+                    self.IMag_ax = self.all_fig.add_subplot(111, projection='3d')
                     self.IMag_ax.grid(False)
-                    self.IPha_ax = self.all_fig.add_subplot(122, projection='3d')
-                    self.IPha_ax.grid(False)
                     
-                    self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_st_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
-                   
+                    self.img_st_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    
                     X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+                    Y = np.array(np.zeros((params.nPE, params.nPE)))
                     
                     for n in range(params.motor_image_count):
-                        self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                        self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
-                        self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                        self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
-                        self.img_st_pha_cut[:, :] = params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE]
+                        self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+                        self.img_st_mag_cut[self.img_st_mag_cut > params.imagemaximum] = params.imagemaximum
+                        self.img_st_mag_cut[self.img_st_mag_cut < params.imageminimum] = params.imageminimum
                         
-                        Y = np.full_like(X, self.image_positions[n])
-                        Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
-
-                        colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
-                        colors_2 = plt.get_cmap('gray')(np.rot90(self.img_st_pha_cut, 3))
+                        Y[:, :] = self.img_st_mag_cut[:, :]
+                        Y = (Y - params.imageminimum) / (params.imagemaximum - params.imageminimum)
                         
-                        self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
-                        self.IPha_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, linewidth=0)
-
+                        colors_1 = np.linspace(0,1,num=11)
+                        colors_1[colors_1 < np.min(Y)] = np.nan
+                        colors_1[colors_1 > np.max(Y)] = np.nan
+                        colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
+                        
+                        self.IMag_ax.contour(Y, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
+                        
                     self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
                     self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
                     
-                    self.IPha_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
-                    self.IPha_ax.set_xlim([params.motor_start_position, params.motor_end_position])
-                    
                     if params.image_grid == 1:
+                        if params.motor_total_image_length <= 20:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 1)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
+                        elif params.motor_total_image_length > 20 and params.motor_total_image_length <= 50:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 2)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 2)
+                        else:
+                            self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 5)
+                            self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 4)
+                        
+                        self.IMag_ax.axis('on')
+                        self.IMag_ax.set_xticks(self.x_major_ticks)
+                        self.IMag_ax.set_yticks(self.y_major_ticks)
+                        self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                        self.IMag_ax.grid(which='major', visible=True)
                         self.IMag_ax.grid(True)
-                        self.IPha_ax.grid(True)
+                        
                         if params.imageorientation == 'ZX':
                             self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
                         elif params.imageorientation == 'XZ':
                             self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
                     else:
                         self.IMag_ax.axis('off')
-                        self.IPha_ax.axis('off')
+                        
+#                 if params.projection3D == 1:
+#                     self.IMag_ax = self.all_fig.add_subplot(121, projection='3d')
+#                     self.IMag_ax.grid(False)
+#                     self.IPha_ax = self.all_fig.add_subplot(122, projection='3d')
+#                     self.IPha_ax.grid(False)
+#                     
+#                     self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+#                     self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
+#                     self.img_st_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+#                    
+#                     X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+#                     
+#                     for n in range(params.motor_image_count):
+#                         self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+#                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
+#                         self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+#                         self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
+#                         self.img_st_pha_cut[:, :] = params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE]
+#                         
+#                         Y = np.full_like(X, self.image_positions[n])
+#                         Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
+#                         Y = np.rot90(Y, 3)
+# 
+#                         colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
+#                         colors_2 = plt.get_cmap('gray')(np.rot90(self.img_st_pha_cut, 3))
+#                         
+#                         self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
+#                         self.IPha_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, linewidth=0)
+# 
+#                     self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                     self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                     
+#                     self.IPha_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                     self.IPha_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                     
+#                     if params.image_grid == 1:
+#                         self.IMag_ax.grid(True)
+#                         self.IPha_ax.grid(True)
+#                         if params.imageorientation == 'ZX':
+#                             self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
+#                         elif params.imageorientation == 'XZ':
+#                             self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
+#                     else:
+#                         self.IMag_ax.axis('off')
+#                         self.IPha_ax.axis('off')
                     
                 else:
                     if params.motor_image_count > 6:
@@ -5692,10 +5856,10 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                                 self.IMag_ax.set_title('Magnitude Image')
                                 self.IPha_ax.set_title('Phase Image')
 
-                self.all_canvas.draw()
-                self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-                self.all_canvas.setGeometry(420, 40, 1160, 950)
-                self.all_canvas.show()
+            self.all_canvas.draw()
+            self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+            self.all_canvas.setGeometry(420, 40, 1160, 950)
+            self.all_canvas.show()
 
     def imaging_3D_plot_init(self):
         if params.imagplots == 1:
@@ -6625,8 +6789,6 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         else: print('Sequence not defined!')
         
     def histogram(self):
-        print('WIP')
-        
         if params.imagecolormap == 'viridis':
             cm = plt.cm.viridis
         elif params.imagecolormap == 'jet':
@@ -6661,9 +6823,6 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
         self.hist_canvas.setWindowTitle('Histogram - ' + params.datapath + '.txt')
         self.hist_canvas.setGeometry(10, 490, 400, 350)
         self.hist_canvas.show()
-        
-        print(np.min(bins))
-        print(np.max(bins))
         
 class SerialReader(QObject):
     data_received =pyqtSignal(str)

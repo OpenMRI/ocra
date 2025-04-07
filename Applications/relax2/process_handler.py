@@ -1197,9 +1197,9 @@ class process:
                     params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_mag[:, :]
                     params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
                 
-            params.img_st = np.fliplr(params.img_st)
-            params.img_st_mag = np.fliplr(params.img_st_mag)
-            params.img_st_pha = np.fliplr(params.img_st_pha)
+            params.img_st = params.img_st
+            params.img_st_mag = params.img_st_mag
+            params.img_st_pha = params.img_st_pha
                 
         elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
             print('Processing YZ or YX')
@@ -1235,9 +1235,9 @@ class process:
                     params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_mag[:, :]
                     params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
             
-            params.img_st = np.fliplr(params.img_st)
-            params.img_st_mag = np.fliplr(params.img_st_mag)
-            params.img_st_pha = np.fliplr(params.img_st_pha)
+            params.img_st = params.img_st
+            params.img_st_mag = params.img_st_mag
+            params.img_st_pha = params.img_st_pha
             
         elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
             print('Processing ZX or XZ')
