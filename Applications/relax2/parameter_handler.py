@@ -207,7 +207,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
-        self.motor_enable = 0
+        self.motor_enable = 1
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -236,6 +236,7 @@ class Parameters:
         self.measurement_time_dialog = 0
         self.toolautosequence = 0
         self.image_grid = 0
+        self.projection3D = 0
 
     def saveFileParameter(self):  
         with open('parameters.pkl', 'wb') as file:
@@ -412,7 +413,8 @@ class Parameters:
                          self.imagemaximum, \
                          self.measurement_time_dialog, \
                          self.toolautosequence, \
-                         self.image_grid], file)
+                         self.image_grid, \
+                         self.projection3D], file)
        
         print('Parameters saved!')
         
@@ -648,7 +650,8 @@ class Parameters:
                 self.imagemaximum, \
                 self.measurement_time_dialog, \
                 self.toolautosequence, \
-                self.image_grid = pickle.load(file)
+                self.image_grid, \
+                self.projection3D = pickle.load(file)
              
                 print('Internal GUI parameter successfully restored from file.')
                 
@@ -885,6 +888,7 @@ class Parameters:
         # file.write(': ' + str(self.measurement_time_dialog) + '\n')
         # file.write(': ' + str(self.toolautosequence) + '\n')
         # file.write(': ' + str(self.image_grid) + '\n')
+        # file.write(': ' + str(self.projection3D) + '\n')
         
         file.close()
 

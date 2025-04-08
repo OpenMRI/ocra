@@ -2099,6 +2099,25 @@
       </property>
      </widget>
     </item>
+    <item row="29" column="5">
+     <widget class="QRadioButton" name="Projection3D_radioButton">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>3D Projection Plot</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>
