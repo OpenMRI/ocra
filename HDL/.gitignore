@@ -4,3 +4,4 @@ devicetree.dtb
 *~
 tmp/
 vivado*
+.Xil/

@@ -3,6 +3,15 @@ global project_name
 
 set ps_preset boards/${board_name}/ps_${project_name}.xml
 
+# define some variables needed for later
+variable dsp_clk_freq
+
+if {$board_name == "stemlab_122_16"} {
+    set dsp_clk_freq 122.88
+} else {
+    set dsp_clk_freq 125.0
+}
+
 # Create processing_system7
 cell xilinx.com:ip:processing_system7:5.5 ps_0 {
   PCW_IMPORT_BOARD_PRESET $ps_preset
@@ -20,11 +29,14 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 # Create proc_sys_reset
 cell xilinx.com:ip:proc_sys_reset:5.0 rst_0
 
+puts "OCRA: DSP_CLK_FREQ:"
+puts $dsp_clk_freq
+
 # Create clk_wiz
 cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   PRIMITIVE PLL
   PRIM_IN_FREQ.VALUE_SRC USER
-  PRIM_IN_FREQ 125.0
+  PRIM_IN_FREQ $dsp_clk_freq
   PRIM_SOURCE Differential_clock_capable_pin
   CLKOUT1_USED true
   CLKOUT1_REQUESTED_OUT_FREQ 125.0
@@ -36,31 +48,10 @@ cell xilinx.com:ip:clk_wiz:6.0 pll_0 {
   clk_in1_p adc_clk_p_i
   clk_in1_n adc_clk_n_i
 }
+
 cell open-mri:user:axi_config_registers:1.0 cfg8 {
     AXI_ADDR_WIDTH 5
     AXI_DATA_WIDTH 32
-}
-
-# Create slice with the TX configuration, which uses the bottom 32 bits
-cell xilinx.com:ip:xlslice:1.0 txinterpolator_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_0
-}
-
-# Create slice with the RX configuration and NCO configuration
-# RX seems to use the bottom 16 bit of the upper 32 bit
-# NCO uses the bottom 32 bit
-cell xilinx.com:ip:xlslice:1.0 nco_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_1
-}
-
-cell xilinx.com:ip:xlslice:1.0 rx_slice_0 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_2
 }
 
 # ADC switch slice
@@ -81,12 +72,6 @@ cell xilinx.com:ip:xpm_cdc_gen:1.0 xpm_cdc_gen_0 {
 set_property CONFIG.CDC_TYPE {xpm_cdc_array_single} [get_bd_cells xpm_cdc_gen_0]
 set_property CONFIG.WIDTH {2} [get_bd_cells xpm_cdc_gen_0]
 
-# Create another slice with data for the TX, which is another 32 bit
-cell xilinx.com:ip:xlslice:1.0 cfg_slice_1 {
-  DIN_WIDTH 32 DIN_FROM 31 DIN_TO 0 DOUT_WIDTH 32
-} {
-  Din cfg8/config_3
-}
 # ADC
 
 # Create axis_red_pitaya_adc
@@ -99,7 +84,7 @@ cell open-mri:user:axis_red_pitaya_adc:3.0 adc_0 {} {
 }
 
 # Create axis_red_pitaya_dac
-cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
+cell open-mri:user:axis_red_pitaya_dac:1.1 dac_0 {} {
   aclk pll_0/clk_out1
   ddr_clk pll_0/clk_out2
   locked pll_0/locked
@@ -110,36 +95,35 @@ cell pavel-demin:user:axis_red_pitaya_dac:1.0 dac_0 {} {
   dac_dat dac_dat_o
 }
 
-
 # Create xlconstant
 cell xilinx.com:ip:xlconstant:1.1 const_0
 
 # Removed this connection from rx:
 # slice_0/Din rst_slice_0/Dout
 module rx_0 {
-  source projects/ocra_mri/rx2.tcl
+  source blockdesign-projects/ocra_mri/rx2.tcl
 } {
-  rate_slice/Din rx_slice_0/Dout
+  rate_slice/Din cfg8/config_2
   fifo_0/S_AXIS adc_0/M_AXIS
   fifo_0/s_axis_aclk pll_0/clk_out1
   fifo_0/s_axis_aresetn const_0/dout
 }
 
-#  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout  
+#  axis_interpolator_0/cfg_data cfg8/config_0  
 module tx_0 {
-  source projects/ocra_mri/tx6.tcl
+  source blockdesign-projects/ocra_mri/tx6.tcl
 } {
-  slice_1/Din cfg_slice_1/Dout
-  axis_interpolator_0/cfg_data txinterpolator_slice_0/Dout
+  slice_1/Din cfg8/config_3
+  axis_interpolator_0/cfg_data cfg8/config_0
   fifo_1/M_AXIS dac_0/S_AXIS
   fifo_1/m_axis_aclk pll_0/clk_out1
   fifo_1/m_axis_aresetn const_0/dout
 }
 
 module nco_0 {
-    source projects/ocra_mri/nco.tcl
+    source blockdesign-projects/ocra_mri/nco.tcl
 } {
-  slice_1/Din nco_slice_0/Dout
+  slice_1/Din cfg8/config_1
   bcast_nco/M00_AXIS rx_0/mult_0/S_AXIS_B
   bcast_nco/M01_AXIS tx_0/mult_0/S_AXIS_B
 }
@@ -362,7 +346,7 @@ set_property RANGE 8K [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 set_property OFFSET 0x40008000 [get_bd_addr_segs ps_0/Data/SEG_gradient_writerz2_reg0]
 
 module gradient_dac_0 {
-    source projects/ocra_mri/gradient_dacs.tcl
+    source blockdesign-projects/ocra_mri/gradient_dacs.tcl
 } {
     spi_sequencer_0/BRAM_PORTX gradient_memoryx/BRAM_PORTB
     spi_sequencer_0/BRAM_PORTY gradient_memoryy/BRAM_PORTB
@@ -415,16 +399,6 @@ set_property -dict [list CONFIG.Register_PortB_Output_of_Memory_Primitives {true
 #
 # try to connect the bottom 8 bits of the pulse output of the sequencer to the positive gpoi
 #
-# Delete input/output port
-delete_bd_objs [get_bd_ports exp_p_tri_io]
-delete_bd_objs [get_bd_ports exp_n_tri_io]
-
-# Create newoutput port
-create_bd_port -dir O -from 7 -to 0 exp_p_tri_io
-#connect_bd_net [get_bd_pins exp_p_tri_io] [get_bd_pins trigger_slice_0/Dout]
-
-# Create output port for the SPI stuff
-create_bd_port -dir O -from 7 -to 0 exp_n_tri_io
 
 # 09/2019: For the new board we are doing this differently. The SPI bus will use seven pins on the n side of the header
 #          and the txgate will use the eight' pin on the n side

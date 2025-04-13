@@ -104,7 +104,7 @@ proc get_slice_pin {pin_name from to {cell_name ""}} {
 }
 
 
-source projects/$project_name/block_design.tcl
+source blockdesign-projects/$project_name/block_design.tcl
 
 rename cell {}
 rename module {}
@@ -118,7 +118,7 @@ make_wrapper -files [get_files $bd_path/system.bd] -top
 
 add_files -norecurse $bd_path/hdl/system_wrapper.v
 
-set files [glob -nocomplain projects/$project_name/*.v projects/$project_name/*.sv]
+set files [glob -nocomplain blockdesign-projects/$project_name/*.v blockdesign-projects/$project_name/*.sv]
 if {[llength $files] > 0} {
   add_files -norecurse $files
 }
