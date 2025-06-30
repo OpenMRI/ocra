@@ -1,0 +1,9 @@
+# Ignore text files
+*.txt
+
+# Ignore log files
+*.log
+
+# Ignore Vivado journal files
+*.jou
+
