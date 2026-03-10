@@ -41,7 +41,7 @@ PR 7, 400
 PR 3, 400	// Slice rephaser length
 GRADOFFSET 142
 PR 7, 210
-PR 3, 3760	// Pause
+PR 3, 2560	// Pause
 GRADOFFSET 162
 PR 7, 210
 PR 3, 400	// Crusher length
@@ -56,13 +56,13 @@ PR 7, 200
 PR 3, 400	// Crusher length
 GRADOFFSET 222
 PR 7, 210
-PR 3, 10	// Pause
+PR 3, 310	// Pause
 GRADOFFSET 2
 PR 7, 210
-PR 3, 1350	// Readout prephaser length
+PR 3, 850	// Readout prephaser length
 GRADOFFSET 22
 PR 7, 410
-PR 4, 6000	// Sampling window
+PR 4, 4000	// Sampling window
 GRADOFFSET 62
 PR 8, 210
 PR 4, 0
