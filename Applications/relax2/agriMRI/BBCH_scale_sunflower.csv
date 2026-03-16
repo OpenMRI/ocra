@@ -1,0 +1,50 @@
+code;description
+00;Dry seed (achene)
+01;Beginning of seed imbibition
+03;Seed imbibition complete
+05;Radicle emerged from seed
+06;Radicle elongated, root hairs developing
+07;Hypocotyl with cotyledons emerged from seed
+08;Hypocotyl with cotyledons growing towards soil surface
+09;Emergence: cotyledons emerge through soil surface
+10;Cotyledons completely unfolded
+12;2 leaves (first pair) unfolded
+14;4 leaves (second pair) unfolded
+15;5 leaves unfolded
+16;6 leaves unfolded
+17;7 leaves unfolded
+18;8 leaves unfolded
+19;9 or more leaves unfolded
+30;Beginning of stem elongation
+31;1 visibly extended internode
+32;2 visibly extended internodes
+33;3 visibly extended internodes
+34;4 visibly extended internodes
+35;5 visibly extended internodes
+36;6 visibly extended internodes
+37;7 visibly extended internodes
+38;8 visibly extended internodes
+39;9 or more visibly extended internodes
+51;Inflorescence just visible between youngest leaves
+53;Inflorescence separating from youngest leaves, bracts distinguishable from foliage leaves
+55;Inflorescence separated from youngest foliage leaf
+57;Inflorescence clearly separated from foliage leaves
+59;Ray florets visible between the bracts, inflorescence still closed
+61;Beginning of flowering: ray florets extended, disc florets visible in outer third of inflorescence
+63;Disc florets in outer third of inflorescence in bloom (stamens and stigmata visible)
+65;Full flowering: disc florets in middle third of inflorescence in bloom (stames and stigmata visible)
+67;Flowering declining: disc florets in inner third of inflorescence in bloom (stames and stigmata visible)
+69;End of flowering: most disc florets have finished flowering, ray florets dry or fallen
+71;Seeds on outer edge of the inflorescence are grey and have reached final size
+73;Seeds on outer third of the inflorescence are grey and have reached final size
+75;Seeds on middle third of the inflorescence are grey and have reached final size
+79;Seeds on inner third of the inflorescence are grey and have reached final size
+80;Beginning of ripening: seeds on outer third of anthocarp black and hard. Back of anthocarp still green
+81;Seeds on outer third of anthocarp dark and hard. Back ofanthocarp still green
+83;Dark of anthocarp yellowish-green, bracts still green. Seeds about 50% dry matter
+85;Seeds on middle third of anthocarp dark and hard. Back of anthocarp yellow, bracts brown edged. Seeds about 60% dry matter
+87;Physiological ripeness: back of the anthocarp yellow. Bracts marbled brown. Seeds about 75–80% dry matter
+89;Fully ripe: seeds on inner third of anthocarp dark and hard. Back of anthocarp brown. Bracts brown. Seeds about 85% dry matter
+92;Over ripe, seeds over 90% dry matter
+97;Plant dead and dry
+99;Harvested product

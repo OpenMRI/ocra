@@ -1,0 +1,58 @@
+code;description
+00;Dry seed
+01;Beginning of seed imbibition
+03;Seed imbibition complete
+05;Radicle emerged from seed
+07;Shoot breaking through seed coat
+08;Shoot growing towards soil surface, hypocotyl arch visible
+09;Emergence: shoot breaks through soil surface ("cracking stage")
+10;Pair of scale leaves visible
+11;First true leaf (with stipules) unfolded or first tendril developed
+12;2 leaves (with stipules) unfolded or 2 tendrils developed
+13;3 leaves (with stipules) unfolded or 3 tendrils developed
+14;4 leaves (with stipules) unfolded or 4 tendrils developed
+15;5 leaves (with stipules) unfolded or 5 tendrils developed
+16;6 leaves (with stipules) unfolded or 6 tendrils developed
+17;7 leaves (with stipules) unfolded or 7 tendrils developed
+18;8 leaves (with stipules) unfolded or 8 tendrils developed
+19;9 or more leaves (with stipules) unfolded or 9 or more tendrils developed
+30;Beginning of stem elongation
+31;1 visibly extended internode
+32;2 visibly extended internodes
+33;3 visibly extended internodes
+34;4 visibly extended internodes
+35;5 visibly extended internodes
+36;6 visibly extended internodes
+37;7 visibly extended internodes
+38;8 visibly extended internodes
+39;9 or more visibly extended internodes
+51;First flower buds visible outside leaves
+55;First separated flower buds visible outside leaves but still closed
+59;First petals visible, flowers still closed
+60;First flowers open (sporadically within the population)
+61;Beginning of flowering: 10% of flowers open
+62;20% of flowers open
+63;30% of flowers open
+64;40% of flowers open
+65;Full flowering: 50% of flowers open
+67;Flowering declining
+69;End of flowering
+71;10% of pods have reached typical length, juice exudes if pressed
+72;20% of pods have reached typical length, juice exudes if pressed
+73;30% of pods have reached typical length, juice exudes if pressed. Tenderometer value: 80 TE
+74;40% of pods have reached typical length, juice exudes if pressed. Tenderometer value: 95 TE
+75;50% of pods have reached typical length, juice exudes if pressed. Tenderometer value: 105 TE
+76;60% of pods have reached typical length, juice exudes if pressed. Tenderometer value: 115 TE
+77;70% of pods have reached typical length. Tenderometer value: 130 TE
+79;Pods have reached typical size (green ripe), peas fully formed
+81;10% of pods ripe, seeds final colour, dry and hard
+82;20% of pods ripe, seeds final colour, dry and hard
+83;30% of pods ripe, seeds final colour, dry and hard
+84;40% of pods ripe, seeds final colour, dry and hard
+85;50% of pods ripe, seeds final colour, dry and hard
+86;60% of pods ripe, seeds final colour, dry and hard
+87;70% of pods ripe, seeds final colour, dry and hard
+88;80% of pods ripe, seeds final colour, dry and hard
+89;Fully ripe: all pods dry and brown. Seeds dry and hard (dry ripe)
+97;Plants dead and dry
+99;Harvested product
