@@ -2795,7 +2795,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         elif params.plant_BBCH_scale == 'Faba_bean': page_number = 37
         elif params.plant_BBCH_scale == 'Oilseed_rape': page_number = 32
         elif params.plant_BBCH_scale == 'Sunflower': page_number = 40
-        elif params.plant_BBCH_scale == 'Pea': page_number = 141
+        #elif params.plant_BBCH_scale == 'Pea': page_number = 141
         else: page_number = 10
         QDesktopServices.openUrl(QUrl('https://www.openagrar.de/servlets/MCRFileNodeServlet/openagrar_derivate_00010428/BBCH-Skala_en.pdf#page=' + str(page_number)))
         

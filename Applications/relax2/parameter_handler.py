@@ -1445,20 +1445,6 @@ class Parameters:
                 except:
                     print('\033[31m' + 'Unable to load: Plant part ID' + '\033[0m')
                     
-            try: self.plant_species = jsonparams['general']['Species']
-            except:
-                try:
-                    self.plant_species = jsonparams['Species']
-                    print('\033[33m' + 'Old style: Species' + '\033[0m')
-                except:
-                    print('\033[31m' + 'Unable to load: Species' + '\033[0m')
-                    self.plant_species_index = int(self.plant_species_library [0][0])
-                    self.plant_species = self.plant_species_library [0][1]
-                    print('\033[31m' + 'Unable to load: BBCH scale' + '\033[0m')
-                    self.plant_BBCH_scale = self.plant_species_library [0][4]
-                    self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
-                    self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
-                    
             try: self.plant_scientific_name = jsonparams['general']['Scientific name']
             except:
                 try:
@@ -1476,6 +1462,21 @@ class Parameters:
                 except:
                     print('\033[31m' + 'Unable to load: Taxonomy' + '\033[0m')
                     self.plant_taxonomy = self.plant_species_library [0][3]
+                    
+            try: self.plant_species = jsonparams['general']['Species']
+            except:
+                try:
+                    self.plant_species = jsonparams['Species']
+                    print('\033[33m' + 'Old style: Species' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Species' + '\033[0m')
+                    
+            try:self.plant_species_index = [row[0] for row in self.plant_species_library if row[1] == self.plant_species][0]
+            except:
+                print('\033[31m' + 'Unable to find species in library: ' + self.plant_species + '\033[0m')
+                self.plant_species_index = int(self.plant_species_library [0][0])
+                self.plant_species = self.plant_species_library [0][1]
+                
 
             try: self.plant_cultivated_variant = jsonparams['general']['Cultivated variant']
             except:
@@ -1556,11 +1557,15 @@ class Parameters:
                     print('\033[33m' + 'Old style: BBCH scale' + '\033[0m')
                 except:
                     print('\033[31m' + 'Unable to load: BBCH scale' + '\033[0m')
-                    print('\033[31m' + 'Unable to load: BBCH scale' + '\033[0m')
                     self.plant_BBCH_scale = self.plant_species_library [0][4]
-                    self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
-                    self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
                     
+            if any(row[4] == self.plant_BBCH_scale for row in self.plant_species_library): pass
+            else:
+                print('\033[31m' + 'Unable to find BBCH scale: ' + self.plant_BBCH_scale + '\033[0m')
+                self.plant_BBCH_scale = self.plant_species_library [0][4]
+
+            self.laod_phenological_phases_library()
+
             try: self.plant_phenological_phase = jsonparams['measurement']['Phenological phase']
             except:
                 try:
@@ -1570,6 +1575,12 @@ class Parameters:
                     print('\033[31m' + 'Unable to load: Phenological phase' + '\033[0m')
                     self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
                     self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
+                    
+            try: self.plant_phenological_phase_index = [row[0] for row in self.plant_phenological_phases_library if row[1] == self.plant_phenological_phase][0]
+            except:
+                print('\033[31m' + 'Unable to find phenological phase in BBCH scale: ' + self.plant_phenological_phase + '\033[0m')
+                self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
+                self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
                     
             try: self.plant_environment_outside = jsonparams['treatment']['environment']['Environment outside']
             except:
