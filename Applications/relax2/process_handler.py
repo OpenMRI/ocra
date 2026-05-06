@@ -2590,7 +2590,7 @@ class process:
         self.datapath_temp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 20
+        params.sequence = 21
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:
@@ -2948,7 +2948,7 @@ class process:
         self.flipangleamplitude_temp = params.flipangleamplitude
         
         params.GUImode = 1
-        params.sequence = 20
+        params.sequence = 21
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:
@@ -3176,7 +3176,7 @@ class process:
         self.datapath_temp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 21
+        params.sequence = 22
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:
