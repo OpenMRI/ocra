@@ -237,14 +237,12 @@ class process:
     def image_3D_process(self):
         # Load kspace from file
         self.procdata = np.genfromtxt(params.datapath + '.txt', dtype=np.complex64)
-        self.kspace_temp = np.transpose(self.procdata)
-
-        params.kspace = np.array(np.zeros((params.SPEsteps, int(self.kspace_temp.shape[0] / params.SPEsteps), int(self.kspace_temp.shape[1])), dtype=np.complex64))
-
+        self.kspace_temp = np.array(np.zeros((params.SPEsteps, self.procdata.shape[0], params.nPE), dtype=np.complex64))
         for n in range(params.SPEsteps):
-            self.kspace_temp2 = self.kspace_temp[int(n * self.kspace_temp.shape[0] / params.SPEsteps):int(n * self.kspace_temp.shape[0] / params.SPEsteps + self.kspace_temp.shape[0] / params.SPEsteps), :]
-
-            params.kspace[n, 0:int(self.kspace_temp.shape[0] / params.SPEsteps), :] = self.kspace_temp[int(n * self.kspace_temp.shape[0] / params.SPEsteps):int(n * self.kspace_temp.shape[0] / params.SPEsteps + int(self.kspace_temp.shape[0] / params.SPEsteps)), :]
+            self.kspace_temp[n, :, :] = self.procdata[:, n*params.nPE:n*params.nPE+params.nPE]
+        params.kspace = np.array(np.zeros((params.SPEsteps, params.nPE, self.procdata.shape[0]), dtype=np.complex64))
+        for m in range(params.SPEsteps):
+            params.kspace[m,:, :] = np.transpose(self.kspace_temp[m, :, :])
 
         self.kspace_centerx = int(params.kspace.shape[2] / 2)
         self.kspace_centery = int(params.kspace.shape[1] / 2)
@@ -262,7 +260,7 @@ class process:
 
         params.img = I[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]
         params.img_mag = self.img_mag_full[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]
-        params.img_pha = self.img_pha_full[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]  # print(params.img_mag.shape)
+        params.img_pha = self.img_pha_full[:, :, self.kspace_centerx - int(params.kspace.shape[1] / 2 * params.ROBWscaler):self.kspace_centerx + int(params.kspace.shape[1] / 2 * params.ROBWscaler)]
 
         print('3D Image data processed!')
 
@@ -1227,24 +1225,21 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE)))
 
             for n in range(0, params.motor_image_count):
-                if params.motor_movement_step > 0:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
-                else:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                if params.motor_movement_step < 0: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                else: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
 
                 print('Processing... ' + str(n+1) + '/' + str(params.motor_image_count))
-
                 proc.image_process()
-
-                if params.motor_movement_step <= params.FOV:
-                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = params.img[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :]
-                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = params.img_mag[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :]
-                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = params.img_pha[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :]
-                else:
-                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img[:, :]
-                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_mag[:, :]
-                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = params.img_pha[:, :]
                 
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = np.flipud(params.img[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :])
+                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = np.flipud(params.img_mag[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :])
+                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :] = np.flipud(params.img_pha[int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel), :])
+                else:
+                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = np.flipud(params.img[:, :])
+                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = np.flipud(params.img_mag[:, :])
+                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE), :] = np.flipud(params.img_pha[:, :])
+
             params.img_st = params.img_st
             params.img_st_mag = params.img_st_mag
             params.img_st_pha = params.img_st_pha
@@ -1265,24 +1260,21 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.nPE, self.imageexp_total_pixel)))
 
             for n in range(0, params.motor_image_count):
-                if params.motor_movement_step < 0:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
-                else:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                if params.motor_movement_step > 0: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                else: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print('Processing... ' + str(n+1) + '/' + str(params.motor_image_count))
-                
                 proc.image_process()
-
-                if params.motor_movement_step <= params.FOV:
-                    params.img_st[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = params.img[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)]
-                    params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = params.img_mag[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)]
-                    params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = params.img_pha[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)]
-                else:
-                    params.img_st[:,int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img[:, :]
-                    params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_mag[:, :]
-                    params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = params.img_pha[:, :]
             
+                if params.motor_movement_step <= params.FOV:
+                    params.img_st[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = np.fliplr(params.img[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)])
+                    params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = np.fliplr(params.img_mag[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)])
+                    params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel)] = np.fliplr(params.img_pha[:,int(params.nPE / 2 - self.imagecrop_image_pixel / 2):int(params.nPE / 2 - self.imagecrop_image_pixel / 2 + self.imagecrop_image_pixel)])
+                else:
+                    params.img_st[:,int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = np.fliplr(params.img[:, :])
+                    params.img_st_mag[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = np.fliplr(params.img_mag[:, :])
+                    params.img_st_pha[:, int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.nPE)] = np.fliplr(params.img_pha[:, :])
+        
             params.img_st = params.img_st
             params.img_st_mag = params.img_st_mag
             params.img_st_pha = params.img_st_pha
@@ -1297,7 +1289,6 @@ class process:
                 params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
                 
                 print('Processing... ' + str(n+1) + '/' + str(params.motor_image_count))
-                
                 proc.image_process()
 
                 params.img_st[:, n * params.nPE:int(n * params.nPE + params.nPE)] = params.img[:, :]
@@ -1398,7 +1389,6 @@ class process:
                 if params.headerfileformat == 0: params.save_header_file_txt()
                 else: params.save_header_file_json()
 
-                #time.sleep(params.TR / 1000)
         else:
             for n in range(params.motor_image_count):
                 params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
@@ -1434,7 +1424,134 @@ class process:
         params.motor_goto_position = self.motor_goto_position_temp
         self.motor_move(motor=motor)
 
-        print('Stitched 3D slabs acquired!')
+        print('Stitched 3D SE slabs acquired!')
+        
+    def image_stitching_3D_TSE_slab(self, motor=None):
+        print('Measuring stitched images 3D TSE slab...')
+        
+        if os.path.isdir(params.datapath) != True: os.mkdir(params.datapath)
+        else:
+            shutil.rmtree(params.datapath)
+            os.mkdir(params.datapath)
+            
+        self.datapath_temp = ''
+        self.datapath_temp = params.datapath
+        params.datapath = params.datapath + '/Image_Stitching'
+        self.motor_goto_position_temp = 0
+        self.motor_goto_position_temp = params.motor_goto_position
+        
+        motor_positions = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
+        
+        self.estimated_time = params.motor_image_count*params.motor_settling_time*1000 + params.motor_image_count*params.SPEsteps*params.nPE*((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+
+        if params.headerfileformat == 0: params.save_header_file_txt()
+        else: params.save_header_file_json()
+                
+        if params.autorecenter == 1:
+            params.motor_goto_position = params.motor_AC_position
+            self.motor_move(motor=motor)
+            print('Settling for Autocenter...')
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Settling for Autocenter...')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep(params.motor_settling_time)
+            self.frequencyoffset_temp = 0
+            self.frequencyoffset_temp = params.frequencyoffset
+            params.frequencyoffset = 0
+            seq.RXconfig_upload()
+            seq.Gradients_upload()
+            seq.Frequency_upload()
+            seq.RFattenuation_upload()
+            seq.SE_Gs_setup()
+            seq.Sequence_upload()
+            seq.acquire_spectrum_SE_Gs()
+            proc.spectrum_process()
+            proc.spectrum_analytics()
+            params.frequency = params.centerfrequency
+            params.saveFileParameter()
+            params.frequencyoffset = self.frequencyoffset_temp
+            print('Autorecenter to: ' + str(params.frequency) + 'MHz')
+            if params.measurement_time_dialog == 1:
+                msg_box = QMessageBox()
+                msg_box.setText('Autorecenter to: ' + str(params.frequency) + 'MHz')
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.button(QMessageBox.Ok).animateClick(params.TR-10)
+                msg_box.button(QMessageBox.Ok).hide()
+                msg_box.exec()
+            else: time.sleep((params.TR-10)/1000)
+            time.sleep(0.01)
+            
+            params.motor_current_image_count = 0
+            
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                params.motor_current_image_count = n
+                
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+                
+                print('Position: ', n + 1, '/', params.motor_image_count)
+                
+                self.remaining_time = (self.estimated_time - n*params.motor_settling_time*1000 - n*params.SPEsteps*params.nPE*((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Position: ' + str(n+1) + '/' + str(params.motor_image_count) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2) + '\nSettling...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else:
+                    print('Position: ' + str(n+1) + '/' + str(params.motor_image_count) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2) + '\nSettling...')
+                    time.sleep(params.motor_settling_time)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+
+        else:
+            for n in range(params.motor_image_count):
+                params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                
+                params.motor_goto_position = motor_positions[n]
+                self.motor_move(motor=motor)
+                
+                print('Position: ', n + 1, '/', params.motor_image_count)
+                
+                self.remaining_time = (self.estimated_time - n * params.motor_settling_time - n * params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+                if params.measurement_time_dialog == 1:
+                    msg_box = QMessageBox()
+                    msg_box.setText('Position: ' + str(n+1) + '/' + str(params.motor_image_count) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2) + '\nSettling...')
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.button(QMessageBox.Ok).animateClick(params.motor_settling_time*1000)
+                    msg_box.button(QMessageBox.Ok).hide()
+                    msg_box.exec()
+                else:
+                    print('Position: ' + str(n+1) + '/' + str(params.motor_image_count) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2) + '\nSettling...')
+                    time.sleep(params.motor_settling_time)
+
+                seq.sequence_upload()
+
+                if params.headerfileformat == 0: params.save_header_file_txt()
+                else: params.save_header_file_json()
+
+        os.remove(self.datapath_temp + '/Image_Stitching.txt')
+
+        params.datapath = self.datapath_temp
+        params.motor_goto_position = self.motor_goto_position_temp
+        self.motor_move(motor=motor)
+
+        print('Stitched 3D TSE slabs acquired!')
 
     def image_stitching_3D_process(self):
         self.datapath_temp = ''
@@ -1457,10 +1574,8 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, self.imageexp_total_pixel, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if params.motor_movement_step < 0:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
-                else:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                if params.motor_movement_step < 0: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                else: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print('Processing... ' + str(n+1) + '/' + str(params.motor_image_count))
                 
@@ -1492,10 +1607,8 @@ class process:
                 params.img_st_pha = np.array(np.zeros((params.SPEsteps, params.nPE, self.imageexp_total_pixel)))
 
             for n in range(params.motor_image_count):
-                if params.motor_movement_step > 0:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
-                else:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                if params.motor_movement_step > 0: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                else: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                     
                 print(n+1,'/',params.motor_image_count)
                 
@@ -1525,23 +1638,21 @@ class process:
                 params.img_st_pha = np.array(np.zeros((self.imageexp_total_pixel, params.nPE, params.nPE)))
 
             for n in range(params.motor_image_count):
-                if params.motor_movement_step > 0:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
-                else:
-                    params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
+                if params.motor_movement_step > 0: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(n + 1))
+                else: params.datapath = (self.datapath_temp + '/Image_Stitching_' + str(params.motor_image_count - n))
                 
                 print(n+1,'/',params.motor_image_count)
                 
                 proc.image_3D_process()
-
+                
                 if params.motor_movement_step <= params.slicethickness:
-                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = params.img[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :]
-                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = params.img_mag[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :]
-                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = params.img_pha[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :]
+                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = np.flip(params.img[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :],axis=0)
+                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = np.flip(params.img_mag[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :],axis=0)
+                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + self.imagecrop_image_pixel), :, :] = np.flip(params.img_pha[int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2):int(params.SPEsteps / 2 - self.imagecrop_image_pixel / 2) + self.imagecrop_image_pixel,:, :],axis=0)
                 else:
-                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = params.img[:, :, :]
-                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = params.img_mag[:, :, :]
-                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = params.img_pha[:, :, :]
+                    params.img_st[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = np.flip(params.img[:, :, :],axis=0)
+                    params.img_st_mag[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = np.flip(params.img_mag[:, :, :],axis=0)
+                    params.img_st_pha[int(n * self.imagecrop_image_pixel):int(n * self.imagecrop_image_pixel + params.SPEsteps), :,:] = np.flip(params.img_pha[:, :, :],axis=0) 
 
         params.datapath = self.datapath_temp
 
@@ -2479,7 +2590,7 @@ class process:
         self.datapath_temp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 20
+        params.sequence = 21
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:
@@ -2837,7 +2948,7 @@ class process:
         self.flipangleamplitude_temp = params.flipangleamplitude
         
         params.GUImode = 1
-        params.sequence = 20
+        params.sequence = 21
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:
@@ -3065,7 +3176,7 @@ class process:
         self.datapath_temp = params.datapath
         
         params.GUImode = 1
-        params.sequence = 21
+        params.sequence = 22
         params.datapath = 'rawdata/Tool_Spectrum_rawdata'
         
         if params.toolautosequence == 1:

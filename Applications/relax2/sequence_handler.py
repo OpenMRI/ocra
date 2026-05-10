@@ -479,6 +479,10 @@ class sequence:
                 self.Image_3D_SE_Gs_setup()
                 self.Sequence_upload()
                 self.acquire_image_3D_SE_Gs()
+            elif params.sequence == 11:
+                self.Image_3D_TSE_Gs_setup()
+                self.Sequence_upload()
+                self.acquire_image_3D_TSE_Gs()
             else: print('Sequence not defined!')
         
     def conn_client(self):
@@ -4134,7 +4138,7 @@ class sequence:
         self.kspace = np.array(np.zeros((params.SPEsteps, params.nPE, self.data_idx), dtype = np.complex64))
         
         if params.GUImode == 1 and params.sequence == 35: self.estimated_time = params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
-        if params.GUImode == 5 and params.sequence == 10: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
         
         if params.GUImode == 5: print('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count))
         
@@ -4206,7 +4210,12 @@ class sequence:
         
         self.kspacetemp = np.matrix(np.zeros((params.nPE, self.data_idx), dtype = np.complex64))
         self.kspace = np.array(np.zeros((params.SPEsteps, params.nPE, self.data_idx), dtype = np.complex64))
-            
+        
+        if params.GUImode == 1 and params.sequence == 36: self.estimated_time = params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        if params.GUImode == 5: self.estimated_time = (params.motor_image_count-1)*params.motor_settling_time*1000 + params.motor_image_count * params.SPEsteps * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)
+        
+        if params.GUImode == 5: print('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count))
+        
         socket.write(struct.pack('<IIIIIIIIII', params.imageorientation << 16 | 32, params.flippulseamplitude, params.flippulselength << 16 | params.RFpulselength, params.frequencyoffset, params.frequencyoffsetsign << 16 | params.phaseoffsetradmod100, params.SPEsteps << 16 | params.GSPEstep, params.spoileramplitude << 16 | params.crusheramplitude, params.GSamplitude << 16 | params.GPEstep, params.GROamplitude << 16 | self.nsteps, params.TR))         
 
         while(True):
@@ -4230,15 +4239,23 @@ class sequence:
                 self.kspacetemp[n+2*self.nsteps, :] = self.data[self.sampledelay+2*self.TEdelay:self.data_idx+self.sampledelay+2*self.TEdelay]*params.RXscaling
                 self.kspacetemp[n+3*self.nsteps, :] = -self.data[self.sampledelay+3*self.TEdelay:self.data_idx+self.sampledelay+3*self.TEdelay]*params.RXscaling
                 
+                if params.GUImode == 1 and params.sequence == 35: self.remaining_time = (self.estimated_time - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                if params.GUImode == 5 and params.sequence == 10: self.remaining_time = (self.estimated_time - params.motor_current_image_count*params.motor_settling_time*1000 - params.motor_current_image_count * params.nPE * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR) - (n+m*params.nPE) * ((100 + 2*params.flippulselength + params.TE*1000 + (params.TS*1000)/2 + 400 + params.spoilertime) / 1000 + params.TR)) / 1000
+                self.remaining_time_h = math.floor(self.remaining_time / (3600))
+                self.remaining_time_min = math.floor(self.remaining_time / 60)
+                self.remaining_time_s = int(self.remaining_time % 60)
+                
                 if params.measurement_time_dialog == 1:
                     msg_box = QMessageBox()
-                    msg_box.setText('Measuring... ' + str(n+1+m*self.nsteps) + '/' + str(self.nsteps*params.SPEsteps))
+                    if params.GUImode == 1: msg_box.setText('Measuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2))
+                    if params.GUImode == 5: msg_box.setText('Position: ' + str(params.motor_current_image_count+1) + '/' + str(params.motor_image_count) + '\nTotal: ' + str(params.motor_current_image_count*params.nPE*params.SPEsteps + n+1+m*params.nPE) + '/' + str(params.motor_image_count*params.nPE*params.SPEsteps) + '\nMeasuring... ' + str(n+1+m*params.nPE) + '/' + str(params.nPE*params.SPEsteps) + '\nRemaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2))
                     msg_box.setStandardButtons(QMessageBox.Ok)
                     msg_box.button(QMessageBox.Ok).animateClick(params.TR-10)
                     msg_box.button(QMessageBox.Ok).hide()
                     msg_box.exec()
                 else:
-                    print('Measuring... ' + str(n+1+m*self.nsteps) + '/' + str(self.nsteps*params.SPEsteps))
+                    if params.GUImode == 1: print('Remaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2))
+                    if params.GUImode == 5: print('Remaining time [h:min:s]: ' + str(self.remaining_time_h).zfill(2) + '.' + str(self.remaining_time_min).zfill(2) + ':' + str(self.remaining_time_s).zfill(2))
                     time.sleep((params.TR-10)/1000)
                 time.sleep(0.01)
             

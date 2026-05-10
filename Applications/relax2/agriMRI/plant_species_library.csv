@@ -1,12 +1,21 @@
 index;common_name;scientific_name;taxonomy;BBCH-scale
-0;Wheat;Triticum;NCBI:txid4564;Cereals
-1;Rice;Oryza sativa;NCBI:txid4530;Rice
-2;Maize;Zea mays;NCBI:txid4577;Maize
-3;Zucchini;Cucurbita pepo subsp. pepo;NCBI:txid3664;Cucurbits
-4;Olive;Olea europaea;NCBI:txid4146;Olive
-5;Grapevine;Vitis vinifera;NCBI:txid29760;Grapevine
-6;Tomato;Solanum lycopersicon;NCBI:txid4081;Solanaceous fruits
-7;Onion;Allium cepa;NCBI:txid4679;Bulb vegetables
-8;Potato;Solanum tuberosum;NCBI:txid4113;Potato
+0;;;;General
+1;Durum wheat;Triticum turgidum subsp. durum;NCBI:txid4567;Cereals
+2;Bread wheat;Triticum aestivum subsp. aestivum;NCBI:txid4565;Cereals
+3;Barley;Hordeum vulgare subsp. vulgare;NCBI:txid112509;Cereals
+4;Rice;Oryza sativa;NCBI:txid4530;Rice
+5;Maize;Zea mays subsp. mays;NCBI:txid381124;Maize
+6;Sunflower;Helianthus annuus;NCBI:txid4232;Sunflower
+7;Oilseed rape;Brassica napus subsp. napus/oleifera;NCBI:txid138011;Oilseed_rape
+8;Safflower;Carthamus tinctorius;NCBI:txid4222;Safflower
 9;Soybean;Glycine max;NCBI:txid3847;Soybean
-10;Lettuce;Lactuca;NCBI:txid4235;Leaf vegetables
+10;Tick bean;Vicia faba subsp. var. minor;NCBI:txid3907;Faba_bean
+11;Chickpea;Cicer arietinum;NCBI:txid3827;Chickpea
+12;Zucchini;Cucurbita pepo subsp. pepo;NCBI:txid3664;Cucurbits
+13;Olive;Olea europaea;NCBI:txid4146;Olive
+14;Grapevine;Vitis vinifera;NCBI:txid29760;Grapevine
+15;Tomato;Solanum lycopersicon;NCBI:txid4081;Solanaceous_fruits
+16;Onion;Allium cepa;NCBI:txid4679;Bulb vegetables
+17;Potato;Solanum tuberosum;NCBI:txid4113;Potato
+18;Soybean;Glycine max;NCBI:txid3847;Soybean
+19;Lettuce;Lactuca;NCBI:txid4235;Leaf_vegetables

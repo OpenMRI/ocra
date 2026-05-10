@@ -27,7 +27,7 @@ from enum import Enum
 import json
 
 # import PyQt5 packages
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog, QDesktopWidget, QFrame, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUiType, loadUi
@@ -337,7 +337,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.Sequence_comboBox.addItems(['2D Gradient Echo', '2D Inversion Recovery (GRE)', '2D Spin Echo' \
                                             , '2D Inversion Recovery (SE)', '2D Turbo Spin Echo (4 Echos)', '2D Gradient Echo (Slice)' \
                                             , '2D Inversion Recovery (Slice, GRE)', '2D Spin Echo (Slice)', '2D Inversion Recovery (Slice, SE)' \
-                                            , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)'])
+                                            , '2D Turbo Spin Echo (Slice, 4 Echos)', '3D FFT Spin Echo (Slab)', '3D FFT Turbo Spin Echo (Slab)'])
             self.Sequence_comboBox.setCurrentIndex(0)
             if params.agriMRI_mode == 1: params.datapath = 'Image_Stitching_rawdata'
             else: params.datapath = 'rawdata/Image_Stitching_rawdata'
@@ -360,13 +360,106 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
             self.agriMRI_folder_structure_temp = ''
             self.agriMRI_folder_structure_temp = params.agriMRI_folder_structure
             
-            if params.agriMRI_folder_structure != 'rawdata/': params.save_AgriMRI_Metadata_file_json()
-            else: print('\033[1m' + 'No experiment ID set!! Save data to rawdata folder.' + '\033[0m')
+            if params.agriMRI_folder_structure != 'rawdata/':
+                if os.path.isfile(params.agriMRI_folder_structure + 'AgriMRI_Metadata.json') == True:
+                    msg_box_agriMRI_header = QMessageBox()
+                    msg_box_agriMRI_header.setText('AgriMRI_Metadata.json detected in folder. Do you want to overwrite the file?')
+                    msg_box_agriMRI_header.setIcon(QMessageBox.Warning)
+                    msg_box_agriMRI_header.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    reply_msg_box_agriMRI_header = msg_box_agriMRI_header.exec()
+                    if reply_msg_box_agriMRI_header == QMessageBox.Ok:
+                        params.save_AgriMRI_Metadata_file_json()
+                        print('\033[1m' + 'AgriMRI_Metadata.json overwritten.' + '\033[0m')
+                    else: print('\033[1m' + 'AgriMRI_Metadata.json not overwritten.' + '\033[0m')
+            else:
+                print('\033[1m' + 'No experiment ID set!! Save data to rawdata folder.' + '\033[0m')
             
             params.agriMRI_folder_structure = params.agriMRI_folder_structure + 'AgriMRI_rawdata'
             if os.path.isdir(params.agriMRI_folder_structure) != True: os.mkdir(params.agriMRI_folder_structure)
             params.agriMRI_folder_structure = params.agriMRI_folder_structure + '/'
             params.datapath = params.agriMRI_folder_structure + params.datapath
+            
+        if params.GUImode == 5:
+            self.datapath_2_temp = ''
+            self.datapath_2_temp = params.datapath
+            params.datapath + '/Image_Stitching'
+
+            if params.headerfileformat == 0:
+                if os.path.isfile(params.datapath + '_Header.txt') == True:
+                    msg_box_data = QMessageBox()
+                    msg_box_data.setText('Stitching data with same name detected in folder. Do you want to overwrite the data?')
+                    msg_box_data.setIcon(QMessageBox.Warning)
+                    msg_box_data.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    reply_msg_box_data = msg_box_data.exec()
+                    if reply_msg_box_data == QMessageBox.Ok: print('\033[1m' + 'Overwriting data.' + '\033[0m')
+                    else:
+                        print('\033[1m' + 'Acquisition canceled.' + '\033[0m')
+                        if params.agriMRI_mode == 1:
+                            params.datapath = self.datapath_temp
+                            params.agriMRI_folder_structure = self.agriMRI_folder_structure_temp
+                        self.Acquire_pushButton.setEnabled(True)
+                        self.Data_Process_pushButton.setEnabled(True)
+                        self.repaint()
+                        return
+                else: print('\033[1m' + 'Starting new acquisition.' + '\033[0m')
+            else:
+                if os.path.isfile(params.datapath + '_Header.json') == True:
+                    msg_box_data = QMessageBox()
+                    msg_box_data.setText('Stitching data with same name detected in folder. Do you want to overwrite the data?')
+                    msg_box_data.setIcon(QMessageBox.Warning)
+                    msg_box_data.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    reply_msg_box_data = msg_box_data.exec()
+                    if reply_msg_box_data == QMessageBox.Ok: print('\033[1m' + 'Overwriting data.' + '\033[0m')
+                    else:
+                        print('\033[1m' + 'Acquisition canceled.' + '\033[0m')
+                        if params.agriMRI_mode == 1:
+                            params.datapath = self.datapath_temp
+                            params.agriMRI_folder_structure = self.agriMRI_folder_structure_temp
+                        self.Acquire_pushButton.setEnabled(True)
+                        self.Data_Process_pushButton.setEnabled(True)
+                        self.repaint()
+                        return
+                else: print('\033[1m' + 'Starting new acquisition.' + '\033[0m')
+
+            params.datapath = self.datapath_2_temp
+
+        else:
+            if params.headerfileformat == 0:
+                if os.path.isfile(params.datapath + '_Header.txt') == True:
+                    msg_box_data = QMessageBox()
+                    msg_box_data.setText('Data with same name detected in folder. Do you want to overwrite the data?')
+                    msg_box_data.setIcon(QMessageBox.Warning)
+                    msg_box_data.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    reply_msg_box_data = msg_box_data.exec()
+                    if reply_msg_box_data == QMessageBox.Ok: print('\033[1m' + 'Overwriting data.' + '\033[0m')
+                    else:
+                        print('\033[1m' + 'Acquisition canceled.' + '\033[0m')
+                        if params.agriMRI_mode == 1:
+                            params.datapath = self.datapath_temp
+                            params.agriMRI_folder_structure = self.agriMRI_folder_structure_temp
+                        self.Acquire_pushButton.setEnabled(True)
+                        self.Data_Process_pushButton.setEnabled(True)
+                        self.repaint()
+                        return
+                else: print('\033[1m' + 'Starting new acquisition.' + '\033[0m')
+            else:
+                if os.path.isfile(params.datapath + '_Header.json') == True:
+                    msg_box_data = QMessageBox()
+                    msg_box_data.setText('Data with same name detected in folder. Do you want to overwrite the data?')
+                    msg_box_data.setIcon(QMessageBox.Warning)
+                    msg_box_data.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    reply_msg_box_data = msg_box_data.exec()
+                    if reply_msg_box_data == QMessageBox.Ok: print('\033[1m' + 'Overwriting data.' + '\033[0m')
+                    else:
+                        print('\033[1m' + 'Acquisition canceled.' + '\033[0m')
+                        if params.agriMRI_mode == 1:
+                            params.datapath = self.datapath_temp
+                            params.agriMRI_folder_structure = self.agriMRI_folder_structure_temp
+                        self.Acquire_pushButton.setEnabled(True)
+                        self.Data_Process_pushButton.setEnabled(True)
+                        self.repaint()
+                        return
+                else: print('\033[1m' + 'Starting new acquisition.' + '\033[0m')
                         
         if params.GUImode == 2:
             if params.sequence == 0:
@@ -428,6 +521,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                         proc.image_stitching_2D_SE_slice(motor=self.motor)
                     if params.sequence == 10:
                         proc.image_stitching_3D_slab(motor=self.motor)
+                    if params.sequence == 11:
+                        proc.image_stitching_3D_TSE_slab(motor=self.motor)
                     self.motor_reader.blockSignals(False)
                 else:
                     print('Motor Control: Motor not available, maybe it is still homing?')
@@ -454,6 +549,8 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                     proc.image_stitching_2D_SE_slice()
                 if params.sequence == 10:
                     proc.image_stitching_3D_slab()
+                if params.sequence == 11:
+                    proc.image_stitching_3D_TSE_slab()
 
         elif params.GUImode == 1:
             if params.autorecenter == 1:
@@ -808,312 +905,180 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
                 if self.dialog_plot.dialog_3D_layers != None:
                     self.dialog_plot.dialog_3D_layers.hide()
             
-            if params.GUImode == 0:
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.spectrum_process()
-                    proc.spectrum_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No spectrum rawdata file!!')
-                    
-            elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.image_3D_process()
-                    proc.image_3D_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
-                            if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 3D rawdata file!!')
+        if params.single_plot == 1:
+            if self.dialog_plot != None:
+                for attr_name in dir(self.dialog_plot):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self.dialog_plot, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self.dialog_plot, attr_name, None)
+                self.dialog_plot.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+                self.dialog_plot.close()
+                self.dialog_plot = None
+            
+        if params.GUImode == 0:
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.spectrum_process()
+                proc.spectrum_analytics()
                 
-            elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.image_diff_process()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
-                            if self.dialog_plot.IDiff_canvas != None: self.dialog_plot.IDiff_canvas.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
-                            if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 2D diffusion rawdata file!!')
-            elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
-                                          or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
-                                          or params.sequence == 19 or params.sequence == 20):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.radial_process()
-                    proc.image_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
-                            if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 2D radial rawdata file!!')
-            elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
-                                          or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
-                                          or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
-                                          or params.sequence != 17 or params.sequence != 18 or params.sequence != 19 \
-                                          or params.sequence != 20):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.image_process()
-                    proc.image_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.kMag_canvas != None: self.dialog_plot.kMag_canvas.hide()
-                            if self.dialog_plot.kPha_canvas != None: self.dialog_plot.kPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 2D rawdata file!!')
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
 
-            elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.T1process()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.fig_canvas1 != None: self.dialog_plot.fig_canvas1.hide()
-                            if self.dialog_plot.fig_canvas2 != None: self.dialog_plot.fig_canvas2.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No T1 file!!')
-            elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
-                if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
-                    if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
-                        proc.T1imageprocess()
-                        if params.single_plot == 1:
-                            if self.dialog_plot != None:
-                                self.dialog_plot.hide()
-                                if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
-                                self.dialog_plot = PlotWindow(self)
-                                self.dialog_plot.show()
-                            else:
-                                self.dialog_plot = PlotWindow(self)
-                                self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else: print('No T1 rawdata file!!')
-                else: print('No TI steps file!!')
+            else: print('No spectrum rawdata file!!')
+                
+        elif params.GUImode == 1 and (params.sequence == 34 or params.sequence == 35 or params.sequence == 36):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.image_3D_process()
+                proc.image_3D_analytics()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 3D rawdata file!!')
+            
+        elif params.GUImode == 1 and (params.sequence == 14 or params.sequence == 31):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.image_diff_process()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 2D diffusion rawdata file!!')
+        elif params.GUImode == 1 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 \
+                                      or params.sequence == 3 or params.sequence == 17 or params.sequence == 18 \
+                                      or params.sequence == 19 or params.sequence == 20):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.radial_process()
+                proc.image_analytics()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 2D radial rawdata file!!')
+        elif params.GUImode == 1 and (params.sequence != 34 or params.sequence != 35 or params.sequence != 36 \
+                                      or params.sequence != 14 or params.sequence != 31 or params.sequence != 0 \
+                                      or params.sequence != 1 or params.sequence != 2 or params.sequence != 3 \
+                                      or params.sequence != 17 or params.sequence != 18 or params.sequence != 19 \
+                                      or params.sequence != 20):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.image_process()
+                proc.image_analytics()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 2D rawdata file!!')
 
-            elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
-                if os.path.isfile(params.datapath + '.txt') == True:
-                    proc.T2process()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No T2 file!!')
-            elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
-                if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
-                    if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
-                        proc.T2imageprocess()
-                        if params.single_plot == 1:
-                            if self.dialog_plot != None:
-                                self.dialog_plot.hide()
-                                if self.dialog_plot.IComb_canvas != None: self.dialog_plot.IComb_canvas.hide()
-                                self.dialog_plot = PlotWindow(self)
-                                self.dialog_plot.show()
-                            else:
-                                self.dialog_plot = PlotWindow(self)
-                                self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else: print('No T2 rawdata file!!')
-                else: print('No TE steps file!!')
-
-            elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
-                self.datapathtemp = params.datapath
-                params.projx = np.matrix(np.zeros((1, 4)))
-                params.projy = np.matrix(np.zeros((1, 4)))
-                params.projz = np.matrix(np.zeros((1, 4)))
-                for m in range(params.projaxis.shape[0]):
-                    params.datapath = self.datapathtemp + '_' + str(m)
-                    if os.path.isfile(params.datapath + '.txt') == True:
-                        proc.spectrum_process()
-                        if m == 0:
-                            params.projx = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
-                            params.projx[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
-                            params.projx[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
-                            params.projx[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
-                            params.projx[:, 3] = params.spectrumfft
-                        elif m == 1:
-                            params.projy = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
-                            params.projy[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
-                            params.projy[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
-                            params.projy[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
-                            params.projy[:, 3] = params.spectrumfft
-                        elif m == 2:
-                            params.projz = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
-                            params.projz[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
-                            params.projz[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
-                            params.projz[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
-                            params.projz[:, 3] = params.spectrumfft
-                    else: print('No projection spectrum rawdata file!!')
-                params.datapath = self.datapathtemp
-                if params.single_plot == 1:
-                    if self.dialog_plot != None:
-                        self.dialog_plot.hide()
-                        if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
-                        if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else:
+        elif params.GUImode == 2 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.T1process()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No T1 file!!')
+        elif params.GUImode == 2 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TI_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T1imageprocess()
+                    
                     self.dialog_plot = PlotWindow(self)
                     self.dialog_plot.show()
-            elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
+                else: print('No T1 rawdata file!!')
+            else: print('No TI steps file!!')
+
+        elif params.GUImode == 3 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.T2process()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No T2 file!!')
+        elif params.GUImode == 3 and (params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '_Image_TE_steps.txt') == True:
+                if os.path.isfile(params.datapath + '_Image_Magnitude.txt') == True:
+                    proc.T2imageprocess()
+                    
+                    self.dialog_plot = PlotWindow(self)
+                    self.dialog_plot.show()
+                else: print('No T2 rawdata file!!')
+            else: print('No TE steps file!!')
+
+        elif params.GUImode == 4 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 4 or params.sequence == 5):
+            self.datapathtemp = params.datapath
+            params.projx = np.matrix(np.zeros((1, 4)))
+            params.projy = np.matrix(np.zeros((1, 4)))
+            params.projz = np.matrix(np.zeros((1, 4)))
+            for m in range(params.projaxis.shape[0]):
+                params.datapath = self.datapathtemp + '_' + str(m)
                 if os.path.isfile(params.datapath + '.txt') == True:
                     proc.spectrum_process()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.fig_canvas != None: self.dialog_plot.fig_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
+                    if m == 0:
+                        params.projx = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
+                        params.projx[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
+                        params.projx[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
+                        params.projx[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
+                        params.projx[:, 3] = params.spectrumfft
+                    elif m == 1:
+                        params.projy = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
+                        params.projy[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
+                        params.projy[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
+                        params.projy[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
+                        params.projy[:, 3] = params.spectrumfft
+                    elif m == 2:
+                        params.projz = np.matrix(np.zeros((params.timeaxis.shape[0], 4)))
+                        params.projz[:, 0] = np.reshape(params.mag, (params.timeaxis.shape[0], 1))
+                        params.projz[:, 1] = np.reshape(params.real, (params.timeaxis.shape[0], 1))
+                        params.projz[:, 2] = np.reshape(params.imag, (params.timeaxis.shape[0], 1))
+                        params.projz[:, 3] = params.spectrumfft
                 else: print('No projection spectrum rawdata file!!')
-
-            elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 \
-                                          or params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
-                                          or params.sequence == 8 or params.sequence == 9):
-                if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
-                    proc.image_stitching_2D_process()
-                    proc.image_stitching_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 2D stitching rawdata file!!')
-            elif params.GUImode == 5 and params.sequence == 10:
-                if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
-                    proc.image_stitching_3D_process()
-                    proc.image_stitching_3D_analytics()
-                    if params.single_plot == 1:
-                        if self.dialog_plot != None:
-                            self.dialog_plot.hide()
-                            if self.dialog_plot.IMag_canvas != None: self.dialog_plot.IMag_canvas.hide()
-                            if self.dialog_plot.IPha_canvas != None: self.dialog_plot.IPha_canvas.hide()
-                            if self.dialog_plot.all_canvas != None: self.dialog_plot.all_canvas.hide()
-                            if self.dialog_plot.hist_canvas != None: self.dialog_plot.hist_canvas.hide()
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                        else:
-                            self.dialog_plot = PlotWindow(self)
-                            self.dialog_plot.show()
-                    else:
-                        self.dialog_plot = PlotWindow(self)
-                        self.dialog_plot.show()
-                else: print('No 3D stitching rawdata file!!')
-        
-            params.saveFileData()
+            params.datapath = self.datapathtemp
             
-            params.GUImode = self.GUImode_temp
-            params.sequence = self.sequence_temp
-            params.imageorientation = self.imageorientation_temp
-            params.FOV = self.FOV_temp
-            params.SPEsteps = self.SPEsteps_temp
-            params.nPE = self.nPE_temp
-            params.motor_image_count = self.motor_image_count_temp
-            params.motor_movement_step = self.motor_movement_step_temp
-            params.slicethickness = self.slicethickness_temp
-            params.motor_total_image_length = self.motor_total_image_length_temp
-            params.motor_start_position = self.motor_start_position_temp
-            params.motor_end_position = self.motor_end_position_temp
-            params.radialanglestep = self.radialanglestep_temp
-            params.radialosfactor = self.radialosfactor_temp
-            params.autofreqoffset = self.autofreqoffset_temp
-            params.sliceoffset = self.sliceoffset_temp
+            self.dialog_plot = PlotWindow(self)
+            self.dialog_plot.show()
+        elif params.GUImode == 4 and (params.sequence == 2 or params.sequence == 3 or params.sequence == 6 or params.sequence == 7):
+            if os.path.isfile(params.datapath + '.txt') == True:
+                proc.spectrum_process()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No projection spectrum rawdata file!!')
+
+        elif params.GUImode == 5 and (params.sequence == 0 or params.sequence == 1 or params.sequence == 2 or params.sequence == 3 \
+                                      or params.sequence == 4 or params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+                                      or params.sequence == 8 or params.sequence == 9):
+            if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
+                proc.image_stitching_2D_process()
+                proc.image_stitching_analytics()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 2D stitching rawdata file!!')
+        elif params.GUImode == 5 and (params.sequence == 10  or params.sequence == 11):
+            if os.path.isfile(params.datapath + '/Image_Stitching_1.txt') == True:
+                proc.image_stitching_3D_process()
+                proc.image_stitching_3D_analytics()
+                
+                self.dialog_plot = PlotWindow(self)
+                self.dialog_plot.show()
+            else: print('No 3D stitching rawdata file!!')
+    
+        params.saveFileData()
+        
+        params.GUImode = self.GUImode_temp
+        params.sequence = self.sequence_temp
+        params.imageorientation = self.imageorientation_temp
+        params.FOV = self.FOV_temp
+        params.SPEsteps = self.SPEsteps_temp
+        params.nPE = self.nPE_temp
+        params.motor_image_count = self.motor_image_count_temp
+        params.motor_movement_step = self.motor_movement_step_temp
+        params.slicethickness = self.slicethickness_temp
+        params.motor_total_image_length = self.motor_total_image_length_temp
+        params.motor_start_position = self.motor_start_position_temp
+        params.motor_end_position = self.motor_end_position_temp
+        params.radialanglestep = self.radialanglestep_temp
+        params.radialosfactor = self.radialosfactor_temp
+        params.autofreqoffset = self.autofreqoffset_temp
+        params.sliceoffset = self.sliceoffset_temp
             
         if params.agriMRI_mode == 1:
             params.datapath = self.datapath_temp
@@ -1155,8 +1120,7 @@ class MainWindow(Main_Window_Base, Main_Window_Form):
         QApplication.processEvents()
 
     def closeEvent(self, event):
-        choice = QMessageBox.question(self, 'Close Relax 2.0', 'Are you sure that you want to quit Relax 2.0?', \
-                                      QMessageBox.Cancel | QMessageBox.Close, QMessageBox.Cancel)
+        choice = QMessageBox.question(self, 'Close Relax 2.0', 'Are you sure that you want to quit Relax 2.0?', QMessageBox.Cancel | QMessageBox.Close, QMessageBox.Cancel)
 
         if choice == QMessageBox.Close:
             params.GUImode = 0
@@ -2524,6 +2488,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Plant_Species_comboBox.setCurrentIndex(0)
         self.Plant_Species_comboBox.currentIndexChanged.connect(lambda: self.set_Species())
         
+        self.Plant_Cultivated_Variant_lineEdit.editingFinished.connect(lambda: self.update_params())
         self.Plant_Part_Name_lineEdit.editingFinished.connect(lambda: self.update_params())
         self.Plant_Date_Of_Sowing_dateEdit.userDateChanged.connect(lambda: self.set_Date_Of_Sowing())
         self.Plant_Measurement_Date_dateEdit.userDateChanged.connect(lambda: self.set_Measurement_Date())
@@ -2549,6 +2514,8 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         
         self.Plant_Water_Availability_spinBox.setKeyboardTracking(False)
         self.Plant_Water_Availability_spinBox.valueChanged.connect(self.update_params)
+        
+        self.Plant_Seed_Coating_lineEdit.editingFinished.connect(lambda: self.update_params())
         
         self.Plant_Nutrient_Application_comboBox.clear()
         self.Plant_Nutrient_Application_comboBox.addItems(['1', '2', '3', '4','5', '6', '7', '8','9', '10'])
@@ -2593,6 +2560,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Experiment_ID_lineEdit.blockSignals(True)
         self.Plant_ID_lineEdit.blockSignals(True)
         self.Plant_Part_ID_lineEdit.blockSignals(True)
+        self.Plant_Cultivated_Variant_lineEdit.blockSignals(True)
         self.Plant_Part_Name_lineEdit.blockSignals(True)
         self.Plant_Species_comboBox.blockSignals(True)
         self.Plant_Date_Of_Sowing_dateEdit.blockSignals(True)
@@ -2606,6 +2574,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Plant_Light_Source_Artificial_radioButton.blockSignals(True)
         self.Plant_Light_Availability_spinBox.blockSignals(True)
         self.Plant_Water_Availability_spinBox.blockSignals(True)
+        self.Plant_Seed_Coating_lineEdit.blockSignals(True)
         self.Plant_Nutrient_Application_comboBox.blockSignals(True)
         self.Plant_Nutrient_Date_dateEdit.blockSignals(True)
         self.Plant_Nutrient_DAS_spinBox.blockSignals(True)
@@ -2629,6 +2598,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Experiment_ID_lineEdit.setText(params.experiment_ID)
         self.Plant_ID_lineEdit.setText(params.plant_ID)
         self.Plant_Part_ID_lineEdit.setText(params.plant_part_ID)
+        self.Plant_Cultivated_Variant_lineEdit.setText(params.plant_cultivated_variant)
         self.Plant_Part_Name_lineEdit.setText(params.plant_part_name)
         
         self.Plant_Date_Of_Sowing_dateEdit.setDate(params.plant_date_of_sowing)
@@ -2644,14 +2614,21 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
             else: self.Plant_Phenological_Phase_comboBox.setStyleSheet('color: #eff0f1')
         
         if params.plant_environment_outside == 1: self.Plant_Environment_Outside_radioButton.setChecked(True)
+        else: self.Plant_Environment_Outside_radioButton.setChecked(False)
         if params.plant_environment_inside == 1: self.Plant_Environment_Inside_radioButton.setChecked(True)
-        
+        else: self.Plant_Environment_Inside_radioButton.setChecked(False)
+            
         if params.plant_light_source_sun == 1: self.Plant_Light_Source_Sun_radioButton.setChecked(True)
+        else: self.Plant_Light_Source_Sun_radioButton.setChecked(False)
         if params.plant_light_source_grow_light == 1: self.Plant_Light_Source_Grow_Light_radioButton.setChecked(True)
+        else: self.Plant_Light_Source_Grow_Light_radioButton.setChecked(False)
         if params.plant_light_source_artificial == 1: self.Plant_Light_Source_Artificial_radioButton.setChecked(True)
+        else: self.Plant_Light_Source_Artificial_radioButton.setChecked(False)
+
         self.Plant_Light_Availability_spinBox.setValue(params.plant_light_availability)
-        
         self.Plant_Water_Availability_spinBox.setValue(params.plant_water_availability)
+        
+        self.Plant_Seed_Coating_lineEdit.setText(params.plant_seed_coating)
         
         self.Plant_Nutrient_Application_comboBox.setCurrentIndex(params.plant_nutrient_application_index)
         try: self.Plant_Nutrient_Date_dateEdit.setDate(params.plant_nutrient_date[params.plant_nutrient_application_index])
@@ -2681,6 +2658,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Experiment_ID_lineEdit.blockSignals(False)
         self.Plant_ID_lineEdit.blockSignals(False)
         self.Plant_Part_ID_lineEdit.blockSignals(False)
+        self.Plant_Cultivated_Variant_lineEdit.blockSignals(False)
         self.Plant_Part_Name_lineEdit.blockSignals(False)
         self.Plant_Species_comboBox.blockSignals(False)
         self.Plant_Date_Of_Sowing_dateEdit.blockSignals(False)
@@ -2694,6 +2672,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Plant_Light_Source_Artificial_radioButton.blockSignals(False)
         self.Plant_Light_Availability_spinBox.blockSignals(False)
         self.Plant_Water_Availability_spinBox.blockSignals(False)
+        self.Plant_Seed_Coating_lineEdit.blockSignals(False)
         self.Plant_Nutrient_Application_comboBox.blockSignals(False)
         self.Plant_Nutrient_Date_dateEdit.blockSignals(False)
         self.Plant_Nutrient_DAS_spinBox.blockSignals(False)
@@ -2712,6 +2691,7 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         self.Plant_Protection_Dose_spinBox.blockSignals(False)
         
     def update_params(self):
+        params.plant_cultivated_variant = self.Plant_Cultivated_Variant_lineEdit.text()
         params.plant_part_name = self.Plant_Part_Name_lineEdit.text()
         
         if self.Plant_Environment_Outside_radioButton.isChecked(): params.plant_environment_outside = 1
@@ -2728,6 +2708,8 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         params.plant_light_availability = self.Plant_Light_Availability_spinBox.value()
         
         params.plant_water_availability = self.Plant_Water_Availability_spinBox.value()
+        
+        params.plant_seed_coating = self.Plant_Seed_Coating_lineEdit.text()
         
         params.plant_nitrogen[params.plant_nutrient_application_index] = self.Plant_Nitrogen_spinBox.value()
         params.plant_phosphorus[params.plant_nutrient_application_index] = self.Plant_Phosphorus_spinBox.value()
@@ -2810,6 +2792,10 @@ class AgriMRIMetadataWindow(AgriMRI_Window_Form, AgriMRI_Window_Base):
         elif params.plant_BBCH_scale == 'Maize': page_number = 27
         elif params.plant_BBCH_scale == 'Cucurbits': page_number = 134
         elif params.plant_BBCH_scale == 'Soybean': page_number = 99
+        elif params.plant_BBCH_scale == 'Faba_bean': page_number = 37
+        elif params.plant_BBCH_scale == 'Oilseed_rape': page_number = 32
+        elif params.plant_BBCH_scale == 'Sunflower': page_number = 40
+        #elif params.plant_BBCH_scale == 'Pea': page_number = 141
         else: page_number = 10
         QDesktopServices.openUrl(QUrl('https://www.openagrar.de/servlets/MCRFileNodeServlet/openagrar_derivate_00010428/BBCH-Skala_en.pdf#page=' + str(page_number)))
         
@@ -3139,11 +3125,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.Autocentertool()
             
             if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                for attr_name in dir(self):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self, attr_name, None)
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -3204,11 +3193,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.Flipangletool()
             
             if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                for attr_name in dir(self):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self, attr_name, None)
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -3269,11 +3261,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             proc.FAchecktool()
             
             if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                for attr_name in dir(self):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self, attr_name, None)
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -3326,11 +3321,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 params.frequency = self.frequency_temp
                 
                 if params.single_plot == 1:
-                    if self.fig_canvas != None: self.fig_canvas.hide()
-                    if self.IMag_canvas != None: self.IMag_canvas.hide()
-                    if self.IPha_canvas != None: self.IPha_canvas.hide()
-                    if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                    if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                    for attr_name in dir(self):
+                        if 'canvas' in attr_name.lower():
+                            canvas = getattr(self, attr_name)
+                            if canvas != None:
+                                plt.close(canvas.figure)
+                                canvas.setParent(None)
+                                canvas.deleteLater()
+                                setattr(self, attr_name, None)
 
                 self.fig = Figure()
                 self.fig.set_facecolor('None')
@@ -3656,11 +3654,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             np.savetxt('data/Tool_data/Auto_Shim_data.txt', np.transpose(params.AutoSTvalues))
             
             if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                for attr_name in dir(self):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self, attr_name, None)
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -3741,11 +3742,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.FieldMapB0()
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
 
         self.IPha_fig = Figure()
         self.IPha_canvas = FigureCanvas(self.IPha_fig)
@@ -3789,11 +3793,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.FieldMapB0Slice()
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
 
         self.IPha_fig = Figure()
         self.IPha_canvas = FigureCanvas(self.IPha_fig)
@@ -3837,11 +3844,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.FieldMapB1()
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
 
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
@@ -3886,11 +3896,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
         proc.FieldMapB1Slice()
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
 
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
@@ -3944,11 +3957,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 else: params.FOV = 18
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
 
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
@@ -4016,12 +4032,15 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
                 else: params.FOV = 18
         
         if params.single_plot == 1:
-            if self.fig_canvas != None: self.fig_canvas.hide()
-            if self.IMag_canvas != None: self.IMag_canvas.hide()
-            if self.IPha_canvas != None: self.IPha_canvas.hide()
-            if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-            if self.FMB1_canvas != None: self.FMB1_canvas.hide()
-
+            for attr_name in dir(self):
+                if 'canvas' in attr_name.lower():
+                    canvas = getattr(self, attr_name)
+                    if canvas != None:
+                        plt.close(canvas.figure)
+                        canvas.setParent(None)
+                        canvas.deleteLater()
+                        setattr(self, attr_name, None)
+                        
         self.IMag_fig = Figure()
         self.IMag_canvas = FigureCanvas(self.IMag_fig)
         self.IMag_fig.set_facecolor('None')
@@ -4095,11 +4114,14 @@ class ToolsWindow(Tools_Window_Form, Tools_Window_Base):
             self.spectrumfft = params.spectrumfft[self.spectrumfft_center - int(params.nPE / 2 * params.ROBWscaler):self.spectrumfft_center + int(params.nPE / 2 * params.ROBWscaler)]
 
             if params.single_plot == 1:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.FMB0_canvas != None: self.FMB0_canvas.hide()
-                if self.FMB1_canvas != None: self.FMB1_canvas.hide()
+                for attr_name in dir(self):
+                    if 'canvas' in attr_name.lower():
+                        canvas = getattr(self, attr_name)
+                        if canvas != None:
+                            plt.close(canvas.figure)
+                            canvas.setParent(None)
+                            canvas.deleteLater()
+                            setattr(self, attr_name, None)
 
             self.fig = Figure()
             self.fig.set_facecolor('None')
@@ -4741,6 +4763,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                         proc.image_stitching_2D_SE_slice(motor=self.motor)
                     if params.sequence == 10:
                         proc.image_stitching_3D_slab(motor=self.motor)
+                    if params.sequence == 11:
+                        proc.image_stitching_3D_TSE_slab(motor=self.motor)
                     self.motor_reader.blockSignals(False)                
                 else:
                     print('Motor Control: Motor not available, maybe it is still homing?')
@@ -4767,6 +4791,8 @@ class ProtocolWindow(Protocol_Window_Form, Protocol_Window_Base):
                     proc.image_stitching_2D_SE_slice()
                 if params.sequence == 10:
                     proc.image_stitching_3D_slab()
+                if params.sequence == 11:
+                    proc.image_stitching_3D_TSE_slab()
             
         elif params.GUImode == 1:
             if params.autorecenter == 1:
@@ -5025,7 +5051,7 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 self.Save_Mag_Image_Data_pushButton.setEnabled(True)
                 self.Save_Pha_Image_Data_pushButton.setEnabled(True)
                 self.Hist_pushButton.setEnabled(True)
-            elif params.sequence == 10:
+            elif params.sequence == 10 or params.sequence == 11:
                 params.imageminimum = np.min(params.img_st_mag)
                 self.Image_Minimum_doubleSpinBox.setValue(params.imageminimum)
                 params.imagemaximum = np.max(params.img_st_mag)
@@ -5254,51 +5280,31 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             params.radialosfactor = jsonparams['Radial oversampling factor']
             params.autofreqoffset = jsonparams['Auto frequency offset']
             params.sliceoffset = jsonparams['Slice offset [mm]']
+            
+        for attr_name in dir(self):
+            if 'canvas' in attr_name.lower():
+                canvas = getattr(self, attr_name)
+                if canvas != None:
+                    plt.close(canvas.figure)
+                    canvas.setParent(None)
+                    canvas.deleteLater()
+                    setattr(self, attr_name, None)
 
         if params.GUImode == 0:
             params.frequencyplotrange = self.Frequncyaxisrange_spinBox.value()
-            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                self.rf_loopback_test_spectrum_plot_init()
-            else:
-                if self.fig_canvas != None: self.fig_canvas.hide()
-                self.spectrum_plot_init()
+            if params.sequence == 18 or params.sequence == 19 or params.sequence == 20 or params.sequence == 21: self.rf_loopback_test_spectrum_plot_init()
+            else: self.spectrum_plot_init()
             self.Save_Spectrum_Data_pushButton.setEnabled(True)
         elif params.GUImode == 1:
-            if params.sequence == 34 or params.sequence == 35 or params.sequence == 36:
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.kMag_canvas != None: self.kMag_canvas.hide()
-                if self.kPha_canvas != None: self.kPha_canvas.hide()
-                if self.all_canvas != None: self.all_canvas.hide()
-                if self.hist_canvas != None: self.hist_canvas.hide()
-                self.imaging_3D_plot_init()
-            elif params.sequence == 14 or params.sequence == 31:
-                print('WIP')
-            else:
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.kMag_canvas != None: self.kMag_canvas.hide()
-                if self.kPha_canvas != None: self.kPha_canvas.hide()
-                if self.all_canvas != None: self.all_canvas.hide()
-                if self.hist_canvas != None: self.hist_canvas.hide()
-                self.imaging_plot_init()
+            if params.sequence == 34 or params.sequence == 35 or params.sequence == 36: self.imaging_3D_plot_init()
+            elif params.sequence == 14 or params.sequence == 31: print('WIP')
+            else: self.imaging_plot_init()
         elif params.GUImode == 4:
-            self.fig_canvas.hide()
             self.projection_plot_init()
         elif params.GUImode == 5:
             params.image_stitching_slice = self.Frequncyaxisrange_spinBox.value()
-            if params.sequence == 10:
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.all_canvas != None: self.all_canvas.hide()
-                if self.hist_canvas != None: self.hist_canvas.hide()
-                self.imaging_stitching_3D_plot_init()
+            if params.sequence == 10 or params.sequence == 11: self.imaging_stitching_3D_plot_init()
             else:
-                if self.IMag_canvas != None: self.IMag_canvas.hide()
-                if self.IPha_canvas != None: self.IPha_canvas.hide()
-                if self.all_canvas != None: self.all_canvas.hide()
-                if self.hist_canvas != None: self.hist_canvas.hide()
                 if params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
                     if params.image_stitching_slice == 0: self.imaging_stitching_plot_init()
                     else: self.imaging_stitching_single_plot_init()
@@ -6111,14 +6117,14 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         
                         if params.imageorientation == 'XY':
                             self.IMag_ax.set_xlabel('X in mm')
-                            self.IMag_ax.set_ylabel('Y in mm')
+                            self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_xlabel('X in mm')
-                            self.IPha_ax.set_ylabel('Y in mm')
+                            self.IPha_ax.set_ylabel('Y$_{PB}$ in mm')
                         elif params.imageorientation == 'ZY':
                             self.IMag_ax.set_xlabel('Z in mm')
-                            self.IMag_ax.set_ylabel('Y in mm')
+                            self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_xlabel('Z in mm')
-                            self.IPha_ax.set_ylabel('Y in mm')
+                            self.IPha_ax.set_ylabel('Y$_{PB}$ in mm')
                         
                     else:
                         self.IMag_ax.axis('off')
@@ -6164,14 +6170,14 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.IPha_ax.grid(which='major', visible=True)
                         
                         if params.imageorientation == 'YX':
-                            self.IMag_ax.set_xlabel('Y in mm')
+                            self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IMag_ax.set_ylabel('X in mm')
-                            self.IPha_ax.set_xlabel('Y in mm')
+                            self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_ylabel('X in mm')
                         elif params.imageorientation == 'YZ':
-                            self.IMag_ax.set_xlabel('Y in mm')
+                            self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IMag_ax.set_ylabel('Z in mm')
-                            self.IPha_ax.set_xlabel('Y in mm')
+                            self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_ylabel('Z in mm')
                         
                     else:
@@ -6208,49 +6214,114 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.IMag_ax.grid(False)
                     
                     if params.projection3D_quality == 1:
+#                         #Contour Filled Plot
+#                         self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
+#                        
+#                         X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+#                         
+#                         levels= np.linspace(params.imageminimum-1e-6, params.imagemaximum, 50)
+#                         colors_1 = plt.get_cmap(params.imagecolormap)(np.linspace(0, 1, len(levels)-1))
+#                         if params.imageminimum > params.img_st_mag.min():
+#                             colors_1[levels[:-1] <= params.imageminimum, 3] = 0
+#                             
+#                         for n in range(params.motor_image_count):
+#                             self.img_st_mag_cut_1 = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+#                             self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+#                             self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum-1e-6
+#                             self.img_st_mag_cut_2 = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+#                             self.img_st_mag_cut_2[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum-1e-6
+# 
+#                             self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum-1e-6) / (params.imagemaximum - params.imageminimum-1e-6)
+#                                                         
+#                             if params.imagefilter == 1: self.IMag_ax.contourf(self.img_st_mag_cut_2, Z, X, zdir='x', offset=self.image_positions[n], levels=levels, colors=colors_1, antialiased=True, extend='neither')
+#                             else: self.IMag_ax.contourf(self.img_st_mag_cut_2, Z, X, zdir='x', offset=self.image_positions[n], levels=levels, colors=colors_1, antialiased=False, extend='neither')
+# 
+#                         self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                         self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                         
+#                         del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Z, levels, colors_1
+                        
+                        #Surface Plot
                         self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+                        self.img_st_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
                         self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
                        
-                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE+1),np.linspace(params.FOV/2, -params.FOV/2, params.nPE+1))
                         
                         for n in range(params.motor_image_count):
-                            self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
-                            self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+                            self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum
+                            self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
                             self.img_st_mag_cut_2[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
-                            self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
                             
                             Y = np.full_like(X, self.image_positions[n])
-                            Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
-                            Y = np.rot90(Y, 3)
-
-                            colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
                             
-                            self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
+                            self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
                             
+                            colors_2 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_st_mag_cut_1_norm, 0, 1))
+                            colors_2[self.img_st_mag_cut_2 < params.imageminimum, 3] = 0
+                            
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, shade=False, edgecolor='none')
+                            
+                        self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+                        self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        
+                        del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Y, Z, colors_2
+                         
+#                         #Voxel Plot
+#                         self.img_st_mag_cut_1 = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_1_norm = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_2 = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+#                         
+#                         for n in range(params.motor_image_count):
+#                             self.img_st_mag_cut_1[n, :, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+#                             self.img_st_mag_cut_2[n, :, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+#                             
+#                         
+#                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+#                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum
+#                         self.img_st_mag_cut_1[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
+#                               
+#                         x_edges = np.linspace(-params.FOV/2, params.FOV/2, self.img_st_mag_cut_2.shape[1]+1)
+#                         y_edges = np.linspace(params.motor_start_position - params.slicethickness/2, params.motor_end_position + params.slicethickness/2, self.img_st_mag_cut_2.shape[0]+1)
+#                         z_edges = np.linspace(-params.FOV/2, params.FOV/2, self.img_st_mag_cut_2.shape[2]+1)
+#                                                 
+#                         Y, Z, X = np.meshgrid(y_edges, z_edges, x_edges, indexing='ij')
+#                         
+#                         self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
+#                         
+#                         colors_3 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_st_mag_cut_1_norm, 0, 1))
+#                         colors_3[..., 3] = 0.2
+#                         colors_3[self.img_st_mag_cut_2 < params.imageminimum, 3] = 0
+#                         
+#                         self.IMag_ax.voxels(Y, Z, X, self.img_st_mag_cut_1_norm, facecolors=colors_3, shade=False, edgecolor='none')
+#                        
+#                         self.IMag_ax.set_box_aspect([(params.motor_total_image_length + params.slicethickness)/params.FOV, 1, 1])
+#                         self.IMag_ax.set_xlim([params.motor_start_position - params.slicethickness/2, params.motor_end_position + params.slicethickness/2])
+#                         
+#                         del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Y, Z, colors_3
+                        
                     else:
+                        #Contour Plot
                         self.img_st_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
                         
-                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
-                        Y = np.array(np.zeros((params.nPE, params.nPE)))
+                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        
+                        levels = np.linspace(params.imageminimum, params.imagemaximum, 10)
                         
                         for n in range(params.motor_image_count):
-                            self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                            self.img_st_mag_cut[self.img_st_mag_cut > params.imagemaximum] = params.imagemaximum
-                            self.img_st_mag_cut[self.img_st_mag_cut < params.imageminimum] = params.imageminimum
+                            self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
                             
-                            Y[:, :] = self.img_st_mag_cut[:, :]
-                            Y = (Y - params.imageminimum) / (params.imagemaximum - params.imageminimum)
-                            
-                            colors_1 = np.linspace(0,1,num=11)
-                            colors_1[colors_1 < np.min(Y)] = np.nan
-                            colors_1[colors_1 > np.max(Y)] = np.nan
-                            colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
-                            
-                            self.IMag_ax.contour(Y, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
+                            self.IMag_ax.contour(self.img_st_mag_cut, Z, X, zdir='x', offset=self.image_positions[n], levels=levels, cmap=params.imagecolormap, extend='neither')
                         
-                    self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
-                    self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+                        self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        
+                        del self.img_st_mag_cut, X, Z, levels
                     
                     if params.image_grid == 1:
                         if params.motor_total_image_length <= 20:
@@ -6271,16 +6342,28 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.IMag_ax.grid(True)
                         
                         if params.imageorientation == 'ZX':
-                            self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
+                            self.IMag_ax.set(xlabel='\n\nY$_{PB}$',ylabel='Z', zlabel='X')
                         elif params.imageorientation == 'XZ':
-                            self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
+                            self.IMag_ax.set(xlabel='\n\nY$_{PB}$',ylabel='X', zlabel='Z')
                     else:
                         self.IMag_ax.axis('off')
                         
+
+                    #self.IMag_fig.patch.set_facecolor('black')
+                    #self.IMag_fig.set_facecolor('black')
+                    #self.IMag_ax.set_facecolor('black')
+                    #self.IMag_ax.xaxis.set_pane_color((0, 0, 0, 1))
+                    #self.IMag_ax.yaxis.set_pane_color((0, 0, 0, 1))
+                    #self.IMag_ax.zaxis.set_pane_color((0, 0, 0, 1))
+                    #self.IMag_ax.tick_params(axis='both', colors='white')
+                    #self.IMag_ax.xaxis.label.set_color('white')
+                    #self.IMag_ax.yaxis.label.set_color('white')
+                    #self.IMag_ax.zaxis.label.set_color('white')
+                    #self.IMag_ax.grid(True, color='white')
+                    
                     self.IMag_canvas.draw()
                     self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
                     self.IMag_canvas.setGeometry(420, 40, 1160, 950)
-                
                     self.IMag_canvas.show()
                         
                 else:
@@ -6466,14 +6549,14 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     
                     if params.imageorientation == 'XY':
                         self.IMag_ax.set_xlabel('X in mm')
-                        self.IMag_ax.set_ylabel('Y in mm')
+                        self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                         self.IMag_ax.set_xlabel('X in mm')
-                        self.IMag_ax.set_ylabel('Y in mm')
+                        self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                     elif params.imageorientation == 'ZY':
                         self.IMag_ax.set_xlabel('Z in mm')
-                        self.IMag_ax.set_ylabel('Y in mm')
+                        self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                         self.IMag_ax.set_xlabel('Z in mm')
-                        self.IMag_ax.set_ylabel('Y in mm')
+                        self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                         
                 else:
                     self.IMag_ax.axis('off')
@@ -6530,14 +6613,14 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.IPha_ax.grid(which='major', visible=True)
                     
                     if params.imageorientation == 'YZ':
-                        self.IMag_ax.set_xlabel('Y in mm')
+                        self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                         self.IMag_ax.set_ylabel('Z in mm')
-                        self.IPha_ax.set_xlabel('Y in mm')
+                        self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                         self.IPha_ax.set_ylabel('Z in mm')
                     elif params.imageorientation == 'YX':
-                        self.IMag_ax.set_xlabel('Y in mm')
+                        self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                         self.IMag_ax.set_ylabel('X in mm')
-                        self.IPha_ax.set_xlabel('Y in mm')
+                        self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                         self.IPha_ax.set_ylabel('X in mm')
                         
                 else:
@@ -6569,49 +6652,52 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.IMag_ax.grid(False)
                     
                     if params.projection3D_quality == 1:
+                        #Surface Plot
                         self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+                        self.img_st_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
                         self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
                        
-                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE+1),np.linspace(params.FOV/2, -params.FOV/2, params.nPE+1))
                         
                         for n in range(params.motor_image_count):
-                            self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = np.nan
-                            self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
+                            self.img_st_mag_cut_1[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+                            self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum
+                            self.img_st_mag_cut_2[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
                             self.img_st_mag_cut_2[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
-                            self.img_st_mag_cut_2[self.img_st_mag_cut_2 < params.imageminimum] = params.imageminimum
                             
                             Y = np.full_like(X, self.image_positions[n])
-                            Y[np.isnan(self.img_st_mag_cut_1)] = np.nan
-                            Y = np.rot90(Y, 3)
-
-                            colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_st_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
                             
-                            self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
+                            self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
                             
+                            colors_2 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_st_mag_cut_1_norm, 0, 1))
+                            colors_2[self.img_st_mag_cut_2 < params.imageminimum, 3] = 0
+                            
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, shade=False, edgecolor='none')
+                            
+                        self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+                        self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        
+                        del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Y, Z, colors_2
+                        
                     else:
+                        #Contour Plot
                         self.img_st_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
                         
-                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
-                        Y = np.array(np.zeros((params.nPE, params.nPE)))
+                        X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        
+                        levels = np.linspace(params.imageminimum, params.imagemaximum, 10)
                         
                         for n in range(params.motor_image_count):
-                            self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE]
-                            self.img_st_mag_cut[self.img_st_mag_cut > params.imagemaximum] = params.imagemaximum
-                            self.img_st_mag_cut[self.img_st_mag_cut < params.imageminimum] = params.imageminimum
+                            self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
                             
-                            Y[:, :] = self.img_st_mag_cut[:, :]
-                            Y = (Y - params.imageminimum) / (params.imagemaximum - params.imageminimum)
-                            
-                            colors_1 = np.linspace(0,1,num=11)
-                            colors_1[colors_1 < np.min(Y)] = np.nan
-                            colors_1[colors_1 > np.max(Y)] = np.nan
-                            colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
-                            
-                            self.IMag_ax.contour(Y, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
+                            self.IMag_ax.contour(self.img_st_mag_cut, Z, X, zdir='x', offset=self.image_positions[n], levels=levels, cmap=params.imagecolormap, extend='neither')
                         
-                    self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
-                    self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+                        self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+                        
+                        del self.img_st_mag_cut, X, Z, levels
                     
                     if params.image_grid == 1:
                         if params.motor_total_image_length <= 20:
@@ -6632,9 +6718,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.IMag_ax.grid(True)
                         
                         if params.imageorientation == 'ZX':
-                            self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
+                            self.IMag_ax.set(xlabel='Y$_{PB}$',ylabel='Z', zlabel='X')
                         elif params.imageorientation == 'XZ':
-                            self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
+                            self.IMag_ax.set(xlabel='Y$_{PB}$',ylabel='X', zlabel='Z')
                     else:
                         self.IMag_ax.axis('off')
                         
@@ -6963,165 +7049,275 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                 
                 self.IMag_ax = self.IMag_fig.add_subplot(111, projection='3d')
                 self.IMag_ax.grid(False)
-                self.IPha_ax = self.IPha_fig.add_subplot(111, projection='3d')
-                self.IPha_ax.grid(False)
+                #self.IPha_ax = self.IPha_fig.add_subplot(111, projection='3d')
+                #self.IPha_ax.grid(False)
                 self.kMag_ax = self.kMag_fig.add_subplot(111, projection='3d')
                 self.kMag_ax.grid(False)
-                self.kPha_ax = self.kPha_fig.add_subplot(111, projection='3d')
-                self.kPha_ax.grid(False) 
+                #self.kPha_ax = self.kPha_fig.add_subplot(111, projection='3d')
+                #self.kPha_ax.grid(False) 
                 
                 if params.projection3D_quality == 1:
+                    #Surface Plot
                     self.img_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
                     self.img_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_kmag_cut = np.array(np.zeros((params.k_amp.shape[1], params.k_amp.shape[2])))
-                    self.img_kpha_cut = np.array(np.zeros((params.k_amp.shape[1], params.k_amp.shape[2])))
-                   
-                    X1, Z1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
-                    X2, Z2 = np.meshgrid(np.linspace(0, params.k_amp.shape[1], params.k_amp.shape[1]),np.linspace(0, params.k_amp.shape[2], params.k_amp.shape[2]))
+                    #self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_pha_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        X1, Y1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        X2, Y2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        Y1, Z1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Y2, Z2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        Z1, X1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Z2, X2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
                     
-                    print(X2.shape)
-                    print(Z2.shape)
+                    cols_per_bin = params.k_amp.shape[2] // params.nPE
+                    cols_total = params.nPE * (params.k_amp.shape[2] // params.nPE)
+                    start_idx = (params.k_amp.shape[2] - cols_total) // 2
+                    end_idx = start_idx + cols_total
                     
                     for n in range(params.img_mag.shape[0]):
-                        self.img_mag_cut_1[:, :] = params.img_mag[n, :, :]
-                        self.img_mag_cut_1[self.img_mag_cut_1 < params.imageminimum] = np.nan
-                        self.img_mag_cut_2[:, :] = params.img_mag[n, :, :]
+                        self.img_mag_cut_1[:, :] = params.img_mag[n, :, :].copy()
+                        self.img_mag_cut_1[self.img_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+                        self.img_mag_cut_1[self.img_mag_cut_1 < params.imageminimum] = params.imageminimum
+                        self.img_mag_cut_2[:, :] = params.img_mag[n, :, :].copy()
                         self.img_mag_cut_2[self.img_mag_cut_2 > params.imagemaximum] = params.imagemaximum
-                        self.img_mag_cut_2[self.img_mag_cut_2 < params.imageminimum] = params.imageminimum
-                        self.img_pha_cut[:, :] = params.img_pha[n, :, :]
-                        self.img_pha_cut[self.img_mag_cut_1 < params.imageminimum] = np.nan
-                        self.img_kmag_cut[:, :] = params.k_amp[n, :, :]
-                        self.img_kpha_cut[:, :] = params.k_pha[n, :, :]
+                        #self.img_pha_cut[:, :] = params.img_pha[n, :, :].copy()
+                        self.img_kmag_cut[:, :] = params.k_amp[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
+                        #self.img_kpha_cut[:, :] = params.k_pha[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
                         
-                        Y1 = np.full_like(X1, self.image_positions[n])
-                        Y1[np.isnan(self.img_mag_cut_1)] = np.nan
-                        Y1 = np.rot90(Y1, 3)
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            Z1 = np.full_like(X1, self.image_positions[n])
+                            Z2 = np.full_like(X2, n+1)
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                            X1 = np.full_like(Y1, self.image_positions[n])
+                            X2 = np.full_like(Y2, n+1)
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                            Y1 = np.full_like(Z1, self.image_positions[n])
+                            Y2 = np.full_like(Z2, n+1)
                         
-                        Y2 = np.full_like(X2, n+1)
-                        #Y2 = np.rot90(Y2, 3)
-                        
-                        print(Y2.shape)
+                        self.img_mag_cut_1_norm = (self.img_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
+                        #self.img_pha_cut_norm = (self.img_pha_cut - self.img_pha_cut.min()) / (self.img_pha_cut.max() - self.img_pha_cut.min())
+                        self.img_kmag_cut_norm = (self.img_kmag_cut - self.img_kmag_cut) / (self.img_kmag_cut.max() - self.img_kmag_cut.min())
+                        #self.img_kpha_cut_norm = (self.img_kpha_cut - self.img_kpha_cut.min()) / (self.img_kpha_cut.max() - self.img_kpha_cut.min())
 
-                        colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
-                        colors_2 = plt.get_cmap('gray')((np.rot90(self.img_pha_cut, 3) - np.min(params.img_pha))/(np.max(params.img_pha) - np.min(params.img_pha)))
-                        colors_3 = plt.get_cmap('inferno')((np.rot90(self.img_kmag_cut, 3) - np.min(params.k_amp))/(np.max(params.k_amp) - np.min(params.k_amp)))
-                        colors_4 = plt.get_cmap('inferno')((np.rot90(self.img_kpha_cut, 3) - np.min(params.k_pha))/(np.max(params.k_pha) - np.min(params.k_pha)))
+                        colors_1 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_mag_cut_1_norm, 0, 1))
+                        colors_1[self.img_mag_cut_2 < params.imageminimum, 3] = 0
+                        #colors_2 = plt.get_cmap('gray')(np.clip(self.img_pha_cut_norm, 0, 1))
+                        #colors_2[self.img_mag_cut_2 < params.imageminimum, 3] = 0
+                        colors_3 = plt.get_cmap('inferno')(np.clip((self.img_kmag_cut - params.k_amp.min()) / (params.k_amp.max() - params.k_amp.min()), 0, 1))
+                        colors_3[self.img_kmag_cut < 0.1*params.k_amp.max(), 3] = 0
+                        #colors_4 = plt.get_cmap('inferno')(np.clip((self.img_kpha_cut - params.k_pha.min()) / (params.k_pha.max() - params.k_pha.min()), 0, 1))
                         
-                        print(colors_3.shape)
-                        
-                        self.IMag_ax.plot_surface(Y1, Z1, X1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
-                        self.IPha_ax.plot_surface(Y1, Z1, X1, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, linewidth=0)
-                        self.kMag_ax.plot_surface(Y2, Z2, X2, rcount=params.nPE, ccount=params.nPE, facecolors=colors_3, antialiased=False, linewidth=0)
-                        self.kPha_ax.plot_surface(Y2, Z2, X2, rcount=params.nPE, ccount=params.nPE, facecolors=colors_4, antialiased=False, linewidth=0)
-                        
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':    
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':    
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                                                         
                 else:
+                    #Contour Plot
                     self.img_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
-                    self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut = np.array(np.zeros((params.nPE, params.nPE)))
                     
-                    X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
-                    Y1 = np.array(np.zeros((params.nPE, params.nPE)))
-                    Y2 = np.array(np.zeros((params.nPE, params.nPE)))
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        X1, Y1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        X2, Y2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        Y1, Z1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Y2, Z2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        Z1, X1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Z2, X2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    
+                    levels1 = np.linspace(params.imageminimum, params.imagemaximum, 20)
+                    #levels2 = np.linspace(params.img_pha.min(), params.pha_mag.max(), 20)
+                    levels3 = np.linspace(params.k_amp.min(), params.k_amp.max(), 20)
+                    #levels4 = np.linspace(params.k_pha.min(), params.k_pha.max(), 20)
+                    
+                    cols_per_bin = params.k_amp.shape[2] // params.nPE
+                    cols_total = params.nPE * (params.k_amp.shape[2] // params.nPE)
+                    start_idx = (params.k_amp.shape[2] - cols_total) // 2
+                    end_idx = start_idx + cols_total
                     
                     for n in range(params.img_mag.shape[0]):
-                        self.img_mag_cut[:, :] = params.img_mag[n, :, :]
-                        self.img_mag_cut[self.img_mag_cut > params.imagemaximum] = params.imagemaximum
-                        self.img_mag_cut[self.img_mag_cut < params.imageminimum] = params.imageminimum
-                        self.img_pha_cut[:, :] = params.img_pha[n, :, :]
+                        self.img_mag_cut[:, :] = params.img_mag[n, :, :].copy()
+                        #self.img_pha_cut[:, :] = params.img_pha[n, :, :].copy()
+                        self.img_kmag_cut[:, :] = params.k_amp[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
+                        #self.img_kpha_cut[:, :] = params.k_pha[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
                         
-                        Y1[:, :] = self.img_mag_cut[:, :]
-                        Y1 = (Y1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
-                        Y2[:, :] = self.img_pha_cut[:, :]
-                        Y2 = (Y2 - np.min(params.img_pha)) / (np.max(params.img_pha) - np.min(params.img_pha))
-                        
-                        colors_1 = np.linspace(0,1,num=11)
-                        colors_1[colors_1 < np.min(Y1)] = np.nan
-                        colors_1[colors_1 > np.max(Y1)] = np.nan
-                        colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
-                        colors_3 = np.linspace(0,1,num=11)
-                        colors_4 = plt.get_cmap('gray')(colors_3)
-                        
-                        self.IMag_ax.contour(Y1, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
-                        self.IPha_ax.contour(Y2, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_4)
-                    
-                self.IMag_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
-                self.IMag_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
-                self.IPha_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
-                self.IPha_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
-                self.kMag_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
-                self.kMag_ax.set_xlim([1, (params.img_mag.shape[0]+1)])
-                self.kPha_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
-                self.kPha_ax.set_xlim([1, (params.img_mag.shape[0]+1)])
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            self.IMag_ax.contour(X1, Y1, self.img_mag_cut, zdir='z', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(X1, Y1, self.img_pha_cut, zdir='z', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(X2, Y2, self.img_kmag_cut, zdir='z', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(X2, Y2, self.img_kpha_cut, zdir='z', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                            self.IMag_ax.contour(self.img_mag_cut, Y1, Z1, zdir='x', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(self.img_pha_cut, Y1, Z1, zdir='x', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(self.img_kmag_cut, Y2, Z2, zdir='x', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(self.img_kpha_cut, Y2, Z2, zdir='x', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                            self.IMag_ax.contour(X1, self.img_mag_cut, Z1, zdir='y', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(X1, self.img_pha_cut, Z1, zdir='y', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(X2, self.img_kmag_cut, Z2, zdir='y', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(X2, self.img_kpha_cut, Z2, zdir='y', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                
+                if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                    self.IMag_ax.set_box_aspect([1, 1, params.slicethickness/params.FOV])
+                    self.IMag_ax.set_zlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([1, 1, params.slicethickness/params.FOV])
+                    #self.IPha_ax.set_zlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([1, 1, params.img_mag.shape[0]/params.FOV])
+                    self.kMag_ax.set_zlim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([1, 1, params.img_mag.shape[0]/params.FOV])
+                    #self.kPha_ax.set_zlim([1, (params.img_mag.shape[0])])
+                elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                    self.IMag_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
+                    self.IMag_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    #self.IPha_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    self.kMag_ax.set_xlim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    #self.kPha_ax.set_xlim([1, (params.img_mag.shape[0])])
+                elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                    self.IMag_ax.set_box_aspect([1, params.slicethickness/params.FOV, 1])
+                    self.IMag_ax.set_ylim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([1, params.slicethickness/params.FOV, 1])
+                    #self.IPha_ax.set_ylim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([1, params.img_mag.shape[0]/params.FOV, 1])
+                    self.kMag_ax.set_ylim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([1, params.img_mag.shape[0]/params.FOV, 1])
+                    #self.kPha_ax.set_ylim([1, (params.img_mag.shape[0])])
                 
                 if params.image_grid == 1:
-                    self.x_major_ticks = self.image_positions
-                    if params.FOV <= 10: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
-                    elif params.FOV > 10 and params.FOV <= 20: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 2, 2)
-                    else: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 4, 4)
+                    self.major_ticks_1 = self.image_positions
                     
+                    if params.FOV <= 10: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
+                    elif params.FOV > 10 and params.FOV <= 20: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 2, 2)
+                    else: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 4, 4)
+                    
+                    if params.k_amp.shape[2]/250 <= 10: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 1, 1)
+                    elif params.k_amp.shape[2]/250 > 10 and params.k_amp.shape[2]/250 <= 20: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 2, 2)
+                    else: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 4, 4)
+                    
+                    if params.nPE <= 10: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2 + 1, 1)
+                    elif params.nPE > 10 and params.nPE <= 20: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2 + 2, 2)
+                    else: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2  + 4, 4)
+                    
+                    self.major_ticks_5 = np.arange(1, params.img_mag.shape[0] + 1, 1)
+                  
                     self.IMag_ax.axis('on')
-                    self.IMag_ax.set_xticks(self.x_major_ticks)
-                    self.IMag_ax.set_yticks(self.y_major_ticks)
+                    #self.IPha_ax.axis('on')
+                    self.IMag_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
+                    #self.IPha_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
+                    
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        self.IMag_ax.set_xticks(self.major_ticks_2)
+                        self.IMag_ax.set_yticks(self.major_ticks_2)
+                        self.IMag_ax.set_zticks(self.major_ticks_1)
+                        #self.IPha_ax.set_xticks(self.major_ticks_2)
+                        #self.IPha_ax.set_yticks(self.major_ticks_2)
+                        #self.IPha_ax.set_zticks(self.major_ticks_1)
+                        self.kMag_ax.set(xlabel='Sample', ylabel='Phase Encoding Step', zlabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(xlabel='Sample', ylabel='Phase Encoding Step', zlabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_3)
+                        self.kMag_ax.set_yticks(self.major_ticks_4)
+                        self.kMag_ax.set_zticks(self.major_ticks_5)
+                        #self.kPha_ax.set_xticks(self.major_ticks_3)
+                        #self.kPha_ax.set_yticks(self.major_ticks_4)
+                        #self.kPha_ax.set_zticks(self.major_ticks_5)
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        self.IMag_ax.set_yticks(self.major_ticks_2)
+                        self.IMag_ax.set_zticks(self.major_ticks_2)
+                        self.IMag_ax.set_xticks(self.major_ticks_1)
+                        #self.IPha_ax.set_yticks(self.major_ticks_2)
+                        #self.IPha_ax.set_zticks(self.major_ticks_2)
+                        #self.IPha_ax.set_xticks(self.major_ticks_1)
+                        self.kMag_ax.set(ylabel='Sample', zlabel='Phase Encoding Step', xlabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(ylabel='Sample', zlabel='Phase Encoding Step', xlabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_5)
+                        self.kMag_ax.set_yticks(self.major_ticks_3)
+                        self.kMag_ax.set_zticks(self.major_ticks_4)
+                        #self.kPha_ax.set_xticks(self.major_ticks_5)
+                        #self.kPha_ax.set_yticks(self.major_ticks_3)
+                        #self.kPha_ax.set_zticks(self.major_ticks_4)
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        self.IMag_ax.set_zticks(self.major_ticks_2)
+                        self.IMag_ax.set_xticks(self.major_ticks_2)
+                        self.IMag_ax.set_yticks(self.major_ticks_1)
+                        #self.IPha_ax.set_zticks(self.major_ticks_2)
+                        #self.IPha_ax.set_xticks(self.major_ticks_2)
+                        #self.IPha_ax.set_yticks(self.major_ticks_1)
+                        self.kMag_ax.set(zlabel='Sample', xlabel='Phase Encoding Step', ylabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(zlabel='Sample', xlabel='Phase Encoding Step', ylabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_4)
+                        self.kMag_ax.set_yticks(self.major_ticks_5)
+                        self.kMag_ax.set_zticks(self.major_ticks_3)
+                        #self.kPha_ax.set_xticks(self.major_ticks_4)
+                        #self.kPha_ax.set_yticks(self.major_ticks_5)
+                        #self.kPha_ax.set_zticks(self.major_ticks_3) 
+                        
                     self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                     self.IMag_ax.grid(which='major', visible=True)
                     self.IMag_ax.grid(True)
-                    self.IPha_ax.axis('on')
-                    self.IPha_ax.set_xticks(self.x_major_ticks)
-                    self.IPha_ax.set_yticks(self.y_major_ticks)
-                    self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-                    self.IPha_ax.grid(which='major', visible=True)
-                    self.IPha_ax.grid(True)
+                    #self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                    #self.IPha_ax.grid(which='major', visible=True)
+                    #self.IPha_ax.grid(True)
                     self.kMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                     self.kMag_ax.grid(which='major', visible=True)
                     self.kMag_ax.grid(True)
-                    self.kPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-                    self.kPha_ax.grid(which='major', visible=True)
-                    self.kPha_ax.grid(True)
-                    
-                    if params.imageorientation == 'XY':
-                        self.IMag_ax.set(xlabel='Z',ylabel='X', zlabel='Y')
-                        self.IPha_ax.set(xlabel='Z',ylabel='X', zlabel='Y')
-                    elif params.imageorientation == 'YX':
-                        self.IMag_ax.set(xlabel='Z',ylabel='Y', zlabel='X')
-                        self.IPha_ax.set(xlabel='Z',ylabel='Y', zlabel='X')
-                    elif params.imageorientation == 'YZ':
-                        self.IMag_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
-                        self.IPha_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
-                    elif params.imageorientation == 'ZY':
-                        self.IMag_ax.set(xlabel='X',ylabel='Z', zlabel='Y')
-                        self.IPha_ax.set(xlabel='X',ylabel='Z', zlabel='Y')
-                    elif params.imageorientation == 'ZX':
-                        self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
-                        self.IPha_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
-                    elif params.imageorientation == 'XZ':
-                        self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
-                        self.IPha_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
-                    
-                    self.kMag_ax.set(xlabel='3D Phase Encoding Step',ylabel='Sample', zlabel='Phase Encoding Step')
-                    self.kPha_ax.set(xlabel='3D Phase Encoding Step',ylabel='Sample', zlabel='Phase Encoding Step')
-                    
+                    #self.kPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                    #self.kPha_ax.grid(which='major', visible=True)
+                    #self.kPha_ax.grid(True)
+
                 else:
                     self.IMag_ax.axis('off')
-                    self.IPha_ax.axis('off')
+                    #self.IPha_ax.axis('off')
                     self.kMag_ax.axis('off')
-                    self.kPha_ax.axis('off')
+                    #self.kPha_ax.axis('off')
                     
                 self.IMag_canvas.draw()
                 self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
                 self.IMag_canvas.setGeometry(420, 40, 575, 455)
                 self.IMag_canvas.show()
-                self.IPha_canvas.draw()
-                self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-                self.IPha_canvas.setGeometry(1005, 40, 575, 455)
-                self.IPha_canvas.show()
+                #self.IPha_canvas.draw()
+                #self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                #self.IPha_canvas.setGeometry(1005, 40, 575, 455)
+                #self.IPha_canvas.show()
                 self.kMag_canvas.draw()
                 self.kMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
                 self.kMag_canvas.setGeometry(420, 535, 575, 455)
                 self.kMag_canvas.show()
-                self.kPha_canvas.draw()
-                self.kPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-                self.kPha_canvas.setGeometry(1005, 535, 575, 455)
-                self.kPha_canvas.show()
+                #self.kPha_canvas.draw()
+                #self.kPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                #self.kPha_canvas.setGeometry(1005, 535, 575, 455)
+                #self.kPha_canvas.show()
                     
             else:
                 self.IMag_fig = Figure()
@@ -7252,82 +7448,261 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_fig.set_facecolor('None')
             
             if params.projection3D == 1:
-                self.IMag_ax = self.all_fig.add_subplot(111, projection='3d')
+                self.IMag_ax = self.all_fig.add_subplot(211, projection='3d')
                 self.IMag_ax.grid(False)
+                #self.IPha_ax = self.all_fig.add_subplot(222, projection='3d')
+                #self.IPha_ax.grid(False)
+                self.kMag_ax = self.all_fig.add_subplot(212, projection='3d')
+                self.kMag_ax.grid(False)
+                #self.kPha_ax = self.all_fig.add_subplot(224, projection='3d')
+                #self.kPha_ax.grid(False)
                 
                 if params.projection3D_quality == 1:
+                    #Surface Plot
                     self.img_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
                     self.img_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
-                   
-                    X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
+                    #self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_pha_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut_norm = np.array(np.zeros((params.nPE, params.nPE)))
+                
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        X1, Y1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        X2, Y2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        Y1, Z1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Y2, Z2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        Z1, X1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Z2, X2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    
+                    cols_per_bin = params.k_amp.shape[2] // params.nPE
+                    cols_total = params.nPE * (params.k_amp.shape[2] // params.nPE)
+                    start_idx = (params.k_amp.shape[2] - cols_total) // 2
+                    end_idx = start_idx + cols_total
                     
                     for n in range(params.img_mag.shape[0]):
-                        self.img_mag_cut_1[:, :] = params.img_mag[n, :, :]
-                        self.img_mag_cut_1[self.img_mag_cut_1 < params.imageminimum] = np.nan
-                        self.img_mag_cut_2[:, :] = params.img_mag[n, :, :]
+                        self.img_mag_cut_1[:, :] = params.img_mag[n, :, :].copy()
+                        self.img_mag_cut_1[self.img_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+                        self.img_mag_cut_1[self.img_mag_cut_1 < params.imageminimum] = params.imageminimum
+                        self.img_mag_cut_2[:, :] = params.img_mag[n, :, :].copy()
                         self.img_mag_cut_2[self.img_mag_cut_2 > params.imagemaximum] = params.imagemaximum
-                        self.img_mag_cut_2[self.img_mag_cut_2 < params.imageminimum] = params.imageminimum
+                        #self.img_pha_cut[:, :] = params.img_pha[n, :, :].copy()
+                        self.img_kmag_cut[:, :] = params.k_amp[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
+                        #self.img_kpha_cut[:, :] = params.k_pha[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
                         
-                        Y = np.full_like(X, self.image_positions[n])
-                        Y[np.isnan(self.img_mag_cut_1)] = np.nan
-                        Y = np.rot90(Y, 3)
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            Z1 = np.full_like(X1, self.image_positions[n])
+                            Z2 = np.full_like(X2, n+1)
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                            X1 = np.full_like(Y1, self.image_positions[n])
+                            X2 = np.full_like(Y2, n+1)
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                            Y1 = np.full_like(Z1, self.image_positions[n])
+                            Y2 = np.full_like(Z2, n+1)
+                        
+                        self.img_mag_cut_1_norm = (self.img_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
+                        #self.img_pha_cut_norm = (self.img_pha_cut - self.img_pha_cut.min()) / (self.img_pha_cut.max() - self.img_pha_cut.min())
+                        self.img_kmag_cut_norm = (self.img_kmag_cut - self.img_kmag_cut) / (self.img_kmag_cut.max() - self.img_kmag_cut.min())
+                        #self.img_kpha_cut_norm = (self.img_kpha_cut - self.img_kpha_cut.min()) / (self.img_kpha_cut.max() - self.img_kpha_cut.min())
 
-                        colors_1 = plt.get_cmap(params.imagecolormap)((np.rot90(self.img_mag_cut_2, 3) - params.imageminimum)/(params.imagemaximum - params.imageminimum))
+                        colors_1 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_mag_cut_1_norm, 0, 1))
+                        colors_1[self.img_mag_cut_2 < params.imageminimum, 3] = 0
+                        #colors_2 = plt.get_cmap('gray')(np.clip(self.img_pha_cut_norm, 0, 1))
+                        #colors_2[self.img_mag_cut_2 < params.imageminimum, 3] = 0
+                        colors_3 = plt.get_cmap('inferno')(np.clip((self.img_kmag_cut - params.k_amp.min()) / (params.k_amp.max() - params.k_amp.min()), 0, 1))
+                        colors_3[self.img_kmag_cut < 0.1*params.k_amp.max(), 3] = 0
+                        #colors_4 = plt.get_cmap('inferno')(np.clip((self.img_kpha_cut - params.k_pha.min()) / (params.k_pha.max() - params.k_pha.min()), 0, 1))
                         
-                        self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, linewidth=0)
-                        
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':    
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':    
+                            if params.imagefilter == 1: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=True, shade=False, edgecolor='none')
+                            else: self.IMag_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_1, antialiased=False, shade=False, edgecolor='none')
+                            #if params.imagefilter == 1: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            #else: self.IPha_ax.plot_surface(X1, Y1, Z1, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+                            self.kMag_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_3, antialiased=True, shade=False, edgecolor='none')
+                            #self.kPha_ax.plot_surface(X2, Y2, Z2, rcount=params.nPE+1, ccount=params.nPE+1, facecolors=colors_4, antialiased=True, shade=False, edgecolor='none')
+                                                         
                 else:
+                    #Contour Plot
                     self.img_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_pha_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    self.img_kmag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+                    #self.img_kpha_cut = np.array(np.zeros((params.nPE, params.nPE)))
                     
-                    X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(-params.FOV/2, params.FOV/2, params.nPE))
-                    Y = np.array(np.zeros((params.nPE, params.nPE)))
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        X1, Y1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        X2, Y2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        Y1, Z1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Y2, Z2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        Z1, X1 = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+                        Z2, X2 = np.meshgrid(np.linspace(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2, params.nPE),np.linspace(params.nPE/2, -params.nPE/2, params.nPE))
+                    
+                    levels1 = np.linspace(params.imageminimum, params.imagemaximum, 20)
+                    #levels2 = np.linspace(params.img_pha.min(), params.pha_mag.max(), 20)
+                    levels3 = np.linspace(params.k_amp.min(), params.k_amp.max(), 20)
+                    #levels4 = np.linspace(params.k_pha.min(), params.k_pha.max(), 20)
+                    
+                    cols_per_bin = params.k_amp.shape[2] // params.nPE
+                    cols_total = params.nPE * (params.k_amp.shape[2] // params.nPE)
+                    start_idx = (params.k_amp.shape[2] - cols_total) // 2
+                    end_idx = start_idx + cols_total
                     
                     for n in range(params.img_mag.shape[0]):
-                        self.img_mag_cut[:, :] = params.img_mag[n, :, :]
-                        self.img_mag_cut[self.img_mag_cut > params.imagemaximum] = params.imagemaximum
-                        self.img_mag_cut[self.img_mag_cut < params.imageminimum] = params.imageminimum
+                        self.img_mag_cut[:, :] = params.img_mag[n, :, :].copy()
+                        #self.img_pha_cut[:, :] = params.img_pha[n, :, :].copy()
+                        self.img_kmag_cut[:, :] = params.k_amp[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
+                        #self.img_kpha_cut[:, :] = params.k_pha[n, :, start_idx:end_idx].copy().reshape(params.nPE, params.nPE, cols_per_bin).mean(axis=2)
                         
-                        Y[:, :] = self.img_mag_cut[:, :]
-                        Y = (Y - params.imageminimum) / (params.imagemaximum - params.imageminimum)
-                        
-                        colors_1 = np.linspace(0,1,num=11)
-                        colors_1[colors_1 < np.min(Y)] = np.nan
-                        colors_1[colors_1 > np.max(Y)] = np.nan
-                        colors_2 = plt.get_cmap(params.imagecolormap)(colors_1)
-                        
-                        self.IMag_ax.contour(Y, Z, X, zdir='x', offset=self.image_positions[n], colors=colors_2)
-                    
-                self.IMag_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
-                self.IMag_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                        if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                            self.IMag_ax.contour(X1, Y1, self.img_mag_cut, zdir='z', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(X1, Y1, self.img_pha_cut, zdir='z', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(X2, Y2, self.img_kmag_cut, zdir='z', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(X2, Y2, self.img_kpha_cut, zdir='z', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                            self.IMag_ax.contour(self.img_mag_cut, Y1, Z1, zdir='x', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(self.img_pha_cut, Y1, Z1, zdir='x', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(self.img_kmag_cut, Y2, Z2, zdir='x', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(self.img_kpha_cut, Y2, Z2, zdir='x', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                            self.IMag_ax.contour(X1, self.img_mag_cut, Z1, zdir='y', offset=self.image_positions[n], levels=levels1, cmap=params.imagecolormap, extend='neither')
+                            #self.IPha_ax.contour(X1, self.img_pha_cut, Z1, zdir='y', offset=self.image_positions[n], levels=levels2, cmap='gray', extend='neither')
+                            self.kMag_ax.contour(X2, self.img_kmag_cut, Z2, zdir='y', offset=n+1, levels=levels3, cmap='inferno', extend='neither')
+                            #self.kPha_ax.contour(X2, self.img_kpha_cut, Z2, zdir='y', offset=n+1, levels=levels4, cmap='inferno', extend='neither')
+                
+                if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                    self.IMag_ax.set_box_aspect([1, 1, params.slicethickness/params.FOV])
+                    self.IMag_ax.set_zlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([1, 1, params.slicethickness/params.FOV])
+                    #self.IPha_ax.set_zlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([1, 1, params.img_mag.shape[0]/params.FOV])
+                    self.kMag_ax.set_zlim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([1, 1, params.img_mag.shape[0]/params.FOV])
+                    #self.kPha_ax.set_zlim([1, (params.img_mag.shape[0])])
+                elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                    self.IMag_ax.set_box_aspect([params.slicethickness/params.FOV, 1, 1])
+                    self.IMag_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    #self.IPha_ax.set_xlim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    self.kMag_ax.set_xlim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([params.img_mag.shape[0]/params.FOV, 1, 1])
+                    #self.kPha_ax.set_xlim([1, (params.img_mag.shape[0])])
+                elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                    self.IMag_ax.set_box_aspect([1, params.slicethickness/params.FOV, 1])
+                    self.IMag_ax.set_ylim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    #self.IPha_ax.set_box_aspect([1, params.slicethickness/params.FOV, 1])
+                    #self.IPha_ax.set_ylim([(-params.slicethickness/2), (params.slicethickness/2)])
+                    self.kMag_ax.set_box_aspect([1, params.img_mag.shape[0]/params.FOV, 1])
+                    self.kMag_ax.set_ylim([1, (params.img_mag.shape[0])])
+                    #self.kPha_ax.set_box_aspect([1, params.img_mag.shape[0]/params.FOV, 1])
+                    #self.kPha_ax.set_ylim([1, (params.img_mag.shape[0])])
                 
                 if params.image_grid == 1:
-                    self.x_major_ticks = self.image_positions
-                    if params.FOV <= 10: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
-                    elif params.FOV > 10 and params.FOV <= 20: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 2, 2)
-                    else: self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 4, 4)
+                    self.major_ticks_1 = self.image_positions
                     
+                    if params.FOV <= 10: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
+                    elif params.FOV > 10 and params.FOV <= 20: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 2, 2)
+                    else: self.major_ticks_2 = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 4, 4)
+                    
+                    if params.k_amp.shape[2]/250 <= 10: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 1, 1)
+                    elif params.k_amp.shape[2]/250 > 10 and params.k_amp.shape[2]/250 <= 20: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 2, 2)
+                    else: self.major_ticks_3 = np.arange(-(params.k_amp.shape[2]/250)/2, (params.k_amp.shape[2]/250)/2 + 4, 4)
+                    
+                    if params.nPE <= 10: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2 + 1, 1)
+                    elif params.nPE > 10 and params.nPE <= 20: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2 + 2, 2)
+                    else: self.major_ticks_4 = np.arange(-params.nPE/2, params.nPE/2  + 4, 4)
+                    
+                    self.major_ticks_5 = np.arange(1, params.img_mag.shape[0] + 1, 1)
+                  
                     self.IMag_ax.axis('on')
-                    self.IMag_ax.set_xticks(self.x_major_ticks)
-                    self.IMag_ax.set_yticks(self.y_major_ticks)
+                    #self.IPha_ax.axis('on')
+                    self.IMag_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
+                    #self.IPha_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
+                    
+                    if params.imageorientation == 'XY' or params.imageorientation == 'YX':
+                        self.IMag_ax.set_xticks(self.major_ticks_2)
+                        self.IMag_ax.set_yticks(self.major_ticks_2)
+                        self.IMag_ax.set_zticks(self.major_ticks_1)
+                        #self.IPha_ax.set_xticks(self.major_ticks_2)
+                        #self.IPha_ax.set_yticks(self.major_ticks_2)
+                        #self.IPha_ax.set_zticks(self.major_ticks_1)
+                        self.kMag_ax.set(xlabel='Sample', ylabel='Phase Encoding Step', zlabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(xlabel='Sample', ylabel='Phase Encoding Step', zlabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_3)
+                        self.kMag_ax.set_yticks(self.major_ticks_4)
+                        self.kMag_ax.set_zticks(self.major_ticks_5)
+                        #self.kPha_ax.set_xticks(self.major_ticks_3)
+                        #self.kPha_ax.set_yticks(self.major_ticks_4)
+                        #self.kPha_ax.set_zticks(self.major_ticks_5)
+                    elif params.imageorientation == 'YZ' or params.imageorientation == 'ZY':
+                        self.IMag_ax.set_yticks(self.major_ticks_2)
+                        self.IMag_ax.set_zticks(self.major_ticks_2)
+                        self.IMag_ax.set_xticks(self.major_ticks_1)
+                        #self.IPha_ax.set_yticks(self.major_ticks_2)
+                        #self.IPha_ax.set_zticks(self.major_ticks_2)
+                        #self.IPha_ax.set_xticks(self.major_ticks_1)
+                        self.kMag_ax.set(ylabel='Sample', zlabel='Phase Encoding Step', xlabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(ylabel='Sample', zlabel='Phase Encoding Step', xlabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_5)
+                        self.kMag_ax.set_yticks(self.major_ticks_3)
+                        self.kMag_ax.set_zticks(self.major_ticks_4)
+                        #self.kPha_ax.set_xticks(self.major_ticks_5)
+                        #self.kPha_ax.set_yticks(self.major_ticks_3)
+                        #self.kPha_ax.set_zticks(self.major_ticks_4)
+                    elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                        self.IMag_ax.set_zticks(self.major_ticks_2)
+                        self.IMag_ax.set_xticks(self.major_ticks_2)
+                        self.IMag_ax.set_yticks(self.major_ticks_1)
+                        #self.IPha_ax.set_zticks(self.major_ticks_2)
+                        #self.IPha_ax.set_xticks(self.major_ticks_2)
+                        #self.IPha_ax.set_yticks(self.major_ticks_1)
+                        self.kMag_ax.set(zlabel='Sample', xlabel='Phase Encoding Step', ylabel='3D Phase Encoding Step')
+                        #self.kPha_ax.set(zlabel='Sample', xlabel='Phase Encoding Step', ylabel='3D Phase Encoding Step')
+                        self.kMag_ax.set_xticks(self.major_ticks_4)
+                        self.kMag_ax.set_yticks(self.major_ticks_5)
+                        self.kMag_ax.set_zticks(self.major_ticks_3)
+                        #self.kPha_ax.set_xticks(self.major_ticks_4)
+                        #self.kPha_ax.set_yticks(self.major_ticks_5)
+                        #self.kPha_ax.set_zticks(self.major_ticks_3) 
+                        
                     self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                     self.IMag_ax.grid(which='major', visible=True)
                     self.IMag_ax.grid(True)
-                    
-                    if params.imageorientation == 'XY':
-                        self.IMag_ax.set(xlabel='Z',ylabel='X', zlabel='Y')
-                    elif params.imageorientation == 'YX':
-                        self.IMag_ax.set(xlabel='Z',ylabel='Y', zlabel='X')
-                    elif params.imageorientation == 'YZ':
-                        self.IMag_ax.set(xlabel='X',ylabel='Y', zlabel='Z')
-                    elif params.imageorientation == 'ZY':
-                        self.IMag_ax.set(xlabel='X',ylabel='Z', zlabel='Y')
-                    elif params.imageorientation == 'ZX':
-                        self.IMag_ax.set(xlabel='Y',ylabel='Z', zlabel='X')
-                    elif params.imageorientation == 'XZ':
-                        self.IMag_ax.set(xlabel='Y',ylabel='X', zlabel='Z')
+                    #self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                    #self.IPha_ax.grid(which='major', visible=True)
+                    #self.IPha_ax.grid(True)
+                    self.kMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                    self.kMag_ax.grid(which='major', visible=True)
+                    self.kMag_ax.grid(True)
+                    #self.kPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                    #self.kPha_ax.grid(which='major', visible=True)
+                    #self.kPha_ax.grid(True)
+
                 else:
                     self.IMag_ax.axis('off')
-            
+                    #self.IPha_ax.axis('off')
+                    self.kMag_ax.axis('off')
+                    #self.kPha_ax.axis('off')
+                                
             else:
                 gs = GridSpec(4, params.img_mag.shape[0], figure=self.all_fig)
                 
@@ -7419,6 +7794,8 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     self.kPha_ax.axis('off')
                     self.kPha_ax.set_aspect(1.0 / self.kPha_ax.get_data_ratio())
                     self.kPha_ax.set_title('k-Space Phase ' + str(n+1))
+                    
+            self.all_fig.tight_layout()
 
             self.all_canvas.draw()
             self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
@@ -7426,6 +7803,9 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.all_canvas.show()
 
     def imaging_stitching_3D_plot_init(self):
+        #self.image_positions_1 = np.linspace(-params.slicethickness/2 + (params.slicethickness/params.SPEsteps)/2, params.slicethickness/2 - (params.slicethickness/params.SPEsteps)/2, params.SPEsteps)
+        #self.image_positions_2 = np.linspace(params.motor_start_position, params.motor_end_position, num=params.motor_image_count)
+        
         if params.imagplots == 1:
             self.IMag_fig = Figure()
             self.IMag_canvas = FigureCanvas(self.IMag_fig)
@@ -7433,17 +7813,19 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
             self.IPha_fig = Figure()
             self.IPha_canvas = FigureCanvas(self.IPha_fig)
             self.IPha_fig.set_facecolor('None')
-            
-            for n in range(params.img_st_mag.shape[0]):
+                
+            if params.imageorientation == 'XY' or params.imageorientation == 'ZY' or params.imageorientation == 'YZ' or params.imageorientation == 'YX':
+                self.IMag_ax = self.IMag_fig.add_subplot(111)
+                self.IMag_ax.grid(False)
+                self.IPha_ax = self.IPha_fig.add_subplot(111)
+                self.IPha_ax.grid(False)
+                
+                self.FOV_1 = 0
+                self.FOV_2 = 0
+                self.FOV_2_start = 0
+                self.FOV_2_end = 0
+                
                 if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
-                    gs_IMag = GridSpec(1, params.img_st_mag.shape[0], figure=self.IMag_fig)
-                    gs_IPha = GridSpec(1, params.img_st_mag.shape[0], figure=self.IPha_fig)
-                    
-                    self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[0, n])
-                    self.IMag_ax.grid(False)
-                    self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[0, n])
-                    self.IPha_ax.grid(False)
-                    
                     self.FOV_1 = params.FOV
                     if params.motor_movement_step <= params.FOV:
                         self.FOV_2 = params.motor_total_image_length + params.motor_movement_step
@@ -7453,15 +7835,22 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.FOV_2 = params.motor_total_image_length + params.FOV
                         self.FOV_2_start = params.motor_start_position - params.FOV/2
                         self.FOV_2_end = params.motor_end_position + params.FOV/2
-                        
-                    if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
-                    else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
-                    if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
-                    else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                    
+                    if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                    else: self.IMag_ax.imshow(params.img_st_mag[:, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                    if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[:, :], interpolation='gaussian', cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                    else: self.IPha_ax.imshow(params.img_st_pha[:, :], cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
                     
                     if params.image_grid == 1:
-                        self.x_major_ticks = np.arange(math.ceil(-self.FOV_1 / 2), math.floor(self.FOV_1 / 2) + 1, 1)
-                        self.y_major_ticks = np.arange(math.ceil(self.FOV_2_start), math.floor(self.FOV_2_end) + 1, 1)
+                        if self.FOV_2 <= 20:
+                            self.x_major_ticks = np.arange(math.ceil(-self.FOV_1 / 2), math.floor(self.FOV_1 / 2) + 1, 1)
+                            self.y_major_ticks = np.arange(math.ceil(self.FOV_2_start), math.floor(self.FOV_2_end) + 1, 1)
+                        elif self.FOV_2 > 20 and self.FOV_2 <= 50:
+                            self.x_major_ticks = np.arange(math.ceil(-self.FOV_1 / 2), math.floor(self.FOV_1 / 2) + 2, 2)
+                            self.y_major_ticks = np.arange(math.ceil(self.FOV_2_start), math.floor(self.FOV_2_end) + 2, 2)
+                        else:
+                            self.x_major_ticks = np.arange(math.ceil(-self.FOV_1 / 2), math.floor(self.FOV_1 / 2) + 4, 4)
+                            self.y_major_ticks = np.arange(math.ceil(self.FOV_2_start), math.floor(self.FOV_2_end) + 5, 5)
                         
                         self.IMag_ax.axis('on')
                         self.IMag_ax.set_xticks(self.x_major_ticks)
@@ -7477,37 +7866,20 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         
                         if params.imageorientation == 'XY':
                             self.IMag_ax.set_xlabel('X in mm')
-                            self.IMag_ax.set_ylabel('Y in mm')
+                            self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_xlabel('X in mm')
-                            self.IPha_ax.set_ylabel('Y in mm')
+                            self.IPha_ax.set_ylabel('Y$_{PB}$ in mm')
                         elif params.imageorientation == 'ZY':
                             self.IMag_ax.set_xlabel('Z in mm')
-                            self.IMag_ax.set_ylabel('Y in mm')
+                            self.IMag_ax.set_ylabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_xlabel('Z in mm')
-                            self.IPha_ax.set_ylabel('Y in mm')
+                            self.IPha_ax.set_ylabel('Y$_{PB}$ in mm')
                         
                     else:
                         self.IMag_ax.axis('off')
                         self.IPha_ax.axis('off')
                         
-                    self.image_positions = np.linspace(-params.slicethickness/(params.SPEsteps/2)+(params.slicethickness/params.SPEsteps)/2, +params.slicethickness/(params.SPEsteps/2)-(params.slicethickness/params.SPEsteps)/2, params.SPEsteps)
-
-                    if params.autofreqoffset == 1:
-                        self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                    else:
-                        self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        
                 elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
-                    gs_IMag = GridSpec(params.img_st_mag.shape[0], 1, figure=self.IMag_fig)
-                    gs_IPha = GridSpec(params.img_st_mag.shape[0], 1, figure=self.IPha_fig)
-            
-                    self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[n, 0])
-                    self.IMag_ax.grid(False)
-                    self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[n, 0])
-                    self.IPha_ax.grid(False)
-                    
                     if params.motor_movement_step <= params.FOV:
                         self.FOV_1 = params.motor_total_image_length + params.motor_movement_step
                         self.FOV_1_start = params.motor_start_position - params.motor_movement_step/2
@@ -7518,16 +7890,22 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.FOV_1_end = params.motor_end_position + params.FOV/2
                     self.FOV_2 = params.FOV
                     
-                    if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
-                    else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
-                    if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
-                    else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
-                        
-                        
+                    if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[:, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                    else: self.IMag_ax.imshow(params.img_st_mag[:, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                    if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[:, :], interpolation='gaussian', cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                    else: self.IPha_ax.imshow(params.img_st_pha[:, :], cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                    
                     if params.image_grid == 1:
-                        self.x_major_ticks = np.arange(math.ceil(self.FOV_1_start), math.floor(self.FOV_1_end) + 1, 1)
-                        self.y_major_ticks = np.arange(math.ceil(-self.FOV_2 / 2), math.floor(self.FOV_2 / 2) + 1, 1)
-                        
+                        if self.FOV_1 <= 20:
+                            self.x_major_ticks = np.arange(math.ceil(self.FOV_1_start), math.floor(self.FOV_1_end) + 1, 1)
+                            self.y_major_ticks = np.arange(math.ceil(-self.FOV_2 / 2), math.floor(self.FOV_2 / 2) + 1, 1)
+                        elif self.FOV_1 > 20 and self.FOV_1 <= 50:
+                            self.x_major_ticks = np.arange(math.ceil(self.FOV_1_start), math.floor(self.FOV_1_end) + 2, 2)
+                            self.y_major_ticks = np.arange(math.ceil(-self.FOV_2 / 2), math.floor(self.FOV_2 / 2) + 2, 2)
+                        else:
+                            self.x_major_ticks = np.arange(math.ceil(self.FOV_1_start), math.floor(self.FOV_1_end) + 5, 5)
+                            self.y_major_ticks = np.arange(math.ceil(-self.FOV_2 / 2), math.floor(self.FOV_2 / 2) + 4, 4)
+                                            
                         self.IMag_ax.axis('on')
                         self.IMag_ax.set_xticks(self.x_major_ticks)
                         self.IMag_ax.set_yticks(self.y_major_ticks)
@@ -7540,97 +7918,513 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                         self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
                         self.IPha_ax.grid(which='major', visible=True)
                         
-                        if params.imageorientation == 'YZ':
-                            self.IMag_ax.set_xlabel('Y in mm')
-                            self.IMag_ax.set_ylabel('Z in mm')
-                            self.IPha_ax.set_xlabel('Y in mm')
-                            self.IPha_ax.set_ylabel('Z in mm')
-                        elif params.imageorientation == 'YX':
-                            self.IMag_ax.set_xlabel('Y in mm')
-                            self.IMag_ax.set_ylabel('Z in mm')
-                            self.IPha_ax.set_xlabel('Y in mm')
-                            self.IPha_ax.set_ylabel('Z in mm')
-                        
-                    else:
-                        self.IMag_ax.axis('off')
-                        self.IPha_ax.axis('off')
-                        
-                    self.image_positions = np.linspace(-params.slicethickness/(params.SPEsteps/2)+(params.slicethickness/params.SPEsteps)/2, +params.slicethickness/(params.SPEsteps/2)-(params.slicethickness/params.SPEsteps)/2, params.SPEsteps)
-
-                    if params.autofreqoffset == 1:
-                        self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                    else:
-                        self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        
-                elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
-                    gs_IMag = GridSpec(1, params.img_st_mag.shape[0], figure=self.IMag_fig)
-                    gs_IPha = GridSpec(1, params.img_st_mag.shape[0], figure=self.IPha_fig)
-            
-                    self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[0, n])
-                    self.IMag_ax.grid(False)
-                    self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[0, n])
-                    self.IPha_ax.grid(False)
-                    
-                    if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
-                    else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
-                    if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
-                    else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
-                    
-                    if params.image_grid == 1:
-                        self.major_ticks = np.arange(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)) + 1, 1)
-                        
-                        self.IMag_ax.axis('on')
-                        self.IMag_ax.set_xticks(self.major_ticks)
-                        self.IMag_ax.set_yticks(self.major_ticks)
-                        self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-                        self.IMag_ax.grid(which='major', visible=True)
-                        
-                        self.IPha_ax.axis('on')
-                        self.IPha_ax.set_xticks(self.major_ticks)
-                        self.IPha_ax.set_yticks(self.major_ticks)
-                        self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
-                        self.IPha_ax.grid(which='major', visible=True)
-                        
-                        if params.imageorientation == 'ZX':
-                            self.IMag_ax.set_xlabel('Z in mm')
+                        if params.imageorientation == 'YX':
+                            self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IMag_ax.set_ylabel('X in mm')
-                            self.IPha_ax.set_xlabel('Z in mm')
+                            self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_ylabel('X in mm')
-                        elif params.imageorientation == 'XZ':
-                            self.IMag_ax.set_xlabel('X in mm')
+                        elif params.imageorientation == 'YZ':
+                            self.IMag_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IMag_ax.set_ylabel('Z in mm')
-                            self.IPha_ax.set_xlabel('X in mm')
+                            self.IPha_ax.set_xlabel('Y$_{PB}$ in mm')
                             self.IPha_ax.set_ylabel('Z in mm')
                         
                     else:
                         self.IMag_ax.axis('off')
                         self.IPha_ax.axis('off')
                         
-                    self.image_positions = np.linspace(params.motor_start_position - params.motor_movement_step/2 + (params.slicethickness/params.SPEsteps)/2, params.motor_end_position + params.motor_movement_step/2 - (params.slicethickness/params.SPEsteps)/2, num=params.img_st_mag.shape[0])
-
+                if params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+                    or params.sequence == 8 or params.sequence == 9:
                     if params.autofreqoffset == 1:
-                        self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                        self.IMag_ax.set_title('Magnitude Image @ ' + str(params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
+                        self.IPha_ax.set_title('Phase Image @ ' + str(params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
                     else:
-                        self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        
-            self.IMag_canvas.draw()
-            self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-            self.IMag_canvas.setGeometry(420, 40, 575, 470)
-            self.IPha_canvas.draw()
-            self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
-            self.IPha_canvas.setGeometry(1005, 40, 575, 470)
+                        self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness) + 'mm)')
+                        self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness) + 'mm)')
+                else:
+                    self.IMag_ax.set_title('Magnitude Image')
+                    self.IPha_ax.set_title('Phase Image')
+                    
+                self.IMag_canvas.draw()
+                self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                self.IMag_canvas.setGeometry(420, 40, 575, 470)
+                self.IPha_canvas.draw()
+                self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                self.IPha_canvas.setGeometry(1005, 40, 575, 470)
 
-            self.IMag_canvas.show()
-            self.IPha_canvas.show()
+                self.IMag_canvas.show()
+                self.IPha_canvas.show()
+                
+            elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                self.imagecrop_image_pixel = int((params.motor_movement_step * params.SPEsteps) / params.slicethickness)
+                self.imagecrop_total_pixel = int(self.imagecrop_image_pixel * params.motor_image_count)
+                self.imageexp_total_pixel = (self.imagecrop_image_pixel * (params.motor_image_count - 1) + params.SPEsteps)
+                self.image_positions_1 = np.linspace(params.motor_start_position, params.motor_end_position, params.motor_image_count)
+
+                if params.projection3D == 1:
+                    self.IMag_ax = self.IMag_fig.add_subplot(111, projection='3d')
+                    self.IMag_ax.grid(False)
+                    
+                    if params.projection3D_quality == 1:
+                        print('WIP')
+#                         #Surface Plot
+#                         self.img_st_mag_cut_1 = np.array(np.zeros((params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_1_norm = np.array(np.zeros((params.nPE, params.nPE)))
+#                         self.img_st_mag_cut_2 = np.array(np.zeros((params.nPE, params.nPE)))
+#                        
+#                         X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE+1),np.linspace(params.FOV/2, -params.FOV/2, params.nPE+1))
+#                         print(self.image_positions_1)
+# 
+#                         if params.motor_movement_step <= params.slicethickness:
+#                             for m in range(params.motor_image_count):
+#                                 for n in range(self.imagecrop_image_pixel):
+#                                     self.img_st_mag_cut_1[:, :] = params.img_st_mag[m*self.imagecrop_image_pixel+n, :, :].copy()
+#                                     self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+#                                     self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum
+#                                     self.img_st_mag_cut_2[:, :] = params.img_st_mag[m*self.imagecrop_image_pixel+n, :, :].copy()
+#                                     self.img_st_mag_cut_2[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
+#                                     
+#                                     Y = np.full_like(X, self.image_positions_1[m] - (self.imagecrop_image_pixel/2)*(params.slicethickness/params.SPEsteps) + (params.slicethickness/params.SPEsteps)/2  + n*(params.slicethickness/params.SPEsteps))
+# 
+#                                     self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
+#                                     
+#                                     colors_2 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_st_mag_cut_1_norm, 0, 1))
+#                                     colors_2[self.img_st_mag_cut_2 < params.imageminimum, 3] = 0
+#                                     
+#                                     if params.imagefilter == 1: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=True, shade=False, edgecolor='none')
+#                                     else: self.IMag_ax.plot_surface(Y, Z, X, rstride=1, cstride=1, facecolors=colors_2, antialiased=False, shade=False, edgecolor='none')
+#                                     
+#                         self.IMag_ax.set_box_aspect([(params.motor_total_image_length + params.slicethickness)/params.FOV, 1, 1])
+#                         self.IMag_ax.set_xlim([params.motor_start_position - params.slicethickness/2, params.motor_end_position + params.slicethickness/2])
+#                         
+#                         del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Y, Z, colors_2
+#                          
+# #                         #Voxel Plot
+# #                         self.img_st_mag_cut_1 = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+# #                         self.img_st_mag_cut_1_norm = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+# #                         self.img_st_mag_cut_2 = np.array(np.zeros((params.motor_image_count, params.nPE, params.nPE)))
+# #                         
+# #                         for n in range(params.motor_image_count):
+# #                             self.img_st_mag_cut_1[n, :, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+# #                             self.img_st_mag_cut_2[n, :, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+# #                             
+# #                         
+# #                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 > params.imagemaximum] = params.imagemaximum
+# #                         self.img_st_mag_cut_1[self.img_st_mag_cut_1 < params.imageminimum] = params.imageminimum
+# #                         self.img_st_mag_cut_1[self.img_st_mag_cut_2 > params.imagemaximum] = params.imagemaximum
+# #                               
+# #                         x_edges = np.linspace(-params.FOV/2, params.FOV/2, self.img_st_mag_cut_2.shape[1]+1)
+# #                         y_edges = np.linspace(params.motor_start_position - params.slicethickness/2, params.motor_end_position + params.slicethickness/2, self.img_st_mag_cut_2.shape[0]+1)
+# #                         z_edges = np.linspace(-params.FOV/2, params.FOV/2, self.img_st_mag_cut_2.shape[2]+1)
+# #                                                 
+# #                         Y, Z, X = np.meshgrid(y_edges, z_edges, x_edges, indexing='ij')
+# #                         
+# #                         self.img_st_mag_cut_1_norm = (self.img_st_mag_cut_1 - params.imageminimum) / (params.imagemaximum - params.imageminimum)
+# #                         
+# #                         colors_3 = plt.get_cmap(params.imagecolormap)(np.clip(self.img_st_mag_cut_1_norm, 0, 1))
+# #                         colors_3[..., 3] = 0.2
+# #                         colors_3[self.img_st_mag_cut_2 < params.imageminimum, 3] = 0
+# #                         
+# #                         self.IMag_ax.voxels(Y, Z, X, self.img_st_mag_cut_1_norm, facecolors=colors_3, shade=False, edgecolor='none')
+# #                        
+# #                         self.IMag_ax.set_box_aspect([(params.motor_total_image_length + params.slicethickness)/params.FOV, 1, 1])
+# #                         self.IMag_ax.set_xlim([params.motor_start_position - params.slicethickness/2, params.motor_end_position + params.slicethickness/2])
+# #                         
+# #                         del self.img_st_mag_cut_1, self.img_st_mag_cut_1_norm, self.img_st_mag_cut_2, X, Y, Z, colors_3
+#                         
+#                     else:
+#                         #Contour Plot
+#                         self.img_st_mag_cut = np.array(np.zeros((params.nPE, params.nPE)))
+#                         
+#                         X, Z = np.meshgrid(np.linspace(-params.FOV/2, params.FOV/2, params.nPE),np.linspace(params.FOV/2, -params.FOV/2, params.nPE))
+#                         
+#                         levels = np.linspace(params.imageminimum, params.imagemaximum, 10)
+#                         
+#                         for n in range(params.motor_image_count):
+#                             self.img_st_mag_cut[:, :] = params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE].copy()
+#                             
+#                             self.IMag_ax.contour(self.img_st_mag_cut, Z, X, zdir='x', offset=self.image_positions[n], levels=levels, cmap=params.imagecolormap, extend='neither')
+#                         
+#                         self.IMag_ax.set_box_aspect([(params.motor_total_image_length)/params.FOV, 1, 1])
+#                         self.IMag_ax.set_xlim([params.motor_start_position, params.motor_end_position])
+#                         
+#                         del self.img_st_mag_cut, X, Z, levels
+#                     
+#                     if params.image_grid == 1:
+#                         if params.motor_total_image_length <= 20:
+#                             self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 1, 1)
+#                             self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 1, 1)
+#                         elif params.motor_total_image_length > 20 and params.motor_total_image_length <= 50:
+#                             self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 2, 2)
+#                             self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 2, 2)
+#                         else:
+#                             self.x_major_ticks = np.arange(math.ceil(params.motor_start_position), math.floor(params.motor_end_position) + 5, 5)
+#                             self.y_major_ticks = np.arange(math.ceil(-params.FOV / 2), math.floor(params.FOV / 2) + 4, 4)
+#                         
+#                         self.IMag_ax.axis('on')
+#                         self.IMag_ax.set_xticks(self.x_major_ticks)
+#                         self.IMag_ax.set_yticks(self.y_major_ticks)
+#                         self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+#                         self.IMag_ax.grid(which='major', visible=True)
+#                         self.IMag_ax.grid(True)
+#                         
+#                         if params.imageorientation == 'ZX':
+#                             self.IMag_ax.set(xlabel='\n\nY$_{PB}$',ylabel='Z', zlabel='X')
+#                         elif params.imageorientation == 'XZ':
+#                             self.IMag_ax.set(xlabel='\n\nY$_{PB}$',ylabel='X', zlabel='Z')
+#                     else:
+#                         self.IMag_ax.axis('off')
+#                         
+# 
+#                     #self.IMag_fig.patch.set_facecolor('black')
+#                     #self.IMag_fig.set_facecolor('black')
+#                     #self.IMag_ax.set_facecolor('black')
+#                     #self.IMag_ax.xaxis.set_pane_color((0, 0, 0, 1))
+#                     #self.IMag_ax.yaxis.set_pane_color((0, 0, 0, 1))
+#                     #self.IMag_ax.zaxis.set_pane_color((0, 0, 0, 1))
+#                     #self.IMag_ax.tick_params(axis='both', colors='white')
+#                     #self.IMag_ax.xaxis.label.set_color('white')
+#                     #self.IMag_ax.yaxis.label.set_color('white')
+#                     #self.IMag_ax.zaxis.label.set_color('white')
+#                     #self.IMag_ax.grid(True, color='white')
+#                     
+#                     self.IMag_canvas.draw()
+#                     self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+#                     self.IMag_canvas.setGeometry(420, 40, 1160, 950)
+#                     self.IMag_canvas.show()
+                        
+                else:
+# #                     if params.motor_image_count > 6:
+# #                         gs_IMag = GridSpec(int(np.ceil(params.motor_image_count/6)), 6, figure=self.IMag_fig)
+# #                         gs_IPha = GridSpec(int(np.ceil(params.motor_image_count/6)), 6, figure=self.IPha_fig)
+# #                         
+# #                         for m in range(int(np.ceil(params.motor_image_count/6))):
+# #                             for n in range(6):
+# #                                 if m*6 + n < params.motor_image_count:
+# #                                     self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[m, n])
+# #                                     self.IMag_ax.grid(False)
+# #                                     self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[m, n])
+# #                                     self.IPha_ax.grid(False)
+# #                                     
+# #                                     if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[:, (m*6+n)*params.nPE:((m*6+n)+1)*params.nPE], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                                     else: self.IMag_ax.imshow(params.img_st_mag[:, (m*6+n)*params.nPE:((m*6+n)+1)*params.nPE], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                                     if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[:, (m*6+n)*params.nPE:((m*6+n)+1)*params.nPE], interpolation='gaussian', cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                                     else: self.IPha_ax.imshow(params.img_st_pha[:, (m*6+n)*params.nPE:((m*6+n)+1)*params.nPE], cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                                            
+# #                                     if params.image_grid == 1:
+# #                                         self.major_ticks = np.arange(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)) + 1, 1)
+# #                                         
+# #                                         self.IMag_ax.axis('on')
+# #                                         self.IMag_ax.set_xticks(self.major_ticks)
+# #                                         self.IMag_ax.set_yticks(self.major_ticks)
+# #                                         self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+# #                                         self.IMag_ax.grid(which='major', visible=True)
+# #                                         
+# #                                         self.IPha_ax.axis('on')
+# #                                         self.IPha_ax.set_xticks(self.major_ticks)
+# #                                         self.IPha_ax.set_yticks(self.major_ticks)
+# #                                         self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+# #                                         self.IPha_ax.grid(which='major', visible=True)
+# #                       
+# #                                         if params.imageorientation == 'ZX':
+# #                                             self.IMag_ax.set_xlabel('Z in mm')
+# #                                             self.IMag_ax.set_ylabel('X in mm')
+# #                                             self.IPha_ax.set_xlabel('Z in mm')
+# #                                             self.IPha_ax.set_ylabel('X in mm')
+# #                                         elif params.imageorientation == 'XZ':
+# #                                             self.IMag_ax.set_xlabel('X in mm')
+# #                                             self.IMag_ax.set_ylabel('Z in mm')
+# #                                             self.IPha_ax.set_xlabel('X in mm')
+# #                                             self.IPha_ax.set_ylabel('Z in mm')
+# #                                             
+# #                                     else:
+# #                                         self.IMag_ax.axis('off')
+# #                                         self.IPha_ax.axis('off')
+# #                                       
+# #                                     if params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+# #                                         or params.sequence == 8 or params.sequence == 9:
+# #                                         if params.autofreqoffset == 1:
+# #                                             self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[(m*6+n)] + params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
+# #                                             self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[(m*6+n)] + params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
+# #                                         else:
+# #                                             self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness) + 'mm)')
+# #                                             self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness) + 'mm)')
+# #                                     else:
+# #                                         self.IMag_ax.set_title('Magnitude Image')
+# #                                         self.IPha_ax.set_title('Phase Image')
+# #                     else:
+# #                         gs_IMag = GridSpec(1, params.motor_image_count, figure=self.IMag_fig)
+# #                         gs_IPha = GridSpec(1, params.motor_image_count, figure=self.IPha_fig)
+# #                         
+# #                         for n in range(params.motor_image_count):
+# #                             self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[0, n])
+# #                             self.IMag_ax.grid(False)
+# #                             self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[0, n])
+# #                             self.IPha_ax.grid(False)
+# #                             
+# #                             if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                             else: self.IMag_ax.imshow(params.img_st_mag[:, n*params.nPE:(n+1)*params.nPE], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                             if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE], interpolation='gaussian', cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                             else: self.IPha_ax.imshow(params.img_st_pha[:, n*params.nPE:(n+1)*params.nPE], cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+# #                             
+# #                             if params.image_grid == 1:
+# #                                 self.major_ticks = np.arange(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)) + 1, 1)
+# #                                 
+# #                                 self.IMag_ax.axis('on')
+# #                                 self.IMag_ax.set_xticks(self.major_ticks)
+# #                                 self.IMag_ax.set_yticks(self.major_ticks)
+# #                                 self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+# #                                 self.IMag_ax.grid(which='major', visible=True)
+# #                                 
+# #                                 self.IPha_ax.axis('on')
+# #                                 self.IPha_ax.set_xticks(self.major_ticks)
+# #                                 self.IPha_ax.set_yticks(self.major_ticks)
+# #                                 self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+# #                                 self.IPha_ax.grid(which='major', visible=True)
+# #               
+# #                                 if params.imageorientation == 'ZX':
+# #                                     self.IMag_ax.set_xlabel('Z in mm')
+# #                                     self.IMag_ax.set_ylabel('X in mm')
+# #                                     self.IPha_ax.set_xlabel('Z in mm')
+# #                                     self.IPha_ax.set_ylabel('X in mm')
+# #                                 elif params.imageorientation == 'XZ':
+# #                                     self.IMag_ax.set_xlabel('X in mm')
+# #                                     self.IMag_ax.set_ylabel('Z in mm')
+# #                                     self.IPha_ax.set_xlabel('X in mm')
+# #                                     self.IPha_ax.set_ylabel('Z in mm')
+# #                                     
+# #                             else:
+# #                                 self.IMag_ax.axis('off')
+# #                                 self.IPha_ax.axis('off')
+# #                     
+# #                             if params.sequence == 5 or params.sequence == 6 or params.sequence == 7 \
+# #                                 or params.sequence == 8 or params.sequence == 9:
+# #                                 if params.autofreqoffset == 1:
+# #                                     self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
+# #                                     self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness) + 'mm)')
+# #                                 else:
+# #                                     self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness) + 'mm)')
+# #                                     self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness) + 'mm)')
+# #                             else:
+# #                                 self.IMag_ax.set_title('Magnitude Image')
+# #                                 self.IPha_ax.set_title('Phase Image')
+# #             
+# #                     self.IMag_canvas.draw()
+# #                     self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+# #                     self.IMag_canvas.setGeometry(420, 40, 575, 470)
+# #                     self.IPha_canvas.draw()
+# #                     self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+# #                     self.IPha_canvas.setGeometry(1005, 40, 575, 470)
+# # 
+# #                     self.IMag_canvas.show()
+# #                     self.IPha_canvas.show()
+        
+ 
+                    self.IMag_fig = Figure()
+                    self.IMag_canvas = FigureCanvas(self.IMag_fig)
+                    self.IMag_fig.set_facecolor('None')
+                    #self.IPha_fig = Figure()
+                    #self.IPha_canvas = FigureCanvas(self.IPha_fig)
+                    #self.IPha_fig.set_facecolor('None')
+                    
+                    for n in range(params.img_st_mag.shape[0]):
+                        if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
+                            gs_IMag = GridSpec(1, params.img_st_mag.shape[0], figure=self.IMag_fig)
+                            gs_IPha = GridSpec(1, params.img_st_mag.shape[0], figure=self.IPha_fig)
+                            
+                            self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[0, n])
+                            self.IMag_ax.grid(False)
+                            self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[0, n])
+                            self.IPha_ax.grid(False)
+                            
+                            self.FOV_1 = params.FOV
+                            if params.motor_movement_step <= params.FOV:
+                                self.FOV_2 = params.motor_total_image_length + params.motor_movement_step
+                                self.FOV_2_start = params.motor_start_position - params.motor_movement_step/2
+                                self.FOV_2_end = params.motor_end_position + params.motor_movement_step/2
+                            else:
+                                self.FOV_2 = params.motor_total_image_length + params.FOV
+                                self.FOV_2_start = params.motor_start_position - params.FOV/2
+                                self.FOV_2_end = params.motor_end_position + params.FOV/2
+                                
+                            if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                            else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                            if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                            else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[(-self.FOV_1 / 2), (self.FOV_1 / 2), self.FOV_2_start, self.FOV_2_end])
+                            
+                            if params.image_grid == 1:
+                                self.x_major_ticks = np.arange(math.ceil(-self.FOV_1 / 2), math.floor(self.FOV_1 / 2) + 1, 1)
+                                self.y_major_ticks = np.arange(math.ceil(self.FOV_2_start), math.floor(self.FOV_2_end) + 1, 1)
+                                
+                                self.IMag_ax.axis('on')
+                                self.IMag_ax.set_xticks(self.x_major_ticks)
+                                self.IMag_ax.set_yticks(self.y_major_ticks)
+                                self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IMag_ax.grid(which='major', visible=True)
+                                
+                                self.IPha_ax.axis('on')
+                                self.IPha_ax.set_xticks(self.x_major_ticks)
+                                self.IPha_ax.set_yticks(self.y_major_ticks)
+                                self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IPha_ax.grid(which='major', visible=True)
+                                
+                                if params.imageorientation == 'XY':
+                                    self.IMag_ax.set_xlabel('X in mm')
+                                    self.IMag_ax.set_ylabel('Y in mm')
+                                    self.IPha_ax.set_xlabel('X in mm')
+                                    self.IPha_ax.set_ylabel('Y in mm')
+                                elif params.imageorientation == 'ZY':
+                                    self.IMag_ax.set_xlabel('Z in mm')
+                                    self.IMag_ax.set_ylabel('Y in mm')
+                                    self.IPha_ax.set_xlabel('Z in mm')
+                                    self.IPha_ax.set_ylabel('Y in mm')
+                                
+                            else:
+                                self.IMag_ax.axis('off')
+                                self.IPha_ax.axis('off')
+                                
+                            self.image_positions = np.linspace(-params.slicethickness/(params.SPEsteps/2)+(params.slicethickness/params.SPEsteps)/2, +params.slicethickness/(params.SPEsteps/2)-(params.slicethickness/params.SPEsteps)/2, params.SPEsteps)
+
+                            if params.autofreqoffset == 1:
+                                self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                            else:
+                                self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                
+                        elif params.imageorientation == 'YZ' or params.imageorientation == 'YX':
+                            gs_IMag = GridSpec(params.img_st_mag.shape[0], 1, figure=self.IMag_fig)
+                            gs_IPha = GridSpec(params.img_st_mag.shape[0], 1, figure=self.IPha_fig)
+                    
+                            self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[n, 0])
+                            self.IMag_ax.grid(False)
+                            self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[n, 0])
+                            self.IPha_ax.grid(False)
+                            
+                            if params.motor_movement_step <= params.FOV:
+                                self.FOV_1 = params.motor_total_image_length + params.motor_movement_step
+                                self.FOV_1_start = params.motor_start_position - params.motor_movement_step/2
+                                self.FOV_1_end = params.motor_end_position + params.motor_movement_step/2
+                            else:
+                                self.FOV_1 = params.motor_total_image_length + params.FOV
+                                self.FOV_1_start = params.motor_start_position - params.FOV/2
+                                self.FOV_1_end = params.motor_end_position + params.FOV/2
+                            self.FOV_2 = params.FOV
+                            
+                            if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                            else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                            if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                            else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[self.FOV_1_start, self.FOV_1_end, (-self.FOV_2 / 2), (self.FOV_2 / 2)])
+                                
+                                
+                            if params.image_grid == 1:
+                                self.x_major_ticks = np.arange(math.ceil(self.FOV_1_start), math.floor(self.FOV_1_end) + 1, 1)
+                                self.y_major_ticks = np.arange(math.ceil(-self.FOV_2 / 2), math.floor(self.FOV_2 / 2) + 1, 1)
+                                
+                                self.IMag_ax.axis('on')
+                                self.IMag_ax.set_xticks(self.x_major_ticks)
+                                self.IMag_ax.set_yticks(self.y_major_ticks)
+                                self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IMag_ax.grid(which='major', visible=True)
+                                
+                                self.IPha_ax.axis('on')
+                                self.IPha_ax.set_xticks(self.x_major_ticks)
+                                self.IPha_ax.set_yticks(self.y_major_ticks)
+                                self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IPha_ax.grid(which='major', visible=True)
+                                
+                                if params.imageorientation == 'YZ':
+                                    self.IMag_ax.set_xlabel('Y in mm')
+                                    self.IMag_ax.set_ylabel('Z in mm')
+                                    self.IPha_ax.set_xlabel('Y in mm')
+                                    self.IPha_ax.set_ylabel('Z in mm')
+                                elif params.imageorientation == 'YX':
+                                    self.IMag_ax.set_xlabel('Y in mm')
+                                    self.IMag_ax.set_ylabel('Z in mm')
+                                    self.IPha_ax.set_xlabel('Y in mm')
+                                    self.IPha_ax.set_ylabel('Z in mm')
+                                
+                            else:
+                                self.IMag_ax.axis('off')
+                                self.IPha_ax.axis('off')
+                                
+                            self.image_positions = np.linspace(-params.slicethickness/(params.SPEsteps/2)+(params.slicethickness/params.SPEsteps)/2, +params.slicethickness/(params.SPEsteps/2)-(params.slicethickness/params.SPEsteps)/2, params.SPEsteps)
+
+                            if params.autofreqoffset == 1:
+                                self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                            else:
+                                self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                
+                        elif params.imageorientation == 'ZX' or params.imageorientation == 'XZ':
+                            gs_IMag = GridSpec(1, params.img_st_mag.shape[0], figure=self.IMag_fig)
+                            gs_IPha = GridSpec(1, params.img_st_mag.shape[0], figure=self.IPha_fig)
+                    
+                            self.IMag_ax = self.IMag_fig.add_subplot(gs_IMag[0, n])
+                            self.IMag_ax.grid(False)
+                            self.IPha_ax = self.IPha_fig.add_subplot(gs_IPha[0, n])
+                            self.IPha_ax.grid(False)
+                            
+                            if params.imagefilter == 1: self.IMag_ax.imshow(params.img_st_mag[n, :, :], interpolation='gaussian', cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+                            else: self.IMag_ax.imshow(params.img_st_mag[n, :, :], cmap=params.imagecolormap, vmin=params.imageminimum, vmax=params.imagemaximum, extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+                            if params.imagefilter == 1: self.IPha_ax.imshow(params.img_st_pha[n, :, :], interpolation='gaussian', cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+                            else: self.IPha_ax.imshow(params.img_st_pha[n, :, :], cmap='gray', extent=[(-params.FOV / 2), (params.FOV / 2), (-params.FOV / 2), (params.FOV / 2)])
+                            
+                            if params.image_grid == 1:
+                                self.major_ticks = np.arange(math.ceil((-params.FOV / 2)), math.floor((params.FOV / 2)) + 1, 1)
+                                
+                                self.IMag_ax.axis('on')
+                                self.IMag_ax.set_xticks(self.major_ticks)
+                                self.IMag_ax.set_yticks(self.major_ticks)
+                                self.IMag_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IMag_ax.grid(which='major', visible=True)
+                                
+                                self.IPha_ax.axis('on')
+                                self.IPha_ax.set_xticks(self.major_ticks)
+                                self.IPha_ax.set_yticks(self.major_ticks)
+                                self.IPha_ax.grid(which='major', color='#CCCCCC', linestyle='-')
+                                self.IPha_ax.grid(which='major', visible=True)
+                                
+                                if params.imageorientation == 'ZX':
+                                    self.IMag_ax.set_xlabel('Z in mm')
+                                    self.IMag_ax.set_ylabel('X in mm')
+                                    self.IPha_ax.set_xlabel('Z in mm')
+                                    self.IPha_ax.set_ylabel('X in mm')
+                                elif params.imageorientation == 'XZ':
+                                    self.IMag_ax.set_xlabel('X in mm')
+                                    self.IMag_ax.set_ylabel('Z in mm')
+                                    self.IPha_ax.set_xlabel('X in mm')
+                                    self.IPha_ax.set_ylabel('Z in mm')
+                                
+                            else:
+                                self.IMag_ax.axis('off')
+                                self.IPha_ax.axis('off')
+                                
+                            self.image_positions = np.linspace(params.motor_start_position - params.motor_movement_step/2 + (params.slicethickness/params.SPEsteps)/2, params.motor_end_position + params.motor_movement_step/2 - (params.slicethickness/params.SPEsteps)/2, num=params.img_st_mag.shape[0])
+
+                            if params.autofreqoffset == 1:
+                                self.IMag_ax.set_title('Magnitude Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ ' + str(self.image_positions[n] + params.sliceoffset) + 'mm (' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                            else:
+                                self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
+                                
+                    self.IMag_canvas.draw()
+                    self.IMag_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                    self.IMag_canvas.setGeometry(420, 40, 575, 470)
+                    self.IPha_canvas.draw()
+                    self.IPha_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
+                    self.IPha_canvas.setGeometry(1005, 40, 575, 470)
+
+                    self.IMag_canvas.show()
+                    self.IPha_canvas.show()
                 
         else:
             self.all_fig = Figure()
             self.all_canvas = FigureCanvas(self.all_fig)
             self.all_fig.set_facecolor('None')
+            
             
             if params.imageorientation == 'XY' or params.imageorientation == 'ZY':
                 gs = GridSpec(2, params.img_st_mag.shape[0], figure=self.all_fig)
@@ -7813,8 +8607,6 @@ class PlotWindow(Plot_Window_Form, Plot_Window_Base):
                     else:
                         self.IMag_ax.set_title('Magnitude Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
                         self.IPha_ax.set_title('Phase Image @ Offset' + str(params.slicethickness / params.SPEsteps) + 'mm)')
-                        
-                    
 
             self.all_canvas.draw()
             self.all_canvas.setWindowTitle('Plot - ' + params.datapath + '.txt')
@@ -9485,7 +10277,9 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             params.datapath = self.datapath_temp
             params.agriMRI_folder_structure = self.agriMRI_folder_structure_temp
 
-        if self.GUImode == 5 and self.sequence != 10: self.SPEsteps = 1
+        if self.GUImode == 5 and (self.sequence == 0 or self.sequence == 1 or self.sequence == 2 or self.sequence == 3 \
+                                  or self.sequence == 4 or self.sequence == 5 or self.sequence == 6 or self.sequence == 7 \
+                                  or self.sequence == 8 or self.sequence == 9): self.SPEsteps = 1
 
         self.aspect = np.zeros(3)
         self.aspect[0] = 1.0
@@ -9535,7 +10329,9 @@ class View3DLayersDialog(View3D_Dialog_Form, View3D_Dialog_Base):
             
             self.imagelength = self.slicethickness
             
-        elif self.GUImode == 5 and self.sequence != 10:
+        elif self.GUImode == 5 and (self.sequence == 0 or self.sequence == 1 or self.sequence == 2 or self.sequence == 3 \
+                                    or self.sequence == 4 or self.sequence == 5 or self.sequence == 6 or self.sequence == 7 \
+                                    or self.sequence == 8 or self.sequence == 9):
             self.mode2D = True             
             
             datapathtemp = params.datapath

@@ -211,7 +211,7 @@ class Parameters:
         self.SAR_power_unit = 'mW'
         self.SAR_max_power = 15
         self.headerfileformat = 1
-        self.motor_enable = 0
+        self.motor_enable = 1
         self.motor_available = 0
         self.motor_port = []
         self.motor_axis_limit_negative = 0
@@ -256,6 +256,7 @@ class Parameters:
         self.experiment_description = ''
         self.plant_ID = ''
         self.plant_part_ID = ''
+        self.plant_cultivated_variant = ''
         self.plant_part_name = ''
         self.plant_description = ''
         self.agriMRI_folder_structure = 'rawdata/'
@@ -269,6 +270,7 @@ class Parameters:
         self.plant_light_source_artificial = 0
         self.plant_light_availability = -1
         self.plant_water_availability = -1
+        self.plant_seed_coating = ''
         self.plant_nutrient_application_index = 0
         self.plant_nutrient_date = ['', '', '', '', '', '', '', '', '', '']
         self.plant_nutrient_das = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -332,6 +334,7 @@ class Parameters:
     def AgriMRI_var_reset(self):
         print('Setting default AgriMRI parameters.')
         self.experiment_description = ''
+        self.plant_cultivated_variant = ''
         self.plant_part_name = ''
         self.plant_description = ''
         self.plant_date_of_sowing = datetime.datetime.strptime('2025-01-01','%Y-%m-%d')
@@ -345,6 +348,7 @@ class Parameters:
         self.plant_light_source_artificial = 0
         self.plant_light_availability = -1
         self.plant_water_availability = -1
+        self.plant_seed_coating = ''
         self.plant_nutrient_application_index = 0
         self.plant_nutrient_date = ['', '', '', '', '', '', '', '', '', '']
         self.plant_nutrient_das = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -646,6 +650,7 @@ class Parameters:
                          self.plant_species, \
                          self.plant_scientific_name, \
                          self.plant_taxonomy, \
+                         self.plant_cultivated_variant, \
                          self.plant_part_name, \
                          self.plant_description, \
                          self.agriMRI_folder_structure, \
@@ -663,6 +668,7 @@ class Parameters:
                          self.plant_light_source_artificial, \
                          self.plant_light_availability, \
                          self.plant_water_availability, \
+                         self.plant_seed_coating, \
                          self.plant_nutrient_application_index, \
                          self.plant_nutrient_date, \
                          self.plant_nutrient_das, \
@@ -949,6 +955,7 @@ class Parameters:
                 self.plant_species, \
                 self.plant_scientific_name, \
                 self.plant_taxonomy, \
+                self.plant_cultivated_variant, \
                 self.plant_part_name, \
                 self.plant_description, \
                 self.agriMRI_folder_structure, \
@@ -966,6 +973,7 @@ class Parameters:
                 self.plant_light_source_artificial, \
                 self.plant_light_availability, \
                 self.plant_water_availability, \
+                self.plant_seed_coating, \
                 self.plant_nutrient_application_index, \
                 self.plant_nutrient_date, \
                 self.plant_nutrient_das, \
@@ -1348,6 +1356,7 @@ class Parameters:
                 'Species': self.plant_species,
                 'Scientific name': self.plant_scientific_name,
                 'Taxonomy': self.plant_taxonomy,
+                'Cultivated variant': self.plant_cultivated_variant,
                 'Plant part name': self.plant_part_name,
                 'Plant description': self.plant_description,
                 'AgriMRI folder structure': self.agriMRI_folder_structure,
@@ -1370,6 +1379,8 @@ class Parameters:
                     'Light availability': self.plant_light_availability},
                 'water': {
                     'Water availability': self.plant_water_availability},
+                'seed': {
+                    'Seed coating': self.plant_seed_coating},
                 'nutrient': {
                     'Nutrient application index': self.plant_nutrient_application_index,
                     'Nutrient application date': self.plant_nutrient_dates,
@@ -1401,44 +1412,394 @@ class Parameters:
         with open(self.agriMRI_folder_structure + 'AgriMRI_Metadata.json', 'r') as j:
             jsonparams = json.loads(j.read())
 
-            self.experiment_ID = jsonparams['general']['Experiment ID']
-            self.experiment_description = jsonparams['general']['Experiment description']
-            self.plant_ID = jsonparams['general']['Plant ID']
-            self.plant_part_ID = jsonparams['general']['Plant part ID']
-            self.plant_species = jsonparams['general']['Species']
-            self.plant_scientific_name = jsonparams['general']['Scientific name']
-            self.plant_taxonomy = jsonparams['general']['Taxonomy']
-            self.plant_part_name = jsonparams['general']['Plant part name']
-            self.plant_description = jsonparams['general']['Plant description']
-            self.agriMRI_folder_structure = jsonparams['general']['AgriMRI folder structure']
-            self.plant_date_of_sowing = datetime.datetime.strptime(jsonparams['general']['Date of sowing'],'%Y-%m-%d')
-            self.plant_measurement_date = datetime.datetime.strptime(jsonparams['measurement']['Measurement date'],'%Y-%m-%d')
-            self.plant_measurement_das = jsonparams['measurement']['Measurement DAS']
-            self.plant_BBCH_scale = jsonparams['measurement']['BBCH scale']
-            self.plant_phenological_phase = jsonparams['measurement']['Phenological phase']
-            self.plant_environment_outside = jsonparams['treatment']['environment']['Environment outside']
-            self.plant_environment_inside = jsonparams['treatment']['environment']['Environment inside']
-            self.plant_light_source_sun = jsonparams['treatment']['light']['Light source sun']
-            self.plant_light_source_grow_light = jsonparams['treatment']['light']['Light source grow light']
-            self.plant_light_source_artificial = jsonparams['treatment']['light']['Light source artificial']
-            self.plant_light_availability = jsonparams['treatment']['light']['Light availability']
-            self.plant_water_availability = jsonparams['treatment']['water']['Water availability']
-            self.plant_nutrient_application_index = jsonparams['treatment']['nutrient']['Nutrient application index']
-            self.plant_nutrient_dates = jsonparams['treatment']['nutrient']['Nutrient application date']
-            self.plant_nutrient_das = jsonparams['treatment']['nutrient']['Nutrient application DAS']
-            self.plant_nitrogen = jsonparams['treatment']['nutrient']['Nutrient nitrogen [%]']
-            self.plant_phosphorus = jsonparams['treatment']['nutrient']['Nutrient phosphorus [%]']
-            self.plant_potassium = jsonparams['treatment']['nutrient']['Nutrient potassium [%]']
-            self.plant_stimulant_application_index = jsonparams['treatment']['stimulant']['Stimulant application index']
-            self.plant_stimulant_product_name = jsonparams['treatment']['stimulant']['Stimulant product name']
-            self.plant_stimulant_dates = jsonparams['treatment']['stimulant']['Stimulant application date']
-            self.plant_stimulant_das = jsonparams['treatment']['stimulant']['Stimulant application DAS']
-            self.plant_stimulant_dose = jsonparams['treatment']['stimulant']['Stimulant dose']
-            self.plant_protection_application_index = jsonparams['treatment']['protection']['Protection application index']
-            self.plant_protection_product_name = jsonparams['treatment']['protection']['Protection product name']
-            self.plant_protection_dates = jsonparams['treatment']['protection']['Protection application date']
-            self.plant_protection_das = jsonparams['treatment']['protection']['Protection application DAS']
-            self.plant_protection_dose = jsonparams['treatment']['protection']['Protection dose']
+            try: self.experiment_ID = jsonparams['general']['Experiment ID']
+            except:
+                try:
+                    self.experiment_ID = jsonparams['Experiment ID']
+                    print('\033[33m' + 'Old style: Experiment ID' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Experiment ID' + '\033[0m')
+                    
+            try: self.experiment_description = jsonparams['general']['Experiment description']
+            except:
+                try:
+                    self.experiment_description = jsonparams['Experiment description']
+                    print('\033[33m' + 'Old style: Experiment description' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Experiment description' + '\033[0m')
+                    self.experiment_description = ''
+                    
+            try: self.plant_ID = jsonparams['general']['Plant ID']
+            except:
+                try:
+                    self.plant_ID = jsonparams['Plant ID']
+                    print('\033[33m' + 'Old style: Plant ID' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Plant ID' + '\033[0m')
+                    
+            try: self.plant_part_ID = jsonparams['general']['Plant part ID']
+            except:
+                try:
+                    self.plant_part_ID = jsonparams['Plant part ID']
+                    print('\033[33m' + 'Old style: Plant part ID' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Plant part ID' + '\033[0m')
+                    
+            try: self.plant_scientific_name = jsonparams['general']['Scientific name']
+            except:
+                try:
+                    self.plant_scientific_name = jsonparams['Scientific name']
+                    print('\033[33m' + 'Old style: Scientific name' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Scientific name' + '\033[0m')
+                    self.plant_scientific_name = self.plant_species_library [0][2]
+                    
+            try: self.plant_taxonomy = jsonparams['general']['Taxonomy']
+            except:
+                try:
+                    self.plant_taxonomy = jsonparams['Taxonomy']
+                    print('\033[33m' + 'Old style: Taxonomy' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Taxonomy' + '\033[0m')
+                    self.plant_taxonomy = self.plant_species_library [0][3]
+                    
+            try: self.plant_species = jsonparams['general']['Species']
+            except:
+                try:
+                    self.plant_species = jsonparams['Species']
+                    print('\033[33m' + 'Old style: Species' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Species' + '\033[0m')
+                    
+            try:self.plant_species_index = [row[0] for row in self.plant_species_library if row[1] == self.plant_species][0]
+            except:
+                print('\033[31m' + 'Unable to find species in library: ' + self.plant_species + '\033[0m')
+                self.plant_species_index = int(self.plant_species_library [0][0])
+                self.plant_species = self.plant_species_library [0][1]
+                
+
+            try: self.plant_cultivated_variant = jsonparams['general']['Cultivated variant']
+            except:
+                try:
+                    self.plant_cultivated_variant = jsonparams['Cultivated variant']
+                    print('\033[33m' + 'Old style: Cultivated variant' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Cultivated variant' + '\033[0m')
+                    self.plant_cultivated_variant = ''
+                    
+            try: self.plant_part_name = jsonparams['general']['Plant part name']
+            except:
+                try:
+                    self.plant_part_name = jsonparams['Plant part name']
+                    print('\033[33m' + 'Old style: Plant part name' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Plant part name' + '\033[0m')
+                    self.plant_part_name = ''
+                    
+            try: self.plant_description = jsonparams['general']['Plant description']
+            except:
+                try:
+                    self.plant_description = jsonparams['Plant description']
+                    print('\033[33m' + 'Old style: Plant description' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Plant description' + '\033[0m')
+                    self.plant_description = ''
+                    
+            try: self.agriMRI_folder_structure = jsonparams['general']['AgriMRI folder structure']
+            except:
+                try:
+                    self.agriMRI_folder_structure = jsonparams['AgriMRI folder structure']
+                    print('\033[33m' + 'Old style: AgriMRI folder structure' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: AgriMRI folder structure' + '\033[0m')
+                    self.agriMRI_folder_structure = ''
+                    if self.experiment_ID != '':
+                        self.agriMRI_folder_structure = self.experiment_ID + '/'
+                        if self.plant_ID != '':
+                            self.agriMRI_folder_structure = self.experiment_ID + '/' + self.plant_ID + '/'
+                            if self.plant_part_ID != '':
+                                self.agriMRI_folder_structure = self.experiment_ID + '/' + self.plant_ID + '/' + self.plant_part_ID + '/'
+                    else:
+                        self.agriMRI_folder_structure = 'rawdata/'
+                    print('\033[31m' + 'Set to: ' + self.agriMRI_folder_structure + '' + '\033[0m')
+                    
+            try: self.plant_date_of_sowing = datetime.datetime.strptime(jsonparams['general']['Date of sowing'],'%Y-%m-%d')
+            except:
+                try:
+                    self.plant_date_of_sowing = datetime.datetime.strptime(jsonparams['Date of sowing'],'%Y-%m-%d')
+                    print('\033[33m' + 'Old style: Date of sowing' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Date of sowing' + '\033[0m')
+                    self.plant_date_of_sowing = datetime.datetime.strptime('2025-01-01','%Y-%m-%d')
+                    
+            try: self.plant_measurement_date = datetime.datetime.strptime(jsonparams['measurement']['Measurement date'],'%Y-%m-%d')
+            except:
+                try:
+                    self.plant_measurement_date = datetime.datetime.strptime(jsonparams['Measurement date'],'%Y-%m-%d')
+                    print('\033[33m' + 'Old style: Measurement date' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Measurement date' + '\033[0m')
+                    self.plant_measurement_date = datetime.datetime.strptime('2025-01-01','%Y-%m-%d')
+                    
+            try: self.plant_measurement_das = jsonparams['measurement']['Measurement DAS']
+            except:
+                try:
+                    self.plant_measurement_das = jsonparams['Measurement DAS']
+                    print('\033[33m' + 'Old style: Measurement DAS' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Measurement DAS' + '\033[0m')
+                    self.plant_measurement_das = 0
+                    
+            try: self.plant_BBCH_scale = jsonparams['measurement']['BBCH scale']
+            except:
+                try:
+                    self.plant_BBCH_scale = jsonparams['BBCH scale']
+                    print('\033[33m' + 'Old style: BBCH scale' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: BBCH scale' + '\033[0m')
+                    self.plant_BBCH_scale = self.plant_species_library [0][4]
+                    
+            if any(row[4] == self.plant_BBCH_scale for row in self.plant_species_library): pass
+            else:
+                print('\033[31m' + 'Unable to find BBCH scale: ' + self.plant_BBCH_scale + '\033[0m')
+                self.plant_BBCH_scale = self.plant_species_library [0][4]
+
+            self.laod_phenological_phases_library()
+
+            try: self.plant_phenological_phase = jsonparams['measurement']['Phenological phase']
+            except:
+                try:
+                    self.plant_phenological_phase = jsonparams['Phenological phase']
+                    print('\033[33m' + 'Old style: Phenological phase' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Phenological phase' + '\033[0m')
+                    self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
+                    self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
+                    
+            try: self.plant_phenological_phase_index = [row[0] for row in self.plant_phenological_phases_library if row[1] == self.plant_phenological_phase][0]
+            except:
+                print('\033[31m' + 'Unable to find phenological phase in BBCH scale: ' + self.plant_phenological_phase + '\033[0m')
+                self.plant_phenological_phase_index = int(self.plant_phenological_phases_library [0][0])
+                self.plant_phenological_phase = self.plant_phenological_phases_library [0][1]
+                    
+            try: self.plant_environment_outside = jsonparams['treatment']['environment']['Environment outside']
+            except:
+                try:
+                    self.plant_environment_outside = jsonparams['Environment outside']
+                    print('\033[33m' + 'Old style: Environment outside' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Environment outside' + '\033[0m')
+                    self.plant_environment_outside = 0
+                    
+            try: self.plant_environment_inside = jsonparams['treatment']['environment']['Environment inside']
+            except:
+                try:
+                    self.plant_environment_inside = jsonparams['Environment inside']
+                    print('\033[33m' + 'Old style: Environment inside' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Environment inside' + '\033[0m')
+                    self.plant_environment_inside = 0
+        
+            try: self.plant_light_source_sun = jsonparams['treatment']['light']['Light source sun']
+            except:
+                try:
+                    self.plant_light_source_sun = jsonparams['Light source sun']
+                    print('\033[33m' + 'Old style: Light source sun' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Light source sun' + '\033[0m')
+                    self.plant_light_source_sun = 0
+        
+            try: self.plant_light_source_grow_light = jsonparams['treatment']['light']['Light source grow light']
+            except:
+                try:
+                    self.plant_light_source_grow_light = jsonparams['Light source grow light']
+                    print('\033[33m' + 'Old style: Light source grow light' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Light source grow light' + '\033[0m')
+                    self.plant_light_source_grow_light = 0
+        
+            try: self.plant_light_source_artificial = jsonparams['treatment']['light']['Light source artificial']
+            except:
+                try:
+                    self.plant_light_source_artificial = jsonparams['Light source artificial']
+                    print('\033[33m' + 'Old style: Light source artificial' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Light source artificial' + '\033[0m')
+                    self.plant_light_source_artificial = 0
+        
+            try: self.plant_light_availability = jsonparams['treatment']['light']['Light availability']
+            except:
+                try:
+                    self.plant_light_availability = jsonparams['Light availability']
+                    print('\033[33m' + 'Old style: Light availability' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Light availability' + '\033[0m')
+                    self.plant_light_availability = -1
+        
+            try: self.plant_water_availability = jsonparams['treatment']['water']['Water availability']
+            except:
+                try:
+                    self.plant_water_availability = jsonparams['Water availability']
+                    print('\033[33m' + 'Old style: Water availability' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Water availability' + '\033[0m')
+                    self.plant_water_availability = -1
+        
+            try: self.plant_seed_coating = jsonparams['treatment']['seed']['Seed coating']
+            except:
+                try:
+                    self.plant_seed_coating = jsonparams['Seed coating']
+                    print('\033[33m' + 'Old style: Seed coating' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Seed coating' + '\033[0m')
+                    self.plant_seed_coating = ''
+        
+            try: self.plant_nutrient_application_index = jsonparams['treatment']['nutrient']['Nutrient application index']
+            except:
+                try:
+                    self.plant_nutrient_application_index = jsonparams['Nutrient application index']
+                    print('\033[33m' + 'Old style: Nutrient application index' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient application index' + '\033[0m')
+                    self.plant_nutrient_application_index = 0
+                    
+            try: self.plant_nutrient_dates = jsonparams['treatment']['nutrient']['Nutrient application date']
+            except:
+                try:
+                    self.plant_nutrient_dates = jsonparams['Nutrient application date']
+                    print('\033[33m' + 'Old style: Nutrient application date' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient application date' + '\033[0m')
+                    self.plant_nutrient_dates = ['', '', '', '', '', '', '', '', '', '']
+                    self.plant_nutrient_date = ['', '', '', '', '', '', '', '', '', '']
+        
+            try: self.plant_nutrient_das = jsonparams['treatment']['nutrient']['Nutrient application DAS']
+            except:
+                try:
+                    self.plant_nutrient_das = jsonparams['Nutrient application DAS']
+                    print('\033[33m' + 'Old style: Nutrient application DAS' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient application DAS' + '\033[0m')
+                    self.plant_nutrient_das = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+            try: self.plant_nitrogen = jsonparams['treatment']['nutrient']['Nutrient nitrogen [%]']
+            except:
+                try:
+                    self.plant_nitrogen = jsonparams['Nutrient nitrogen [%]']
+                    print('\033[33m' + 'Old style: Nutrient nitrogen [%]' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient nitrogen [%]' + '\033[0m')
+                    self.plant_nitrogen = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        
+            try: self.plant_phosphorus = jsonparams['treatment']['nutrient']['Nutrient phosphorus [%]']
+            except:
+                try:
+                    self.plant_phosphorus = jsonparams['Nutrient phosphorus [%]']
+                    print('\033[33m' + 'Old style: Nutrient phosphorus [%]' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient phosphorus [%]' + '\033[0m')
+                    self.plant_phosphorus = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        
+            try: self.plant_potassium = jsonparams['treatment']['nutrient']['Nutrient potassium [%]']
+            except:
+                try:
+                    self.plant_potassium = jsonparams['Nutrient potassium [%]']
+                    print('\033[33m' + 'Old style: Nutrient potassium [%]' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Nutrient potassium [%]' + '\033[0m')
+                    self.plant_potassium = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        
+            try: self.plant_stimulant_application_index = jsonparams['treatment']['stimulant']['Stimulant application index']
+            except:
+                try:
+                    self.plant_stimulant_application_index = jsonparams['Stimulant application index']
+                    print('\033[33m' + 'Old style: Stimulant application index' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Stimulant application index' + '\033[0m')
+                    self.plant_stimulant_application_index = 0
+        
+            try: self.plant_stimulant_product_name = jsonparams['treatment']['stimulant']['Stimulant product name']
+            except:
+                try:
+                    self.plant_stimulant_product_name = jsonparams['Stimulant product name']
+                    print('\033[33m' + 'Old style: Stimulant product name' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Stimulant product name' + '\033[0m')
+                    self.plant_stimulant_product_name = ['', '', '', '', '', '', '', '', '', '']
+        
+            try: self.plant_stimulant_dates = jsonparams['treatment']['stimulant']['Stimulant application date']
+            except:
+                try:
+                    self.plant_stimulant_dates = jsonparams['Stimulant application date']
+                    print('\033[33m' + 'Old style: Stimulant application date' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Stimulant application date' + '\033[0m')
+                    self.plant_stimulant_dates = ['', '', '', '', '', '', '', '', '', '']
+                    self.plant_stimulant_date = ['', '', '', '', '', '', '', '', '', '']
+        
+            try: self.plant_stimulant_das = jsonparams['treatment']['stimulant']['Stimulant application DAS']
+            except:
+                try:
+                    self.plant_stimulant_das = jsonparams['Stimulant application DAS']
+                    print('\033[33m' + 'Old style: Stimulant application DAS' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Stimulant application DAS' + '\033[0m')
+                    self.plant_stimulant_das = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+            try: self.plant_stimulant_dose = jsonparams['treatment']['stimulant']['Stimulant dose']
+            except:
+                try:
+                    self.plant_stimulant_dose = jsonparams['Stimulant dose']
+                    print('\033[33m' + 'Old style: Stimulant dose' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Stimulant dose' + '\033[0m')
+                    self.plant_stimulant_dose = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        
+            try: self.plant_protection_application_index = jsonparams['treatment']['protection']['Protection application index']
+            except:
+                try:
+                    self.plant_protection_application_index = jsonparams['Protection application index']
+                    print('\033[33m' + 'Old style: Protection application index' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Protection application index' + '\033[0m')
+                    self.plant_protection_application_index = 0
+        
+            try: self.plant_protection_product_name = jsonparams['treatment']['protection']['Protection product name']
+            except:
+                try:
+                    self.plant_protection_product_name = jsonparams['Protection product name']
+                    print('\033[33m' + 'Old style: Protection product name' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Protection product name' + '\033[0m')
+                    self.plant_protection_product_name = ['', '', '', '', '', '', '', '', '', '']
+        
+            try: self.plant_protection_dates = jsonparams['treatment']['protection']['Protection application date']
+            except:
+                try:
+                    self.plant_protection_dates = jsonparams['Protection application date']
+                    print('\033[33m' + 'Old style: Protection application date' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Protection application date' + '\033[0m')
+                    self.plant_protection_dates = ['', '', '', '', '', '', '', '', '', '']
+                    self.plant_protection_date = ['', '', '', '', '', '', '', '', '', '']
+        
+            try: self.plant_protection_das = jsonparams['treatment']['protection']['Protection application DAS']
+            except:
+                try:
+                    self.plant_protection_das = jsonparams['Protection application DAS']
+                    print('\033[33m' + 'Old style: Protection application DAS' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Protection application DAS' + '\033[0m')
+                    self.plant_protection_das = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+            try: self.plant_protection_dose = jsonparams['treatment']['protection']['Protection dose']
+            except:
+                try:
+                    self.plant_protection_dose = jsonparams['Protection dose']
+                    print('\033[33m' + 'Old style: Protection dose' + '\033[0m')
+                except:
+                    print('\033[31m' + 'Unable to load: Protection dose' + '\033[0m')
+                    self.plant_protection_dose = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
             
             for n in range(10):
                 if self.plant_nutrient_dates[n] != '': self.plant_nutrient_date[n] = datetime.datetime.strptime(self.plant_nutrient_dates[n],'%Y-%m-%d')

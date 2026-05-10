@@ -1,0 +1,72 @@
+code;description
+00;Dry seed
+01;Beginning of seed imbibition
+03;Seed imbibition complete
+05;Radicle emerged from seed
+07;Shoot emerged from seed (plumule apparent)
+08;Shoot growing towards soil surface
+09;Emergence: shoot emerges through soil surface
+10;Pair of scale leaves visible (may be eaten or lost)
+11;First leaf unfolded
+12;2 leaves unfolded
+13;3 leaves unfolded
+14;4 leaves unfolded
+15;5 leaves unfolded
+16;6 leaves unfolded
+17;7 leaves unfolded
+18;8 leaves unfolded
+19;9 or more leaves unfolded
+20;No side shoots
+21;Beginning of side shoot development: first side shoot detectable
+22;2 side shoots detectable
+23;3 side shoots detectable
+24;4 side shoots detectable
+25;5 side shoots detectable
+26;6 side shoots detectable
+27;7 side shoots detectable
+28;8 side shoots detectable
+29;End of side shoot development: 9 or more side shoots detectable
+30;Beginning of stem elongation
+31;One visibly extended internode
+32;2 visibly extended internodes
+33;3 visibly extended internodes
+34;4 visibly extended internodes
+35;5 visibly extended internodes
+36;6 visibly extended internodes
+37;7 visibly extended internodes
+38;8 visibly extended internodes
+39;9 or more visibly extended internodes
+50;Flower buds present, still enclosed by leaves
+51;First flower buds visible outside leaves
+55;First individual flower buds visible outside leaves but still closed
+59;First petals visible, many individual flower buds, still closed
+60;First flowers open
+61;Flowers open on first raceme
+63;Flowers open 3 racemes per plant
+65;Full flowering: flowers open on 5 racemes per plant
+67;Flowering declining
+69;End of flowering
+70;First pods have reached final length ("flat pod")
+71;10% of pods have reached final length
+72;20% of pods have reached final length
+73;30% of pods have reached final length
+74;40% of pods have reached final length
+75;50% of pods have reached final length
+76;60% of pods have reached final length
+77;70% of pods have reached final length
+78;80% of pods have reached final length
+79;Nearly all pods have reached final length
+80;Beginning of ripening: seed green, filling pod cavity
+81;10% of pods ripe, seeds dry and hard
+82;20% of pods ripe, seeds dry and hard
+83;30% of pods ripe and dark, seeds dry and hard
+84;40% of pods ripe and dark, seeds dry and hard
+85;50% of pods ripe and dark, seeds dry and hard
+86;60% of pods ripe and dark, seeds dry and hard
+87;70% of pods ripe and dark, seeds dry and hard
+88;80% of pods ripe and dark, seeds dry and hard
+89;Fully ripe: nearly all pods dark, seeds dry and hard
+93;Stems begin to darken
+95;50% of stems brown or black
+97;Plant dead and dry
+99;Harvested product
